@@ -261,6 +261,10 @@ describe('browser transport projection', () => {
           discFacts: [],
           workbench: null,
           graduationPanel: [],
+          equipment: {
+            agentId: 'agent-1',
+            engine: { detail: 'current engine' },
+          },
         },
       ],
       [
@@ -293,6 +297,11 @@ describe('browser transport projection', () => {
           contract: 'intent',
           scope: 'agent_independent',
           fingerprint: 'original',
+        })
+      if (kind === 'development_workbench_route')
+        expect(projected.equipment).toEqual({
+          agentId: 'agent-1',
+          engine: { detail: 'current engine' },
         })
     }
   })

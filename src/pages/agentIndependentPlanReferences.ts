@@ -18,7 +18,10 @@ export function currentIndependentPlans(drafts: AccountPlanningDraft[], accountI
     if (
       !previous ||
       previous.updatedAt < draft.updatedAt ||
-      (previous.updatedAt === draft.updatedAt && previous.revision < draft.revision)
+      (previous.updatedAt === draft.updatedAt && previous.revision < draft.revision) ||
+      (previous.updatedAt === draft.updatedAt &&
+        previous.revision === draft.revision &&
+        previous.id.localeCompare(draft.id) < 0)
     ) {
       latest.set(agentId, draft)
     }

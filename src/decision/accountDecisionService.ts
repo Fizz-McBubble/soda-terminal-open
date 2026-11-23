@@ -33,11 +33,12 @@ import {
   projectTeamExecutions,
 } from './teamExecutionProjection'
 import { assemblePlanningCandidateEvaluations } from './planningCandidateEvaluationAssembler'
-import { assembleCunningHaresP0DecisionEvaluation } from './cunningHaresP0DecisionAssembler'
-import { evaluateNormalizedPlanningCandidate } from './normalizedPlanningCandidateEvaluator'
+import { projectAccountPlanningEvaluations } from './accountDecisionPlanningEvaluationProjection'
 import { current31CandidateUniverseAudit } from '../teamEngine/current31CandidateUniverseAudit'
 import { projectCurrent31ProductionDecisionUniverse } from './exhaustiveAccountCandidateScoring'
 import { projectAccountDecisionAuthority } from './accountDecisionAuthority'
+import { FullTeamIndexesRequired, ownedAdmittedBoxFormations } from './currentBoxTeamAdmission'
+import { usesTeamStartupIntrinsicIndex } from './current31TeamIntrinsicIndex'
 import {
   allocationClaim,
   coordinationClaim,
@@ -76,6 +77,12 @@ export {
  * The application boundary for account decisions. It composes existing data and algorithms but
  * never persists a plan or mutates account assets; pages may save only after a separate user action.
  */
+export function buildAccountDecisionSnapshot(
+  input: BuildAccountDecisionInput & { deferWarehouseAnalysis?: false },
+): AccountDecisionSnapshot & { warehouse: NonNullable<AccountDecisionSnapshot['warehouse']> }
+export function buildAccountDecisionSnapshot(
+  input: BuildAccountDecisionInput,
+): AccountDecisionSnapshot
 export function buildAccountDecisionSnapshot({
   warehouse,
   profiles: suppliedProfiles,
@@ -88,6 +95,8 @@ export function buildAccountDecisionSnapshot({
   planningDpsEvaluations = [],
   planningCandidateAuthorities,
   deferDiagnosticInference,
+  deferWarehouseAnalysis,
+  preferBoxAdmission,
 }: BuildAccountDecisionInput): AccountDecisionSnapshot {
   if (!warehouse.accountId) throw new Error('决策服务只接受具名活动账户，不能回退到旧表。')
 
@@ -105,31 +114,35 @@ export function buildAccountDecisionSnapshot({
   const warehouseHash = contentHash(warehouse.discs)
   const rosterHash = fingerprint.components.rosterHash
   const currentPlanIdsByAgent = { ...activePlanIds, ...preference.planIdsByAgent }
-  const bangbooCandidateIds = currentBangbooDirectory
-    .filter((bangboo) => bangboo.releaseState === 'released')
-    .map((bangboo) => bangboo.id)
-  const baseTeamEngine = solveTeamEngine(current31TeamEngineD1Pack, {
-    ownedAgentIds,
-    bangbooCandidateIds,
-    preferredAgentIds,
-    agentStateById: Object.fromEntries(
-      warehouse.roster.agents.map((agent) => [
-        agent.agentId,
-        { mindscape: agent.mindscape, potentialImage: agent.potentialImage },
-      ]),
-    ),
-    cultivationByAgentId: Object.fromEntries(
-      ownedAgentIds.map((agentId) => [
-        agentId,
-        profiles.some((profile) => profile.agentId === agentId) ? 'developing' : 'unbuilt',
-      ]),
-    ),
-  })
-  const candidatePriorityAgentIds = uniqueInOrder(
-    allocationTargetCandidates(baseTeamEngine, preference).flatMap(
-      (candidate) => candidate.memberIds,
-    ),
-  )
+  // Allocation is deferred for interactive browser analysis. Its preliminary
+  // team solve has no consumer until a full allocation is requested.
+  const allocationPriority = () => {
+    const bangbooCandidateIds = currentBangbooDirectory
+      .filter((bangboo) => bangboo.releaseState === 'released')
+      .map((bangboo) => bangboo.id)
+    const baseTeamEngine = solveTeamEngine(current31TeamEngineD1Pack, {
+      ownedAgentIds,
+      bangbooCandidateIds,
+      preferredAgentIds,
+      agentStateById: Object.fromEntries(
+        warehouse.roster.agents.map((agent) => [
+          agent.agentId,
+          { mindscape: agent.mindscape, potentialImage: agent.potentialImage },
+        ]),
+      ),
+      cultivationByAgentId: Object.fromEntries(
+        ownedAgentIds.map((agentId) => [
+          agentId,
+          profiles.some((profile) => profile.agentId === agentId) ? 'developing' : 'unbuilt',
+        ]),
+      ),
+    })
+    return uniqueInOrder(
+      allocationTargetCandidates(baseTeamEngine, preference).flatMap(
+        (candidate) => candidate.memberIds,
+      ),
+    )
+  }
   const allocation: AccountBuildResult = deferDiagnosticInference
     ? {
         independent: [],
@@ -152,11 +165,10 @@ export function buildAccountDecisionSnapshot({
         // This allocation serves downstream execution/readiness. Numeric candidate scoring reads the
         // independent per-agent projections instead, so Team Engine order cannot feed its own rating.
         priorityAgentIds: uniqueInOrder([
-          ...candidatePriorityAgentIds,
+          ...allocationPriority(),
           ...(optimizerOptions.priorityAgentIds ?? []),
         ]),
       })
-  const exhaustiveCandidateScoring = projectCurrent31ProductionDecisionUniverse(warehouse.roster)
   // Template ids are exact portfolio selections, but the exhaustive Authority
   // deliberately has no legacy Engine-template crosswalk.  Do not let that
   // diagnostic blocker erase the Authority variants needed to replay the
@@ -165,15 +177,40 @@ export function buildAccountDecisionSnapshot({
   const authorityPreference = preference.templateIds.length
     ? { ...preference, templateIds: [] }
     : preference
-  const decisionAuthority = projectAccountDecisionAuthority({
-    deferDiagnosticInference,
-    rankedFormations: exhaustiveCandidateScoring.authorityFormations,
-    roster: warehouse.roster,
-    allocation,
-    preference: authorityPreference,
-    decisionIssueClassificationFingerprint:
-      exhaustiveCandidateScoring.coverage.decisionIssueClassification.fingerprint,
-  })
+  let admitted =
+    preferBoxAdmission &&
+    preference.teamCount === 1 &&
+    !preference.templateIds.length &&
+    !preference.fixedAgentIds.length &&
+    !preference.fixedBangbooIds.length
+      ? ownedAdmittedBoxFormations(new Set(ownedAgentIds))
+      : undefined
+  if (!admitted?.length) admitted = undefined
+  if (!admitted && usesTeamStartupIntrinsicIndex()) throw new FullTeamIndexesRequired()
+  let exhaustiveCandidateScoring = projectCurrent31ProductionDecisionUniverse(
+    warehouse.roster,
+    admitted,
+  )
+  const decide = () =>
+    projectAccountDecisionAuthority({
+      deferDiagnosticInference,
+      rankedFormations: exhaustiveCandidateScoring.authorityFormations,
+      roster: warehouse.roster,
+      allocation,
+      preference: authorityPreference,
+      decisionIssueClassificationFingerprint:
+        exhaustiveCandidateScoring.coverage.decisionIssueClassification.fingerprint,
+    })
+  let decisionAuthority = decide()
+  if (
+    admitted &&
+    (decisionAuthority.status !== 'ready' || !decisionAuthority.recommendations.length)
+  ) {
+    if (usesTeamStartupIntrinsicIndex()) throw new FullTeamIndexesRequired()
+    admitted = undefined
+    exhaustiveCandidateScoring = projectCurrent31ProductionDecisionUniverse(warehouse.roster)
+    decisionAuthority = decide()
+  }
   const exhaustiveScoreByMembers = new Map(
     exhaustiveCandidateScoring.rankedFormations.map((candidate) => [
       [...candidate.memberIds].sort().join('|'),
@@ -280,61 +317,21 @@ export function buildAccountDecisionSnapshot({
     discs: warehouse.discs,
     authorityByCandidate: planningCandidateAuthorities,
   })
-  const assembledP0Evaluations = teamEngine.recommendations.flatMap((candidate) => {
-    const evaluation = assembleCunningHaresP0DecisionEvaluation({
-      accountId: warehouse.accountId!,
-      rosterHash: fingerprint.components.rosterHash,
-      warehouseHash: fingerprint.components.warehouseHash,
-      planningHash: fingerprint.components.planningHash,
-      capturedAt: capturedAt ?? warehouse.roster.updatedAt,
-      candidate,
-      execution: teamExecutions.find((item) => item.candidateId === candidate.candidateId),
-      roster: warehouse.roster,
-      discs: warehouse.discs,
-    })
-    return evaluation ? [evaluation] : []
-  })
-  const suppliedEvaluationIds = new Set(
-    planningDpsEvaluations.flatMap((evaluation) =>
-      typeof evaluation === 'object' &&
-      evaluation !== null &&
-      'candidateId' in evaluation &&
-      typeof (evaluation as { candidateId?: unknown }).candidateId === 'string'
-        ? [(evaluation as { candidateId: string }).candidateId]
-        : [],
-    ),
-  )
-  const p0EvaluationIds = new Set(
-    assembledP0Evaluations.map((evaluation) => evaluation.candidateId),
-  )
-  const normalizedBangbooBlockers: Record<string, string[]> = {}
-  const normalizedEvaluations = teamEngine.recommendations.flatMap((candidate) => {
-    if (
-      suppliedEvaluationIds.has(candidate.candidateId) ||
-      p0EvaluationIds.has(candidate.candidateId)
-    )
-      return []
-    const evaluation = evaluateNormalizedPlanningCandidate({
-      accountId: warehouse.accountId!,
-      rosterHash: fingerprint.components.rosterHash,
-      warehouseHash: fingerprint.components.warehouseHash,
-      planningHash: fingerprint.components.planningHash,
-      capturedAt: capturedAt ?? warehouse.roster.updatedAt,
-      candidate,
-      execution: teamExecutions.find((item) => item.candidateId === candidate.candidateId),
-      roster: warehouse.roster,
-      discs: warehouse.discs,
-      onUnsupportedBangboo: (blockers) => {
-        normalizedBangbooBlockers[candidate.candidateId] = blockers
-      },
-    })
-    return evaluation ? [evaluation] : []
+  const { evaluations, normalizedBangbooBlockers } = projectAccountPlanningEvaluations({
+    accountId: warehouse.accountId,
+    fingerprint,
+    roster: warehouse.roster,
+    discs: warehouse.discs,
+    capturedAt: capturedAt ?? warehouse.roster.updatedAt,
+    candidates: teamEngine.recommendations,
+    executions: teamExecutions,
+    suppliedEvaluations: planningDpsEvaluations,
   })
   const boxPlanning = projectAccountBoxPlanning({
     accountId: warehouse.accountId,
     fingerprint,
     teamEngine,
-    evaluations: [...planningDpsEvaluations, ...assembledP0Evaluations, ...normalizedEvaluations],
+    evaluations,
     assemblyBlockersByCandidate: {
       ...Object.fromEntries(planningDpsAssembly.map((item) => [item.candidateId, item.blockers])),
       ...normalizedBangbooBlockers,
@@ -363,23 +360,28 @@ export function buildAccountDecisionSnapshot({
       requestedTeamCount: 3,
     }),
   }
-  const savedTeamBuildIntentsByDraftId = currentSavedTeamBuildIntents(
-    drafts,
-    { decisionAuthority, teamEngine, allocation },
-    warehouse,
-  )
-  const warehouseAnalysis = analyzeAccountWarehouse({
-    accountId: warehouse.accountId,
-    discs: warehouse.discs,
-    roster: warehouse.roster,
-    drafts,
-    activePlanIds: currentPlanIdsByAgent,
-    priorityAgentIds: preferredAgentIds,
-    savedTeamBuildIntentsByDraftId,
-    ...warehouseDecisionDemand(preference, coordination, portfolioProjection.candidates, drafts),
-    dataVersion: currentVersionProjection.packageVersion,
-    now: capturedAt,
-  })
+  const savedTeamBuildIntentsByDraftId = deferWarehouseAnalysis
+    ? undefined
+    : currentSavedTeamBuildIntents(drafts, { decisionAuthority, teamEngine, allocation }, warehouse)
+  const warehouseAnalysis = deferWarehouseAnalysis
+    ? undefined
+    : analyzeAccountWarehouse({
+        accountId: warehouse.accountId,
+        discs: warehouse.discs,
+        roster: warehouse.roster,
+        drafts,
+        activePlanIds: currentPlanIdsByAgent,
+        priorityAgentIds: preferredAgentIds,
+        savedTeamBuildIntentsByDraftId: savedTeamBuildIntentsByDraftId!,
+        ...warehouseDecisionDemand(
+          preference,
+          coordination,
+          portfolioProjection.candidates,
+          drafts,
+        ),
+        dataVersion: currentVersionProjection.packageVersion,
+        now: capturedAt,
+      })
   const physicalDiscReferences = allocation.global.flatMap((loadout) =>
     loadout.discs.map((choice) => choice.disc.id),
   )
@@ -452,8 +454,7 @@ export function buildAccountDecisionSnapshot({
       status: exhaustiveCandidateScoring.coverage.complete
         ? 'source_backed_asset_bound_complete_authority_reopened'
         : 'reopened_missing_asset_bindings',
-      boundary:
-        '完整 legal formation identity 已进入账户无关 Team Rating；生产 Query 不在线执行 Exhaustive numeric Oracle。快照只返回 intrinsic shortlist，不自动执行实体盘或音擎求解；目标队伍必须由显式 Calculation/Query 调用。',
+      boundary: exhaustiveCandidateScoring.boundary,
     },
     exhaustiveCandidateScoring: {
       coverage: exhaustiveCandidateScoring.coverage,
@@ -462,6 +463,7 @@ export function buildAccountDecisionSnapshot({
       boundary: exhaustiveCandidateScoring.boundary,
     },
     decisionAuthority,
+    ...(admitted ? { boxAdmissionScoped: true as const } : {}),
     hardConstraints: {
       active: enumerateActiveTeamHardConstraints(preference),
       canRestoreDefault:
@@ -482,13 +484,21 @@ export function buildAccountDecisionSnapshot({
         planningDps: planningDpsClaim,
       }),
       data: dataDecisionClaim(),
-      warehouse: {
-        status: 'limited',
-        summary: `已分析完整 ${warehouseAnalysis.decisions.length} 张仓库盘；清理结论仅为人工复核候选。`,
-        allows: ['解释分类、方案引用、替代盘与强化潜力'],
-        forbids: commonForbiddenClaims,
-        blockers: [],
-      },
+      warehouse: warehouseAnalysis
+        ? {
+            status: 'limited',
+            summary: `已分析完整 ${warehouseAnalysis.decisions.length} 张仓库盘；清理结论仅为人工复核候选。`,
+            allows: ['解释分类、方案引用、替代盘与强化潜力'],
+            forbids: commonForbiddenClaims,
+            blockers: [],
+          }
+        : {
+            status: 'limited',
+            summary: '仓库全量分析按需生成；清理结论仅为人工复核候选。',
+            allows: ['按需请求完整仓库分析、解释分类、方案引用、替代盘与强化潜力'],
+            forbids: commonForbiddenClaims,
+            blockers: [],
+          },
       allocation: allocationDecisionClaim,
       teamEngine: teamEngineDecisionClaim,
       coordination: coordinationDecisionClaim,
@@ -503,7 +513,9 @@ export function buildAccountDecisionSnapshot({
       unavailableAgentCount: allocation.globalUnavailableAgentIds.length,
       physicalDiscReferenceCount: physicalDiscReferences.length,
       uniquePhysicalDiscReferenceCount: new Set(physicalDiscReferences).size,
-      warehouseCoverageComplete: warehouseAnalysis.decisions.length === warehouse.discs.length,
+      warehouseCoverageComplete: warehouseAnalysis
+        ? warehouseAnalysis.decisions.length === warehouse.discs.length
+        : false,
       planningDpsReadyAgentCount: planningDpsReadyAgentIds.length,
       planningDpsReadyAgentIds,
     },

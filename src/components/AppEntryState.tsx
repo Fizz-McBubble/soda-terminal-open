@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useAppHealth } from '../appHealthContext'
 import { AppShell } from './AppShell'
+import { HomeLoading } from './HomeHeroScene'
+import { useLocation } from 'react-router-dom'
 import './AppEntryState.css'
 
 /** Shared empty workbench: one explanation and one compact next action. */
@@ -57,10 +59,12 @@ export function AppLoadingState({
 function EntryError({
   title,
   description,
+  hasPrimaryAction = false,
   children,
 }: {
   title: string
   description: string
+  hasPrimaryAction?: boolean
   children?: ReactNode
 }) {
   return (
@@ -70,7 +74,10 @@ function EntryError({
       <p>{description}</p>
       <div className="app-entry-state__actions app-recovery-actions">
         {children}
-        <button className="button button--primary" onClick={() => window.location.reload()}>
+        <button
+          className={hasPrimaryAction ? 'button' : 'button button--primary'}
+          onClick={() => window.location.reload()}
+        >
           重新加载
         </button>
         <a className="button" href="/">
@@ -91,6 +98,7 @@ export function AppInitializationGate({
 }) {
   const {
     databaseStatus,
+    retryDatabaseInitialization,
     dataStatus,
     canRepairApplicationData,
     repairApplicationData,
@@ -115,17 +123,29 @@ export function AppInitializationGate({
     return (
       <EntryError
         title="本地档案库未能安全打开"
-        description="请重新加载页面。若仍无法打开，请保留当前浏览器数据，勿清除或重置账户。"
-      />
+        description="请重新加载页面。若仍无法打开，请保留当前浏览器数据，勿清除或重置账户，并重试打开或联系支持恢复。"
+        hasPrimaryAction={Boolean(retryDatabaseInitialization)}
+      >
+        {retryDatabaseInitialization ? (
+          <button
+            className="button button--primary"
+            type="button"
+            onClick={retryDatabaseInitialization}
+          >
+            重试打开档案库
+          </button>
+        ) : null}
+      </EntryError>
     )
   if (dataStatus === 'error')
     return (
       <EntryError
         title="游戏数据未能安全加载"
-        description="请重新加载页面后再试。现有账户资料不会因此被清除。"
+        description="请重新加载页面后再试。"
+        hasPrimaryAction={Boolean(canRepairApplicationData && repairApplicationData)}
       >
         {canRepairApplicationData && repairApplicationData ? (
-          <button className="button" onClick={repair} disabled={repairing}>
+          <button className="button button--primary" onClick={repair} disabled={repairing}>
             {repairing
               ? '正在恢复应用自带资料…'
               : `恢复应用自带 ${currentVersion.gameVersion} 资料`}
@@ -140,18 +160,14 @@ export function AppInitializationGate({
 }
 
 export function AppRouteLoading() {
+  const atHome = useLocation().pathname === '/'
   return (
     <AppShell>
-      <AppLoadingState title="正在打开页面" />
+      {atHome ? <HomeLoading title="正在打开首页" /> : <AppLoadingState title="正在打开页面" />}
     </AppShell>
   )
 }
 
 export function AppRouteError() {
-  return (
-    <EntryError
-      title="页面暂时无法打开"
-      description="请重新加载页面，或返回首页后再试。此操作不会清除账户资料。"
-    />
-  )
+  return <EntryError title="页面暂时无法打开" description="请重新加载页面，或返回首页后再试。" />
 }

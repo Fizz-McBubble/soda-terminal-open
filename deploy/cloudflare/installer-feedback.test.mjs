@@ -84,6 +84,20 @@ test('same-version repair and classified service failures survive reception and 
   }
 })
 
+test('installer receiver accepts the normalized native 1.2.1 candidate and historical 1.3.0 without allowing arbitrary releases', () => {
+  for (const installerVersion of ['1.0.9', '1.1.0', '1.2.0', '1.2.1', '1.3.0']) {
+    const report = { ...validReport, installerVersion }
+    assert.deepEqual(sanitizeScanFeedbackPayload(report).record, report)
+  }
+  for (const installerVersion of ['1.2.2', '1.3.1', '1.4.0', '2.0.0', '1000.0.0'])
+    assert.equal(sanitizeScanFeedbackPayload({ ...validReport, installerVersion }).status, 400)
+  for (const patch of [{ bridgeVersion: '1.2.0' }, { protocolVersion: '3.3' }])
+    assert.equal(
+      sanitizeScanFeedbackPayload({ ...validReport, installerVersion: '1.3.0', ...patch }).status,
+      400,
+    )
+})
+
 test('installer receiver accepts only the fixed archive source code', () => {
   const report = {
     ...validReport,
@@ -162,6 +176,49 @@ test('installer feedback strictly validates safe DTO and rejects extraneous/sens
       400,
       `Should reject missing key: ${key}`,
     )
+  }
+})
+
+test('browser download failures survive both installer consumers without private transport data', () => {
+  const download = {
+    phase: 'range',
+    bytesReceived: 12_582_912,
+    attemptCount: 8,
+    waitReason: 'rate_limit',
+    httpStatus: 429,
+    expectedRelease: {
+      size: 154_989_210,
+      sha256: '1f412a4698ebe62f2f5c67c8de0007a67d475408e25e0840276a2b3cc876e5ad',
+    },
+  }
+  for (const tool of ['asset_quick_read_installer', 'screen_scanner_installer']) {
+    const report = {
+      ...validReport,
+      tool,
+      installerVersion: tool === 'screen_scanner_installer' ? '1.2.3' : '1.2.1',
+      stage: 'prepare',
+      code: 'installer_download_rate_limited',
+      attempts: [],
+      download,
+    }
+    assert.deepEqual(sanitizeScanFeedbackPayload(report).record, report)
+    for (const patch of [
+      { url: 'https://private.invalid/file' },
+      { token: 'private' },
+      { path: ['C:', 'private', 'file.exe'].join('/') },
+      { phase: 'raw_request' },
+      { waitReason: 'forever' },
+      { httpStatus: 201 },
+      { bytesReceived: 1_073_741_825 },
+      { attemptCount: 1025 },
+      { expectedRelease: { ...download.expectedRelease, url: 'private' } },
+      { expectedRelease: { ...download.expectedRelease, sha256: 'private' } },
+    ])
+      assert.equal(
+        sanitizeScanFeedbackPayload({ ...report, download: { ...download, ...patch } }).status,
+        400,
+        `${tool} ${JSON.stringify(patch)}`,
+      )
   }
 })
 
@@ -407,13 +464,13 @@ test('installer receiver accepts carried release 1.2.0 asset_quick_read_installe
   assert.equal(nextValidation.ok, true)
   assert.deepEqual(nextValidation.record, nextReleaseReport)
 
-  // Unpublished future versions (e.g. 1.2.1, 2.0.0) remain rejected
+  // Unlisted future versions (e.g. 1.2.2, 2.0.0) remain rejected
   assert.equal(
     (
       await send({
         ...validReport,
         reportId: '12000000-0000-4000-8000-000000000001',
-        installerVersion: '1.2.1',
+        installerVersion: '1.2.2',
       })
     ).status,
     400,

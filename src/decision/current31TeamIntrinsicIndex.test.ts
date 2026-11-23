@@ -1,9 +1,12 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import reviewedStrengthModel from '../gameDataPacks/generated/team-strength-model.3.1.json'
 import { releasedAgentIds as reviewed31AgentIds } from './current31SemanticEvidence'
 import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
-import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
-import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
+import {
+  baseCurrentAgentEventContracts,
+  getCurrentAgentEventContract,
+} from '../calculation/currentAgentMechanicContracts'
 import { inspectCurrent31FormationMechanicState } from '../teamEngine/current31FormationMechanicAudit'
 import { evaluateCurrent31TeamRating } from './current31TeamRating'
 import {
@@ -20,7 +23,7 @@ const benchmark = {
   explanation: 'Intrinsic index equality oracle.',
 }
 
-const goAgentIds = current31TeamEngineD1Pack.agentRules.map((rule) => rule.agentId).sort()
+const goAgentIds = baseCurrentAgentEventContracts.map((contract) => contract.stableId).sort()
 const agentIds = currentAssetProjection.agents
   .filter((agent) => agent.releaseState === 'released' && agent.accountOwnable)
   .map((agent) => agent.stableId)
@@ -93,16 +96,19 @@ describe('current 3.1 build-time team intrinsic index', () => {
       }
     }
   })
-  it('smoke: covers the old 58 and GO 60 cohorts plus the separate Phoenix extension exactly once', () => {
+  it('smoke: covers the old 58 and GO 60 cohorts plus the Phoenix and Severian extensions exactly once', () => {
     expect(oldIds.size).toBe(58)
-    expect(agentIds).toHaveLength(61)
+    expect(agentIds).toHaveLength(62)
     expect(goAgentIds).toHaveLength(60)
     expect(agentIds.filter((id) => !oldIds.has(id))).toEqual([
       'agent-claret',
       'agent-phoenix',
       'agent-roxy',
+      'agent-severian',
     ])
-    expect(agentIds.filter((id) => id !== 'agent-phoenix').sort()).toEqual(goAgentIds)
+    expect(
+      agentIds.filter((id) => !['agent-phoenix', 'agent-severian'].includes(id)).sort(),
+    ).toEqual(goAgentIds)
     expect((goAgentIds.length * (goAgentIds.length - 1) * (goAgentIds.length - 2)) / 6).toBe(34_220)
     expect(
       [...reviewedStrengthModel.reviewedSubjectIds].sort((left, right) =>
@@ -116,10 +122,10 @@ describe('current 3.1 build-time team intrinsic index', () => {
       30_856,
     )
     expect(oraclePartitions.reduce((total, partition) => total + partition.addedCompared, 0)).toBe(
-      2 * ((58 * 57) / 2) + 58 + pairCount(60),
+      2 * ((58 * 57) / 2) + 58 + pairCount(60) + pairCount(61),
     )
     expect(oraclePartitions.reduce((total, partition) => total + partition.compared, 0)).toBe(
-      35_990,
+      37_820,
     )
     expect(current31TeamIntrinsicIndexStatus).toMatchObject({ status: 'ready', reason: null })
     expect(
@@ -130,7 +136,7 @@ describe('current 3.1 build-time team intrinsic index', () => {
     ).toBeNull()
   })
 
-  it('smoke: retains Phoenix local references independently of unsupported event mechanics', () => {
+  it('smoke: binds Phoenix local references to the reviewed aggregate event boundary', () => {
     const memberIds = ['agent-phoenix', 'agent-velina', 'agent-remielle'] as const
     const indexed = lookupCurrent31TeamIntrinsicSummary(memberIds)
     const direct = evaluateCurrent31TeamRating({
@@ -146,16 +152,21 @@ describe('current 3.1 build-time team intrinsic index', () => {
       confidence: 'low',
       metaAuthority: 'local_editorial_estimate',
       mechanicValidity: 'partial',
-      mechanicallyClosed: false,
+      mechanicallyClosed: true,
     })
     expect(direct.rating).toMatchObject({ status: 'rated', ratingBand: 'S', confidence: 'low' })
     expect(inspectCurrent31FormationMechanicState(memberIds)).toMatchObject({
-      ruleComplete: false,
-      resourceLoopClosed: false,
-      fieldTimeWithinBudget: false,
+      ruleComplete: true,
+      resourceLoopClosed: true,
+      fieldTimeWithinBudget: true,
     })
-    expect(direct.interaction.status).toBe('unsupported')
-    expect(getCurrentAgentEventContract('agent-phoenix')).toBeNull()
+    expect(direct.interaction.status).toBe('supported')
+    expect(getCurrentAgentEventContract('agent-phoenix')?.eventContract.events).toHaveLength(20)
+    expect(
+      getCurrentAgentEventContract('agent-phoenix')?.eventContract.events.every(
+        (event) => event.formulaBinding?.formalEligible === false,
+      ),
+    ).toBe(true)
     const unknown = lookupCurrent31TeamIntrinsicSummary([
       'agent-phoenix',
       'agent-jane',
@@ -187,6 +198,9 @@ describe('current 3.1 build-time team intrinsic index', () => {
             memberIds,
             bangbooId: null,
             outputPotentialBand: 'unknown',
+            // Match the source/mechanic-only index producer. Diagnostic payloads
+            // are not serialized; default-mode smoke cases above remain separate.
+            reviewedOnly: true,
             benchmark,
           })
           const mechanic = inspectCurrent31FormationMechanicState(memberIds)

@@ -173,12 +173,24 @@ it('keeps the source-listed Lighter alternative searchable without declaring an 
   expect(evaluate(ids).rating).toMatchObject({ status: 'rated', ratingBand: 'Experimental' })
 })
 
-it('does not borrow the current review for another trio or another game version', () => {
+it('uses explicit 3.3 continuity only for the exact reviewed trio', () => {
   const record = reviewedCurrentTeamAnalysis32.records[0]!
   expect(resolveReviewedCurrentTeamAnalysis([...record.memberIds].reverse(), '3.2')).toMatchObject({
     band: record.band,
   })
-  expect(resolveReviewedCurrentTeamAnalysis(record.memberIds, '3.3')).toBeNull()
+  expect(resolveReviewedCurrentTeamAnalysis(record.memberIds, '3.3')).toMatchObject({
+    band: record.band,
+    versionApplicability: {
+      targetVersion: '3.3',
+      sourceVersion: '3.2',
+      reviewVersion: '3.2',
+      authority: 'local_editorial_estimate',
+      formalPromotion: false,
+      importPromotion: false,
+      runtimePromotion: false,
+    },
+  })
+  expect(resolveReviewedCurrentTeamAnalysis(record.memberIds, '3.4')).toBeNull()
   expect(
     resolveReviewedCurrentTeamAnalysis([...record.memberIds, 'bangboo-amillion'], '3.2'),
   ).toBeNull()

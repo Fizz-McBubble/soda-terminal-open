@@ -31,18 +31,7 @@ export function lightweightPriorityTier(
   rating: TeamRatingResult,
   account: AccountBands,
 ): CultivationPriorityResult['tier'] {
-  if (
-    rating.status !== 'rated' ||
-    rating.ratingBand === 'Experimental' ||
-    rating.confidence === 'experimental' ||
-    account.currentReadiness === 'blocked' ||
-    account.assetConflict === 'blocking'
-  )
-    return 'experimental'
-  if (account.currentReadiness === 'ready' && account.investmentCost === 'low') return 'ready_now'
-  if (account.currentReadiness === 'near_ready' && account.investmentCost === 'medium')
-    return 'short_upgrade'
-  return 'strategic_build'
+  return deriveCultivationPriorityTier({ teamRating: rating, ...account })
 }
 
 export function createPriorityResult(input: CultivationPriorityInput): CultivationPriorityResult {
@@ -55,7 +44,9 @@ export function createPriorityResult(input: CultivationPriorityInput): Cultivati
     teamRatingBand: input.teamRating.ratingBand,
     confidence: input.teamRating.confidence,
     reasons: [
-      `Team Rating ${input.teamRating.ratingBand} / ${input.teamRating.confidence}。`,
+      input.teamRating.playAdmission === 'complete_conditional_play'
+        ? '已核对三人玩法，整队强度未评级。'
+        : `Team Rating ${input.teamRating.ratingBand} / ${input.teamRating.confidence}。`,
       input.currentReadiness === 'not_evaluated'
         ? '队伍成员已齐，配装与培养投入待核对。'
         : `账户完成度 ${input.currentReadiness}，投入 ${input.investmentCost}。`,
@@ -97,6 +88,7 @@ export {
 export {
   evaluateAccountCultivationMarginalYield,
   compareCultivationPriorityPartialOrder,
+  compareAccountCultivationYield,
   type CultivationYieldCategory,
   type AccountCultivationMarginalYield,
   type AccountCultivationMarginalYieldInput,

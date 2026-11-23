@@ -2,12 +2,16 @@ import type {
   AccountDecisionRun,
   CalculationQueryClient,
   DecisionPortfolioQuery,
+  DevelopmentWorkbenchFactsQuery,
+  DevelopmentDirectoryFactsQuery,
 } from './calculationQueryContract'
 import type { RemoteCalculationRequest } from './remoteCalculationProtocol'
 
 export type DispatchableCalculationQuery =
   | RemoteCalculationRequest['query']
   | DecisionPortfolioQuery
+  | DevelopmentWorkbenchFactsQuery
+  | DevelopmentDirectoryFactsQuery
 
 export type CalculationDispatchSourceRun = Pick<AccountDecisionRun, 'runId' | 'input' | 'snapshot'>
 
@@ -82,6 +86,21 @@ export async function dispatchCalculationQuery(
       break
     case 'development_workbench_route':
       result = await client.queryDevelopmentWorkbenchRoute(query)
+      break
+    case 'development_workbench_facts':
+      result = await required(client.queryDevelopmentWorkbenchFacts, '个人事实读取不可用。').call(
+        client,
+        query,
+      )
+      break
+    case 'development_directory_facts':
+      result = await required(
+        client.queryDevelopmentDirectoryFacts,
+        '养成目录事实读取不可用。',
+      ).call(client, query)
+      break
+    case 'warehouse_actions':
+      result = await required(client.queryWarehouseActions, '仓库分析不可用。').call(client, query)
       break
     case 'warehouse_disc_transition_uses':
       result = await required(

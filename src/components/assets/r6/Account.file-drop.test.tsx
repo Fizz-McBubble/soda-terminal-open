@@ -80,7 +80,7 @@ it('uses the same dialog for a separately named independent restore', async () =
   expect(screen.getAllByRole('dialog')).toHaveLength(1)
   expect(screen.getByRole('dialog')).toHaveTextContent('现有同名账户不会被合并或覆盖')
   fireEvent.change(screen.getByLabelText('恢复后的本地显示名称'), { target: { value: '独立副本' } })
-  fireEvent.click(screen.getByRole('button', { name: '作为独立账号恢复' }))
+  fireEvent.click(screen.getByRole('button', { name: '作为独立账户恢复' }))
   expect(props.onRestore).toHaveBeenCalledWith(
     { ...preview, restoreDisplayName: '独立副本' },
     expect.any(Function),

@@ -1,14 +1,11 @@
-import type {
-  DevelopmentCandidateAlternativesQuery,
-  DevelopmentCandidateAlternativesQueryResult,
-} from '../application/calculationQueryContract'
-import type { readDevelopmentCandidateSnapshot } from './agentDevelopmentCandidateSession'
+import type { DevelopmentCandidateAlternativesQuery } from '../application/calculationQueryContract'
+import type { DevelopmentComparisonData } from './developmentComparisonSnapshot'
 
 /** Rebind identical physical plans first. Parameter scenarios may generate a new
  * six-disc plan, so retain an unmatched scenario in an unclaimed rank for a new solve. */
 export function rebindComparisonParameters(
-  previous: NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>,
-  result: DevelopmentCandidateAlternativesQueryResult,
+  previous: DevelopmentComparisonData,
+  result: DevelopmentComparisonData,
 ) {
   if (previous.accountId !== result.accountId || previous.agentId !== result.agentId) return {}
   const rebound: {

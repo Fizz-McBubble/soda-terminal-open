@@ -4,6 +4,8 @@ import {
   gameData33CatalogCheckedAt,
   gameData33CatalogEntities,
   gameData33OfficialPhaseOneUrl,
+  gameData33OfficialPhaseTwoMirrorUrl,
+  gameData33OfficialPhaseTwoUrl,
   gameData33OfficialUpdateUrl,
   gameData33ProviderManifestSha256,
   gameData33SourceDeltaSha256,
@@ -13,12 +15,12 @@ import { incremental33RecoveryPolicy } from './incremental33RecoveryPolicy'
 import { createManifest, stableContentHash } from './types'
 
 const adoptionCore = {
-  id: 'current-version-adoption-3.3-phase-i-r1',
+  id: 'current-version-adoption-3.3-phase-ii-r1',
   gameVersion: '3.3',
-  phase: 'phase_i',
+  phase: 'phase_ii',
   lifecycle: 'current',
   packageId: 'game-base-3.3.0-current',
-  packageVersion: '3.3.0-current.1',
+  packageVersion: '3.3.0-current.3',
   previousPackageId: gameBase32Current.id,
   previousPackageContentHash: gameBase32Current.contentHash,
   sourceIdentity: {
@@ -34,7 +36,7 @@ const adoptionCore = {
       rawSha256: entity.source.contentHash,
     })),
     scheduledNotAdopted: gameData33SourceIdentities.filter(
-      (identity) => identity.releaseState === 'scheduled',
+      ({ releaseState }: { releaseState: string }) => releaseState === 'scheduled',
     ),
   },
   scopeIdentity: {
@@ -53,7 +55,7 @@ const adoptionCore = {
     capabilityIdentity: incremental33RecoveryPolicy.capabilityIdentity,
   },
   boundary:
-    '3.3上半仅采用菲欧妮与涅槃初翎的已发布目录身份及具名Nanoka来源；旧3.1/3.2字段、哈希与审核保留原来源。current与formal包身份不晋升字段、战斗事件、Import、精确伤害或媒体许可。未来三对象需另行明确采用。',
+    '截至2026-11-11T12:00:00+08:00，3.3下半正式采用赛维里安与禁罪囚笼，并保留上半菲欧妮、涅槃初翎及活动音擎烛光诡计；复刻诺姆与首席跟班沿既有已发布身份不重复新增；旧3.1/3.2字段、哈希与审核保留原来源。current与formal包身份不晋升字段、战斗事件、Import、精确伤害或媒体许可。',
 } as const
 
 export const currentVersionAdoption33 = {
@@ -72,13 +74,23 @@ export const gameBase33Current = createManifest({
   effectiveTo: null,
   sources: [
     ...gameBase32Current.sources,
-    ...[gameData33OfficialUpdateUrl, gameData33OfficialPhaseOneUrl].map((url) => ({
+    ...[
+      gameData33OfficialUpdateUrl,
+      gameData33OfficialPhaseOneUrl,
+      gameData33OfficialPhaseTwoUrl,
+      gameData33OfficialPhaseTwoMirrorUrl,
+    ].map((url) => ({
       label:
         url === gameData33OfficialUpdateUrl
           ? '3.3 official release scope'
-          : '3.3 Phase I official scope',
+          : url === gameData33OfficialPhaseOneUrl
+            ? '3.3 Phase I official scope'
+            : '3.3 Phase II official scope',
       url,
-      checkedAt: gameData33CatalogCheckedAt,
+      checkedAt:
+        url === gameData33OfficialPhaseTwoUrl || url === gameData33OfficialPhaseTwoMirrorUrl
+          ? currentScopeManifest33.effectiveAsOf
+          : gameData33CatalogCheckedAt,
       sourceVersion: '3.3',
       contentHash: null,
       verification: 'official_reference' as const,
@@ -122,7 +134,7 @@ export const gameBase33Current = createManifest({
   }),
   missing: [],
   changesFromPreviousFormal: [
-    `采用 ${currentScopeManifest33.id}#${currentScopeManifest33.contentHash}；保留原60代理人、100音擎、30盘套与41生产邦布，新增菲欧妮与涅槃初翎。`,
+    `采用 ${currentScopeManifest33.id}#${currentScopeManifest33.contentHash}；保留原60代理人、100音擎、30盘套与41生产邦布，新增菲欧妮、赛维里安、涅槃初翎、禁罪囚笼与烛光诡计。`,
     `采用 ${currentVersionAdoption33.id}#${currentVersionAdoption33.contentHash}；Nanoka provider ${gameData33ProviderManifestSha256}。`,
   ],
   migrationNotes: [

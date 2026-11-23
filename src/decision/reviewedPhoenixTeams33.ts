@@ -7,7 +7,7 @@ import { currentGameDataSelection } from '../gameDataPacks/currentGameDataSelect
 import type { ReviewedTeamAnalysis } from './reviewedTeamAnalysis'
 import type { ReviewedTeamSourceDirection } from '../gameDataPacks/reviewedTeamSourceDirections'
 
-const guide = {
+export const reviewedPhoenixGuideSource33 = {
   url: 'https://www.icy-veins.com/zenless-zone-zero/phoenix-teams',
   sourceVersion: '3.3',
   sourceUpdatedAt: '2026-10-09',
@@ -16,7 +16,7 @@ const guide = {
   hashDefinition: 'web_tool_text_extraction_not_original_html',
 }
 
-const source = {
+export const reviewedPhoenixNumericSource33 = {
   url: 'https://static.nanoka.cc/zzz/3.3/zh/character/1641.json',
   locator:
     'passive.level.1641507.desc; talent.1; skill.basic.description[1]; skill.chain.description[2]',
@@ -33,11 +33,11 @@ const formulaBindings: Record<string, string> = {
 }
 const conditions = [
   '菲欧妮按1影、核心7、初始异常掌控255.36成型参考；需维持20秒灼蚀，重复异常命中刷新。',
-  '另一位异常队友激活黑枝王牌；支援效果按实际切人顺序维持，站场分配是玩法条件，未完成数值循环验证。',
+  '另一位异常或同阵营队友激活黑枝王牌；支援效果按实际切人顺序维持，站场分配是玩法条件，未完成数值循环验证。',
 ]
 const limitations = [
   'Soda本地泛用低置信参考；冻结strategy没有精确三人推荐，档位不来自作者Tier，不是实测DPS、客观排名或95%准确率。',
-  '原60人事件合同不包含菲欧妮；完整事件、资源循环、站场预算与精确伤害仍未闭合。',
+  '菲欧妮基础动作已绑定来源聚合参数；条件追加伤害、资源循环、站场预算与整队伤害仍未闭合。',
   '简的自身强击暴击与灼蚀的合成尚未证明；未据此扩展简队。M4额外异放是否继承40%暴伤未知，不纳入本参考。',
 ]
 
@@ -90,6 +90,12 @@ export const reviewedPhoenixTeams33 = [
   },
 ] as const
 
+/** Exact author memberships whose current primary-output condition is not closed. */
+export const reviewedPhoenixUnresolvedOutputTeams33 = [
+  { memberIds: ['agent-phoenix', 'agent-nangong', 'agent-yuzuha'] as const, authorSlot: 5 },
+  { memberIds: ['agent-phoenix', 'agent-promeia', 'agent-yuzuha'] as const, authorSlot: 6 },
+] as const
+
 /** Only these reviewed trios may use a local reference without pretending that
  * the missing GO event/rotation model exists. Unknown trios remain visible. */
 export function resolveReviewedPhoenixTeam33(
@@ -134,14 +140,14 @@ export function resolveReviewedPhoenixTeam33(
         : ['此三人为Soda机制替代方向，没有精确作者成员来源。']),
     ],
     evidenceRefs: [
-      { ...source },
+      { ...reviewedPhoenixNumericSource33 },
       ...('authorSlot' in row
         ? [
             {
-              url: guide.url,
+              url: reviewedPhoenixGuideSource33.url,
               locator: `Phoenix's Best Teams > composition ${row.authorSlot}`,
-              sourceVersion: guide.sourceVersion,
-              sourceContentHash: guide.contentHash,
+              sourceVersion: reviewedPhoenixGuideSource33.sourceVersion,
+              sourceContentHash: reviewedPhoenixGuideSource33.contentHash,
             },
           ]
         : []),
@@ -158,11 +164,7 @@ export function reviewedPhoenixSourceDirections33(
   reviewVersion: string,
 ): ReviewedTeamSourceDirection[] {
   if (reviewVersion !== '3.3' || currentGameDataSelection.gameVersion !== '3.3') return []
-  const sourceRows = [
-    ...reviewedPhoenixTeams33,
-    { memberIds: ['agent-phoenix', 'agent-nangong', 'agent-yuzuha'] as const, authorSlot: 5 },
-    { memberIds: ['agent-phoenix', 'agent-promeia', 'agent-yuzuha'] as const, authorSlot: 6 },
-  ]
+  const sourceRows = [...reviewedPhoenixTeams33, ...reviewedPhoenixUnresolvedOutputTeams33]
   return sourceRows.flatMap((row) =>
     'authorSlot' in row
       ? [
@@ -180,7 +182,7 @@ export function reviewedPhoenixSourceDirections33(
             ],
             sourceRefs: [
               {
-                ...guide,
+                ...reviewedPhoenixGuideSource33,
                 id: `icy-phoenix-team-${row.authorSlot}`,
                 locator: `Phoenix's Best Teams > composition ${row.authorSlot}`,
                 verificationStatus: 'reviewed_prerelease_exact_membership_33',

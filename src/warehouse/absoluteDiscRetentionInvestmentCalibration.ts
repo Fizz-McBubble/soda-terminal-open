@@ -2,6 +2,9 @@ import { stableContentHash } from '../gameDataPacks/types'
 import type { Disc, GameRules, Profile, QualityPolicy } from './absoluteDiscRetentionContract'
 import { reviewedHpRetentionEvidence } from './reviewedHpRetentionEvidence'
 
+// The 3.3 catalog added two W-Engine source IDs. The S roll table, level cap,
+// main stats, upgrade interval and locked disc rules are identical to 3.2.
+const reviewedRules = new Set(['fnv1a-4c89ca73', 'fnv1a-274f0b58'])
 const attackSlot = { '2': 'atk_flat' }
 const healthSlots = { '1': 'hp_flat', '2': 'atk_flat', '3': 'def_flat' }
 /** Named combinations only; identities bind the reviewed goal, weights, core and sources. */
@@ -12,24 +15,28 @@ export const namedPolicies: Readonly<
   'agent-soukaku:base-1:fnv1a-f9a2': ['45a5c4f7', 'atk_percent', attackSlot],
   'agent-soukaku:main-alt-1:anomaly_support': ['a8496042', 'atk_percent', attackSlot],
   'agent-soukaku:main-alt-2:secondary': ['307fe920', 'atk_percent', attackSlot],
-  'agent-seth:base-0:fnv1a-f5ec': ['c4e7f103', 'atk_percent', attackSlot],
-  'agent-seth:base-1:fnv1a-8e7e': ['c4e7f103', 'atk_percent', attackSlot],
-  'agent-seth:base-2:fnv1a-18a1': ['c4e7f103', 'atk_percent', attackSlot],
-  'agent-seth:main-alt-0:short_fight': ['4b14e79c', 'atk_percent', attackSlot],
+  'agent-seth:base-0:fnv1a-bd3c': ['7fea4163', 'atk_percent', attackSlot],
+  'agent-seth:base-1:fnv1a-5f8a': ['7fea4163', 'atk_percent', attackSlot],
+  'agent-seth:base-2:fnv1a-3f61': ['7fea4163', 'atk_percent', attackSlot],
+  'agent-seth:base-3:fnv1a-cd1e': ['7fea4163', 'atk_percent', attackSlot],
+  'agent-seth:main-alt-0:short_fight': ['b087233c', 'atk_percent', attackSlot],
   'agent-astra:base-0:fnv1a-210f': ['f88f9c8', 'atk_percent', attackSlot],
   'agent-astra:base-1:fnv1a-77cc': ['f88f9c8', 'atk_percent', attackSlot],
-  'agent-zhao:base-0:fnv1a-2a59': ['370eab2a', 'hp_percent', healthSlots],
-  'agent-zhao:base-1:fnv1a-f244': ['370eab2a', 'hp_percent', healthSlots],
+  'agent-zhao:base-0:fnv1a-6f7e': ['242f10da', 'hp_percent', healthSlots],
+  'agent-zhao:base-1:fnv1a-f0e4': ['242f10da', 'hp_percent', healthSlots],
+  'agent-zhao:base-2:fnv1a-bb99': ['242f10da', 'hp_percent', healthSlots],
   'agent-yuzuha:base-0:fnv1a-c737': ['a0bda8b3', 'atk_percent', attackSlot],
   'agent-yuzuha:base-1:fnv1a-6e0c': ['a0bda8b3', 'atk_percent', attackSlot],
-  'agent-pan-yinhu:base-0:fnv1a-79f0': ['9f66bde5', 'atk_percent', attackSlot],
-  'agent-pan-yinhu:base-1:fnv1a-792d': ['9f66bde5', 'atk_percent', attackSlot],
+  'agent-pan-yinhu:base-0:fnv1a-c922': ['b3f0f001', 'atk_percent', attackSlot],
+  'agent-pan-yinhu:base-1:fnv1a-6968': ['b3f0f001', 'atk_percent', attackSlot],
+  'agent-pan-yinhu:base-2:fnv1a-ecea': ['b3f0f001', 'atk_percent', attackSlot],
   'agent-lucia:base-0:fnv1a-782d': ['340ac385', 'hp_percent', healthSlots],
   'agent-sunna:base-0:fnv1a-e37e': ['a141f52c', 'atk_percent', attackSlot],
 }
 const secondaryHpProfiles = new Set([
-  'agent-zhao:base-0:fnv1a-2a59',
-  'agent-zhao:base-1:fnv1a-f244',
+  'agent-zhao:base-0:fnv1a-6f7e',
+  'agent-zhao:base-1:fnv1a-f0e4',
+  'agent-zhao:base-2:fnv1a-bb99',
   'agent-lucia:base-0:fnv1a-782d',
 ])
 
@@ -62,7 +69,7 @@ export function resolveNamedInvestmentCalibration(
     disc.rarity !== 'S' ||
     policy.calibration !== 'approved' ||
     !policy.calibratedRarities?.includes('S') ||
-    stableContentHash(rules) !== 'fnv1a-4c89ca73' ||
+    !reviewedRules.has(stableContentHash(rules)) ||
     investment?.id !== 'source-goal-stage-investment-r1' ||
     investment.calibration !== 'approved' ||
     investment.meaningfulWeightFrom !== 0.5 ||

@@ -26,6 +26,7 @@ import { getAgentName } from '../assault/catalog'
 import { resolveBangbooBaseUtilityOutputs } from './currentBangbooBaseUtilityContracts'
 import { settleBangbooBaseUtilityCapacity } from './currentBangbooBaseUtilityCapacity'
 import { resolveBangbooAdditionalUtilityCapacities } from './currentBangbooAdditionalUtilityCapacity'
+import { bangbooBaseSkillLevelForStars } from '../gameDataPacks/bangbooPlanningBaseline'
 
 export function projectBangbooUtility(
   input: BangbooUtilityProjectionInput,
@@ -85,9 +86,21 @@ function projectWithMembers(
 
   let primaryPurpose = primaryPurposeByGameId[numeric.gameId] ?? 'utility_general'
   const specialties = new Set(identities.map((identity) => identity!.specialty))
+  const skillLevel = bangbooBaseSkillLevelForStars(input.stars)
+  if (skillLevel === null) {
+    return {
+      stableId: input.bangbooId,
+      primaryPurpose: 'utility_general',
+      secondaryPurposes: [],
+      baseUtilities: [],
+      effectiveUtilities: [],
+      recipientFit: 'unknown',
+      recommendationReason: '额外能力的适用条件待核实。',
+    }
+  }
   const baseUtilities = resolveBangbooBaseUtilityOutputs({
     stableId: input.bangbooId,
-    skillLevel: 10,
+    skillLevel,
     bangbooLevel: 60,
     ascensionLevelCap: 60,
   })

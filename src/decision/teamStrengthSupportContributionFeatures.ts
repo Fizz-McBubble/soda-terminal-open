@@ -4,6 +4,7 @@ import {
   type StandardTeamReferenceSelectionBundle,
 } from './standardTeamReferenceSelection'
 import { stableContentHash } from '../gameDataPacks/types'
+import { reviewedAstraCoreAttackIdentity32 } from '../calculation/reviewedAstraCoreAttackIdentity32'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { currentWEngineStaticCatalog } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { currentDriveDiscFormulaCatalog } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
@@ -46,7 +47,8 @@ const providers = new Set([
 /** A declared support-active contact, not observed uptime or an account build.
  * Unspecified self/party mechanics remain unknown in the shared event runtime. */
 export const teamStrengthSupportContactPolicy = {
-  id: 'six-provider-static-equipped-effective-skill-contact/v2',
+  id: 'six-provider-static-equipped-effective-skill-contact/v3',
+  astraPreparation: 'one-declared-quick-assist-entry-spending-25-energy-within-first-20s',
   eventSelection: 'largest-coefficient-use-in-selected-source-action',
   occurrences: 1,
   enemy: 'current-normalized-target-not-stunned',
@@ -57,6 +59,7 @@ export const teamStrengthSupportContactPolicy = {
 } as const
 export const teamStrengthSupportContactIdentity = stableContentHash({
   policy: teamStrengthSupportContactPolicy,
+  astraPreparation: reviewedAstraCoreAttackIdentity32,
   version: currentVersionProjection.gameVersion,
   events: currentAgentMechanicIdentity,
   equipped: teamStrengthEquippedReferenceBuildPolicy,
@@ -142,7 +145,29 @@ function declaredReferences(ids: readonly string[], recipient: string): Referenc
           ? { sunnaAngelicChordination32: true, sunnaDelusionStunWindow32: false }
           : {}),
         ...(id === 'agent-zhao' ? { zhaoWellspringAttackWindow32: true } : {}),
-        ...(id === 'agent-astra' ? { idyllic_cadenza: true } : {}),
+        ...(id === 'agent-astra'
+          ? {
+              idyllic_cadenza: true,
+              astraCoreAttack32:
+                recipient === id
+                  ? {
+                      kind: 'no_prior_grant',
+                      sourceRefs: [teamStrengthSupportContactPolicy.id],
+                    }
+                  : {
+                      kind: 'single_handoff',
+                      incomingAgentId: recipient,
+                      entry: 'quick_assist',
+                      cadenzaAtTrigger: true,
+                      energyBefore: 25,
+                      elapsedSeconds: { minimumInclusive: 0, maximumExclusive: 20 },
+                      sourceRefs: [
+                        teamStrengthSupportContactPolicy.id,
+                        `${reviewedAstraCoreAttackIdentity32.currentSourceUrl}#sha256=${reviewedAstraCoreAttackIdentity32.currentSourceSha256}`,
+                      ],
+                    },
+            }
+          : {}),
         ...(id === 'agent-yuzuha' ? { tanuki_wish: true } : {}),
         ...(id === 'agent-lucy' ? { cheerOn: true } : {}),
         ...(id === 'agent-nicole' ? { bulletsOrFieldHit: true } : {}),

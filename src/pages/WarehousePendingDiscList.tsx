@@ -10,26 +10,49 @@ import { substatLines } from './warehouseDiscPresentation'
 import { readableSetName, statLabel } from './warehouseFactLabels'
 import { warehouseActionWindowSize } from './warehouseActionListConfig'
 import { defaultWarehouseActionListOrder } from './warehouseActionListJoin'
+import type { AccountPlanningDraft } from '../accounts/types'
+import { resolvePlanningDiscReferences } from '../accounts/planningDiscReferences'
+import { warehousePlanReferences } from '../application/warehousePlanReferences'
+import { WarehouseSavedUsagePopover } from './WarehouseActionDrawerDetails'
+import { savedUsageReferences } from './WarehouseActionDrawerDetails.helpers'
 
 /** Account facts only. No action item or provisional retention decision is created. */
 export function WarehousePendingDiscList({
+  listRef,
   discs,
   filters,
   selectedId,
+  drafts,
+  activePlanIds,
   selectDisc,
   rowHeight: rowHeightProp,
   onFocusDisc,
+  initialScrollTop = 0,
+  onScrollTop,
 }: {
+  listRef: (element: HTMLElement | null) => void
   discs: DriveDisc[]
   filters: FilterState
   selectedId: string | null
+  drafts?: readonly AccountPlanningDraft[]
+  activePlanIds?: readonly string[]
   selectDisc: (id: string) => void
   rowHeight?: number
   onFocusDisc?: (id: string) => void
+  initialScrollTop?: number
+  onScrollTop?: (value: number) => void
 }) {
-  const [scrollTop, setScrollTop] = useState(0)
+  const [scrollTop, setScrollTop] = useState(initialScrollTop)
+  const initialPosition = useRef(initialScrollTop)
   const [activeIndex, setActiveIndex] = useState(0)
   const body = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (body.current) body.current.scrollTop = initialPosition.current
+  }, [])
+  const rememberPosition = (value: number) => {
+    setScrollTop(value)
+    onScrollTop?.(value)
+  }
   const pendingFocus = useRef<number | null>(null)
   const rows = useMemo(
     () =>
@@ -60,6 +83,18 @@ export function WarehousePendingDiscList({
   )
   const windowed = rows.slice(first, first + warehouseActionWindowSize)
   const selected = rows.find((disc) => disc.id === selectedId) ?? rows[0]
+  const savedUses =
+    selected && drafts?.length
+      ? savedUsageReferences(
+          warehousePlanReferences(
+            drafts.filter((draft) =>
+              resolvePlanningDiscReferences(draft).referenceIds.includes(selected.id),
+            ),
+            activePlanIds ?? [],
+          ),
+          [],
+        )
+      : []
   const tabStop =
     activeIndex >= first && activeIndex < first + windowed.length ? activeIndex : first
   useLayoutEffect(() => {
@@ -94,13 +129,14 @@ export function WarehousePendingDiscList({
         top + rowHeight > body.current.scrollTop + body.current.clientHeight
       ) {
         body.current.scrollTop = top
-        setScrollTop(top)
+        rememberPosition(top)
       }
     }
   }
   return (
     <div className="warehouse-action-workspace warehouse-pending-workspace">
       <section
+        ref={listRef}
         className="warehouse-action-list warehouse-pending-list"
         aria-label="当前账户驱动盘事实列表"
       >
@@ -110,7 +146,7 @@ export function WarehousePendingDiscList({
         <div
           className="warehouse-action-list__body"
           ref={body}
-          onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+          onScroll={(event) => rememberPosition(event.currentTarget.scrollTop)}
         >
           {rows.length ? (
             <div
@@ -171,6 +207,7 @@ export function WarehousePendingDiscList({
                 <li key={index}>{line}</li>
               ))}
             </ul>
+            <WarehouseSavedUsagePopover references={savedUses} />
             <p>品质、用途及保留建议待分析。当前显示账户记录。</p>
           </>
         ) : (

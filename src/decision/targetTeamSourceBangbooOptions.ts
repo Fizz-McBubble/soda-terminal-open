@@ -7,6 +7,7 @@ import type {
   TeamEngineCandidate,
 } from '../teamEngine/contracts'
 import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
+import observedUse from '../gameDataPacks/data/reviewed-box-bangboo-use.3.3.json'
 import {
   getCurrentBangbooContractRequirements,
   prepareCurrentBangbooAdditionalActivation,
@@ -36,6 +37,12 @@ export type SourceSupportedTargetBangbooInput = {
 /** Existing exact-trio author options; never a default or an account ownership claim. */
 let reviewedBangbooIdsByTrio: Map<string, readonly string[]> | undefined
 const optionCache = new Map<string, ReturnType<typeof computeTargetBangbooOptions>>()
+const sampleLeadersByTrio: Readonly<Record<string, readonly string[]>> = observedUse.preferred
+const sampleOptionsByTrio: Readonly<Record<string, readonly string[]>> = observedUse.observed
+
+export function sampleLeaders(memberIds: readonly string[]) {
+  return sampleLeadersByTrio[[...memberIds].sort().join('|')] ?? []
+}
 
 export function reviewedSourceBangbooOptions(
   input: Pick<SourceSupportedTargetBangbooInput, 'memberIds' | 'bangbooStarsById'>,
@@ -62,7 +69,7 @@ export function targetTeamBangbooOptions(
   input: Pick<SourceSupportedTargetBangbooInput, 'memberIds' | 'bangbooStarsById'>,
 ) {
   const reviewed = reviewedSourceBangbooOptions(input)
-  const activeReviewed = reviewed.filter((option) => option.activationStatus === 'active')
+  const observedIds = sampleLeaders(input.memberIds)
   const reviewedIds = new Set(reviewed.map((option) => option.bangbooId))
   const alternatives = evaluateTargetBangbooOptions(
     input,
@@ -70,11 +77,47 @@ export function targetTeamBangbooOptions(
       .filter((entry) => entry.releaseState === 'released')
       .map((entry) => entry.id),
   )
+  const observed = observedIds.flatMap((id) => {
+    const choice = alternatives.find((option) => option.bangbooId === id)
+    if (!choice || choice.activationStatus !== 'active') return []
+    return [
+      {
+        ...choice,
+        recommendationReason:
+          (reviewedIds.has(id) ? '资料推荐、同队实战；' : '同队实战；') +
+          choice.recommendationReason,
+      },
+    ]
+  })
+  const observedSet = new Set(observed.map((option) => option.bangbooId))
+  const observedOptions = sampleOptionsByTrio[[...input.memberIds].sort().join('|')] ?? []
+  const observedOrder = new Map(observedOptions.map((id, index) => [id, index]))
+  // Corroborated guides come first. All evidence still passes the same star,
+  // recipient, comparable-capacity and useful-purpose checks as other options.
+  const activeReviewed = [
+    ...observed.filter((option) => reviewedIds.has(option.bangbooId)),
+    ...reviewed.filter(
+      (option) => option.activationStatus === 'active' && !observedSet.has(option.bangbooId),
+    ),
+    ...observed.filter((option) => !reviewedIds.has(option.bangbooId)),
+  ]
   const activeAlternatives = alternatives
-    .filter((option) => option.activationStatus === 'active' && !reviewedIds.has(option.bangbooId))
+    .filter(
+      (option) =>
+        option.activationStatus === 'active' &&
+        !reviewedIds.has(option.bangbooId) &&
+        !observedSet.has(option.bangbooId),
+    )
+    .sort(
+      (left, right) =>
+        (observedOrder.get(left.bangbooId) ?? observedOptions.length) -
+        (observedOrder.get(right.bangbooId) ?? observedOptions.length),
+    )
     .map((option) => ({
       ...option,
-      recommendationReason: `条件适配；${option.recommendationReason}`,
+      recommendationReason:
+        (observedOptions.includes(option.bangbooId) ? '同队记录；' : '条件适配；') +
+        option.recommendationReason,
     }))
 
   const hasOrdinaryEnergyRecipient = input.memberIds.some((id) => {
@@ -214,9 +257,11 @@ export function recommendedTargetBangbooDefault(
   return selected
     ? {
         ...selected,
-        recommendationBasis: reviewed.some((option) => option.bangbooId === selected.bangbooId)
-          ? ('reviewed' as const)
-          : ('mechanic' as const),
+        recommendationBasis:
+          reviewed.some((option) => option.bangbooId === selected.bangbooId) ||
+          sampleLeaders(input.memberIds).includes(selected.bangbooId)
+            ? ('reviewed' as const)
+            : ('mechanic' as const),
       }
     : null
 }

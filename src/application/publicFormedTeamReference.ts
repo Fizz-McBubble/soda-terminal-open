@@ -26,3 +26,10 @@ export const formedTeamReferenceSchema = z
   .strict()
 
 export type FormedTeamReference = z.infer<typeof formedTeamReferenceSchema>
+
+/** Actual account facts. A reference minimum or an absent gap is not an observation. */
+export type TeamMemberCultivationFacts = {
+  owned: boolean | null
+  mindscape: number | null
+  potential: number | null
+}

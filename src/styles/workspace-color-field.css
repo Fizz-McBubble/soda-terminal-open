@@ -1,0 +1,164 @@
+/* One crisp, single-hue brand-purple luminous field flows from the navigation edge across outer margins while keeping reading surfaces pure cold-white. */
+.f5v-shell[data-route-section='home'] {
+  --soda-field-x: 86%;
+  --soda-field-y: 6%;
+}
+
+.f5v-shell[data-route-section='assets'] {
+  --soda-field-x: 88%;
+  --soda-field-y: 5%;
+}
+
+.f5v-shell[data-route-section='development'] {
+  --soda-field-x: 80%;
+  --soda-field-y: 8%;
+}
+
+.f5v-shell[data-route-section='teams'] {
+  --soda-field-x: 88%;
+  --soda-field-y: 9%;
+}
+
+.f5v-shell[data-route-section='warehouse'] {
+  --soda-field-x: 90%;
+  --soda-field-y: 4%;
+}
+
+.f5v-shell[data-route-section='system'] {
+  --soda-field-x: 85%;
+  --soda-field-y: 6%;
+}
+
+.f5v-content {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      ellipse 60% 30% at var(--soda-field-x, 86%) 0%,
+      color-mix(in srgb, var(--soda-accent) 4.8%, var(--soda-surface)),
+      transparent 70%
+    ),
+    var(--f5-paper);
+}
+
+.f5v-workspace-color-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  contain: paint;
+  overflow: clip;
+  pointer-events: none;
+}
+
+/* The upper glow reaches the header and side margin on every route. */
+.f5v-workspace-color-field::before {
+  content: '';
+  position: absolute;
+  inset: -8%;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 86% 49% at var(--soda-field-x, 86%) var(--soda-field-y, 6%),
+      color-mix(in srgb, var(--soda-accent) 37%, transparent),
+      transparent 83%
+    ),
+    linear-gradient(
+      96deg,
+      color-mix(in srgb, var(--soda-accent) 23%, transparent) 0%,
+      transparent 31%
+    );
+  opacity: 0.44;
+}
+
+/* A second glow carries the phrase through the open space below the content. */
+.f5v-workspace-color-field::after {
+  content: '';
+  position: absolute;
+  inset: -8%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 82% 49% at 61% 95%,
+    color-mix(in srgb, var(--soda-accent) 34%, transparent),
+    transparent 82%
+  );
+  opacity: 0.34;
+}
+
+.f5v-rail::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    168deg,
+    color-mix(in srgb, var(--soda-accent) 9%, transparent),
+    transparent 40%,
+    color-mix(in srgb, var(--soda-accent) 24%, transparent)
+  );
+  opacity: 0.32;
+}
+
+.f5v-content > .f5v-topbar {
+  background-color: transparent;
+  background-image: linear-gradient(
+    108deg,
+    color-mix(in srgb, var(--soda-surface) 35%, transparent),
+    transparent 52%
+  );
+}
+
+.f5v-content > .f5v-page-content {
+  background-color: transparent;
+  background-image: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-rail:not([inert])::before {
+    animation: soda-rail-color var(--soda-phrase, 12s) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+
+  .f5v-workspace-color-field::before {
+    animation: soda-workspace-color var(--soda-phrase, 12s) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+  .f5v-workspace-color-field::after {
+    animation: soda-workspace-harmonic var(--soda-phrase, 12s) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+}
+
+@keyframes soda-rail-color {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  55% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes soda-workspace-color {
+  0%,
+  100% {
+    opacity: 0.14;
+    transform: translate3d(-5%, -1.8%, 0);
+  }
+  27% {
+    opacity: 0.96;
+    transform: translate3d(5%, 1.8%, 0);
+  }
+}
+
+@keyframes soda-workspace-harmonic {
+  0%,
+  100% {
+    opacity: 0.08;
+    transform: translate3d(5%, 1.8%, 0);
+  }
+  55% {
+    opacity: 0.93;
+    transform: translate3d(-5%, -1.8%, 0);
+  }
+}

@@ -7,6 +7,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEdge, allowedImage } from './edge.mjs'
 import { inspectDist, prepare } from './prepare.mjs'
+import { assetQuickReadInstallerPath } from './asset-quick-read-release.mjs'
 import reviewed32MediaUrls from '../../src/assets/reviewed32-media-urls.json' with { type: 'json' }
 import visualManifest from '../../src/assets/visual-assets-display.v1.json' with { type: 'json' }
 
@@ -22,6 +23,7 @@ const env = {
 const temp = await mkdtemp(join(tmpdir(), 'soda-cf-preflight-'))
 const scannerTemplate = resolve(dirname(fileURLToPath(import.meta.url)), '../../public/downloads')
 const scannerOrigin = 'https://sodaterminal.com'
+const phoenixCompatibilityPin = 'agent-phoenix-official-avatar'
 let seq = 0
 async function fixture() {
   const root = join(temp, `dist-${seq++}`)
@@ -136,6 +138,23 @@ check('every downloadable catalog source is accepted by the production edge', as
         asset.remoteUrl,
     )
     .map((asset) => asset.remoteUrl)
+  const phoenixAvatar = visualManifest.assets.find(
+    (asset) =>
+      asset.entityType === 'agent' &&
+      asset.entityId === 'agent-phoenix' &&
+      asset.variant === 'square_avatar',
+  )
+  assert.ok(phoenixAvatar, 'The current Phoenix square avatar must be published')
+  assert.equal(phoenixAvatar.status, 'verified')
+  assert.equal(phoenixAvatar.cachePolicy, 'explicit-personal-cache')
+  assert.match(phoenixAvatar.contentHash, /^sha256-[a-f0-9]{64}$/u)
+  assert.ok(urls.includes(phoenixAvatar.remoteUrl))
+  const compatibilityUrl = reviewed32MediaUrls[phoenixCompatibilityPin]
+  assert.ok(compatibilityUrl)
+  assert.deepEqual(
+    Object.entries(reviewed32MediaUrls).filter(([, url]) => !urls.includes(url)),
+    [[phoenixCompatibilityPin, compatibilityUrl]],
+  )
   for (const url of urls) {
     const response = await edge.fetch(
       req(`/official-catalog-cache?source=${encodeURIComponent(url)}`),
@@ -145,7 +164,24 @@ check('every downloadable catalog source is accepted by the production edge', as
     assert.equal(response.headers.get('x-soda-asset-error'), null, url)
   }
   assert.deepEqual(requested, urls)
-  for (const url of Object.values(reviewed32MediaUrls)) assert(urls.includes(url), url)
+})
+check('the frozen Phoenix avatar pin remains available to compatibility downloads', async () => {
+  const source = reviewed32MediaUrls[phoenixCompatibilityPin]
+  const requested = []
+  const edge = createEdge({
+    fetcher: async (url) => {
+      requested.push(url)
+      return fakeImage()
+    },
+  })
+  const response = await edge.fetch(
+    req(`/official-catalog-cache?source=${encodeURIComponent(source)}`),
+    env,
+  )
+  assert.equal(response.status, 200)
+  assert.equal(response.headers.get('x-soda-asset-error'), null)
+  assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [1, 2, 3])
+  assert.deepEqual(requested, [source])
 })
 check(
   'reviewed image pins reject alternate paths, queries, credentials and redirects',
@@ -440,16 +476,13 @@ check('prepared config is assets-first and pinned; no automatic deployment', asy
   assert.match(headers, /font-src 'self'/u)
   const contentSecurityPolicy = headers.match(/Content-Security-Policy: ([^\n]+)/u)?.[1]
   assert.ok(contentSecurityPolicy)
-  assert.doesNotMatch(
-    contentSecurityPolicy,
-    /(?:https?:\/\/\*|\*\.\w|connect-src[^;]*\*)/u,
-  )
+  assert.doesNotMatch(contentSecurityPolicy, /(?:https?:\/\/\*|\*\.\w|connect-src[^;]*\*)/u)
   assert.match(headers, /X-Content-Type-Options: nosniff/u)
   assert.equal(report.fileCount, 6)
   assert.equal(report.sourceInventorySha256.length, 64)
   assert.equal(report.staticHeadersSha256.length, 64)
   const config = JSON.parse(await readFile(join(out, 'wrangler.json')))
-  assert.equal(config.main, './deploy/cloudflare/edge.mjs')
+  assert.equal(config.main, './deploy/cloudflare/worker-entry.mjs')
   assert.deepEqual(config.vars, { SODA_RELEASE_ID: 'synthetic-local-1' })
   assert.equal(config.observability.enabled, false)
   assert.equal(config.observability.logs.enabled, false)
@@ -459,7 +492,12 @@ check('prepared config is assets-first and pinned; no automatic deployment', asy
     JSON.parse(await readFile(join(out, 'src/assets/reviewed32-media-urls.json'))),
     reviewed32MediaUrls,
   )
-  const packagedEdge = await import(new URL(config.main, pathToFileURL(join(out, 'wrangler.json'))))
+  const packagedEntry = await import(
+    new URL(config.main, pathToFileURL(join(out, 'wrangler.json')))
+  )
+  assert.deepEqual(Object.keys(packagedEntry), ['default'])
+  const packagedEdge = await import(pathToFileURL(join(out, 'deploy/cloudflare/edge.mjs')))
+  assert.equal(packagedEntry.default, packagedEdge.default)
   assert.equal(packagedEdge.allowedImage(new URL(reviewed32MediaUrls['agent-claret'])), true)
   assert.equal(config.assets.directory, './web')
   assert(Array.isArray(config.assets.run_worker_first))
@@ -474,7 +512,13 @@ check('prepared config is assets-first and pinned; no automatic deployment', asy
 check('Scanner download is materialized and pinned to its HTTPS origin', async () => {
   const root = await fixture(),
     out = join(temp, `scanner-prepared-${seq++}`)
-  await cp(scannerTemplate, join(root, 'downloads'), { recursive: true })
+  // This fixture exercises source-distributed Scanner templates. The ignored
+  // Quick Read installer is a local cache, excluded by the public source export.
+  await cp(scannerTemplate, join(root, 'downloads'), {
+    recursive: true,
+    filter: (source) =>
+      source !== join(scannerTemplate, assetQuickReadInstallerPath.split('/').at(-1)),
+  })
   await assert.rejects(inspectDist(root), /scanner_template_unresolved/)
   await assert.rejects(prepare({ dist: root, out }), /scanner_public_origin_required/)
   const report = await prepare({ dist: root, out, origin: scannerOrigin })

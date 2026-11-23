@@ -1,10 +1,16 @@
-import { useRef } from 'react'
+import { useEffectEvent, useLayoutEffect, useRef } from 'react'
+import { browserCalculationInputFingerprint } from '../../application/browserCalculationInputFingerprint'
+import { loadWorldInput } from '../../application/accountDecisionWorldModel'
+import { playerErrorMessage } from '../../application/playerErrorMessage'
 import { beginUsageOperation } from '../../usageStatistics/client'
 import { loadCoreWarehouse } from '../../accounts/coreWarehouse'
 import type { AccountPlanningDraft } from '../../accounts/types'
 import { prepareRemainingBox } from '../../application/remainingBox'
-import { preloadVisualEntityImages } from '../../assets/visualEntityImageSource'
-import { currentTeamOverviewFromQuery, waitForAnalysisStage } from '../teamAnalysisRecovery'
+import {
+  currentTeamOverviewFromQuery,
+  retainTeamAnalysisAfterCancellation,
+  waitForAnalysisStage,
+} from '../teamAnalysisRecovery'
 import {
   currentTeamAnalysisSession,
   setCurrentTeamAnalysisSession,
@@ -13,9 +19,34 @@ import {
 import { traceTeamRematch } from './teamRematchTrace'
 import type { UseTeamAnalysisFlowOptions } from './teamAnalysisFlowTypes'
 
+type TeamAnalysisAccountSummary = UseTeamAnalysisFlowOptions['accountSummary']
+type TeamAnalysisDecisionWorld = UseTeamAnalysisFlowOptions['decisionWorld']
+
+function reusableCurrentRun(
+  decisionWorld: TeamAnalysisDecisionWorld,
+  accountSummary: TeamAnalysisAccountSummary,
+  expected?: { runId: string; accountId: string; fingerprint: string },
+) {
+  if (!accountSummary || accountSummary.hydrating || !accountSummary.accountId) return null
+  if (decisionWorld.status !== 'current') return null
+  const { run } = decisionWorld
+  if (run.input.warehouse.accountId !== accountSummary.accountId) return null
+  if (run.inputFingerprint !== run.snapshot.fingerprint.inputHash) return null
+  if (decisionWorld.liveFingerprint !== run.snapshot.fingerprint.inputHash) return null
+  if (
+    expected &&
+    (run.runId !== expected.runId ||
+      run.input.warehouse.accountId !== expected.accountId ||
+      run.snapshot.fingerprint.inputHash !== expected.fingerprint)
+  )
+    return null
+  return run
+}
+
 export function useTeamAnalysisFlow({
   accountSummary,
   decisionWorld,
+  autoStartOnEntry = true,
   reservedPlanIds,
   contextAgentId,
   contextPlanId,
@@ -48,20 +79,29 @@ export function useTeamAnalysisFlow({
   navigate,
 }: UseTeamAnalysisFlowOptions) {
   const pendingRunId = useRef<string | null>(null)
+  const autoStartAttemptedKey = useRef<string | null>(null)
+  const latestDecisionWorld = useRef(decisionWorld)
+  const latestAccountSummary = useRef(accountSummary)
+  useLayoutEffect(() => {
+    latestDecisionWorld.current = decisionWorld
+    if (accountSummary && !accountSummary.hydrating) latestAccountSummary.current = accountSummary
+  }, [accountSummary, decisionWorld])
   const cancelAnalysis = () => {
     analysisRequestRef.current += 1
     remainingRequestRef.current += 1
     prepareRequestRef.current += 1
     remainingRunningRef.current = false
     rematchRequestRef.current = null
-    decisionWorld.cancelCalculation?.()
+    latestDecisionWorld.current.cancelCalculation?.()
     if (pendingRunId.current) releaseRun(pendingRunId.current)
     pendingRunId.current = null
     setAnalysisSnapshot(null)
     setPreparingItemId(null)
-    const retained = lastCompleteAnalysis
-      ? { kind: 'stale' as const, result: lastCompleteAnalysis.result }
-      : null
+    const retained = retainTeamAnalysisAfterCancellation(
+      lastCompleteAnalysis,
+      latestAccountSummary.current,
+      latestDecisionWorld.current,
+    )
     setCurrentTeamAnalysisSession(retained)
     setAnalysis(retained ?? { kind: 'ready' })
   }
@@ -83,10 +123,27 @@ export function useTeamAnalysisFlow({
         analysisCurrent: analysisGeneration === analysisRequestRef.current,
         prepareCurrent: generation === prepareRequestRef.current,
         routeCurrent: isCurrentRoute(),
+        accountCurrent:
+          !latestAccountSummary.current?.hydrating &&
+          latestAccountSummary.current?.accountId === result.warehouse.accountId &&
+          latestAccountSummary.current?.appSessionId === result.appSessionId &&
+          (!latestDecisionWorld.current.liveInput?.warehouse.accountId ||
+            latestDecisionWorld.current.liveInput.warehouse.accountId ===
+              result.warehouse.accountId),
       }
-      if (!checks.analysisCurrent || !checks.prepareCurrent || !checks.routeCurrent)
+      if (
+        !checks.analysisCurrent ||
+        !checks.prepareCurrent ||
+        !checks.routeCurrent ||
+        !checks.accountCurrent
+      )
         traceTeamRematch('continue.reject.generation', checks)
-      return checks.analysisCurrent && checks.prepareCurrent && checks.routeCurrent
+      return (
+        checks.analysisCurrent &&
+        checks.prepareCurrent &&
+        checks.routeCurrent &&
+        checks.accountCurrent
+      )
     }
     const hasCurrentSession = () => {
       const session = currentTeamAnalysisSession
@@ -192,11 +249,26 @@ export function useTeamAnalysisFlow({
     }
   }
 
-  const startAnalysis = async () => {
+  const startAnalysis = async ({
+    forceRefresh = false,
+  }: {
+    forceRefresh?: boolean
+  } = {}) => {
+    if (!accountSummary || accountSummary.hydrating || !accountSummary.accountId) return
     const request = ++analysisRequestRef.current
+    const requestAccountId = accountSummary?.accountId
+    const requestAppSessionId = accountSummary?.appSessionId
     traceTeamRematch('analysis.start', { generation: request })
     const isCurrentRequest = () => {
-      const current = request === analysisRequestRef.current && isCurrentRoute()
+      const current =
+        request === analysisRequestRef.current &&
+        isCurrentRoute() &&
+        !latestAccountSummary.current?.hydrating &&
+        Boolean(requestAccountId) &&
+        latestAccountSummary.current?.accountId === requestAccountId &&
+        latestAccountSummary.current?.appSessionId === requestAppSessionId &&
+        (!latestDecisionWorld.current.liveInput?.warehouse.accountId ||
+          latestDecisionWorld.current.liveInput.warehouse.accountId === requestAccountId)
       if (!current)
         traceTeamRematch('analysis.reject.generation', {
           expected: request,
@@ -214,6 +286,22 @@ export function useTeamAnalysisFlow({
     try {
       await waitForAnalysisStage()
       if (!isCurrentRequest()) return
+      // URL/rematch re-analysis and stale or failed sessions are explicit refresh
+      // intents. Ordinary entry may consume the already validated current run.
+      const shouldForceRefresh =
+        forceRefresh ||
+        latestDecisionWorld.current.analysisIssue?.kind === 'run_lost' ||
+        Boolean(rematchRequestRef.current) ||
+        analysis.kind === 'stale' ||
+        analysis.kind === 'error'
+      if (!shouldForceRefresh) {
+        const reused = await reuseCurrentAnalysis()
+        if (reused) return
+        if (!isCurrentRequest()) return
+        traceTeamRematch('analysis.reuse.reject', {
+          worldStatus: latestDecisionWorld.current.status,
+        })
+      }
       const initialWarehouse = await loadCoreWarehouse()
       if (!isCurrentRequest()) return
       if (!initialWarehouse.accountId) {
@@ -221,24 +309,6 @@ export function useTeamAnalysisFlow({
         setAnalysis({ kind: 'unable', reason: 'no_account' })
         return
       }
-      void preloadVisualEntityImages([
-        ...initialWarehouse.roster.agents
-          .filter((agent) => agent.owned)
-          .map((agent) => ({
-            entityType: 'agent' as const,
-            entityId: agent.agentId,
-            slotId: 'agent.square-avatar' as const,
-            consumer: 'box.team-overview' as const,
-          })),
-        ...initialWarehouse.roster.bangboos
-          .filter((bangboo) => bangboo.owned)
-          .map((bangboo) => ({
-            entityType: 'bangboo' as const,
-            entityId: bangboo.bangbooId,
-            slotId: 'bangboo.team-icon' as const,
-            consumer: 'box.team-overview' as const,
-          })),
-      ])
       const snapshot = {
         accountName: initialWarehouse.account?.displayName ?? '当前账户',
         ownedAgentCount: initialWarehouse.roster.agents.filter((agent) => agent.owned).length,
@@ -260,7 +330,7 @@ export function useTeamAnalysisFlow({
       setAnalysis({ kind: 'running', stage: currentStage })
       await waitForAnalysisStage()
       if (!isCurrentRequest()) return
-      const sharedRun = await decisionWorld.refresh()
+      const sharedRun = await latestDecisionWorld.current.refresh()
       traceTeamRematch('analysis.refresh.received', {
         hasRun: Boolean(sharedRun),
         current: isCurrentRequest(),
@@ -278,7 +348,14 @@ export function useTeamAnalysisFlow({
       await waitForAnalysisStage()
       if (!isCurrentRequest()) return
       const currentOverview = currentTeamOverviewFromQuery(sharedRun)
-      if (!currentOverview) throw new Error('队伍展示结果缺失或已过期，请重新分析当前队伍。')
+      const defaultOverview =
+        currentOverview ??
+        (await queryTeamOverview(identityForRun(sharedRun), {
+          agentId: null,
+          planId: null,
+          discId: null,
+        }))
+      if (!isCurrentRequest()) return
       const overviewModel =
         contextAgentId || contextPlanId || contextDiscId
           ? await queryTeamOverview(identityForRun(sharedRun), {
@@ -286,7 +363,7 @@ export function useTeamAnalysisFlow({
               planId: contextPlanId,
               discId: contextDiscId,
             })
-          : currentOverview
+          : defaultOverview
       if (!isCurrentRequest()) return
 
       currentStage = 5
@@ -306,6 +383,7 @@ export function useTeamAnalysisFlow({
         decisionSnapshot,
         capturedAt: new Date(sharedRun.capturedAt),
         inputFingerprint: initialFingerprint,
+        inputReadFingerprint: browserCalculationInputFingerprint(sharedRun.input),
         targetTeamFits: {},
       }
       const nextAnalysis = { kind: 'complete' as const, result }
@@ -330,17 +408,45 @@ export function useTeamAnalysisFlow({
   }
 
   const startRemainingBoxAnalysis = async () => {
-    if (remainingRunningRef.current || !accountSummary?.accountId) return
+    if (remainingRunningRef.current || accountSummary?.hydrating || !accountSummary?.accountId)
+      return
     analysisRequestRef.current += 1
     remainingRunningRef.current = true
     const requestId = ++remainingRequestRef.current
     const accountId = accountSummary.accountId
-    const isCurrentRequest = () => remainingRequestRef.current === requestId && isCurrentRoute()
+    const appSessionId = accountSummary.appSessionId
+    const isCurrentRequest = () =>
+      remainingRequestRef.current === requestId &&
+      isCurrentRoute() &&
+      !latestAccountSummary.current?.hydrating &&
+      latestAccountSummary.current?.accountId === accountId &&
+      latestAccountSummary.current?.appSessionId === appSessionId &&
+      (!latestDecisionWorld.current.liveInput?.warehouse.accountId ||
+        latestDecisionWorld.current.liveInput.warehouse.accountId === accountId)
     setRemainingBoxError(null)
     setAnalysis({ kind: 'running', stage: 1 })
     let uncommittedRunId: string | null = null
     try {
-      const source = await decisionWorld.refresh()
+      const retainedSource = reusableCurrentRun(
+        latestDecisionWorld.current,
+        latestAccountSummary.current,
+      )
+      // A saved-plan write can precede liveQuery. Check the persisted input before
+      // reusing the current run, without replacing it just to calculate a detached BOX.
+      const currentInput = retainedSource ? await loadWorldInput() : null
+      if (!isCurrentRequest()) return
+      const reusableSource =
+        retainedSource &&
+        currentInput &&
+        browserCalculationInputFingerprint(currentInput) ===
+          browserCalculationInputFingerprint(retainedSource.input)
+          ? reusableCurrentRun(latestDecisionWorld.current, latestAccountSummary.current, {
+              runId: retainedSource.runId,
+              accountId,
+              fingerprint: retainedSource.inputFingerprint,
+            })
+          : null
+      const source = reusableSource ?? (await decisionWorld.refresh())
       if (!isCurrentRequest()) return
       if (!source) throw new Error('账户资料尚未就绪，请重试。')
       if (source.input.warehouse.accountId !== accountId)
@@ -371,6 +477,7 @@ export function useTeamAnalysisFlow({
         decisionSnapshot: run.snapshot,
         capturedAt: new Date(run.capturedAt),
         inputFingerprint: source.snapshot.fingerprint.inputHash,
+        inputReadFingerprint: browserCalculationInputFingerprint(source.input),
         targetTeamFits: {},
       }
       if (!isCurrentRequest()) {
@@ -389,7 +496,11 @@ export function useTeamAnalysisFlow({
     } catch (error) {
       if (uncommittedRunId) releaseRun(uncommittedRunId)
       if (!isCurrentRequest()) return
-      setRemainingBoxError(error instanceof Error ? error.message : '剩余队伍分析失败，请重试。')
+      setRemainingBoxError(
+        error instanceof Error && error.name === 'AbortError'
+          ? '本次分析已取消。'
+          : playerErrorMessage(error, '剩余队伍分析未完成，请重试。'),
+      )
       setRemainingBoxOpen(true)
       setAnalysis(lastCompleteAnalysis ?? { kind: 'ready' })
     } finally {
@@ -403,9 +514,16 @@ export function useTeamAnalysisFlow({
       hasRequest: Boolean(rematchRequestRef.current),
       generation: analysisRequestRef.current,
     })
-    if (decisionWorld.status !== 'current') return false
+    if (
+      Boolean(rematchRequestRef.current) ||
+      decisionWorld.analysisIssue?.kind === 'run_lost' ||
+      analysis.kind === 'stale' ||
+      analysis.kind === 'error'
+    )
+      return false
+    const run = reusableCurrentRun(decisionWorld, accountSummary)
+    if (!run) return false
     const request = analysisRequestRef.current
-    const { run } = decisionWorld
     const currentOverview = currentTeamOverviewFromQuery(run)
     traceTeamRematch('reuse.overview', {
       accepted: Boolean(currentOverview),
@@ -417,15 +535,27 @@ export function useTeamAnalysisFlow({
       liveFingerprintMatches: decisionWorld.liveFingerprint === run.snapshot.fingerprint.inputHash,
       summaryAccountMatches: run.input.warehouse.accountId === accountSummary?.accountId,
     })
-    if (!currentOverview) return false
-    const overviewModel =
-      contextAgentId || contextPlanId || contextDiscId
-        ? await queryTeamOverview(identityForRun(run), {
-            agentId: contextAgentId,
-            planId: contextPlanId,
-            discId: contextDiscId,
-          })
-        : currentOverview
+    let overviewModel: TeamAnalysisResult['overviewModel']
+    try {
+      overviewModel =
+        contextAgentId || contextPlanId || contextDiscId
+          ? await queryTeamOverview(identityForRun(run), {
+              agentId: contextAgentId,
+              planId: contextPlanId,
+              discId: contextDiscId,
+            })
+          : (currentOverview ??
+            (await queryTeamOverview(identityForRun(run), {
+              agentId: null,
+              planId: null,
+              discId: null,
+            })))
+    } catch (error) {
+      traceTeamRematch('reuse.overview.reject', {
+        message: error instanceof Error ? error.message : 'unknown',
+      })
+      return false
+    }
     if (request !== analysisRequestRef.current || !isCurrentRoute()) {
       traceTeamRematch('reuse.reject.generation', {
         expected: request,
@@ -433,19 +563,35 @@ export function useTeamAnalysisFlow({
       })
       return true
     }
+    const latestRun = reusableCurrentRun(
+      latestDecisionWorld.current,
+      latestAccountSummary.current,
+      {
+        runId: run.runId,
+        accountId: run.input.warehouse.accountId ?? '',
+        fingerprint: run.snapshot.fingerprint.inputHash,
+      },
+    )
+    if (!latestRun || latestDecisionWorld.current.analysisIssue?.kind === 'run_lost') {
+      traceTeamRematch('reuse.reject.changed', {
+        worldStatus: latestDecisionWorld.current.status,
+      })
+      return false
+    }
     const result = {
-      appSessionId: accountSummary?.appSessionId ?? crypto.randomUUID(),
-      analysisRunId: run.runId,
-      warehouse: run.input.warehouse,
+      appSessionId: latestAccountSummary.current?.appSessionId ?? crypto.randomUUID(),
+      analysisRunId: latestRun.runId,
+      warehouse: latestRun.input.warehouse,
       overviewModel,
       presentationContext: {
         agentId: contextAgentId,
         planId: contextPlanId,
         discId: contextDiscId,
       },
-      decisionSnapshot: run.snapshot,
-      capturedAt: new Date(run.capturedAt),
-      inputFingerprint: run.snapshot.fingerprint.inputHash,
+      decisionSnapshot: latestRun.snapshot,
+      capturedAt: new Date(latestRun.capturedAt),
+      inputFingerprint: latestRun.snapshot.fingerprint.inputHash,
+      inputReadFingerprint: browserCalculationInputFingerprint(latestRun.input),
       targetTeamFits: {},
     }
     const nextAnalysis = { kind: 'complete' as const, result }
@@ -456,13 +602,37 @@ export function useTeamAnalysisFlow({
       })
       if (request !== analysisRequestRef.current || !isCurrentRoute()) return
       setLastCompleteAnalysis(nextAnalysis)
-      releasePreviousDetached(run.runId)
+      releasePreviousDetached(latestRun.runId)
       setCurrentTeamAnalysisSession(nextAnalysis)
       setAnalysis(nextAnalysis)
-      void continueRematch(result, run.input.drafts)
+      void continueRematch(result, latestRun.input.drafts)
     })
     return true
   }
+
+  const autoStartKey =
+    autoStartOnEntry &&
+    !accountSummary?.hydrating &&
+    accountSummary?.accountId &&
+    accountSummary.appSessionId &&
+    accountSummary.agentCount > 0 &&
+    accountSummary.discCount > 0
+      ? `${accountSummary.accountId}:${accountSummary.appSessionId}`
+      : null
+  const startAnalysisOnEntry = useEffectEvent(() => {
+    void startAnalysis()
+  })
+  useLayoutEffect(() => {
+    if (
+      analysis.kind !== 'ready' ||
+      !autoStartKey ||
+      autoStartAttemptedKey.current === autoStartKey
+    )
+      return
+    // Entry analysis is one-shot per account session. Cancel, failure and stale stay explicit.
+    autoStartAttemptedKey.current = autoStartKey
+    startAnalysisOnEntry()
+  }, [analysis.kind, autoStartKey])
 
   return {
     startAnalysis,

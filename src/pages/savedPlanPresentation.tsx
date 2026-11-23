@@ -8,7 +8,6 @@ import { SavedPortfolioPlanTeams } from './SavedPortfolioPlanTeams'
 export function SavedPortfolioPlan({
   warehouse,
   plan,
-  readOnly,
 }: {
   warehouse: CoreWarehouse
   plan: AccountPlanningDraft
@@ -23,14 +22,11 @@ export function SavedPortfolioPlan({
       <header className="optimizer-portfolio__heading">
         <div>
           <h1>{savedPlanDisplayName(plan)}</h1>
-          <p>
-            已保存 {snapshot.requestedTeamCount} 队同时出战方案；每队保留成员、邦布与 18
-            张不同驱动盘。
-          </p>
+          <p>已保存 {snapshot.requestedTeamCount} 队同时出战方案。</p>
         </div>
       </header>
-      {readOnly ? (
-        <p role="status">这是已保存的历史方案；账户资料已变化时不能据此继续保存或改写。</p>
+      {savedAllocation.status === 'incomplete' ? (
+        <p role="status">部分已保存成员或驱动盘无法核对。</p>
       ) : null}
       <SavedPortfolioPlanTeams
         plan={plan}

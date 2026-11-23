@@ -1,24 +1,19 @@
+import type { TeamExecutionWorkspaceSurfaceProps } from './teamExecutionWorkspaceTypes'
 import { teamEquipmentSelectionErrorMessage } from './teamEquipmentSelectionFeedback'
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import type { CoreWarehouse } from '../accounts/coreFlow'
-import type {
-  TargetTeamEquipmentParameterSelection,
-  TargetTeamWarehouseFitQueryResult,
-} from '../application/calculationQueryContract'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
+import type { TargetTeamEquipmentParameterSelection } from '../application/calculationQueryContract'
 import { VisualEntityImage } from '../components/VisualEntityImage'
-import type { TeamExecution } from '../decision/teamExecutionProjection'
-import type { TeamDeploymentOrder } from '../decision/teamDeployment'
 import { TeamDeploymentControl } from './TeamDeploymentControl'
-import type { BuildIntentRecommendation } from '../decision/buildIntent'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
-import { FormedTeamReference } from './FormedTeamReference'
-import { formedCultivationGaps } from '../application/formedCultivationGaps'
+import { currentTeamCultivation } from '../application/formedCultivationGaps'
+import { resolveMemberMindscapeDisplay } from './teamMemberMindscapePresentation'
 import {
-  incompleteTeamLoadoutMessage,
-  isSpecificTeamDiscReason,
-  presentTeamExecution,
-} from './teamExecutionPresentation'
+  TeamLoadoutMindscapeBadge,
+  TeamLoadoutMindscapeSuggestion,
+} from './TeamLoadoutMindscapeBadge'
+import { incompleteTeamLoadoutMessage, isSpecificTeamDiscReason } from './teamExecutionPresentation'
 import { createTeamExecutionAttributePanel } from './teamExecutionAttributePanel'
+import { teamDiscCompletion } from '../domain/teamDiscCompletion'
 import { targetTeamBuildDirectionConditions } from '../application/targetTeamEffectivePotentialConditions'
 import { useStateTransitionMotion } from '../motion/useStateTransitionMotion'
 import { substitutesForMember } from './teamExecutionWorkspaceSubstitutes'
@@ -35,21 +30,8 @@ import {
   TeamSchemeBangbooControl,
   TeamSchemeWEngineControl,
 } from './TeamEquipmentParameterForm'
-export type TeamExecutionWorkspaceSubstitute = {
-  targetAgentId: string
-  agentId: string
-  agentName: string
-  onSelect?: () => void
-}
-
-export type TeamExecutionWorkspaceAlternate = {
-  agentId: string
-  agentName: string
-  replacedAgentId?: string
-  replacedAgentName?: string
-  onSelect?: () => void
-  alternatives?: readonly TeamExecutionWorkspaceSubstitute[]
-}
+import { useTeamDiscAttributeLinkage } from './useTeamDiscAttributeLinkage'
+import './team-loadout-reference-badges.css'
 
 export function TeamExecutionWorkspaceSurface({
   view,
@@ -59,25 +41,13 @@ export function TeamExecutionWorkspaceSurface({
   execution,
   onRosterChange,
   targetTeamFit,
+  savedPotentialByAgentId,
   discRecommendations,
   onConfirmEquipmentParameters,
   onDeploymentOrderChange,
   evidence,
   readOnly = false,
-}: {
-  view: ReturnType<typeof presentTeamExecution>
-  bangbooId: string | null
-  warehouse: CoreWarehouse
-  alternate?: TeamExecutionWorkspaceAlternate
-  execution?: TeamExecution
-  onRosterChange?: (roster: CoreWarehouse['roster']) => void
-  targetTeamFit?: TargetTeamWarehouseFitQueryResult
-  discRecommendations?: readonly BuildIntentRecommendation[]
-  onConfirmEquipmentParameters?: (selection: TargetTeamEquipmentParameterSelection) => Promise<void>
-  onDeploymentOrderChange?: (order: TeamDeploymentOrder | undefined) => void
-  evidence?: ReactNode
-  readOnly?: boolean
-}) {
+}: TeamExecutionWorkspaceSurfaceProps) {
   const [selectedMemberId, setSelectedMemberId] = useState(view.members[0]?.agentId ?? '')
   const [loadoutView, setLoadoutView] = useState<'member' | 'team'>('member')
   const [equipmentPending, setEquipmentPending] = useState(false)
@@ -91,22 +61,28 @@ export function TeamExecutionWorkspaceSurface({
   const previousLoadoutView = useRef(loadoutView)
   const selectedMember =
     view.members.find((member) => member.agentId === selectedMemberId) ?? view.members[0]
+
+  const { selectedDiscId, selectedAttributeKey, matchedAttributeKeys, isDiscHighlighted,
+    handleDiscSelect, handleAttributeSelect, handleDeselect } = useTeamDiscAttributeLinkage(view, selectedMemberId, setSelectedMemberId)
+  const currentCultivation = currentTeamCultivation(
+    view.members.map((member) => member.agentId),
+    warehouse.roster,
+  )
   const selectedExecutionMember = execution?.members.find(
     (member) => member.agentId === selectedMember?.agentId,
   )
   const selectedAccountAgent = warehouse.roster.agents.find(
     (agent) => agent.agentId === selectedMember?.agentId,
   )
-  const bangbooLabel = bangbooId ? playerFacingBangbooLabel(bangbooId) : '未纳入'
+  const bangbooLabel = bangbooId ? playerFacingBangbooLabel(bangbooId) : '未记录'
   const bangbooStarLabel = execution?.bangbooStar ? ` · ${execution.bangbooStar} 星` : ''
-  const expectedDiscCount = view.members.length * 6
-  const displayedDiscCount = view.members.reduce(
-    (count, member) => count + member.discFacts.length,
-    0,
+  const expectedDiscCount = 18
+  const completion = teamDiscCompletion(
+    targetTeamFit?.memberIds ?? view.members.map((member) => member.agentId),
+    view.members, warehouse.discs,
   )
-  const hasCompleteTeamLoadout =
-    displayedDiscCount === expectedDiscCount &&
-    view.members.every((member) => member.missingDiscIds.length === 0)
+  const displayedDiscCount = completion.matchedSlots
+  const hasCompleteTeamLoadout = completion.complete
   const specificTeamDiscReasons = [
     ...new Set(
       (targetTeamFit?.warehousePlan.gaps ?? []).filter((reason) =>
@@ -141,53 +117,47 @@ export function TeamExecutionWorkspaceSurface({
       ? createTeamExecutionAttributePanel({
           agent: selectedAccountAgent,
           member: selectedExecutionMember,
+          equippedDiscIds: readOnly ? selectedAccountAgent.equippedDiscIds ?? [] : undefined,
           discs: warehouse.discs,
           wEngines: warehouse.roster.wEngines,
           memberIds: view.members.map((member) => member.agentId),
           buildDirectionConditions: targetTeamBuildDirectionConditions({
             memberIds: view.members.map((member) => member.agentId),
             roster: warehouse.roster,
-            potentialByAgentId: targetTeamFit?.effectiveEquipmentParameters?.potentialByAgentId,
+            potentialByAgentId: targetTeamFit?.effectiveEquipmentParameters?.potentialByAgentId ?? savedPotentialByAgentId,
           }),
         })
       : null
-  useEffect(() => {
-    if (previousLoadoutView.current !== loadoutView) loadoutHeadingRef.current?.focus()
-    previousLoadoutView.current = loadoutView
-  }, [loadoutView])
   useStateTransitionMotion({
     scope: loadoutMotionScope,
-    stateKey: `${selectedMember?.agentId ?? 'empty'}:${selectedMember?.discFacts.map((disc) => disc.id).join('|') ?? ''}`,
-    includeScope: true,
+    stateKey: `${loadoutView}:${selectedMember?.agentId ?? 'empty'}:${selectedMember?.discFacts.map((disc) => disc.id).join('|') ?? ''}`,
+    target: '.team-execution__workspace',
     enabled: !equipmentPending,
   })
   useLayoutEffect(() => {
     const memberId = pendingMemberFocus.current
-    if (!memberId || memberId !== selectedMember?.agentId) return
-    pendingMemberFocus.current = null
-    memberTabRefs.current.get(memberId)?.focus()
-  }, [selectedMember?.agentId])
+    if (memberId && memberId === selectedMember?.agentId) {
+      pendingMemberFocus.current = null
+      memberTabRefs.current.get(memberId)?.focus()
+    } else if (previousLoadoutView.current !== loadoutView) {
+      loadoutHeadingRef.current?.focus()
+    }
+    previousLoadoutView.current = loadoutView
+  }, [selectedMember?.agentId, loadoutView])
   if (!selectedMember) return null
   return (
     <section className={`team-execution is-${view.status}`} aria-labelledby={headingId}>
-      <FormedTeamReference
-        reference={targetTeamFit?.formedTeamReference}
-        gaps={
-          targetTeamFit?.formedTeamReference
-            ? formedCultivationGaps(targetTeamFit.formedTeamReference, warehouse.roster)
-            : []
-        }
-      />
-      <section
-        className="team-execution__loadout"
-        aria-labelledby={descriptionId}
-        ref={loadoutMotionScope}
-      >
+      <section className="team-execution__loadout" ref={loadoutMotionScope}>
         <div className="team-execution__top-rail">
           <div className="team-execution__formation">
             <div className="team-execution__member-strip" role="tablist" aria-label="选择队伍成员">
               {view.members.map((member, position) => {
                 const substitutes = substitutesForMember(member, alternate)
+                const mindscape = resolveMemberMindscapeDisplay(
+                  member.agentId,
+                  targetTeamFit?.formedTeamReference,
+                  currentCultivation[member.agentId],
+                )
                 return (
                   <div className="team-execution__member-slot" key={member.agentId}>
                     <button
@@ -218,6 +188,8 @@ export function TeamExecutionWorkspaceSurface({
                         if (next === null) return
                         event.preventDefault()
                         pendingMemberFocus.current = view.members[next].agentId
+                        memberTabRefs.current.get(view.members[next].agentId)?.focus()
+                        handleDeselect()
                         setSelectedMemberId(view.members[next].agentId)
                         setLoadoutView('member')
                       }}
@@ -225,17 +197,26 @@ export function TeamExecutionWorkspaceSurface({
                       onClick={() => {
                         setSelectedMemberId(member.agentId)
                         setLoadoutView('member')
+                        handleDeselect()
                       }}
                     >
-                      <TeamMemberVisual
-                        agentId={member.agentId}
-                        name={member.agentName}
-                        className="team-execution__member-avatar"
-                      />
+                      <span className="team-execution__member-portrait">
+                        <TeamMemberVisual
+                          agentId={member.agentId}
+                          name={member.agentName}
+                          className="team-execution__member-avatar"
+                        />
+                        <TeamLoadoutMindscapeBadge display={mindscape} />
+                      </span>
                       <span className="team-execution__member-copy">
-                        <strong>{member.agentName}</strong>
-                        <span>
-                          {position + 1}号位 · {member.statusLabel}
+                        <span className="team-execution__member-summary-line">
+                          <strong className="team-execution__member-name">
+                            {member.agentName}
+                          </strong>
+                          <TeamLoadoutMindscapeSuggestion display={mindscape} />
+                          <span className="team-execution__member-status">
+                            {position + 1}号位 · {member.statusLabel}
+                          </span>
                         </span>
                       </span>
                     </button>
@@ -323,13 +304,12 @@ export function TeamExecutionWorkspaceSurface({
                   <strong>{bangbooLabel}</strong>
                 </span>
                 <span className="team-execution__scheme-static-meta">
-                  {bangbooId ? bangbooStarLabel.replace(/^ · /, '') || '星级待确认' : '未纳入'}
+                  {bangbooId ? bangbooStarLabel.replace(/^ · /, '') || '星级未记录' : ''}
                 </span>
               </div>
             )}
           </div>
         </div>
-
         <div
           className="team-execution__workspace"
           id={`${headingId}-panel`}
@@ -347,7 +327,9 @@ export function TeamExecutionWorkspaceSurface({
                     {selectedMember.agentName}的方案配装
                   </h2>
                   <div className="team-execution__heading-meta">
-                    <p id={descriptionId}>{loadoutProgressLabel}</p>
+                    {hasCompleteTeamLoadout ? null : (
+                      <p id={descriptionId}>{loadoutProgressLabel}</p>
+                    )}
                     <TeamExecutionLoadoutSummary
                       key={selectedMember.agentId}
                       selectedMember={selectedMember}
@@ -408,7 +390,7 @@ export function TeamExecutionWorkspaceSurface({
                     当前角色
                   </button>
                   <button type="button" aria-pressed={false} onClick={() => setLoadoutView('team')}>
-                    全队驱动盘
+                    全队驱动盘<span aria-hidden="true"> · {expectedDiscCount}槽</span>
                   </button>
                 </div>
               </header>
@@ -426,7 +408,14 @@ export function TeamExecutionWorkspaceSurface({
                   aria-label={`${selectedMember.agentName}的六张驱动盘`}
                 >
                   {selectedMember.discFacts.map((disc) => (
-                    <TeamExecutionDiscCard disc={disc} key={disc.id} />
+                    <TeamExecutionDiscCard
+                      disc={disc}
+                      key={disc.id}
+                      selected={selectedDiscId === disc.id}
+                      highlighted={isDiscHighlighted(disc, selectedMember.agentId)}
+                      onSelect={() => handleDiscSelect(disc, selectedMember.agentId)}
+                      onDeselect={handleDeselect}
+                    />
                   ))}
                 </ol>
               ) : null}
@@ -439,7 +428,7 @@ export function TeamExecutionWorkspaceSurface({
                   <h2 ref={loadoutHeadingRef} id={headingId} tabIndex={-1}>
                     全队配装
                   </h2>
-                  <p id={descriptionId}>按成员查看 {loadoutProgressLabel}、已录入音擎与推荐方向</p>
+                  {hasCompleteTeamLoadout ? null : <p id={descriptionId}>{loadoutProgressLabel}</p>}
                 </div>
                 <div className="team-execution__view-toggle" role="group" aria-label="完整配装视图">
                   <button
@@ -450,7 +439,7 @@ export function TeamExecutionWorkspaceSurface({
                     当前角色
                   </button>
                   <button type="button" aria-pressed onClick={() => setLoadoutView('team')}>
-                    全队驱动盘
+                    全队驱动盘<span aria-hidden="true"> · {expectedDiscCount}槽</span>
                   </button>
                 </div>
               </header>
@@ -479,6 +468,7 @@ export function TeamExecutionWorkspaceSurface({
                       onClick={() => {
                         setSelectedMemberId(member.agentId)
                         setLoadoutView('member')
+                        handleDeselect()
                       }}
                     >
                       查看角色配装
@@ -487,7 +477,15 @@ export function TeamExecutionWorkspaceSurface({
                   {member.discFacts.length > 0 ? (
                     <ol aria-label={`${member.agentName}的六张驱动盘`}>
                       {member.discFacts.map((disc) => (
-                        <TeamExecutionDiscCard condensed disc={disc} key={disc.id} />
+                        <TeamExecutionDiscCard
+                          condensed
+                          disc={disc}
+                          key={disc.id}
+                          selected={selectedDiscId === disc.id}
+                          highlighted={isDiscHighlighted(disc, member.agentId)}
+                          onSelect={() => handleDiscSelect(disc, member.agentId)}
+                          onDeselect={handleDeselect}
+                        />
                       ))}
                     </ol>
                   ) : null}
@@ -500,9 +498,15 @@ export function TeamExecutionWorkspaceSurface({
             accountId={warehouse.accountId ?? undefined}
             selectedMember={selectedMember}
             attributePanel={attributePanel}
+            matchedAttributeKeys={matchedAttributeKeys}
+            selectedAttributeKey={selectedAttributeKey}
+            onSelectAttribute={handleAttributeSelect}
+            onDeselectAttribute={handleDeselect}
           />
         </div>
       </section>
     </section>
   )
 }
+
+export type * from './teamExecutionWorkspaceTypes'

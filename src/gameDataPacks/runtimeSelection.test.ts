@@ -29,18 +29,23 @@ function createDatabase() {
 
 afterEach(async () => {
   for (const name of names.splice(0)) await Dexie.delete(name)
-  vi.doUnmock('./currentVersionProjection')
+  vi.doUnmock('./generated/compiledRuntimeManifestIdentity.json')
+  vi.doUnmock('../application/publicVersionIdentity')
   vi.resetModules()
 })
 
 async function historical32RuntimeReader() {
   vi.resetModules()
-  vi.doMock('./currentVersionProjection', () => ({
-    compiledCurrentGameBase: gameBase32Current,
-    currentVersionProjection: {
+  vi.doMock('./generated/compiledRuntimeManifestIdentity.json', () => ({
+    default: gameBase32Current,
+  }))
+  vi.doMock('../application/publicVersionIdentity', () => ({
+    publicVersionIdentity: {
       packageId: gameBase32Current.id,
       packageVersion: gameBase32Current.packageVersion,
       gameVersion: '3.2',
+      contentHash: gameBase32Current.contentHash,
+      rollbackPackageId: gameBase32Current.rollbackTo,
     },
   }))
   return (await import('./runtimeSelection')).readCurrentGameDataRuntimeSelection

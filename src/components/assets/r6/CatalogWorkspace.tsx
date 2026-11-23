@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CatalogCard, DiscCard } from './Cards'
-import { Editor } from './Editors'
 import { useReconciledSelection } from './state'
-import { SelectMenu, type SelectMenuOption } from './SelectMenu'
+import type { SelectMenuOption } from './SelectMenu'
 import { PlayerSelect } from '../../PlayerSelect'
 import type { AssetGoldenProps, CatalogItem, CatalogKind, DiscItem } from './types'
 import { preloadSelectedAgentAvatar } from '../../selectedAgentAvatarPreload'
@@ -11,14 +10,8 @@ import { DiscBulkDeleteDialog } from './DiscBulkDeleteDialog'
 import { CatalogPagination } from './CatalogPagination'
 import { useCatalogBrowseState, useCatalogBrowseScroll } from './useCatalogBrowseState'
 import { useCatalogPagination } from './useCatalogPagination'
-import { publicDiscSetOrder } from '../../../application/publicDiscSetOrder'
-import { publicStatOrder } from '../../../application/publicCandidateLabels'
-import {
-  compareDiscCatalogOrder,
-  compareDiscGameOrder,
-  compareDiscLevelOrder,
-  type DiscSortMode,
-} from '../../../domain/discOrdering'
+import { useStateTransitionMotion } from '../../../motion/useStateTransitionMotion'
+import type { DiscSortMode } from '../../../domain/discOrdering'
 import {
   discWorkspacePath,
   factsLabel,
@@ -26,10 +19,9 @@ import {
   isOwned,
   specialtyLabel,
 } from './catalogWorkspaceHelpers'
-
-// The shared catalog already orders sets by their sourced release version/date.
-const discSetOrder = new Map(publicDiscSetOrder.map((set, index) => [set, index]))
-const discMainStatOrder = new Map(publicStatOrder.map((stat, index) => [stat, index]))
+import { sortDiscs } from './catalogWorkspaceDiscOrder'
+import { CatalogWorkspaceFilterBar } from './CatalogWorkspaceFilterBar'
+import { CatalogWorkspaceEditorAside } from './CatalogWorkspaceEditorAside'
 
 const columns: Record<CatalogKind, number> = { agents: 9, wengines: 10, bangboos: 10, discs: 10 }
 
@@ -38,35 +30,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   const [discSortMode, setDiscSortMode] = useCatalogBrowseState<
     Exclude<DiscSortMode, 'development'>
   >(browseKey, 'sort', 'game')
-  const rows =
-    kind === 'discs'
-      ? [...props.discs].sort((left, right) => {
-          const leftKey = {
-            id: left.stableId,
-            setId: left.set.stableId,
-            slot: left.slot,
-            mainStat: left.mainStatKey ?? left.mainStat,
-            level: left.level,
-            importBatchId: left.importBatchId,
-            importSource: left.importSource,
-          }
-          const rightKey = {
-            id: right.stableId,
-            setId: right.set.stableId,
-            slot: right.slot,
-            mainStat: right.mainStatKey ?? right.mainStat,
-            level: right.level,
-            importBatchId: right.importBatchId,
-            importSource: right.importSource,
-          }
-          const context = { setOrder: discSetOrder, mainStatOrder: discMainStatOrder }
-          return discSortMode === 'game'
-            ? compareDiscGameOrder(leftKey, rightKey, context)
-            : discSortMode === 'level'
-              ? compareDiscLevelOrder(leftKey, rightKey, context)
-              : compareDiscCatalogOrder(leftKey, rightKey, context)
-        })
-      : props.catalog[kind]
+  const rows = kind === 'discs' ? sortDiscs(props.discs, discSortMode) : props.catalog[kind]
   const ids = rows.map((row) => row.stableId)
   const discSearch = new URLSearchParams(window.location.search)
   const incomingDiscId =
@@ -131,9 +95,9 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   const splitRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const split = splitRef.current
-    if (kind !== 'discs' || !split) return
+    if (!split) return
     const resize = () => {
-      // Only this browse surface is bounded. Account/catalog data never changes here.
+      // Keep the catalog grid within the visible workspace; no asset data changes here.
       const frame = split.closest<HTMLElement>('.f5v-page-frame')
       const page = split.closest<HTMLElement>('.f5v-page-content')
       const zoom = frame ? frame.getBoundingClientRect().width / frame.offsetWidth : 1
@@ -148,7 +112,31 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
           (page?.scrollTop ?? 0) -
           8,
       )
-      split.style.setProperty('--disc-browse-height', `${available}px`)
+      split.style.setProperty(
+        kind === 'discs' ? '--disc-browse-height' : '--catalog-browse-height',
+        `${available}px`,
+      )
+      const shell = split.closest<HTMLElement>('.r6-golden')
+      const catalog = split.querySelector<HTMLElement>('.catalog')
+      if (shell && catalog) shell.style.setProperty('--asset-nav-width', `${catalog.offsetWidth}px`)
+      if (kind === 'agents' && gridRef.current) {
+        const grid = gridRef.current
+        const filters = grid.parentElement?.querySelector<HTMLElement>('.filterbar--agents')
+        if (filters) {
+          const style = window.getComputedStyle(grid)
+          const tracks = style.gridTemplateColumns.split(/\s+/).map(Number.parseFloat)
+          const gap = Number.parseFloat(style.columnGap) || 0
+          if (tracks.length >= 8 && Number.isFinite(tracks[0]) && Number.isFinite(tracks[1])) {
+            filters.style.gridTemplateColumns = `repeat(4, ${tracks[0]! + tracks[1]! + gap}px)`
+            filters.style.columnGap = `${gap}px`
+            filters.style.marginLeft = style.paddingLeft
+          } else {
+            filters.style.removeProperty('grid-template-columns')
+            filters.style.removeProperty('column-gap')
+            filters.style.removeProperty('margin-left')
+          }
+        }
+      }
     }
     resize()
     let resizeFrame = 0
@@ -159,11 +147,13 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
     const observer =
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleResize)
     observer?.observe(split.parentElement!)
+    if (gridRef.current) observer?.observe(gridRef.current)
     window.addEventListener('resize', scheduleResize)
     return () => {
       observer?.disconnect()
       window.cancelAnimationFrame(resizeFrame)
       window.removeEventListener('resize', scheduleResize)
+      split.closest<HTMLElement>('.r6-golden')?.style.removeProperty('--asset-nav-width')
     }
   }, [kind])
   useCatalogBrowseScroll(browseKey, gridRef)
@@ -191,9 +181,15 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
           { value: 'unprotected', label: '暂无使用记录' },
         ]
       : [
-          { value: 'all', label: kind === 'wengines' ? '全部使用状态' : '全部状态' },
-          { value: 'owned', label: kind === 'wengines' ? '正在使用' : '已拥有' },
-          { value: 'unowned', label: kind === 'wengines' ? '暂无使用记录' : '未拥有' },
+          {
+            value: 'all',
+            label: kind === 'wengines' ? '全部使用状态' : '全部拥有状态',
+          },
+          { value: 'owned', label: kind === 'wengines' ? '当前使用' : '已拥有' },
+          {
+            value: 'unowned',
+            label: kind === 'wengines' ? '暂无使用记录' : '未拥有',
+          },
         ]
   const primaryFilterOptions: SelectMenuOption[] = [
     { value: 'all', label: `全部${kind === 'discs' ? '套装' : '稀有度'}` },
@@ -245,6 +241,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
       primaryFilter ===
         (kind === 'discs' ? (item as DiscItem).set.playerName : (item as CatalogItem).rarity)
     const secondaryMatches =
+      kind === 'bangboos' ||
       secondaryFilter === 'all' ||
       secondaryFilter ===
         (kind === 'discs' ? String((item as DiscItem).slot) : (item as CatalogItem).specialty)
@@ -273,6 +270,37 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
     columns[kind],
     browseKey,
   )
+  const kindLabel = {
+    agents: '代理人',
+    wengines: '音擎',
+    bangboos: '邦布',
+    discs: '驱动盘',
+  }[kind]
+  const selectedLabel = selected
+    ? kind === 'discs'
+      ? `${(selected as DiscItem).set.playerName} · ${(selected as DiscItem).slot}号位`
+      : (selected as CatalogItem).playerName
+    : undefined
+  const selectedMeta = selected
+    ? kind === 'discs'
+      ? `${(selected as DiscItem).mainStat} · 强化${(selected as DiscItem).level}`
+      : [
+          (selected as CatalogItem).rarity ? `${(selected as CatalogItem).rarity}级` : null,
+          kind === 'bangboos'
+            ? '邦布'
+            : (selected as CatalogItem).specialty
+              ? specialtyLabel((selected as CatalogItem).specialty!)
+              : null,
+        ]
+          .filter(Boolean)
+          .join(' · ') || undefined
+    : undefined
+  useStateTransitionMotion({
+    scope: editorRef,
+    stateKey: selectedId ?? 'none',
+    target: '[data-motion-state-content]',
+    transition: 'content',
+  })
   const openDeleteDialog = () => {
     const dialog = deleteDialogRef.current
     if (typeof dialog?.showModal === 'function') dialog.showModal()
@@ -286,7 +314,10 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   }
   return (
     <>
-      <div ref={splitRef} className={`split${kind === 'discs' ? ' split--disc-browse' : ''}`}>
+      <div
+        ref={splitRef}
+        className={`split ${kind === 'discs' ? 'split--disc-browse' : 'split--catalog-browse'}`}
+      >
         <section className="catalog">
           <header className="section-head">
             <div>
@@ -299,7 +330,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                   : {
                       agents: '选择代理人，查看或修改等级、技能与当前装备。',
                       wengines: '查看音擎使用情况；在代理人资料中更换装备。',
-                      bangboos: '查看邦布技能与适配条件；在队伍配装中选择并确认星级。',
+                      bangboos: '查看邦布技能与适配条件。',
                       discs: '查看驱动盘词条，按套装、号位或使用情况筛选。',
                     }[kind]}
               </p>
@@ -326,59 +357,70 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                   />
                 </>
               ) : null}
-              <strong className="count">
+              <strong
+                className="count"
+                role="status"
+                aria-label={`当前显示 ${filtered.length} 个${kindLabel}，共 ${rows.length} 个`}
+              >
                 {filtered.length} / {rows.length}
               </strong>
             </div>
           </header>
-          <div className={`filterbar${kind === 'discs' ? ' filterbar--discs' : ''}`}>
-            <input
-              aria-label="搜索名称"
-              placeholder="搜索名称"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-            {kind !== 'bangboos' ? (
-              <SelectMenu
-                label={kind === 'discs' || kind === 'wengines' ? '使用状态' : '拥有状态'}
-                value={statusFilter}
-                options={statusOptions}
-                onChange={setStatusFilter}
-              />
-            ) : null}
-            <SelectMenu
-              label={kind === 'discs' ? '套装' : '稀有度'}
-              value={primaryFilter}
-              options={primaryFilterOptions}
-              onChange={setPrimaryFilter}
-            />
-            <SelectMenu
-              label={kind === 'discs' ? '号位' : kind === 'bangboos' ? '类型' : '特性'}
-              value={secondaryFilter}
-              options={secondaryFilterOptions}
-              onChange={setSecondaryFilter}
-            />
-          </div>
+          <CatalogWorkspaceFilterBar
+            kind={kind}
+            kindLabel={kindLabel}
+            query={query}
+            onQueryChange={setQuery}
+            statusFilter={statusFilter}
+            statusOptions={statusOptions}
+            onStatusFilterChange={setStatusFilter}
+            primaryFilter={primaryFilter}
+            primaryFilterOptions={primaryFilterOptions}
+            onPrimaryFilterChange={setPrimaryFilter}
+            secondaryFilter={secondaryFilter}
+            secondaryFilterOptions={secondaryFilterOptions}
+            onSecondaryFilterChange={setSecondaryFilter}
+          />
           <div
             key={kind}
             ref={gridRef}
             className={`object-grid ${kind}${bulk ? ' bulk' : ''}`}
-            role="listbox"
-            aria-multiselectable={(kind === 'discs' && bulk) || undefined}
+            role={filtered.length ? 'listbox' : undefined}
+            aria-multiselectable={(filtered.length > 0 && kind === 'discs' && bulk) || undefined}
             onKeyDown={pagination.move}
           >
             {filtered.length === 0 && (
               <div className="empty-state" role="status">
-                <p>
-                  {rows.length
-                    ? '没有符合当前搜索或筛选条件的结果。'
-                    : `当前账户没有可显示的${kind === 'discs' ? '驱动盘' : '对象'}。`}
-                </p>
                 {rows.length ? (
-                  <button type="button" className="quiet" onClick={clearFilters}>
-                    清除筛选
-                  </button>
-                ) : null}
+                  <>
+                    <p>没有符合当前搜索或筛选条件的结果。</p>
+                    <button type="button" className="quiet" onClick={clearFilters}>
+                      清除筛选
+                    </button>
+                  </>
+                ) : kind === 'discs' ? (
+                  <>
+                    <p>还没有当前账户的驱动盘记录。</p>
+                    <div className="workbench-empty-state__actions app-recovery-actions">
+                      <button
+                        type="button"
+                        className="button button--primary"
+                        onClick={() => props.onPrimaryNavigate('/system/scanner')}
+                      >
+                        扫描与导入
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--quiet"
+                        onClick={() => props.onPrimaryNavigate('/assets/account#restore-backup')}
+                      >
+                        恢复已有备份
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p>当前账户没有可显示的记录。</p>
+                )}
               </div>
             )}
             {kind === 'discs'
@@ -454,32 +496,20 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
             }
           />
         </section>
-        <aside ref={editorRef} className="editor">
-          {selected && !pagination.visible.some((row) => row.stableId === selectedId) ? (
-            <p className="selection-context" role="status">
-              仍在查看：
-              {kind === 'discs'
-                ? `${(selected as DiscItem).set.playerName} · ${(selected as DiscItem).slot}号位`
-                : (selected as CatalogItem).playerName}
-              <span>
-                {filtered.some((row) => row.stableId === selectedId)
-                  ? '此对象不在当前页。'
-                  : '此对象不在当前筛选结果中。'}
-              </span>
-              <button className="text-action" type="button" onClick={showSelectedInList}>
-                在列表中显示
-              </button>
-            </p>
-          ) : null}
-          {selected ? (
-            <Editor props={props} kind={kind} item={selected} />
-          ) : (
-            <section className="editor-section">
-              <h2>暂无可编辑对象</h2>
-              <p>扫描、导入或切换账户后，目录会自动更新。</p>
-            </section>
-          )}
-        </aside>
+        <CatalogWorkspaceEditorAside
+          editorRef={editorRef}
+          kindLabel={kindLabel}
+          selectedLabel={selectedLabel}
+          selectedMeta={selectedMeta}
+          totalRowCount={rows.length}
+          selectedId={selectedId}
+          selected={selected}
+          isPagedVisible={pagination.visible.some((row) => row.stableId === selectedId)}
+          isFiltered={filtered.some((row) => row.stableId === selectedId)}
+          onShowSelectedInList={showSelectedInList}
+          props={props}
+          kind={kind}
+        />
       </div>
       <DiscBulkDeleteDialog
         dialogRef={deleteDialogRef}

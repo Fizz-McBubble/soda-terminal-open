@@ -23,6 +23,10 @@ export type AgentDiscProfile = Pick<
     pattern: '4+2' | '2+2+2'
     primarySets: string[]
     secondarySets: string[]
+    /** Source qualification for personal scope only; never changes physical set legality. */
+    personalFitBonusEligible?: boolean
+    /** Executable scoring policy, set only by a qualified caller. */
+    fitBonusEligible?: boolean
   }>
   mainStats?: Record<string, string[]>
   combatMode?: 'general' | 'shiyu' | 'deadly_assault'

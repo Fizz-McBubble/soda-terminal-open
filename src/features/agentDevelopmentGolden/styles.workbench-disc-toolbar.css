@@ -55,40 +55,6 @@
   margin-top: 14px;
 }
 
-.disc-section--workbench {
-  min-width: 0;
-  padding: 10px 12px 12px;
-  border: 1px solid rgba(93, 79, 130, 0.1);
-  border-radius: var(--soda-radius-surface);
-  background: #fbfafd;
-}
-
-.disc-section--workbench > .disc-workbench-header {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) auto;
-  align-items: stretch !important;
-  gap: 24px;
-}
-
-.disc-section--workbench > .disc-workbench-header > .disc-workbench-title {
-  display: grid !important;
-  align-content: center;
-  min-width: 0;
-}
-
-.disc-workbench-title h3 {
-  margin: 0;
-  font-size: 0.82rem;
-}
-
-.disc-workbench-title p {
-  overflow: hidden;
-  margin: 3px 0 0;
-  color: var(--muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .analysis-state-copy {
   overflow: hidden;
   color: #6a5a80;
@@ -105,90 +71,6 @@
   overflow-wrap: anywhere;
 }
 
-.disc-section--workbench > .disc-workbench-header > .disc-workbench-metrics {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: max-content;
-  justify-content: start;
-  gap: 0;
-  min-width: 0;
-}
-
-.disc-metric {
-  display: grid;
-  align-content: center;
-  min-width: 0;
-  padding: 3px 10px;
-  border: 0;
-  border-left: 1px solid rgba(93, 79, 130, 0.1);
-  border-radius: 0;
-  background: transparent;
-}
-
-.disc-metric:first-child {
-  padding-left: 0;
-  border-left: 0;
-}
-
-.disc-metric > small {
-  color: var(--muted);
-  font-size: 0.48rem;
-  font-weight: 700;
-}
-
-.disc-metric > strong {
-  overflow: hidden;
-  color: #5f4a91;
-  font-size: 0.78rem;
-  font-variant-numeric: tabular-nums;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.disc-metric > span,
-.disc-metric > em {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 0.43rem;
-  font-style: normal;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.disc-metric--benchmark.is-supported {
-  background: transparent;
-}
-
-.disc-metric--benchmark.is-supported > strong {
-  color: #287568;
-}
-
-.disc-section--workbench > .disc-workbench-header > .disc-workbench-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  min-width: 0;
-}
-
-.disc-workbench-actions .scheme-tabs {
-  display: flex;
-  gap: 2px;
-}
-
-.disc-workbench-actions .scheme-tabs button,
-.disc-workbench-actions .warehouse-action,
-.disc-workbench-actions .save-plan-action {
-  min-height: 30px;
-  height: 30px;
-  padding-inline: 9px;
-  white-space: nowrap;
-}
-
-.disc-workbench-actions .warehouse-actions {
-  display: flex;
-  gap: var(--soda-space-1);
-}
-
 .warehouse-action-feedback {
   display: grid;
   gap: var(--soda-space-1);
@@ -203,7 +85,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 12px;
-  margin-block: 8px;
+  max-width: min(100%, 360px);
+  margin: 0 0 0 12px;
   color: var(--muted);
   line-height: 1.5;
 }

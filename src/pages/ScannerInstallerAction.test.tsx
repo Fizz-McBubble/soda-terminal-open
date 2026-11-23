@@ -11,9 +11,30 @@ import { PrepareChecklist } from './ScannerPrepareChecklist'
 import { baseScannerSnapshot } from './scannerAssistantTestFixture'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 import { presentScannerHelperSnapshot } from '../scanner/runtimeHelperVersion'
+import { sanitizeInstallerFeedback } from '../assetQuickRead/installerFeedback'
+
+const releaseStateFixture = vi.hoisted(() => ({
+  value: 'published' as 'published' | 'not_published',
+}))
+vi.mock('../scanner/distribution', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../scanner/distribution')>()
+  return {
+    ...actual,
+    scannerDistributionManifest: {
+      ...actual.scannerDistributionManifest,
+      runtime: {
+        ...actual.scannerDistributionManifest.runtime,
+        get releaseState() {
+          return releaseStateFixture.value
+        },
+      },
+    },
+  }
+})
 const executableFixture = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
 const freshRelease = {
   ...installerManifest,
+  releaseState: 'published',
   version: '1.0.9',
   helperVersion: '2.3.11',
   releaseTag: 'scanner-installer-v1.0.9',
@@ -193,6 +214,7 @@ function streamedDownload() {
   return { streamController, cancel, fetcher, body }
 }
 beforeEach(() => {
+  releaseStateFixture.value = 'published'
   vi.stubGlobal('crypto', webcrypto)
   createObjectURL.mockClear()
   vi.stubGlobal(
@@ -209,6 +231,11 @@ afterEach(() => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
   delete (window as Window & { showSaveFilePicker?: unknown }).showSaveFilePicker
+})
+it('keeps an unpublished candidate download hidden', () => {
+  releaseStateFixture.value = 'not_published'
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  expect(screen.queryByRole('button', { name: '下载画面扫描' })).not.toBeInTheDocument()
 })
 it('offers an upgrade only for a detected old installation', () => {
   const { rerender } = render(
@@ -303,7 +330,7 @@ it('rejects a bad refreshed release without fetching or saving installer bytes',
   expect(fetcher).toHaveBeenCalledOnce()
   expect(fetcher.mock.calls[0][0]).toBe(installerReleaseUrl)
   expect(createObjectURL).not.toHaveBeenCalled()
-  expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: '报告下载问题' })).toBeVisible()
   expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
 })
 it('rejects an alias that changed between the release refresh and byte download without retrying', async () => {
@@ -317,6 +344,101 @@ it('rejects an alias that changed between the release refresh and byte download 
   expect(fetcher).toHaveBeenCalledOnce()
   expect(createObjectURL).not.toHaveBeenCalled()
   expect(screen.getByText('v1.0.9')).toBeVisible()
+})
+it('refreshes one changed release identity and never mixes bytes across versions', async () => {
+  const nextRelease = {
+    ...freshRelease,
+    version: '1.0.10',
+    releaseTag: 'scanner-installer-v1.0.10',
+    assetUrl:
+      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-installer-v1.0.10/Soda-Scanner-Setup.exe',
+  }
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json(freshRelease))
+    .mockResolvedValueOnce(
+      new Response(executableFixture, {
+        status: 206,
+        headers: {
+          'content-range': 'bytes 0-7/8',
+          'content-length': '8',
+          etag: `"${'b'.repeat(64)}"`,
+        },
+      }),
+    )
+    .mockResolvedValueOnce(Response.json(nextRelease))
+    .mockResolvedValueOnce(new Response(executableFixture))
+  vi.stubGlobal('fetch', fetcher)
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
+  expect(fetcher).toHaveBeenCalledTimes(4)
+  expect(screen.getByText('v1.0.10')).toBeVisible()
+  expect(
+    (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
+  ).toBe('SodaTerminal-Scanner-Setup-1.0.10.exe')
+})
+
+it('stops after one manifest refresh when the release identity did not change', async () => {
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json(freshRelease))
+    .mockResolvedValueOnce(
+      new Response(executableFixture, {
+        status: 206,
+        headers: {
+          'content-range': 'bytes 0-7/8',
+          'content-length': '8',
+          etag: `"${'b'.repeat(64)}"`,
+        },
+      }),
+    )
+    .mockResolvedValueOnce(Response.json(freshRelease))
+  vi.stubGlobal('fetch', fetcher)
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
+  expect(fetcher).toHaveBeenCalledTimes(3)
+  expect(createObjectURL).not.toHaveBeenCalled()
+  expect(screen.getByRole('link', { name: '报告下载问题' })).toBeVisible()
+})
+
+it('offers explicit bounded download feedback after package integrity failure', async () => {
+  const tampered = new Uint8Array(executableFixture)
+  tampered[7] ^= 1
+  const feedbackRelease = {
+    ...freshRelease,
+    version: '1.2.9',
+    releaseTag: 'scanner-installer-v1.2.9',
+    assetUrl:
+      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-installer-v1.2.9/Soda-Scanner-Setup.exe',
+  }
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: RequestInfo | URL) =>
+      url === installerReleaseUrl
+        ? Promise.resolve(Response.json(feedbackRelease))
+        : Promise.resolve(new Response(tampered)),
+    ),
+  )
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
+  const link = screen.getByRole('link', { name: '报告下载问题' })
+  const report = sanitizeInstallerFeedback(
+    JSON.parse(decodeURIComponent(new URL((link as HTMLAnchorElement).href).hash.slice(1))),
+  )
+  expect(report).toMatchObject({
+    tool: 'screen_scanner_installer',
+    code: 'installer_download_integrity_mismatch',
+    download: {
+      phase: 'verify',
+      bytesReceived: 8,
+      attemptCount: 1,
+      expectedRelease: { size: feedbackRelease.size, sha256: feedbackRelease.sha256 },
+    },
+  })
+  expect(JSON.stringify(report)).not.toMatch(/token|private|https?:/u)
 })
 it('times out a stalled manifest independently and ignores its late release', async () => {
   vi.useFakeTimers()
@@ -335,7 +457,7 @@ it('times out a stalled manifest independently and ignores its late release', as
   await act(async () => {
     await vi.advanceTimersByTimeAsync(60 * 1000)
   })
-  expect(screen.getByRole('status')).toHaveTextContent('连接超时')
+  expect(screen.getByRole('status')).toHaveTextContent('下载超时，请重试下载。')
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   await act(async () => {
     finish(Response.json(freshRelease))
@@ -362,138 +484,10 @@ it('cancels an unmounted manifest refresh and ignores its late release', async (
   expect(fetcher).toHaveBeenCalledOnce()
   expect(createObjectURL).not.toHaveBeenCalled()
 })
-it('shows streamed bytes before EOF and requests browser save only after all bytes arrive', async () => {
-  const { streamController } = streamedDownload()
-  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await act(async () => {
-    streamController.enqueue(executableFixture.subarray(0, 4))
-  })
-  const progress = screen.getByRole('progressbar', { name: '画面扫描下载进度' })
-  await waitFor(() => expect(progress).toHaveAttribute('value', '4'))
-  expect(progress).toHaveAttribute('max', '8')
-  expect(progress).toHaveAttribute('aria-valuetext', expect.stringContaining('50%'))
-  expect(screen.getByRole('button', { name: /下载中/ })).toBeDisabled()
-  expect(createObjectURL).not.toHaveBeenCalled()
-  await act(async () => {
-    streamController.enqueue(executableFixture.subarray(4))
-    streamController.close()
-  })
-  await waitFor(() =>
-    expect(screen.getByRole('status')).toHaveTextContent(
-      '文件已准备，请在下载列表打开安装包，安装后点击连接。',
-    ),
-  )
-  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
-  expect(screen.queryByText(/下载完成。打开/)).not.toBeInTheDocument()
+
+registerScannerInstallerActionCases({
+  streamedDownload,
+  setDownloadFetcher,
+  executableFixture,
+  createObjectURL,
 })
-it.each([
-  ['invalid', new Uint8Array([60, 104, 116, 109, 108])],
-  ['truncated', executableFixture.subarray(0, 7)],
-  ['oversized', new Uint8Array([...executableFixture, 9])],
-])('rejects a %s installer and permits only a verified retry', async (_, bytes) => {
-  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(bytes)))
-  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
-  expect(createObjectURL).not.toHaveBeenCalled()
-  expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
-  expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
-})
-it('cancels a partial stream and permits a fresh download', async () => {
-  const { streamController, cancel, fetcher, body } = streamedDownload()
-  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await act(async () => {
-    streamController.enqueue(executableFixture.subarray(0, 4))
-  })
-  await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('value', '4'))
-  fireEvent.click(screen.getByRole('button', { name: '取消下载' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载已取消'))
-  expect(cancel).toHaveBeenCalledOnce()
-  expect(body.locked).toBe(false)
-  expect(createObjectURL).not.toHaveBeenCalled()
-  expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
-  fetcher.mockResolvedValue(new Response(executableFixture))
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await waitFor(() =>
-    expect(screen.getByRole('status')).toHaveTextContent(
-      '文件已准备，请在下载列表打开安装包，安装后点击连接。',
-    ),
-  )
-  expect(fetcher).toHaveBeenCalledTimes(2)
-})
-it('ends a non-settling host fetch immediately on cancellation and ignores a late result', async () => {
-  let finishFetch!: (response: Response) => void
-  const fetcher = vi.fn().mockReturnValueOnce(
-    new Promise<Response>((resolve) => {
-      finishFetch = resolve
-    }),
-  )
-  setDownloadFetcher(fetcher)
-  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
-  fireEvent.click(screen.getByRole('button', { name: '取消下载' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载已取消'))
-  expect(screen.queryByRole('button', { name: '取消下载' })).not.toBeInTheDocument()
-  expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
-  fetcher.mockResolvedValue(new Response(executableFixture))
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await waitFor(() =>
-    expect(screen.getByRole('status')).toHaveTextContent(
-      '文件已准备，请在下载列表打开安装包，安装后点击连接。',
-    ),
-  )
-  await act(async () => {
-    finishFetch(new Response(executableFixture))
-  })
-  expect(createObjectURL).toHaveBeenCalledOnce()
-  expect(screen.getByRole('status')).toHaveTextContent(
-    '文件已准备，请在下载列表打开安装包，安装后点击连接。',
-  )
-})
-it('ends a repeatedly stalled fetch after bounded recovery and permits a verified retry', async () => {
-  vi.useFakeTimers()
-  const fetcher = vi.fn().mockReturnValue(new Promise(() => {}))
-  setDownloadFetcher(fetcher)
-  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(10 * 60 * 1000)
-  })
-  expect(screen.getByRole('status')).toHaveTextContent('连接超时')
-  expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
-  expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
-  expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
-  expect(createObjectURL).not.toHaveBeenCalled()
-})
-it('aborts the stream and releases the reader on unmount', async () => {
-  const { streamController, cancel, fetcher, body } = streamedDownload()
-  const { unmount } = render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await act(async () => {
-    streamController.enqueue(executableFixture.subarray(0, 4))
-  })
-  await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('value', '4'))
-  await act(async () => {
-    unmount()
-  })
-  expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
-  expect(cancel).toHaveBeenCalledOnce()
-  expect(body.locked).toBe(false)
-  expect(createObjectURL).not.toHaveBeenCalled()
-})
-it('leaves manual connection to the existing parent action after requesting save', async () => {
-  const onConnect = vi.fn().mockResolvedValue(undefined)
-  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executableFixture)))
-  render(
-    <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
-  )
-  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled())
-  expect(screen.getAllByRole('button')).toHaveLength(1)
-  expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled()
-  expect(onConnect).not.toHaveBeenCalled()
-})
-registerScannerInstallerActionCases({ streamedDownload, setDownloadFetcher, executableFixture })

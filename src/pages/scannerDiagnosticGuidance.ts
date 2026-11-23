@@ -30,6 +30,10 @@ const guidance: Record<string, Guidance> = {
     problem: '扫描期间游戏窗口的位置或尺寸发生了变化。',
     nextAction: '保持窗口位置和尺寸固定，重新开始扫描。',
   },
+  input_position_failed: {
+    problem: '鼠标未能移动到目标位置，扫描已停止。',
+    nextAction: '保持游戏可见且位于前台，然后重新扫描；若再次中断，请反馈此问题。',
+  },
   game_window_not_visible: {
     problem: '游戏画面未完整显示在屏幕内。',
     nextAction: '恢复游戏窗口并使画面完整可见，关闭遮挡后重试。',

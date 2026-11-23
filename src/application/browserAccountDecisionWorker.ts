@@ -1,4 +1,3 @@
-import { buildAccountDecisionSnapshot } from '../decision/accountDecisionService'
 import type { AccountDecisionSnapshot } from '../decision/accountDecisionService'
 import {
   accountDecisionSnapshotWorkerProtocolVersion,
@@ -59,8 +58,14 @@ export function createBrowserAccountDecisionSnapshotCalculator(
   const queue: number[] = []
   let worker: WorkerPort | null = null
   let activeRequestId: number | null = null
+  let activeRequestTimer: ReturnType<typeof setTimeout> | null = null
   let nextRequestId = 1
   let disposed = false
+
+  const clearRequestTimer = () => {
+    if (activeRequestTimer !== null) clearTimeout(activeRequestTimer)
+    activeRequestTimer = null
+  }
 
   const rejectPending = (errorFor: (requestId: number) => Error) => {
     for (const [requestId, request] of pending) {
@@ -73,6 +78,7 @@ export function createBrowserAccountDecisionSnapshotCalculator(
   }
 
   const detachAndTerminate = () => {
+    clearRequestTimer()
     if (!worker) return
     worker.onmessage = null
     worker.onerror = null
@@ -90,6 +96,7 @@ export function createBrowserAccountDecisionSnapshotCalculator(
     if (worker) return worker
     const created = createWorker()
     created.onmessage = (event) => {
+      if (worker !== created) return
       const response = event.data
       if (response.protocolVersion !== accountDecisionSnapshotWorkerProtocolVersion) {
         failWorker(
@@ -103,6 +110,7 @@ export function createBrowserAccountDecisionSnapshotCalculator(
       if (response.requestId !== activeRequestId) return
       const request = pending.get(response.requestId)
       if (!request) return
+      clearRequestTimer()
       pending.delete(response.requestId)
       activeRequestId = null
       request.removeAbortListener()
@@ -116,6 +124,7 @@ export function createBrowserAccountDecisionSnapshotCalculator(
       dispatchNext()
     }
     created.onerror = (event) => {
+      if (worker !== created) return
       failWorker(
         namedError(
           'AccountDecisionWorkerRuntimeError',
@@ -124,6 +133,7 @@ export function createBrowserAccountDecisionSnapshotCalculator(
       )
     }
     created.onmessageerror = () => {
+      if (worker !== created) return
       failWorker(
         namedError('AccountDecisionWorkerMessageError', '队伍分析结果无法读取，请刷新页面后重试。'),
       )
@@ -151,9 +161,19 @@ export function createBrowserAccountDecisionSnapshotCalculator(
       return
     }
     activeRequestId = requestId
+    // This full account snapshot includes allocation/authority work. Match the
+    // Query Worker's 120s liveness guard, not the narrower 15s/60s performance gates.
+    // Start at dispatch so queued requests do not spend their compute budget waiting.
+    activeRequestTimer = setTimeout(() => {
+      if (worker !== activeWorker || activeRequestId !== requestId) return
+      failWorker(
+        namedError('AccountDecisionWorkerTimeoutError', '队伍分析超时，可在当前页面重新分析。'),
+      )
+    }, 120_000)
     try {
       activeWorker.postMessage(request.request)
     } catch (error) {
+      clearRequestTimer()
       activeRequestId = null
       pending.delete(requestId)
       request.removeAbortListener()
@@ -224,7 +244,6 @@ export function createDefaultAccountDecisionSnapshotCalculator(
 ): BrowserAccountDecisionSnapshotCalculator {
   const workerSupported = options.workerSupported ?? typeof Worker !== 'undefined'
   if (workerSupported) return createBrowserAccountDecisionSnapshotCalculator(options)
-  const directCalculate = options.directCalculate ?? buildAccountDecisionSnapshot
   let disposed = false
   return {
     async calculateSnapshot(input, requestOptions = {}) {
@@ -234,7 +253,11 @@ export function createDefaultAccountDecisionSnapshotCalculator(
       if (requestOptions.signal?.aborted) {
         throw namedError('AbortError', '已取消本次队伍分析。')
       }
-      return directCalculate(input)
+      if (options.directCalculate) return options.directCalculate(input)
+      const { buildAccountDecisionSnapshot } = await import('../decision/accountDecisionService')
+      if (disposed) throw namedError('AccountDecisionWorkerDisposedError', '队伍分析服务已关闭。')
+      if (requestOptions.signal?.aborted) throw namedError('AbortError', '已取消本次队伍分析。')
+      return buildAccountDecisionSnapshot(input)
     },
     dispose() {
       disposed = true

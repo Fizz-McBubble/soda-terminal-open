@@ -4,6 +4,12 @@ import { reviewedTeamOutputModuleCoverageExpansion32 } from './reviewedTeamOutpu
 import { reviewedTeamOutputModuleCurrentSemanticBatch32 } from './reviewedTeamOutputModuleCurrentSemanticBatch32'
 import { reviewedTeamOutputModuleStrictBatch32 } from './reviewedTeamOutputModuleStrictBatch32'
 import { reviewedHoyoBuildCurrentOutputModules32 } from './reviewedHoyoBuildCurrentOutputModules32'
+import { reviewedSeverianTeamOutput33 } from './reviewedSeverianTeam33'
+import {
+  reviewedPhoenixGuideSource33,
+  reviewedPhoenixNumericSource33,
+  reviewedPhoenixTeams33,
+} from '../decision/reviewedPhoenixTeams33'
 
 export type ReviewedTeamOutputModuleEvidence = {
   memberIds: readonly [string, string, string]
@@ -31,6 +37,28 @@ export const reviewedTeamOutputModuleEvidence = [
   ...reviewedTeamOutputModuleCurrentSemanticBatch32,
   ...reviewedTeamOutputModuleStrictBatch32,
   ...reviewedHoyoBuildCurrentOutputModules32,
+  reviewedSeverianTeamOutput33,
+  ...reviewedPhoenixTeams33.slice(0, 4).map((team, index) => ({
+    memberIds: team.memberIds,
+    classification: 'current_exact_team_review' as const,
+    module: teamOutputModules.anomalyDisorder,
+    sourceEvidence: [
+      {
+        sourceId: `icy-phoenix-team-${index + 1}`,
+        sourceVersion: reviewedPhoenixGuideSource33.sourceVersion,
+        contentHash: reviewedPhoenixGuideSource33.contentHash,
+        locator: `https://www.icy-veins.com/zenless-zone-zero/phoenix-teams#composition-${index + 1}`,
+        text: team.rationale,
+      },
+      {
+        sourceId: 'nanoka-phoenix-3.3-reviewed-fields',
+        sourceVersion: reviewedPhoenixNumericSource33.sourceVersion,
+        contentHash: reviewedPhoenixNumericSource33.sourceContentHash,
+        locator: reviewedPhoenixNumericSource33.locator,
+        text: 'Nanoka 3.3 reviewed passive, talent, basic and chain descriptions used to bind the exact-team output role.',
+      },
+    ],
+  })),
   {
     memberIds: ['agent-koleda', 'agent-yixuan', 'agent-lucia'],
     classification: 'current_exact_team_review',

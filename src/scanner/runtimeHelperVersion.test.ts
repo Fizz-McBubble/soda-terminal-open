@@ -1,15 +1,36 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createScannerAssistantRuntime } from './runtime'
 import { scannerDistributionManifest } from './distribution'
 import { presentScannerHelperSnapshot } from './runtimeHelperVersion'
 import { FakeEventSource, helperFetch, nativeIdentity, readySnapshot } from './runtime.testFixture'
+
+const minimumFixture = vi.hoisted(() => ({ version: null as string | null }))
+vi.mock('./distribution', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./distribution')>()
+  return {
+    ...actual,
+    scannerDistributionManifest: {
+      ...actual.scannerDistributionManifest,
+      helper: {
+        ...actual.scannerDistributionManifest.helper,
+        get version() {
+          return minimumFixture.version ?? actual.scannerDistributionManifest.helper.version
+        },
+      },
+    },
+  }
+})
+
+beforeEach(() => {
+  minimumFixture.version = null
+})
 
 describe('scanner Helper version and update policy', () => {
   it.each([
     { ...nativeIdentity, version: '2.2.0' },
     { ...nativeIdentity, version: '99.0.0' },
     { ...nativeIdentity, version: '2.3.0' },
-    { ...nativeIdentity, version: '2.4.1' },
+    { ...nativeIdentity, version: '2.4.5' },
     { ...nativeIdentity, version: ['2.3.9'] },
     { ...nativeIdentity, transport: 'node-compatibility' },
     { ...nativeIdentity, protocolVersion: 4 },
@@ -37,8 +58,15 @@ describe('scanner Helper version and update policy', () => {
     '2.3.7',
     '2.3.8',
     '2.3.9',
+    '2.3.20',
+    '2.3.21',
+    '2.4.0',
+    '2.4.1',
+    '2.4.2',
+    '2.4.3',
+    '2.4.4',
     scannerDistributionManifest.helper.version,
-  ])('connects to published Helper %s for updating and result recovery', async (version) => {
+  ])('connects to known Helper %s for updating and result recovery', async (version) => {
     const otherRequests = helperFetch()
     const fetchImpl = vi.fn<typeof fetch>((input, init) =>
       new URL(String(input)).pathname === '/'
@@ -54,9 +82,31 @@ describe('scanner Helper version and update policy', () => {
     ])
   })
 
-  it.each(['2.3.1', '2.3.8', '2.3.9'])(
-    'requires Helper %s to update before a new scan, while keeping result recovery',
+  it.each(['2.3.1', '2.3.8', '2.3.9', '2.3.19'])(
+    'requires outdated Helper %s below published 2.3.20 to update before a new scan, while keeping result recovery',
     async (version) => {
+      const otherRequests = helperFetch()
+      const fetchImpl = vi.fn<typeof fetch>((input, init) =>
+        new URL(String(input)).pathname === '/'
+          ? Promise.resolve(new Response(JSON.stringify({ ...nativeIdentity, version })))
+          : otherRequests(input, init),
+      )
+      const runtime = createScannerAssistantRuntime({ fetchImpl, maxReconnectAttempts: 1 })
+      await expect(runtime.commands.startScan()).rejects.toThrow('请更新画面扫描后再扫描')
+      expect(otherRequests).not.toHaveBeenCalled()
+      await expect(runtime.commands.requestResultFile()).resolves.toEqual(
+        expect.objectContaining({ resultFileHandle: 'scanner-r10c-test' }),
+      )
+      expect(
+        fetchImpl.mock.calls.some(([url]) => new URL(String(url)).pathname === '/api/start'),
+      ).toBe(false)
+    },
+  )
+
+  it.each(['2.3.20', '2.3.999', '2.4.0', '2.4.1', '2.4.2', '2.4.3'])(
+    'requires Helper %s to update when tested against the 2.4.4 candidate minimum, while keeping result recovery',
+    async (version) => {
+      minimumFixture.version = '2.4.4'
       const otherRequests = helperFetch()
       const fetchImpl = vi.fn<typeof fetch>((input, init) =>
         new URL(String(input)).pathname === '/'
@@ -102,22 +152,30 @@ describe('scanner Helper version and update policy', () => {
     unsubscribe()
   })
 
-  it.each([scannerDistributionManifest.helper.version, '2.3.999'])(
-    'allows a newer compatible Helper %s to start without a downgrade prompt',
-    async (version) => {
-      const requests = helperFetch()
-      const fetchImpl = vi.fn<typeof fetch>((input, init) =>
-        new URL(String(input)).pathname === '/'
-          ? Promise.resolve(new Response(JSON.stringify({ ...nativeIdentity, version })))
-          : requests(input, init),
-      )
-      const runtime = createScannerAssistantRuntime({ fetchImpl })
-      await expect(runtime.commands.startScan()).resolves.toBeUndefined()
-      expect(
-        fetchImpl.mock.calls.some(([url]) => new URL(String(url)).pathname === '/api/start'),
-      ).toBe(true)
-    },
-  )
+  it.each([
+    scannerDistributionManifest.helper.version,
+    '2.3.999',
+    '2.4.0',
+    '2.4.1',
+    '2.4.2',
+    '2.4.3',
+    '2.4.4',
+  ])('allows a newer compatible Helper %s to start without a downgrade prompt', async (version) => {
+    // Freeze the older minimum this forward-compatibility matrix was defined
+    // against. The current 2.4.4 minimum and old-version recovery stay above.
+    minimumFixture.version = '2.3.9'
+    const requests = helperFetch()
+    const fetchImpl = vi.fn<typeof fetch>((input, init) =>
+      new URL(String(input)).pathname === '/'
+        ? Promise.resolve(new Response(JSON.stringify({ ...nativeIdentity, version })))
+        : requests(input, init),
+    )
+    const runtime = createScannerAssistantRuntime({ fetchImpl })
+    await expect(runtime.commands.startScan()).resolves.toBeUndefined()
+    expect(
+      fetchImpl.mock.calls.some(([url]) => new URL(String(url)).pathname === '/api/start'),
+    ).toBe(true)
+  })
 
   it('classifies an old helper payload failure as repair, independently of its version', () => {
     const snapshot = {

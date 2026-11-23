@@ -35,6 +35,68 @@ const input = {
 }
 
 describe('catalog panel edge cases', () => {
+  it('preserves identity and growth-validation error precedence', () => {
+    const invalid = {
+      ...input,
+      level: 0,
+      ascension: 8,
+      core: 99,
+      wEngine: { ...input.wEngine, level: -1, ascension: 9 },
+    }
+    expect(projectOutOfCombatPanel({ ...invalid, agentId: 'missing' }).reason).toBe(
+      '未知 agentId 或 engineId。',
+    )
+    expect(projectOutOfCombatPanel(invalid).reason).toBe('代理人等级必须在 1 到 60 之间。')
+    expect(projectOutOfCombatPanel({ ...invalid, level: 20 }).reason).toBe(
+      '代理人突破阶段必须在 0 到 5 之间。',
+    )
+    expect(projectOutOfCombatPanel({ ...invalid, level: 1, ascension: 1 }).reason).toBe(
+      '代理人等级与突破阶段不匹配。',
+    )
+    expect(projectOutOfCombatPanel({ ...invalid, level: 1, ascension: 0 }).reason).toBe(
+      '音擎等级必须在 0 到 60 之间。',
+    )
+    expect(
+      projectOutOfCombatPanel({
+        ...invalid,
+        level: 1,
+        ascension: 0,
+        wEngine: { ...invalid.wEngine, level: 20 },
+      }).reason,
+    ).toBe('音擎突破阶段必须在 0 到 5 之间。')
+    expect(
+      projectOutOfCombatPanel({
+        ...invalid,
+        level: 1,
+        ascension: 0,
+        wEngine: { ...invalid.wEngine, level: 1, ascension: 1 },
+      }).reason,
+    ).toBe('音擎等级与突破阶段不匹配。')
+    expect(
+      projectOutOfCombatPanel({
+        ...invalid,
+        level: 1,
+        ascension: 0,
+        wEngine: { ...invalid.wEngine, level: 0, ascension: 0 },
+      }).reason,
+    ).toBe('必须提供合法的六个唯一盘位、核心和改装。')
+  })
+  it('uses source growth for Remielle outside the reviewed menu anchor', () => {
+    const anchor = projectOutOfCombatPanel({ ...input, agentId: 'agent-remielle', mindscape: 2 })
+    const early = projectOutOfCombatPanel({
+      ...input,
+      agentId: 'agent-remielle',
+      level: 1,
+      ascension: 0,
+      core: -1,
+      mindscape: 2,
+    })
+    expect(anchor.status).toBe('ok')
+    expect(early.status).toBe('ok')
+    expect(early.values.hp).toBeLessThan(anchor.values.hp)
+    expect(early.trace.some((entry) => entry.source.includes('base+growth+promotion'))).toBe(true)
+    expect(anchor.trace.some((entry) => entry.source.startsWith('game-menu:'))).toBe(true)
+  })
   it('places Yixuan fixed core HP before three HP mains and HP engine secondary', () => {
     const result = projectOutOfCombatPanel({
       ...input,

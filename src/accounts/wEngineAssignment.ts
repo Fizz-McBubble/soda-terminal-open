@@ -1,7 +1,12 @@
 import type { AccountRoster } from '../assault/types'
 import { updateAccountRoster } from './repository'
 import { database, type SodaDatabase } from '../db/databaseCore'
-import { normalizeObservedAgentFacts } from './observedAgentFacts'
+import {
+  getObservedAgentFieldValue,
+  normalizeObservedAgentFacts,
+  observedAgentFields,
+} from './observedAgentFacts'
+import { legalAscensionsForLevel } from '../gameDataPacks/panel/wEngineGrowth'
 
 export type WEngineCatalogEntry = {
   stableId: string
@@ -17,6 +22,7 @@ export type AgentWEngineDraft = {
   wEngineLevel?: number | null
   wEngineLevelManuallySet?: boolean
   wEngineAscension?: number | null
+  wEngineAscensionManuallySet?: boolean
   wEngineRefinement?: number | null
   wEngineRefinementManuallySet?: boolean
 }
@@ -43,28 +49,41 @@ export function applyAgentWEngineAssignment({
 }): AccountRoster {
   const targetAgent = agents.find((agent) => agent.stableId === agentId)
   if (!targetAgent) throw new Error('当前代理人已不存在，请刷新后重新确认。')
+  const previous = roster.agents.find((agent) => agent.agentId === agentId)
+  if (
+    previous &&
+    agentPatch &&
+    ((agentPatch.level !== undefined && agentPatch.level !== previous.level) ||
+      ('ascension' in agentPatch && agentPatch.ascension !== previous.ascension))
+  ) {
+    const level = agentPatch.level ?? previous.level
+    const stage = 'ascension' in agentPatch ? agentPatch.ascension : previous.ascension
+    if (
+      !legalAscensionsForLevel(level).length ||
+      (stage != null && !legalAscensionsForLevel(level).includes(stage))
+    )
+      throw new Error('代理人等级与突破阶段不匹配。')
+  }
   const selectedEngine = draft.wEngineCatalogId
     ? wengines.find((engine) => engine.stableId === draft.wEngineCatalogId)
     : null
-  if (
-    draft.wEngineCatalogId &&
-    (!selectedEngine ||
-      selectedEngine.specialty !== targetAgent.specialty ||
-      !selectedEngine.rarity)
-  )
-    throw new Error('所选音擎不适用于当前代理人，请重新选择。')
+  const sameEngine = selectedEngine?.stableId === previous?.wEngineDetails.id
+  if (draft.wEngineCatalogId && (!selectedEngine || !selectedEngine.rarity))
+    throw new Error('所选音擎无法记录，请刷新目录后重新选择。')
   if (
     selectedEngine &&
-    (!Number.isInteger(draft.wEngineLevel) ||
-      (draft.wEngineLevel ?? 0) < 0 ||
-      (draft.wEngineLevel ?? 0) > 60)
+    (draft.wEngineLevel == null
+      ? !(sameEngine && previous?.wEngineDetails.level == null)
+      : !Number.isInteger(draft.wEngineLevel) || draft.wEngineLevel < 0 || draft.wEngineLevel > 60)
   )
     throw new Error('当前音擎等级必须为 0–60。')
   if (
     selectedEngine &&
-    (!Number.isInteger(draft.wEngineRefinement) ||
-      (draft.wEngineRefinement ?? 0) < 1 ||
-      (draft.wEngineRefinement ?? 0) > 5)
+    (draft.wEngineRefinement == null
+      ? !(sameEngine && previous?.wEngineDetails.refinement == null)
+      : !Number.isInteger(draft.wEngineRefinement) ||
+        draft.wEngineRefinement < 1 ||
+        draft.wEngineRefinement > 5)
   )
     throw new Error('当前音擎精炼必须为 1–5。')
   if (
@@ -77,6 +96,17 @@ export function applyAgentWEngineAssignment({
   )
     throw new Error('当前音擎突破阶段必须为 0–5 或未确认。')
 
+  if (
+    selectedEngine &&
+    draft.wEngineLevel != null &&
+    draft.wEngineAscension != null &&
+    (!sameEngine ||
+      draft.wEngineLevel !== previous?.wEngineDetails.level ||
+      draft.wEngineAscension !== previous?.wEngineDetails.ascension) &&
+    !legalAscensionsForLevel(draft.wEngineLevel, true).includes(draft.wEngineAscension)
+  )
+    throw new Error('当前音擎等级与突破阶段不匹配。')
+
   const agentsNext = roster.agents.map((agent) =>
     agent.agentId === agentId
       ? {
@@ -86,14 +116,14 @@ export function applyAgentWEngineAssignment({
             ? {
                 id: selectedEngine.stableId,
                 name: selectedEngine.playerName,
-                level: draft.wEngineLevel ?? 60,
+                level: draft.wEngineLevel ?? null,
                 ...('wEngineAscension' in draft
                   ? { ascension: draft.wEngineAscension }
                   : selectedEngine.stableId === agent.wEngineDetails.id &&
                       'ascension' in agent.wEngineDetails
                     ? { ascension: agent.wEngineDetails.ascension }
                     : {}),
-                refinement: draft.wEngineRefinement ?? (selectedEngine.rarity === 'S' ? 1 : 5),
+                refinement: draft.wEngineRefinement ?? null,
               }
             : { id: null, name: null, level: null, refinement: null },
           wEngineCopyId: null,
@@ -101,10 +131,29 @@ export function applyAgentWEngineAssignment({
         }
       : agent,
   )
-  const previous = roster.agents.find((agent) => agent.agentId === agentId)
   const next = agentsNext.find((agent) => agent.agentId === agentId)
   if (previous && next) {
     const facts = normalizeObservedAgentFacts(structuredClone(previous.observedFacts))
+    if (facts) {
+      for (const field of observedAgentFields) {
+        if (
+          JSON.stringify(getObservedAgentFieldValue(previous, field)) !==
+          JSON.stringify(getObservedAgentFieldValue(next, field))
+        )
+          delete facts.fields[field]
+      }
+    }
+    const agentManual = { ...next.manualProgression }
+    for (const field of ['mindscape', 'potentialImage'] as const) {
+      if (agentManual[field] !== next[field]) delete agentManual[field]
+      if (
+        facts &&
+        (previous[field] !== next[field] ||
+          agentManual[field] !== previous.manualProgression?.[field])
+      )
+        delete facts.fields[field]
+    }
+    next.manualProgression = Object.keys(agentManual).length ? agentManual : undefined
     const sameIdentity = selectedEngine?.stableId === previous.wEngineDetails.id
     if (!sameIdentity && facts)
       for (const field of Object.keys(facts.fields))
@@ -121,7 +170,7 @@ export function applyAgentWEngineAssignment({
       const fields = [
         ['level', draft.wEngineLevel, draft.wEngineLevelManuallySet],
         ['refinement', draft.wEngineRefinement, draft.wEngineRefinementManuallySet],
-        ['ascension', draft.wEngineAscension, 'wEngineAscension' in draft ? true : false],
+        ['ascension', draft.wEngineAscension, draft.wEngineAscensionManuallySet],
       ] as const
       for (const [field, value, explicitlyEdited] of fields) {
         // The UI marks edits explicitly; a selector's defaults are deliberately false.

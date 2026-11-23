@@ -2,25 +2,21 @@ import { WarehouseInitialReadState } from './WarehouseInitialReadState'
 import { WarehousePendingDiscList } from './WarehousePendingDiscList'
 import { WarehouseDiscControls } from './WarehouseDiscControls'
 import { WarehouseDiscActionList } from './WarehouseDiscActionList'
-import {
-  initialFilters,
-  type FilterState,
-  statusText,
-  warehouseActionStrengthLabel,
-} from './warehouseDiscPresentation'
+import { initialFilters, type FilterState } from './warehouseDiscPresentation'
 import { matchesWarehouseDiscFilters } from './warehouseDiscFilters'
-import { Archive } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAccountDecisionWorld } from '../application/accountDecisionWorld'
-import { displayWarehouseActionProjection } from '../application/warehouseActionContract'
-import { WarehouseActionDrawer } from './WarehouseActionDrawer'
+import { useWarehouseActions } from '../application/useWarehouseActions'
+import { deriveAlternativeRecommendations } from './warehouseActionAlternatives'
+import { WarehouseErrorState } from './WarehouseErrorState'
+import { WarehouseActionDrawerSection } from './WarehouseActionDrawerSection'
 import {
   defaultWarehouseActionListOrder,
   projectWarehouseActionListJoin,
 } from './warehouseActionListJoin'
 import { AccountRequiredState } from '../components/ui/AccountRequiredState'
-import { WorkbenchEmptyState } from '../components/AppEntryState'
+import { WarehouseEmptyDiscsState } from './WarehouseEmptyDiscsState'
 import {
   warehouseActionRowHeight,
   warehouseActionMobileRowHeight,
@@ -28,80 +24,101 @@ import {
 } from './warehouseActionListConfig'
 import { WarehouseWorkbenchHeader } from './WarehouseWorkbenchHeader'
 import '../components/AppEntryState.css'
+import { useCatalogBrowseState } from '../components/assets/r6/useCatalogBrowseState'
+import { warehousePageActionProjection } from './warehousePageActionProjection'
+
+function warehousePageData(decisionWorld: ReturnType<typeof useAccountDecisionWorld>) {
+  if (decisionWorld.liveInput !== undefined) return decisionWorld.liveInput?.warehouse ?? null
+  return decisionWorld.run?.input.warehouse ?? null
+}
 
 export function WarehouseDiscsPage() {
-  const [searchParams] = useSearchParams()
   const decisionWorld = useAccountDecisionWorld()
+  const data = warehousePageData(decisionWorld)
+  return (
+    <WarehouseDiscsWorkbench
+      key={data?.account?.id ?? 'no-account'}
+      decisionWorld={decisionWorld}
+      data={data}
+    />
+  )
+}
+
+function WarehouseDiscsWorkbench({
+  decisionWorld,
+  data,
+}: {
+  decisionWorld: ReturnType<typeof useAccountDecisionWorld>
+  data: ReturnType<typeof warehousePageData>
+}) {
+  const [searchParams] = useSearchParams()
+  const warehouseRead = useWarehouseActions(decisionWorld)
+  const browseKey = data?.account ? `warehouse:${data.account.id}` : undefined
+  const [listElement, setListElement] = useState<HTMLElement | null>(null)
   const [narrowRows, setNarrowRows] = useState(
     () => window.matchMedia?.('(max-width: 760px)').matches ?? false,
   )
-  useEffect(() => {
+  useLayoutEffect(() => {
     const media = window.matchMedia?.('(max-width: 760px)')
     const update = () => {
-      const listWidth = listBodyRef.current?.clientWidth ?? Number.POSITIVE_INFINITY
+      const listWidth = listElement?.clientWidth ?? Number.POSITIVE_INFINITY
       setNarrowRows(Boolean(media?.matches) || listWidth <= 760)
     }
     update()
     media?.addEventListener?.('change', update)
-    const list = listBodyRef.current
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
-    if (list && observer) observer.observe(list)
+    if (listElement && observer) observer.observe(listElement)
     return () => {
       media?.removeEventListener?.('change', update)
       observer?.disconnect()
     }
-  }, [decisionWorld.status])
+  }, [listElement])
   const rowHeight = narrowRows ? warehouseActionMobileRowHeight : warehouseActionRowHeight
-  const data = decisionWorld.run
-    ? {
-        account: decisionWorld.run.input.warehouse.account,
-        discs: decisionWorld.run.input.warehouse.discs,
-        roster: decisionWorld.run.input.warehouse.roster,
-      }
-    : (decisionWorld.liveInput?.warehouse ?? null)
   const projection = useMemo(
-    () =>
-      decisionWorld.status === 'current' || decisionWorld.status === 'stale'
-        ? displayWarehouseActionProjection(decisionWorld.run.warehouseActions, decisionWorld.status)
-        : null,
-    [decisionWorld],
+    () => warehousePageActionProjection(decisionWorld, data?.discs, warehouseRead.projection),
+    [decisionWorld, data?.discs, warehouseRead.projection],
   )
   const alternativeRecommendations = useMemo(
-    () =>
-      new Map(
-        (projection?.actions ?? []).map((item) => {
-          const stale = projection?.state === 'stale' || item.recommendationState === 'stale'
-          return [
-            item.disc.id,
-            {
-              label: stale ? '旧结果待重新分析' : warehouseActionStrengthLabel(item),
-              prioritize:
-                !stale && item.recommendationState === 'current' && item.action === 'keep',
-            },
-          ]
-        }),
-      ),
+    () => deriveAlternativeRecommendations(projection),
     [projection],
   )
-  const [filterState, setFilterState] = useState<{ accountId: string | null; value: FilterState }>({
+  const [filterState, setFilterState] = useCatalogBrowseState<{
+    accountId: string | null
+    value: FilterState
+  }>(browseKey, 'filters', {
     accountId: null,
     value: initialFilters,
   })
-  const [selection, setSelection] = useState<{ accountId: string; discId: string } | null>(null)
-  const [comparison, setComparison] = useState<{ accountId: string; discId: string } | null>(null)
-  const [sameKindContext, setSameKindContext] = useState<{
+  const [selection, setSelection] = useCatalogBrowseState<{
+    accountId: string
+    discId: string
+  } | null>(browseKey, 'selection', null)
+  const [comparison, setComparison] = useCatalogBrowseState<{
+    accountId: string
+    discId: string
+  } | null>(browseKey, 'comparison', null)
+  const [sameKindContext, setSameKindContext] = useCatalogBrowseState<{
     accountId: string
     filters: FilterState
     scrollTop: number
     selectedId: string
-  } | null>(null)
-  const [scrollTop, setScrollTop] = useState(0)
+  } | null>(browseKey, 'same-kind', null)
+  const [scrollTop, setScrollTop] = useCatalogBrowseState(browseKey, 'scroll-top', 0)
   const [repairingApplicationData, setRepairingApplicationData] = useState(false)
   const [retryingRead, setRetryingRead] = useState(false)
   const [readRetryError, setReadRetryError] = useState<string | null>(null)
   const listBodyRef = useRef<HTMLDivElement>(null)
+  const listScrollRestored = useRef(false)
+  useLayoutEffect(() => {
+    const list = listBodyRef.current
+    if (!list || listScrollRestored.current) return
+    listScrollRestored.current = true
+    list.scrollTop = scrollTop
+    if (list.scrollTop !== scrollTop) setScrollTop(list.scrollTop)
+  }, [projection, scrollTop, setScrollTop])
   const workbenchRef = useRef<HTMLDivElement>(null)
   const detailRequested = useRef(false)
+  const stepperFocus = useRef<'previous' | 'next' | null>(null)
   const cardNavigationRequested = useRef(false)
   const originalCardScrollTop = useRef(0)
   const originalAlternativesScrollTop = useRef(0)
@@ -116,13 +133,28 @@ export function WarehouseDiscsPage() {
   }
   const [navigationRequest, setNavigationRequest] = useState(0)
   useEffect(() => {
+    if (stepperFocus.current) {
+      const stepper = workbenchRef.current?.querySelector('.warehouse-disc-stepper')
+      const button =
+        stepper?.querySelector<HTMLButtonElement>(
+          `[data-disc-step="${stepperFocus.current}"]:enabled`,
+        ) ?? stepper?.querySelector<HTMLButtonElement>('button:enabled')
+      stepperFocus.current = null
+      button?.focus({ preventScroll: true })
+    }
     if (cardNavigationRequested.current) {
       cardNavigationRequested.current = false
       const card = workbenchRef.current?.querySelector<HTMLElement>('.warehouse-action-drawer')
-      if (card) card.scrollTop = 0
-      card
-        ?.querySelector<HTMLElement>('#warehouse-action-drawer-title')
-        ?.focus({ preventScroll: true })
+      const factComparison = card?.querySelector<HTMLElement>('[data-fact-comparison]')
+      if (factComparison) {
+        factComparison.focus({ preventScroll: true })
+        factComparison.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+      } else {
+        if (card) card.scrollTop = 0
+        card
+          ?.querySelector<HTMLElement>('#warehouse-action-drawer-title')
+          ?.focus({ preventScroll: true })
+      }
     }
     if (alternativeFocusRequested.current) {
       const id = alternativeFocusRequested.current
@@ -160,13 +192,12 @@ export function WarehouseDiscsPage() {
       row.focus({ preventScroll: true })
       row.scrollIntoView({ block: 'center', behavior: 'instant' })
     }
-  }, [navigationRequest, selection, scrollTop, comparison])
+  }, [navigationRequest, selection, scrollTop, comparison, setScrollTop])
   const filters = filterState.accountId === data?.account?.id ? filterState.value : initialFilters
   const visible = useMemo(() => {
     if (!projection) return []
     return projection.actions.filter((item) => matchesWarehouseDiscFilters(item, filters))
   }, [filters, projection])
-  const firstVisible = Math.max(0, Math.floor(scrollTop / rowHeight) - 4)
   const actionList = useMemo(
     () =>
       projectWarehouseActionListJoin(visible, data?.discs ?? [], {
@@ -175,34 +206,54 @@ export function WarehouseDiscsPage() {
       }),
     [data?.discs, filters.sort, visible],
   )
+  const firstVisible = Math.min(
+    Math.max(0, Math.floor(scrollTop / rowHeight) - 4),
+    Math.max(0, actionList.rows.length - 1),
+  )
   const windowed = actionList.rows.slice(firstVisible, firstVisible + warehouseActionWindowSize)
   const incomingSelection =
     searchParams.get('account') === data?.account?.id ? searchParams.get('selected') : null
+  const previousIncomingSelection = useRef<string | null>(null)
+  useLayoutEffect(() => {
+    if (
+      incomingSelection &&
+      incomingSelection !== previousIncomingSelection.current &&
+      data?.account
+    ) {
+      setSelection({ accountId: data.account.id, discId: incomingSelection })
+    }
+    previousIncomingSelection.current = incomingSelection
+  }, [incomingSelection, data?.account, setSelection])
   const selectedId =
     selection && selection.accountId === data?.account?.id ? selection.discId : incomingSelection
   const selectedRow =
     actionList.rows.find((row) => row.item.disc.id === selectedId) ?? actionList.rows[0] ?? null
   const selectedItem = selectedRow?.item ?? null
   const selectedDisc = selectedRow?.disc ?? null
-  const comparisonId = comparison?.accountId === data?.account?.id ? comparison?.discId : null
+  const comparisonId =
+    comparison &&
+    comparison.accountId === data?.account?.id &&
+    data?.discs.some((disc) => disc.id === comparison.discId)
+      ? comparison.discId
+      : null
   const detailItem = comparisonId
-    ? (projection?.actions.find((item) => item.disc.id === comparisonId) ?? null)
+    ? (projection?.actions.find((item) => item.disc.id === comparisonId) ?? selectedItem)
     : selectedItem
   const detailDisc = comparisonId
-    ? (data?.discs.find((disc) => disc.id === comparisonId) ?? null)
+    ? projection?.actions.some((item) => item.disc.id === comparisonId)
+      ? (data?.discs.find((disc) => disc.id === comparisonId) ?? null)
+      : selectedDisc
     : selectedDisc
-  const hasFilters = Object.entries(filters).some(
-    ([key, value]) => key !== 'sort' && value !== initialFilters[key as keyof FilterState],
-  )
+  const comparisonFact =
+    comparisonId && !projection?.actions.some((item) => item.disc.id === comparisonId)
+      ? (data?.discs.find((disc) => disc.id === comparisonId) ?? null)
+      : null
   const compatibleAgentIds = [
     ...new Set(projection?.actions.flatMap((item) => item.compatibleAgentIds) ?? []),
   ]
   const ownedAgentIds = new Set(
     data?.roster.agents.filter((agent) => agent.owned).map((agent) => agent.agentId),
   )
-  const moreFilterCount = [filters.level !== '', filters.referenced !== 'all'].filter(
-    Boolean,
-  ).length
   const selectedIndex = actionList.rows.findIndex((row) => row.disc.id === selectedDisc?.id)
   const availableMainStats = new Set(
     (data?.discs ?? [])
@@ -212,7 +263,8 @@ export function WarehouseDiscsPage() {
   function moveSelection(offset: number) {
     const row = actionList.rows[selectedIndex + offset]
     if (!row) return
-    selectDisc(row.disc.id)
+    stepperFocus.current = offset > 0 ? 'next' : 'previous'
+    selectDisc(row.disc.id, false)
     const nextTop = (selectedIndex + offset) * rowHeight
     const list = listBodyRef.current
     if (
@@ -235,11 +287,11 @@ export function WarehouseDiscsPage() {
       listBodyRef.current.scrollTo({ top: 0 })
     else if (listBodyRef.current) listBodyRef.current.scrollTop = 0
   }
-  function selectDisc(id: string) {
+  function selectDisc(id: string, openDetail = true) {
     if (!data?.account) return
     setComparison(null)
     setSelection({ accountId: data.account.id, discId: id })
-    if (window.matchMedia?.('(max-width: 760px)').matches) {
+    if (openDetail && window.matchMedia?.('(max-width: 760px)').matches) {
       detailRequested.current = true
       setNavigationRequest((request) => request + 1)
     }
@@ -309,6 +361,10 @@ export function WarehouseDiscsPage() {
   }
 
   async function runAnalysis() {
+    if (decisionWorld.status === 'current' && !warehouseRead.projection) {
+      warehouseRead.retry()
+      return
+    }
     await decisionWorld.refresh()
   }
   async function retryWarehouseRead() {
@@ -317,7 +373,7 @@ export function WarehouseDiscsPage() {
     try {
       await decisionWorld.refresh()
     } catch {
-      setReadRetryError('重新读取未完成，请稍后重试。账户资料没有被修改。')
+      setReadRetryError('驱动盘读取未完成，请重试。')
     } finally {
       setRetryingRead(false)
     }
@@ -334,50 +390,21 @@ export function WarehouseDiscsPage() {
     return <WarehouseInitialReadState decisionWorld={decisionWorld} runAnalysis={runAnalysis} />
   if (decisionWorld.status === 'error')
     return (
-      <section className="warehouse-empty" aria-live="polite">
-        <Archive size={28} />
-        <h1>驱动盘分析</h1>
-        <p>{decisionWorld.message}</p>
-        {decisionWorld.canRepairApplicationData ? (
-          <div className="warehouse-empty__actions app-recovery-actions">
-            <p>仅修复应用资料，不修改账户资产。</p>
-            <button
-              className="button button--primary"
-              type="button"
-              disabled={repairingApplicationData}
-              onClick={() => void repairApplicationData()}
-            >
-              {repairingApplicationData ? '正在恢复…' : '恢复应用自带资料'}
-            </button>
-          </div>
-        ) : (
-          <div className="warehouse-empty__actions app-recovery-actions">
-            <button
-              className="button button--primary"
-              type="button"
-              disabled={retryingRead}
-              onClick={() => void retryWarehouseRead()}
-            >
-              {retryingRead ? '正在重新读取…' : '重新读取仓库'}
-            </button>
-            {readRetryError ? <p role="alert">{readRetryError}</p> : null}
-          </div>
-        )}
-      </section>
-    )
-  if (!data?.account || !data.roster) return <AccountRequiredState title="先创建或选择账户" />
-  if (data.discs.length === 0)
-    return (
-      <WorkbenchEmptyState
-        title="还没有可分析的驱动盘"
-        description="先扫描或导入当前账户的驱动盘；有数据后，这里会给出保留、观察和清理候选建议。"
-        action={
-          <Link className="button button--primary" to="/system/scanner">
-            前往扫描与导入
-          </Link>
-        }
+      <WarehouseErrorState
+        decisionWorld={decisionWorld}
+        repairingApplicationData={repairingApplicationData}
+        retryingRead={retryingRead}
+        readRetryError={readRetryError}
+        onRepairApplicationData={() => void repairApplicationData()}
+        onRetryWarehouseRead={() => void retryWarehouseRead()}
       />
     )
+  if (!data?.account || !data.roster) return <AccountRequiredState title="先创建或选择账户" />
+  const latestInput = decisionWorld.liveInput ?? decisionWorld.run?.input
+  const currentInput = latestInput?.warehouse.accountId === data.account.id ? latestInput : null
+  const sDiscs = data.discs.filter((disc) => disc.rarity === 'S')
+  const excludedDiscCount = data.discs.length - sDiscs.length
+  if (sDiscs.length === 0) return <WarehouseEmptyDiscsState excludedDiscCount={excludedDiscCount} />
   return (
     <div
       className="warehouse-workbench"
@@ -385,14 +412,25 @@ export function WarehouseDiscsPage() {
       style={{ '--warehouse-row-height': `${rowHeight}px` } as CSSProperties}
     >
       <WarehouseWorkbenchHeader
-        discCount={data.discs.length}
+        discCount={sDiscs.length}
+        excludedDiscCount={excludedDiscCount}
         accountId={data.account.id}
         selectedDiscId={selectedDisc?.id ?? selectedId ?? null}
+        filters={filters}
+        updateFilters={updateFilters}
         projection={projection}
         runAnalysis={runAnalysis}
-        calculation={decisionWorld.calculation}
-        calculationCancelled={decisionWorld.calculationCancelled}
-        cancelCalculation={decisionWorld.cancelCalculation}
+        calculation={decisionWorld.calculation ?? warehouseRead.calculation}
+        calculationCancelled={decisionWorld.calculationCancelled || warehouseRead.cancelled}
+        analysisIssue={
+          decisionWorld.analysisIssue ??
+          (warehouseRead.error
+            ? { kind: 'calculation_failed', message: warehouseRead.error }
+            : null)
+        }
+        cancelCalculation={
+          warehouseRead.calculation ? warehouseRead.cancel : decisionWorld.cancelCalculation
+        }
       />
       <WarehouseDiscControls
         filters={filters}
@@ -401,18 +439,23 @@ export function WarehouseDiscsPage() {
         availableMainStats={availableMainStats}
         compatibleAgentIds={compatibleAgentIds}
         ownedAgentIds={ownedAgentIds}
-        moreFilterCount={moreFilterCount}
-        hasFilters={hasFilters}
         projection={projection}
       />
       {!projection ? (
         <WarehousePendingDiscList
+          listRef={setListElement}
           key={`${data.account.id}:${filters.setId}:${filters.slot}:${filters.mainStat}:${filters.level}:${filters.sort}`}
-          discs={data.discs}
+          discs={data.discs.filter((disc) => disc.rarity === 'S')}
           filters={filters}
           selectedId={selectedId}
+          drafts={currentInput?.drafts}
+          activePlanIds={Object.values(currentInput?.activePlanIds ?? {}).filter(
+            (id): id is string => typeof id === 'string',
+          )}
           selectDisc={selectDisc}
           rowHeight={rowHeight}
+          initialScrollTop={scrollTop}
+          onScrollTop={setScrollTop}
           onFocusDisc={(id) => {
             focusedPendingDiscIdRef.current = id
           }}
@@ -420,6 +463,7 @@ export function WarehouseDiscsPage() {
       ) : (
         <div className="warehouse-action-workspace">
           <WarehouseDiscActionList
+            listRef={setListElement}
             actionList={actionList}
             listBodyRef={listBodyRef}
             setScrollTop={setScrollTop}
@@ -444,50 +488,27 @@ export function WarehouseDiscsPage() {
               focusedPendingDiscIdRef.current = null
             }}
           />
-          {detailItem && detailDisc ? (
-            <WarehouseActionDrawer
-              key={`${data.account.id}:${selectedDisc?.id}`}
-              navigation={
-                !comparisonId
-                  ? {
-                      index: selectedIndex,
-                      total: actionList.rows.length,
-                      onPrevious: () => moveSelection(-1),
-                      onNext: () => moveSelection(1),
-                    }
-                  : undefined
-              }
-              onReturnToList={comparisonId ? undefined : returnToSelectedDisc}
-              onSelectAlternative={showAlternative}
-              onShowSameKind={showSameKind}
-              onReturnToOriginal={comparisonId ? returnToOriginal : undefined}
-              comparisonOrigin={
-                comparisonId && selectedItem && selectedDisc
-                  ? { item: selectedItem, disc: selectedDisc }
-                  : undefined
-              }
-              item={detailItem}
-              ownedAgentIds={ownedAgentIds}
-              disc={detailDisc}
-              discs={data.discs}
-              decisionLabel={warehouseActionStrengthLabel(detailItem)}
-              alternativeRecommendations={alternativeRecommendations}
-              relations={statusText(detailItem)}
-            />
-          ) : (
-            <aside className="warehouse-action-drawer warehouse-action-drawer--empty">
-              {comparisonId ? (
-                <>
-                  <p role="status">替代盘记录或分析结果已不可用，请更新仓库后重新分析。</p>
-                  <button className="button button--quiet" type="button" onClick={returnToOriginal}>
-                    返回原盘
-                  </button>
-                </>
-              ) : (
-                '当前筛选下没有可查看的驱动盘。'
-              )}
-            </aside>
-          )}
+          <WarehouseActionDrawerSection
+            detailItem={detailItem}
+            detailDisc={detailDisc}
+            accountId={data.account.id}
+            selectedDiscId={selectedDisc?.id}
+            comparisonId={comparisonId}
+            comparisonFact={comparisonFact}
+            selectedIndex={selectedIndex}
+            totalRows={actionList.rows.length}
+            onMoveSelection={moveSelection}
+            onReturnToSelectedDisc={returnToSelectedDisc}
+            onSelectAlternative={showAlternative}
+            onShowSameKind={showSameKind}
+            onReturnToOriginal={returnToOriginal}
+            selectedItem={selectedItem}
+            selectedDisc={selectedDisc}
+            ownedAgentIds={ownedAgentIds}
+            discs={data.discs}
+            alternativeRecommendations={alternativeRecommendations}
+            onReanalyze={runAnalysis}
+          />
         </div>
       )}
     </div>

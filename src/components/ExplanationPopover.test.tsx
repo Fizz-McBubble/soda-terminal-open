@@ -7,6 +7,16 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+it('keeps a compact visible trigger label distinct from its accessible name', () => {
+  render(
+    <ExplanationPopover label="说明" triggerAriaLabel="队伍建议使用说明">
+      帮助正文
+    </ExplanationPopover>,
+  )
+  const trigger = screen.getByRole('button', { name: '队伍建议使用说明' })
+  expect(trigger).toHaveTextContent('说明')
+})
+
 it('keeps the CSS height cap stable across repeated rounded scroll measurements', () => {
   let resize = () => {}
   const onOpenChange = vi.fn()

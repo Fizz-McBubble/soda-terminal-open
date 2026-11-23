@@ -37,6 +37,8 @@ import {
 } from './currentUpstreamExpressionIR'
 import type { evaluateCurrentPlanningEffectEntries32 } from './currentPlanningEffectRuntime'
 import { bindPlanningAnomalyLifecycleReferences32 } from './currentPlanningAnomalyLifecycle32'
+import { bindReviewedCommunityPlayConditions32 } from './reviewedCommunityPlayConditions32'
+import { bindReviewedAstraCoreAttack32 } from './reviewedAstraCoreAttack32'
 // Legacy expressions retain source values; only the shared per-event potential
 // binding activates them. A level is not proof that an action occurred.
 const potentialValueOnlyKeys = new Set(
@@ -66,6 +68,53 @@ export function evaluateFormationEffects(
   })
   if (blueprints.status === 'unsupported') blockers.push(...blueprints.blockers)
   if (blockers.length) return { status: 'unsupported' as const, blockers: unique(blockers) }
+
+  const refs = input.baselineReferencesByAgentId ?? {}
+  const handoffDeclared = ['agent-soukaku', 'agent-seth'].some((id) =>
+    Object.hasOwn(refs[id] ?? {}, 'communityRecipientAgentId32'),
+  )
+  const flag = (id: string, key: string) =>
+    typeof refs[id]?.[key] === 'boolean' ? (refs[id]![key] as boolean) : null
+  const recipient = (id: string) =>
+    typeof refs[id]?.communityRecipientAgentId32 === 'string'
+      ? (refs[id]!.communityRecipientAgentId32 as string)
+      : null
+  const community =
+    input.communityPlayConditions32 || handoffDeclared
+      ? bindReviewedCommunityPlayConditions32({
+          memberIds: input.memberIds,
+          baselineReferencesByAgentId: refs,
+          ...(handoffDeclared
+            ? {
+                ...(input.memberIds.includes('agent-soukaku')
+                  ? {
+                      soukaku: {
+                        flyTheFlag: flag('agent-soukaku', 'flyTheFlag'),
+                        vortexConsumed: flag('agent-soukaku', 'vortexConsumed'),
+                        recipientAgentId: recipient('agent-soukaku'),
+                      },
+                    }
+                  : {}),
+                ...(input.memberIds.includes('agent-seth')
+                  ? {
+                      seth: {
+                        shieldActive: flag('agent-seth', 'shield_active'),
+                        recipientAgentId: recipient('agent-seth'),
+                      },
+                    }
+                  : {}),
+                ...(input.memberIds.includes('agent-lucy')
+                  ? { lucy: { cheerOn: flag('agent-lucy', 'cheerOn') } }
+                  : {}),
+              }
+            : {}),
+          ...input.communityPlayConditions32,
+        })
+      : null
+  if (community?.status === 'unsupported')
+    return { status: 'unsupported' as const, blockers: community.blockers }
+  if (community)
+    input = { ...input, baselineReferencesByAgentId: community.baselineReferencesByAgentId }
 
   const lifecycleSources = new Map<string, string[]>()
   const observedReferences: Record<string, Record<string, unknown>> = {}
@@ -124,9 +173,33 @@ export function evaluateFormationEffects(
         status: 'unsupported' as const,
         blockers: [blueprint.numericExpression.todoBoundary],
       }
-    const provided = planningObservedReferences32(
+    let provided = planningObservedReferences32(
       input.baselineReferencesByAgentId?.[blueprint.providerAgentId],
     )
+    const astraCore =
+      blueprint.effectKey === 'agent-astra:core_atk'
+        ? bindReviewedAstraCoreAttack32({ memberIds: input.memberIds, references: provided })
+        : null
+    if (astraCore?.status === 'unsupported') return { effectKey: blueprint.effectKey, ...astraCore }
+    if (astraCore?.status === 'unknown') {
+      const meta = effectReceiverMetadata(blueprint.numericExpression.expressionIr)
+      return {
+        effectKey: blueprint.effectKey,
+        providerAgentId: blueprint.providerAgentId,
+        effectId: blueprint.effectId,
+        applicationScope: blueprint.applicationScope ?? 'generic',
+        targetKinds: blueprint.targetKinds,
+        receiverPath: meta.receiverPath,
+        damageType: meta.damageType,
+        status: 'excluded_unknown' as const,
+        missing: astraCore.missing,
+        active: false as const,
+        todoBoundary: blueprint.numericExpression.todoBoundary,
+        sourceRefs: [...blueprint.sourceRefs, ...astraCore.sourceRefs],
+      }
+    }
+    if (astraCore?.status === 'supported')
+      provided = { ...provided, idyllic_cadenza: astraCore.numericGate }
     const observationValidity = validateReviewedTemplateMechanicObservations32({
       entry: blueprint,
       references: provided,
@@ -176,6 +249,22 @@ export function evaluateFormationEffects(
         blockers: extracted.blockers,
       }
     const metadata = effectReceiverMetadata(blueprint.numericExpression.expressionIr)
+    const handoff = community?.bindings.find((binding) => binding.effectKey === blueprint.effectKey)
+    if (handoff?.status === 'unknown')
+      return {
+        effectKey: blueprint.effectKey,
+        providerAgentId: blueprint.providerAgentId,
+        effectId: blueprint.effectId,
+        applicationScope: blueprint.applicationScope ?? 'generic',
+        targetKinds: blueprint.targetKinds,
+        receiverPath: metadata.receiverPath,
+        damageType: metadata.damageType,
+        status: 'excluded_unknown' as const,
+        missing: handoff.missing,
+        active: false as const,
+        todoBoundary: blueprint.numericExpression.todoBoundary,
+        sourceRefs: blueprint.sourceRefs,
+      }
     const observation = planningEffectObservation32({
       entry: blueprint,
       expression: extracted.value as UpstreamExpressionIR,
@@ -273,7 +362,10 @@ export function evaluateFormationEffects(
       references: rawReferences,
     })
     if (conversion.status !== 'supported') return { effectKey: blueprint.effectKey, ...conversion }
-    const references = conversion.references
+    const references =
+      astraCore?.status === 'supported'
+        ? { ...conversion.references, idyllic_cadenza: astraCore.numericGate }
+        : conversion.references
     const reviewedAbilitySource = reviewedInlineAbilityEffectSources[blueprint.effectKey]
     const blockedByReviewedAbility =
       reviewedAbilitySource &&
@@ -355,15 +447,20 @@ export function evaluateFormationEffects(
       damageType: metadata.damageType,
       status: 'supported' as const,
       value: evaluated.value,
-      recipientAgentIds: boundRecipient?.recipientAgentIds,
+      recipientAgentIds:
+        astraCore?.status === 'supported'
+          ? astraCore.recipientAgentIds
+          : (handoff?.recipientAgentIds ?? boundRecipient?.recipientAgentIds),
       recipientValues,
       active:
+        handoff?.status !== 'inactive' &&
         !potentialValueOnlyKeys.has(blueprint.effectKey) &&
         ((typeof evaluated.value === 'number' && evaluated.value !== 0) ||
           recipientValues.some((row) => typeof row.value === 'number' && row.value !== 0)),
       todoBoundary: blueprint.numericExpression.todoBoundary,
       sourceRefs: [
         ...blueprint.sourceRefs,
+        ...(astraCore?.status === 'supported' ? astraCore.sourceRefs : []),
         ...(reviewedAbilitySource ? [reviewedAbilitySource] : conversion.sourceRefs),
         ...(lifecycleSources.get(blueprint.providerAgentId) ?? []),
       ],

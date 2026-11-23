@@ -5,11 +5,7 @@ type AccountDecisionAuthority = ReturnType<typeof projectAccountDecisionAuthorit
 /** Older snapshots only have the visible shortlist; current runs carry the complete workset. */
 export function authorityConsumerRecommendations(authority: AccountDecisionAuthority | undefined) {
   if (!authority || authority.status !== 'ready') return []
-  if (
-    'consumerRecommendations' in authority &&
-    Array.isArray(authority.consumerRecommendations) &&
-    authority.consumerRecommendations.length > 0
-  )
+  if ('consumerRecommendations' in authority && Array.isArray(authority.consumerRecommendations))
     return authority.consumerRecommendations
   return authority.recommendations
 }

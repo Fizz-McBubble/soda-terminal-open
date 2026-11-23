@@ -1,13 +1,16 @@
 import policySource from './defaultTeamRecommendationPolicy.ts?raw'
 import selectionSource from './defaultTeamRecommendationSelection.ts?raw'
 import consumerSource from './accountDecisionAuthority.ts?raw'
+import rankingSource from './teamSystemRankingAuthority.ts?raw'
 import { stableContentHash } from '../gameDataPacks/types'
 
 /** Includes qualification/quotas and the source-first consumer integration without
  * importing its execution graph. Real rule deployments invalidate old decisions. */
 export const defaultTeamRecommendationPolicyIdentity = Object.freeze({
-  contract: 'installed-source-first-bounded-inference-defaults/v2',
+  contract: 'installed-source-first-bounded-inference-defaults/v3',
   policyHash: stableContentHash(policySource.replaceAll('\r\n', '\n')),
   selectionHash: stableContentHash(selectionSource.replaceAll('\r\n', '\n')),
   consumerHash: stableContentHash(consumerSource.replaceAll('\r\n', '\n')),
+  // Ordering changes refresh BOX recommendations without changing event proof identity.
+  rankingHash: stableContentHash(rankingSource.replaceAll('\r\n', '\n')),
 })

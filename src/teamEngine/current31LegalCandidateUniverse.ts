@@ -29,6 +29,10 @@ export const current31LegalAgentFormations = Object.freeze(
   enumerateAgentFormations(releasedAgentIds),
 )
 
+export function enumerateOwnedLegalAgentFormations(ownedAgentIds: ReadonlySet<string>) {
+  return enumerateAgentFormations(releasedAgentIds.filter((agentId) => ownedAgentIds.has(agentId)))
+}
+
 const uncoveredAgentIds = releasedAgentIds.filter(
   (agentId) => getCurrentAgentEventContract(agentId) === null,
 )

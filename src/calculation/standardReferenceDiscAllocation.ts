@@ -296,18 +296,39 @@ export function createStandardReferenceDiscSeed(discs: readonly DriveDisc[]) {
     : { status: 'unsupported' as const, reason: '当前主词条下没有合法的标准48次分配。' }
 }
 
+function discAllocation(discs: readonly DriveDisc[]) {
+  return [...discs]
+    .sort((a, b) => a.slot - b.slot)
+    .map((disc) =>
+      rules.map((rule) => {
+        const line = disc.subStats.find((item) => item.stat === rule.stat)
+        return line ? line.upgrades + 1 : 0
+      }),
+    )
+}
+
+/** A direction is attributable only when exactly one stat loses and one gains. */
+export function standardReferenceDiscTransfer(
+  before: readonly DriveDisc[],
+  after: readonly DriveDisc[],
+) {
+  if (!validateStandardReferenceDiscs(before).valid || !validateStandardReferenceDiscs(after).valid)
+    return null
+  return transfer(discAllocation(before), discAllocation(after))
+}
+
 /** The same physical proposal domain serves single-actor and whole-team goals. */
-export function* standardReferenceDiscProposals(discs: readonly DriveDisc[]) {
+export function* standardReferenceDiscProposals(
+  discs: readonly DriveDisc[],
+  observedGains: ReadonlyMap<string, number> = new Map(),
+) {
   if (!validateStandardReferenceDiscs(discs).valid) return
   const templates = [...discs].sort((a, b) => a.slot - b.slot)
-  const allocation = templates.map((disc) =>
-    rules.map((rule) => {
-      const line = disc.subStats.find((item) => item.stat === rule.stat)
-      return line ? line.upgrades + 1 : 0
-    }),
-  )
-  for (const next of legalNeighbors(allocation, templates))
-    yield materializeAllocation(templates, next)
+  const allocation = discAllocation(templates)
+  const proposals = observedGains.size
+    ? neighbors(allocation, templates, observedGains)
+    : legalNeighbors(allocation, templates)
+  for (const next of proposals) yield materializeAllocation(templates, next)
 }
 
 export function allocateStandardReferenceDiscs(input: {
@@ -315,6 +336,11 @@ export function allocateStandardReferenceDiscs(input: {
   objectiveIdentity: string
   evaluate: (discs: readonly DriveDisc[]) => number | null
   maxEvaluations?: number
+  /** Reuse actual legal recipes before proposing more substats. Absent keeps
+   * the historical feasibility-seed behavior for existing callers. */
+  initialReferences?: readonly (readonly DriveDisc[])[]
+  /** A declared preparation target may stop once attained; not an optimum. */
+  stopAtValue?: number
 }) {
   const error = templateError(input.discs)
   if (error) return { status: 'unsupported' as const, reason: error }
@@ -324,6 +350,28 @@ export function allocateStandardReferenceDiscs(input: {
   if (!Number.isInteger(maxEvaluations) || maxEvaluations < 1)
     return { status: 'unsupported' as const, reason: '目标求值预算必须为正整数。' }
   const templates = [...input.discs].sort((a, b) => a.slot - b.slot)
+  const fixedRecipe = (discs: readonly DriveDisc[]) =>
+    JSON.stringify(
+      [...discs]
+        .sort((a, b) => a.slot - b.slot)
+        .map(({ slot, setId, mainStat, level, rarity }) => ({
+          slot,
+          setId,
+          mainStat,
+          level,
+          rarity,
+        })),
+    )
+  if (
+    input.initialReferences?.some(
+      (discs) =>
+        !validateStandardReferenceDiscs(discs).valid ||
+        fixedRecipe(discs) !== fixedRecipe(templates),
+    )
+  )
+    return { status: 'unsupported' as const, reason: '复用配方必须合法且保持原主词、套装及等级。' }
+  if (input.stopAtValue !== undefined && !Number.isFinite(input.stopAtValue))
+    return { status: 'unsupported' as const, reason: '准备目标必须是有限数值。' }
   const seed = feasibleSeed(templates)
   if (!seed.allocation)
     return { status: 'unsupported' as const, reason: '当前主词条下没有合法的标准48次分配。' }
@@ -354,20 +402,34 @@ export function allocateStandardReferenceDiscs(input: {
     neighbors: neighbors(allocation, templates, observedGains),
     turn: turn++,
   })
-  const initialValue = evaluate(seed.allocation)
-  let best = initialValue === null ? null : { allocation: seed.allocation, value: initialValue }
-  const frontier = [entry(seed.allocation, initialValue)]
-  const seen = new Set([allocationKey(seed.allocation)])
+  const seeds = input.initialReferences?.length
+    ? input.initialReferences.map(discAllocation)
+    : [seed.allocation]
+  let best: { allocation: Allocation; value: number } | null = null
+  const frontier: Entry[] = [],
+    seen = new Set<string>()
+  const reachedTarget = () =>
+    best !== null && input.stopAtValue !== undefined && best.value >= input.stopAtValue
+  for (const allocation of seeds) {
+    const key = allocationKey(allocation)
+    if (seen.has(key)) continue
+    if (evaluations >= maxEvaluations || reachedTarget()) break
+    seen.add(key)
+    const value = evaluate(allocation)
+    frontier.push(entry(allocation, value))
+    if (value !== null && (!best || value > best.value)) best = { allocation, value }
+  }
+  const reusedReferenceEvaluations = input.initialReferences?.length ? evaluations : 0
   const order = (a: Entry, b: Entry) =>
     (b.value ?? -Infinity) - (a.value ?? -Infinity) || a.turn - b.turn
-  while (frontier.length && evaluations < maxEvaluations) {
+  while (frontier.length && evaluations < maxEvaluations && !reachedTarget()) {
     frontier.sort(order)
     const current = frontier.shift()!
     let exhausted = false
     // A short expansion lets a new improvement take priority while plateau
     // states still explore changes in stat placement under the same budget.
     let added = 0
-    while (added < 8 && evaluations < maxEvaluations) {
+    while (added < 8 && evaluations < maxEvaluations && !reachedTarget()) {
       const candidate = current.neighbors.next()
       if (candidate.done) {
         exhausted = true
@@ -416,6 +478,8 @@ export function allocateStandardReferenceDiscs(input: {
       policy,
       rules: driveDiscData?.contentHash,
       objectiveIdentity: input.objectiveIdentity,
+      ...(input.initialReferences && { initialReferences: input.initialReferences }),
+      ...(input.stopAtValue !== undefined && { stopAtValue: input.stopAtValue }),
       maxEvaluations,
       discs,
       value: best.value,
@@ -427,6 +491,7 @@ export function allocateStandardReferenceDiscs(input: {
       improvements,
       unknownEvaluations,
       feasibleSeedNodes: seed.nodes,
+      ...(input.initialReferences && { reusedReferenceEvaluations }),
       counts: validation.counts,
     },
   }

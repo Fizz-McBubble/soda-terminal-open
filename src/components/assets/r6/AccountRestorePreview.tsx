@@ -11,7 +11,7 @@ export function AccountRestorePreview({
 }) {
   return (
     <>
-      <p>
+      <p id="restore-summary">
         {preview.identity === 'same_name_different_id' ? (
           '同名账户身份不同，将作为独立账户恢复，现有同名账户不会被合并或覆盖。'
         ) : (

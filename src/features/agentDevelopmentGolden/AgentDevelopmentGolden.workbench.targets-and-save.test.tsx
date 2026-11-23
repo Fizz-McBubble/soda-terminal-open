@@ -2,6 +2,7 @@ import {
   createPanelDetailSubject,
   createAnomalyRankingData,
   createLegacyReferenceData,
+  createLegacyEngineDirectionWorkbench,
 } from './workbenchTargetsAndSave.testFixture'
 import {
   describe,
@@ -16,35 +17,34 @@ import {
   workbench,
 } from './AgentDevelopmentGolden.workbench.testFixture'
 import type { GoldenTop10Data } from './AgentDevelopmentGolden.workbench.testFixture'
-import { agentDevelopmentSkillRecommendations } from '../../pages/agentDevelopmentSkillRecommendations'
-import { getProjectedBuildKnowledgeProfile } from '../../gameDataPacks/agentProfile'
+import { within } from '@testing-library/react'
+import { developmentSkillRecommendations } from '../../application/developmentSkillRecommendations'
+import { createEmptyRoster } from '../../accounts/rosterHydration'
 import { Top10StatTable } from './Top10StatTable'
 import { WorkbenchPanelSnapshot } from './WorkbenchPanelSnapshot'
 
 describe('AgentDevelopmentGolden warehouse candidate controls', () => {
-  it('keeps the workbench summary and only applicable or nonzero full-panel details', () => {
+  it('retains supplementary and resource fields in complete attributes without moving game-menu positions', () => {
     const { container } = render(<WorkbenchPanelSnapshot subject={createPanelDetailSubject()} />)
     const summary = container.querySelector('.stat-grid')!
-    const full = container.querySelector('.character-panel-more__facts')!
-    expect(summary).toHaveTextContent('穿透值')
-    expect(summary).not.toHaveTextContent('锐能上限')
-    expect(full).toHaveTextContent('穿透值')
-    expect(full).toHaveTextContent('火属性伤害加成')
-    expect(full).toHaveTextContent('锐能上限')
-    expect(full).not.toHaveTextContent('冰属性伤害加成')
+    const details = container.querySelector('.panel-snapshot__full-grid')!
+    expect(details).toHaveTextContent('穿透值')
+    expect(details).toHaveTextContent('火属性伤害加成')
+    expect(details).toHaveTextContent('锐能上限—')
+    expect(details).toHaveTextContent('冰属性伤害加成0%')
+    expect(summary).toHaveTextContent('锐能自动累积—')
+    expect(summary.children).toHaveLength(10)
+    expect(summary).not.toHaveTextContent('冰属性伤害加成')
+    expect(screen.queryByRole('button', { name: '查看完整面板' })).not.toBeInTheDocument()
   })
-  it('shows declared anomaly ranking scope in the existing summary and explanation', async () => {
+  it('shows declared anomaly ranking scope in the existing summary', () => {
     const { container } = render(
       <AgentDevelopmentGolden initialView="top10" top10={createAnomalyRankingData()} />,
     )
     expect(container.querySelector('.comparison-summary-intro__note')).toHaveTextContent(
-      '按同条件单次异常结算排序，不含循环收益。',
+      '同条件下先比较单次异常伤害；伤害相同时参考推荐套装。',
     )
-    await userEvent.setup().click(screen.getByRole('button', { name: '排序与计算限制' }))
-    expect(screen.getByText(/按同条件单次异常结算排序，仅覆盖已声明结算/)).toHaveTextContent(
-      '搜索预算已用尽',
-    )
-    expect(screen.queryByText(/按已覆盖模型目标排序/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/按已覆盖属性与输出目标排序/)).not.toBeInTheDocument()
   })
   it('guards old public optional and combat-only references without hiding actual rows', () => {
     const data = createLegacyReferenceData()
@@ -54,24 +54,28 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
         data={data}
         selectedRow={baseline}
         baselineAvailable
-        baselineLabel="当前实装"
+        baselineLabel="当前装备"
       />,
     )
-    expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('毕业推荐')
-    expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('毕业推荐')
-    expect(screen.getByRole('table', { name: '属性对比' })).toHaveTextContent('8,020')
-    expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('毕业推荐 3000+')
+    expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('培养目标')
+    expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('培养目标')
+    expect(screen.getByRole('table', { name: '属性对比' })).toHaveTextContent('8020')
+    expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('培养目标 3000+')
     expect(screen.getByRole('cell', { name: '攻击力' })).not.toHaveTextContent('攻略')
   })
   it('renders Seed numeric references while preserving source minima and confirmed priorities', () => {
-    const directions = getProjectedBuildKnowledgeProfile('agent-seed').recommendation!.skillPriority
-    const { skills } = agentDevelopmentSkillRecommendations('agent-seed', directions, [])
+    const actor = createEmptyRoster('2026-11-01T00:00:00Z').agents.find(
+      (agent) => agent.agentId === 'agent-seed',
+    )!
+    const { skills } = developmentSkillRecommendations({ ...actor, mindscape: 0 })
     const { container } = render(
       <AgentDevelopmentGolden
         initialView="workbench"
         workbench={{
           ...workbench,
           agentId: 'agent-seed',
+          mindscape: 0,
+          skills: workbench.skills.map((skill) => ({ ...skill, value: 1 })),
           graduation: { ...workbench.graduation, skills },
         }}
       />,
@@ -94,7 +98,7 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
       levels
         .filter((node) => node.classList.contains('priority'))
         .map((node) => node.querySelector('small')?.textContent),
-    ).toEqual(['普攻', '核心技'])
+    ).toEqual(['普攻', '特殊', '连携', '核心技'])
   })
   it('keeps the saved candidate selected when refreshed results move it to another rank', async () => {
     const user = userEvent.setup()
@@ -156,7 +160,7 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
     expect(screen.queryByRole('link', { name: '在我的资产编辑' })).not.toBeInTheDocument()
   })
 
-  it('keeps sourced target conditions beside the target numbers in the main panel', () => {
+  it('keeps sourced target conditions in a disclosure beside the cultivation targets', () => {
     render(
       <AgentDevelopmentGolden
         initialView="workbench"
@@ -169,13 +173,16 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
         }}
       />,
     )
-    const conditionButton = screen.getByRole('button', { name: '适用条件' })
-    expect(
-      document.getElementById(conditionButton.getAttribute('popovertarget')!),
-    ).toHaveTextContent('仅适用于说明中的队伍与音擎条件')
-    expect(screen.getByRole('region', { name: '毕业推荐' })).toHaveTextContent('3000')
+    const trigger = screen.getByRole('button', { name: '适用条件' })
+    const popup = document.getElementById(trigger.getAttribute('popovertarget')!)!
+    const conditions = within(popup).getByRole('region', { name: '适用条件', hidden: true })
+    expect(trigger.closest('.panel-graduation-targets')).toBeInTheDocument()
+    expect(conditions.closest('.current-overview__panel')).toBeInTheDocument()
+    expect(conditions).toHaveTextContent('仅适用于说明中的队伍与音擎条件')
+    expect(popup).toHaveAttribute('popover', 'auto')
+    expect(screen.getByRole('region', { name: '培养目标' })).toHaveTextContent('3000')
   })
-  it('keeps only required targets inline and puts optional values and conditions in one popover', () => {
+  it('keeps all source target values in source order and separates their applicability disclosure', () => {
     const { container } = render(
       <AgentDevelopmentGolden
         initialView="workbench"
@@ -198,59 +205,151 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
       '.panel-graduation-targets__items > .panel-graduation-targets__item',
     )
     expect(Array.from(inlineTargets, (item) => item.textContent)).toEqual([
+      '攻击力1700–2000（可选）',
       '冲击力166–190+',
       '暴击率50%+',
+      '暴击伤害100%–120%（可选）',
     ])
-    const trigger = screen.getByRole('button', { name: '更多' })
+    const trigger = screen.getByRole('button', { name: '适用条件' })
     const popup = document.getElementById(trigger.getAttribute('popovertarget')!)
     expect(popup).toHaveAttribute('popover', 'auto')
-    expect(popup).toHaveTextContent('攻击力1700–2000（可选）')
-    expect(popup).toHaveTextContent('暴击伤害100%–120%（可选）')
     expect(popup).toHaveTextContent('按队伍与音擎选择')
+    expect(popup).not.toHaveTextContent('1700')
+  })
+  it('keeps optional source advice readable beside a fixed four-target primary region', () => {
+    const { container } = render(
+      <WorkbenchPanelSnapshot
+        subject={{
+          ...workbench,
+          graduation: {
+            ...workbench.graduation,
+            panel: [
+              {
+                name: '攻击力',
+                value: '2500–3100（可选）',
+                placement: 'reference',
+                semantic: {
+                  requirement: 'optional',
+                  boundary: 'minimum',
+                  observation: 'out_of_combat',
+                },
+              },
+              { name: '生命值', value: '9500+' },
+              { name: '防御力', value: '800+' },
+              { name: '暴击率', value: '70%–80%' },
+              { name: '暴击伤害', value: '140%–160%' },
+            ],
+          },
+        }}
+      />,
+    )
+    const inlineTargets = container.querySelectorAll(
+      '.panel-graduation-targets__items > .panel-graduation-targets__item',
+    )
+    expect(Array.from(inlineTargets, (item) => item.textContent)).toEqual([
+      '生命值9500+',
+      '防御力800+',
+      '暴击率70%–80%',
+      '暴击伤害140%–160%',
+    ])
+    expect(screen.queryByRole('button', { name: '更多推荐' })).not.toBeInTheDocument()
+    expect(container.querySelector('.panel-graduation-targets__references')).toHaveTextContent(
+      '攻击力可选2500–3100',
+    )
+    expect(container.querySelector('.panel-graduation-targets__optional')).not.toBeInTheDocument()
+  })
+  it('shows an all-optional target without inventing a mandatory requirement or an empty disclosure', () => {
+    const { container } = render(
+      <WorkbenchPanelSnapshot
+        subject={{
+          ...workbench,
+          graduation: {
+            ...workbench.graduation,
+            panelConditions: [],
+            panel: [
+              {
+                name: '攻击力',
+                value: '2500–3100（可选）',
+                placement: 'primary',
+                semantic: {
+                  requirement: 'optional',
+                  boundary: 'minimum',
+                  observation: 'out_of_combat',
+                },
+              },
+            ],
+          },
+        }}
+      />,
+    )
+    expect(container.querySelector('.panel-graduation-targets__items')).toHaveTextContent(
+      '攻击力2500–3100',
+    )
+    expect(container.querySelector('.panel-graduation-targets__kind')).toHaveTextContent('可选参考')
     expect(screen.queryByRole('button', { name: '适用条件' })).not.toBeInTheDocument()
   })
-  it('shows sourced attribute directions without inventing a graduation target or a standalone engine-help row', () => {
+  it('shows attribute directions and suppresses unreviewed engine prose without a separate help row', () => {
+    const { container, rerender } = render(
+      <AgentDevelopmentGolden
+        initialView="workbench"
+        workbench={createLegacyEngineDirectionWorkbench()}
+      />,
+    )
+    expect(screen.getByRole('region', { name: '培养目标' })).toHaveTextContent(
+      '暴击率 / 防御力百分比',
+    )
+    expect(screen.queryByText('资料待补齐')).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: '毕业推荐' })).not.toBeInTheDocument()
+    const engineRegion = screen.getByRole('region', { name: '当前音擎与推荐' })
+    expect(engineRegion).not.toHaveTextContent(/按队伍需求选择|沿用一般培养参考/)
+    const trigger = screen.getByRole('button', { name: '选择说明' })
+    const popup = document.getElementById(trigger.getAttribute('popovertarget')!)!
+    expect(popup).toHaveTextContent('仿制星徽引擎')
+    expect(popup).not.toHaveTextContent(/按队伍需求选择|沿用一般培养参考/)
+    expect(screen.queryByRole('region', { name: '音擎适用条件' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '音擎说明' })).not.toBeInTheDocument()
+    expect(container.querySelector('.current-engine-plan > .explanation')).toBeNull()
+    rerender(
+      <AgentDevelopmentGolden
+        initialView="workbench"
+        workbench={createLegacyEngineDirectionWorkbench('agent-unreviewed-fixture')}
+      />,
+    )
+    expect(screen.queryByRole('button', { name: '选择说明' })).not.toBeInTheDocument()
+  })
+  it('uses one P6 target set without an extra source row and highlights paid investment', () => {
+    const acceptedSkills = [
+      ['普攻', '12'],
+      ['闪避', '9'],
+      ['支援', '9'],
+      ['特殊', '11'],
+      ['连携', '10'],
+      ['核心技', '7'],
+    ].map(([label, recommended], index) => ({
+      label,
+      recommended,
+      priority: index === 0 || index === 5,
+    }))
     const { container } = render(
       <AgentDevelopmentGolden
         initialView="workbench"
         workbench={{
           ...workbench,
+          supportsPotential: true,
+          potential: 6,
+          mindscape: 5,
           graduation: {
             ...workbench.graduation,
-            panel: [],
-            panelDirection: '暴击率 / 防御力百分比',
-            engineConditions: ['按队伍需求选择'],
-          },
-        }}
-      />,
-    )
-    expect(screen.getByRole('region', { name: '副词条方向' })).toHaveTextContent(
-      '暴击率 / 防御力百分比',
-    )
-    expect(screen.queryByText('资料待补齐')).not.toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: '毕业推荐' })).not.toBeInTheDocument()
-    expect(container.querySelector('.current-state-actions')).toContainElement(
-      screen.getByRole('button', { name: '音擎说明' }),
-    )
-    expect(container.querySelector('.current-engine-plan > .explanation')).toBeNull()
-  })
-  it('renders an optional potential-only skill reference without replacing regular targets', () => {
-    render(
-      <AgentDevelopmentGolden
-        initialView="workbench"
-        workbench={{
-          ...workbench,
-          graduation: {
-            ...workbench.graduation,
+            skills: acceptedSkills,
             potentialSkillReference: {
               conditionLabel: '潜能6/6参考（未用于当前方案）',
               skills: [
-                ['普攻', '16级'],
-                ['闪避', '16级'],
-                ['支援', '16级'],
-                ['特殊', '16级'],
-                ['连携', '16级'],
-                ['核心', '7级'],
+                ['普攻', '16+'],
+                ['闪避', '12'],
+                ['支援', '≥12'],
+                ['特殊', '16+'],
+                ['连携', '12+'],
+                ['核心', '待确认'],
               ].map(([label, recommended]) => ({ label, recommended })),
             },
           },
@@ -258,22 +357,54 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
       />,
     )
 
-    expect(screen.getByRole('region', { name: '技能推荐等级' })).toHaveTextContent('普攻12')
-    const potentialReference = screen.getByRole('region', {
-      name: '潜能6/6参考（未用于当前方案）',
-    })
-    expect(potentialReference).toHaveTextContent('普攻16')
-    expect(potentialReference).toHaveTextContent('核心7')
+    expect(screen.getAllByRole('region', { name: '技能推荐等级' })).toHaveLength(1)
+    expect(screen.getByText(/潜能 6/)).toBeInTheDocument()
+    expect(screen.queryByText('潜能6/6参考（未用于当前方案）')).not.toBeInTheDocument()
+    expect(container.querySelector('.skill-comparison__target-source')).toBeNull()
+    const targets = screen.getByRole('region', { name: '技能推荐等级' })
+    expect(targets).toHaveTextContent('普攻16')
+    expect(targets).toHaveTextContent('闪避12')
+    expect(targets).toHaveTextContent('支援12')
+    expect(targets).toHaveTextContent('特殊16')
+    expect(targets).toHaveTextContent('连携12')
+    expect([...targets.querySelectorAll(':scope > div > span')].at(-1)).toHaveTextContent(
+      '核心技待确认',
+    )
+    expect(targets).not.toHaveTextContent('普攻12')
+    expect(targets).not.toHaveTextContent('16+')
+    expect(targets).not.toHaveTextContent('≥12')
+    expect(targets).not.toHaveTextContent('12+')
+    expect(container.querySelectorAll('.skill-comparison__target span.priority')).toHaveLength(2)
   })
 
-  it('omits the potential-only skill reference when no historical candidate exists', () => {
-    render(<AgentDevelopmentGolden initialView="workbench" workbench={workbench} />)
+  it.each([0, 3, 5, null, undefined])(
+    'keeps trusted ordinary targets when observed potential is %s',
+    (potential) => {
+      render(
+        <AgentDevelopmentGolden
+          initialView="workbench"
+          workbench={{
+            ...workbench,
+            supportsPotential: true,
+            potential: potential ?? undefined,
+            graduation: {
+              ...workbench.graduation,
+              potentialSkillReference: {
+                conditionLabel: '潜能6/6参考（未用于当前方案）',
+                skills: [{ label: '普攻', recommended: '16+' }],
+              },
+            },
+          }}
+        />,
+      )
 
-    expect(
-      screen.queryByRole('region', { name: '潜能6/6参考（未用于当前方案）' }),
-    ).not.toBeInTheDocument()
-    expect(screen.getByRole('region', { name: '技能推荐等级' })).toHaveTextContent('普攻12')
-  })
+      expect(
+        screen.getByText(potential == null ? /潜能未记录/ : new RegExp(`潜能 ${potential}`)),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('region', { name: '技能推荐等级' })).toHaveTextContent('普攻12')
+      expect(screen.getByRole('region', { name: '技能推荐等级' })).not.toHaveTextContent('普攻16+')
+    },
+  )
   it('shows selected candidate main-stat differences directly above its discs', () => {
     render(
       <AgentDevelopmentGolden
@@ -290,7 +421,7 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
       agentName: '比利',
       baseline: {
         rank: 0,
-        label: '当前实装',
+        label: '当前装备',
         fit: '比较基准',
         panel: '当前方案',
         sets: '啄木鸟电音 4件 + 河豚电音 2件',
@@ -313,7 +444,7 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
 
     render(<AgentDevelopmentGolden initialView="top10" top10={top10} onSavePlan={vi.fn()} />)
 
-    expect(screen.getByRole('heading', { name: '当前实装' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '当前装备' })).toBeInTheDocument()
     expect(
       screen.getByText('这份方案已配齐 6 张驱动盘，暂时没有其他匹配方案。'),
     ).toBeInTheDocument()
@@ -365,8 +496,8 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
     expect(screen.getByRole('heading', { name: '比利' })).toBeInTheDocument()
   })
 
-  it('keeps a stable panel heading across preview and saved states', () => {
-    render(
+  it('identifies the source of the visible panel across preview, saved and current states', () => {
+    const { rerender } = render(
       <AgentDevelopmentGolden
         workbench={{
           ...workbench,
@@ -374,8 +505,12 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
         }}
       />,
     )
-    expect(screen.getByRole('heading', { name: '当前面板' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '配装预览面板' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: '方案预览面板' })).not.toBeInTheDocument()
+    rerender(<AgentDevelopmentGolden workbench={{ ...workbench, mode: 'saved' }} />)
+    expect(screen.getByRole('heading', { name: '方案面板' })).toBeInTheDocument()
+    rerender(<AgentDevelopmentGolden workbench={{ ...workbench, discSource: '当前已装备' }} />)
+    expect(screen.getByRole('heading', { name: '当前面板' })).toBeInTheDocument()
   })
 
   it('saves the candidate already selected by the solve context', async () => {
@@ -396,7 +531,7 @@ describe('retaining equipped six-disc reference', () => {
     const select = vi.fn()
     const row: GoldenTop10Data['baseline'] = {
       rank: 0,
-      label: '保留当前实装',
+      label: '保留当前装备',
       fit: '—',
       panel: '',
       sets: '当前六盘',
@@ -429,10 +564,10 @@ describe('retaining equipped six-disc reference', () => {
         onSelectCandidatePlan={select}
       />,
     )
-    await user.click(screen.getByRole('button', { name: /比较基准.*当前实装.*当前六盘/ }))
+    await user.click(screen.getByRole('button', { name: /比较基准.*当前装备.*当前六盘/ }))
     expect(select).toHaveBeenLastCalledWith(0)
-    expect(screen.getByRole('heading', { name: '保留当前实装 · 六盘明细' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '保留当前实装' })).toBeDisabled()
+    expect(screen.getByRole('heading', { name: '保留当前装备 · 六盘明细' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '保留当前装备' })).toBeDisabled()
     expect(save).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: /已保存方案.*保存六盘/ }))
     expect(select).toHaveBeenLastCalledWith(-1)
@@ -445,7 +580,7 @@ describe('comparison set summary wrapping', () => {
     const sets = '啄啄沙龙 4件 + 月光骑士颂 2件'
     const row: GoldenTop10Data['baseline'] = {
       rank: 0,
-      label: '当前实装',
+      label: '当前装备',
       fit: '—',
       panel: '',
       sets,

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { AlertTriangle, CheckCircle2, Folder, Plug, ShieldCheck } from 'lucide-react'
 import './AssetQuickReadEntry.css'
 import { focusScannerWorkspaceTarget } from './scannerWorkbenchNavigation'
@@ -10,87 +10,14 @@ import {
 } from './AssetQuickReadIntroduction'
 import { AssetCaptureRiskDetails } from './AssetCaptureMethodsNotice'
 import { ScannerMethodSteps } from './ScannerMethodSteps'
-import { AssetQuickReadConsentStage } from './AssetQuickReadConsentDialog'
 import { ScannerPreparationStatus, type PreparationStatus } from './ScannerPreparationStatus'
 
-export type AssetQuickReadState =
-  | 'idle'
-  | 'starting'
-  | 'capturing'
-  | 'received'
-  | 'timed_out'
-  | 'stopped'
-  | 'error'
-  | 'completed'
-
-export interface AssetQuickReadPreview {
-  /** Identifies this exact candidate (the adapter may use the snapshot SHA-256). */
-  snapshotId: string
-  counts: { agents: number; discs: number }
-  validSummary: string[]
-  compactSummary?: string[]
-  issues: string[]
-  issueSummary?: string[]
-  agents: Array<{
-    agentId: string
-    name: string
-    level?: number
-    mindscape?: number
-    skills?: string
-    wEngine?: string
-  }>
-}
-
-export interface AssetQuickReadEntryProps {
-  /** Only the real independent tool adapter may report ready. */
-  capability?: 'unavailable' | 'ready'
-  /** Controlled by the adapter; this component never simulates capture or a deadline. */
-  state?: AssetQuickReadState
-  onConnect?: () => void | Promise<void>
-  installationDirectory?: string
-  onDirectoryChange?: (value: string) => void
-  targetAccountId?: string
-  targetAccountName?: string
-  targetRequired?: boolean
-  onStart?: () => void | Promise<void>
-  onStop?: () => void | Promise<void>
-  onImport?: () => void | Promise<void>
-  onDiscard?: () => void | Promise<void>
-  onPrepareAgain?: () => void | Promise<void>
-  onExport?: () => void | Promise<void>
-  onInspectFile?: () => void | Promise<void>
-  canImport?: boolean
-  preview?: AssetQuickReadPreview
-  elapsedSeconds?: number
-  remainingSeconds?: number
-  /** Describes the adapter's actual transaction scope and recovery behavior. */
-  transactionNotice?: string
-  errorMessage?: string
-  completionMessage?: string
-  onClose?: () => void
-  onContinueScanning?: () => void
-  blocked?: boolean
-  preparationCondensed?: boolean
-  onViewAssets?: () => void
-  completionActions?: ReactNode
-  preparationRecovery?: ReactNode
-  resumeAvailable?: boolean
-  riskNoticeHref?: string
-  installer?: ReactNode
-  downloadAvailable?: boolean
-  diagnosticAction?:
-    | ReactNode
-    | ((status: { message: string; role: 'alert' | 'status' }) => ReactNode)
-  workbenchExtras?:
-    | ReactNode
-    | ((status: { message: string; role: 'alert' | 'status' }) => ReactNode)
-  pendingInspection?: boolean
-  renderParts?: (parts: {
-    preparation: ReactNode
-    task: ReactNode | null
-    stageActive: boolean
-  }) => ReactNode
-}
+import type { AssetQuickReadEntryProps, AssetQuickReadState } from './assetQuickReadEntryContract'
+export type {
+  AssetQuickReadEntryProps,
+  AssetQuickReadPreview,
+  AssetQuickReadState,
+} from './assetQuickReadEntryContract'
 
 const stateCopy: Record<AssetQuickReadState, string> = {
   idle: '本次资产快读尚未启动。',
@@ -166,6 +93,7 @@ export function AssetQuickReadEntry({
   elapsedSeconds,
   remainingSeconds,
   transactionNotice,
+  resultSaveNotice,
   errorMessage,
   completionMessage,
   onClose,
@@ -175,6 +103,7 @@ export function AssetQuickReadEntry({
   completionActions,
   preparationRecovery,
   resumeAvailable = false,
+  pendingResultStatus = resumeAvailable ? 'available' : 'none',
   riskNoticeHref,
   installer,
   downloadAvailable = false,
@@ -191,8 +120,8 @@ export function AssetQuickReadEntry({
   const [disclosureOpen, setDisclosureOpen] = useState(false)
   const [acknowledgedAccount, setAcknowledgedAccount] = useState<string | null>(null)
   const riskAccountKey = JSON.stringify([targetAccountId, targetAccountName])
-  const [freshRequestedFor, setFreshRequestedFor] = useState<string | null>(null)
-  const showSavedResult = resumeAvailable && freshRequestedFor !== riskAccountKey
+  const showSavedResult = pendingResultStatus === 'available'
+  const pendingBlocksReplacement = pendingResultStatus !== 'none'
   const acknowledged = acknowledgedAccount === riskAccountKey
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [stopPending, setStopPending] = useState(false)
@@ -209,6 +138,19 @@ export function AssetQuickReadEntry({
   }
   const pendingActionRef = useRef(false)
   const stopPendingRef = useRef(false)
+  const actionGeneration = useRef(0)
+  useLayoutEffect(() => {
+    actionGeneration.current++
+    pendingActionRef.current = false
+    stopPendingRef.current = false
+    // Account changes retire the old control operation without remounting the card.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPendingAction(null)
+    setStopPending(false)
+    setActionError(null)
+    setDisclosureOpen(false)
+    setAcknowledgedAccount(null)
+  }, [targetAccountId])
   const captureBusy = state === 'starting' || state === 'capturing' || pendingAction === 'start'
   const busy = captureBusy || pendingAction !== null || stopPending
   const actionBlocked = busy || blocked
@@ -219,7 +161,8 @@ export function AssetQuickReadEntry({
   const stageActive = hasTask || consentOpen || pendingInspection
   const preparationBlocked = actionBlocked || state === 'received'
   const targetMissing = targetRequired && !targetAccountId
-  const available = capability === 'ready' && Boolean(onStart) && !targetMissing
+  const available =
+    capability === 'ready' && Boolean(onStart) && !targetMissing && !pendingBlocksReplacement
   const currentStep =
     state === 'completed'
       ? 3
@@ -241,7 +184,7 @@ export function AssetQuickReadEntry({
     (renderParts ? preview?.compactSummary : undefined) ??
     preview?.validSummary ??
     []
-  ).filter((summary) => !renderParts || !summary.startsWith('本次仅检查已出现的代理人和S级盘'))
+  ).filter((summary) => !renderParts || !summary.startsWith('本次仅检查已出现的代理人和'))
 
   useEffect(() => {
     if (state === 'received' && preview?.snapshotId && !pendingInspection)
@@ -255,8 +198,14 @@ export function AssetQuickReadEntry({
   }
 
   async function runAction(action: PendingAction, callback: () => void | Promise<void>) {
-    if ((blocked && action !== 'export') || pendingActionRef.current || stopPendingRef.current)
+    if (
+      (blocked && action !== 'export') ||
+      pendingActionRef.current ||
+      stopPendingRef.current ||
+      (pendingBlocksReplacement && (action === 'start' || action === 'inspect'))
+    )
       return
+    const generation = actionGeneration.current
     pendingActionRef.current = true
     setPendingAction(action)
     setActionError(null)
@@ -264,11 +213,15 @@ export function AssetQuickReadEntry({
     try {
       await callback()
     } catch {
-      setInstallerStatus({ text: '', pending: false })
-      setActionError(action)
+      if (generation === actionGeneration.current) {
+        setInstallerStatus({ text: '', pending: false })
+        setActionError(action)
+      }
     } finally {
-      pendingActionRef.current = false
-      setPendingAction(null)
+      if (generation === actionGeneration.current) {
+        pendingActionRef.current = false
+        setPendingAction(null)
+      }
     }
   }
 
@@ -295,16 +248,19 @@ export function AssetQuickReadEntry({
 
   async function stop() {
     if (!onStop || !captureBusy || stopPendingRef.current) return
+    const generation = actionGeneration.current
     stopPendingRef.current = true
     setStopPending(true)
     setActionError(null)
     try {
       await onStop()
     } catch {
-      setActionError('stop')
+      if (generation === actionGeneration.current) setActionError('stop')
     } finally {
-      stopPendingRef.current = false
-      setStopPending(false)
+      if (generation === actionGeneration.current) {
+        stopPendingRef.current = false
+        setStopPending(false)
+      }
     }
   }
 
@@ -455,9 +411,10 @@ export function AssetQuickReadEntry({
                 <button
                   className="button button--quiet"
                   type="button"
-                  disabled={preparationBlocked}
+                  disabled={preparationBlocked || pendingBlocksReplacement}
                   onClick={() => {
-                    if (!preparationBlocked) void runAction('inspect', onInspectFile)
+                    if (!preparationBlocked && !pendingBlocksReplacement)
+                      void runAction('inspect', onInspectFile)
                   }}
                 >
                   检查资产快读 JSON 候选
@@ -549,6 +506,7 @@ export function AssetQuickReadEntry({
           <h3 ref={resultHeading} tabIndex={-1}>
             本次读取结果
           </h3>
+          {resultSaveNotice && <p role="alert">{resultSaveNotice}</p>}
           {preview ? (
             <>
               <p className="asset-quick-read__target">
@@ -560,7 +518,7 @@ export function AssetQuickReadEntry({
                   <dd>{preview.counts.agents} 位</dd>
                 </div>
                 <div>
-                  <dt>S 级驱动盘</dt>
+                  <dt>驱动盘总数</dt>
                   <dd>{preview.counts.discs} 张</dd>
                 </div>
               </dl>
@@ -680,9 +638,10 @@ export function AssetQuickReadEntry({
         type="button"
         aria-expanded={false}
         aria-controls={disclosureId}
-        disabled={preparationBlocked || targetMissing}
+        disabled={preparationBlocked || targetMissing || pendingBlocksReplacement}
         onClick={() => {
-          if (!preparationBlocked && !targetMissing) setDisclosureOpen(true)
+          if (!preparationBlocked && !targetMissing && !pendingBlocksReplacement)
+            setDisclosureOpen(true)
         }}
       >
         {renderParts && capability === 'ready' ? '开始读取' : '准备资产快读'}
@@ -711,7 +670,7 @@ export function AssetQuickReadEntry({
             <AlertTriangle aria-hidden="true" size={20} />
             读取前确认
           </h3>
-          {renderParts && riskNoticeHref ? (
+          {riskNoticeHref ? (
             <>
               <p>读取需管理员权限和网络驱动；数据先供检查，确认导入后才更新账户。</p>
               <AssetCaptureRiskDetails label="完整风险说明" />
@@ -906,14 +865,7 @@ export function AssetQuickReadEntry({
                       </div>
                       <div className="asset-quick-read__actions asset-quick-read__resume-actions">
                         {preparationRecovery}
-                        <button
-                          className="button button--quiet"
-                          type="button"
-                          disabled={preparationBlocked}
-                          onClick={() => setFreshRequestedFor(riskAccountKey)}
-                        >
-                          重新读取
-                        </button>
+                        <span>继续检查后可导入、导出或放弃；放弃前不会替换这份结果。</span>
                         {diagnostic}
                       </div>
                     </>
@@ -940,23 +892,6 @@ export function AssetQuickReadEntry({
             <div className="asset-quick-read__task">
               {pendingInspection ? (
                 <p role="status">正在检查本机资产快读文件，账户尚未修改。</p>
-              ) : consentOpen ? (
-                <AssetQuickReadConsentStage
-                  acknowledged={acknowledged}
-                  disabled={preparationBlocked || !available}
-                  targetAccountName={targetAccountName}
-                  onAcknowledge={(checked) =>
-                    setAcknowledgedAccount(checked ? riskAccountKey : null)
-                  }
-                  onCancel={() => {
-                    setDisclosureOpen(false)
-                    setAcknowledgedAccount(null)
-                    requestAnimationFrame(() =>
-                      startTriggerRef.current?.focus({ preventScroll: true }),
-                    )
-                  }}
-                  onStart={start}
-                />
               ) : (
                 <>
                   {state !== 'completed' &&
@@ -1002,6 +937,7 @@ export function AssetQuickReadEntry({
       {scope}
       {state !== 'completed' && status}
       {preparation}
+      {state === 'idle' && preparationRecovery}
       {taskContent}
       {disclosure}
       {stopButton}

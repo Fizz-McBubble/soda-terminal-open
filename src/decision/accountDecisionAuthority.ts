@@ -1,4 +1,7 @@
 import { resolveReviewedPhoenixTeam33 } from './reviewedPhoenixTeams33'
+import { currentBoxAdmissionByTeam, currentBoxAdmissionReady } from './currentBoxTeamAdmission'
+import { selectDefaultTeamAdmissionPlay } from './defaultTeamAdmissionPlay'
+import { canonicalTeamPlayIdentity } from '../domain/teamPlayMechanismContract'
 import {
   lookupCurrent31TeamIntrinsicDetails,
   current31TeamIntrinsicIndexStatus,
@@ -6,8 +9,6 @@ import {
 import type { AccountDecisionAuthorityInput } from './accountDecisionAuthorityInput'
 import { projectAccountDecisionRecommendation } from './accountDecisionRecommendationProjection'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
-import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
-import type { TeamPortfolioPreference } from '../accounts/teamPortfolioPreference'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
 import { type CultivationPriorityInput } from './teamDecisionAuthority'
@@ -21,20 +22,23 @@ import {
   hasDefaultTeamRecommendationEvidence,
   selectDefaultTeamRecommendationPool,
 } from './defaultTeamRecommendationPolicy'
+import {
+  compareTeamSystemRankingAuthority,
+  hasTeamSystemRankingAuthority,
+} from './defaultTeamRecommendationSelection'
 import { reviewedPreparedTeamCapabilities32 } from '../calculation/reviewedPreparedTeamBenchmark32'
 import {
   authorComparisonMembership32Identity,
   reviewedAuthorComparisonMembership32,
 } from './reviewedAuthorComparisonMembership32'
-import { projectOutputPotentialBands } from './outputPotentialBand'
-import type { AgentRealInvestmentDetail } from './accountCultivationRealInvestment'
+import { projectAccountCultivationCandidates } from './accountDecisionCultivationProjection'
 import {
   Current31TeamIntrinsicIndexMismatchError,
   projectAccountIntrinsicCandidates,
 } from './accountDecisionIntrinsicProjection'
 import {
-  baseComparator,
   confidenceOrder,
+  compareAccountCandidateIdentity,
   ratingOrder,
   compareAccountCultivationState,
   projectCurrent31TeamStrengthOrder,
@@ -43,81 +47,33 @@ import {
   resolveMemberDisjointPortfolio,
 } from './accountDecisionOrdering'
 import {
-  lightweightPriorityTier,
-  evaluateAccountCultivationRealInvestment,
   evaluateAccountCultivationMarginalYield,
-  compareCultivationPriorityPartialOrder,
-  type AccountCultivationRealInvestment,
+  compareAccountCultivationYield,
   type AccountCultivationMarginalYield,
 } from './accountCultivationPriority'
+import {
+  prepareAccountDecisionAuthority,
+  accountDecisionAuthorityContractId,
+} from './accountDecisionAuthorityPreparation'
+export { accountDecisionAuthorityContractId } from './accountDecisionAuthorityPreparation'
+
 export { refineCultivationPriorityWithTargetFit } from './accountCultivationPriority'
 export { projectCurrent31TeamStrengthOrder } from './accountDecisionOrdering'
 
-export const accountDecisionAuthorityContractId = 'soda-account-decision-authority/v1' as const
-
-function hardConstraintBlockers(preference: TeamPortfolioPreference) {
-  return preference.templateIds.length
-    ? ['当前 exhaustive formation 尚无 templateId crosswalk；具名模板硬约束不能静默忽略。']
-    : []
+export function selectStaleAdmissionDefaults(
+  ordered: readonly { candidateId: string; sourceRated: boolean }[],
+) {
+  const sourced = ordered.filter((candidate) => candidate.sourceRated)
+  return new Set(
+    (sourced.length ? sourced : ordered.slice(0, 1)).map((candidate) => candidate.candidateId),
+  )
 }
 
 function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthorityInput) {
-  const blockers = hardConstraintBlockers(input.preference)
-  if (
-    input.validationIntrinsicProjectionMode !== 'direct' &&
-    current31TeamIntrinsicIndexStatus.status !== 'ready'
-  )
-    blockers.push('通用队伍榜单尚未就绪，请更新资料后重试。')
-  if (input.rankedFormations.length === 0) {
-    const empty = {
-      contract: accountDecisionAuthorityContractId,
-      status: 'empty' as const,
-      blockers: ['当前账户没有可进入 Team Rating 的完整三人 formation。'],
-      outputPotentialCohort: null,
-      recommendations: [],
-      consumerRecommendations: [],
-      agentRecommendations: [],
-      coverage: {
-        inputFormationCount: 0,
-        ratedFormationCount: 0,
-        hardInvalidFormationCount: 0,
-        requiredPortfolioTeamCount: input.preference.teamCount,
-        requiredPortfolioCandidateCount: 0,
-      },
-    }
-    return { ...empty, fingerprint: stableContentHash(empty) }
-  }
-  const benchmarkCandidates = input.rankedFormations.flatMap((candidate) =>
-    candidate.planningDps === null
-      ? []
-      : [{ candidateId: candidate.candidateId, output: candidate.planningDps }],
-  )
-  const cohort = benchmarkCandidates.length
-    ? projectOutputPotentialBands({
-        gameVersion: currentVersionProjection.gameVersion,
-        baselineId: currentNormalizedPlanningBaseline.baselineId,
-        cohortId: `account:${input.allocation.inputHash}:owned-formations`,
-        candidates: benchmarkCandidates,
-      })
-    : null
-  if (blockers.length)
-    return {
-      contract: accountDecisionAuthorityContractId,
-      status: 'blocked' as const,
-      blockers,
-      outputPotentialCohort: cohort,
-      recommendations: [],
-      consumerRecommendations: [],
-      agentRecommendations: [],
-      coverage: {
-        inputFormationCount: input.rankedFormations.length,
-        ratedFormationCount: 0,
-        hardInvalidFormationCount: 0,
-        requiredPortfolioTeamCount: input.preference.teamCount,
-        requiredPortfolioCandidateCount: 0,
-      },
-      fingerprint: stableContentHash({ blockers, cohort: cohort?.fingerprint ?? null }),
-    }
+  const preparation = prepareAccountDecisionAuthority(input)
+  if (preparation.earlyResult) return preparation.earlyResult
+  const { cohort } = preparation
+
   const projected = projectAccountIntrinsicCandidates({
     rankedFormations: input.rankedFormations,
     roster: input.roster,
@@ -132,6 +88,18 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   const ownedAgentIds = input.roster.agents
     .filter((agent) => agent.owned)
     .map((agent) => agent.agentId)
+  const offlineCache = new Map<string, ReturnType<typeof lookupCurrent31TeamIntrinsicDetails>>()
+  const offlineDetails = (ids: readonly string[]) => {
+    const key = [...ids].sort().join('|')
+    if (!offlineCache.has(key))
+      offlineCache.set(key, lookupCurrent31TeamIntrinsicDetails(ids, 'offline-match'))
+    return offlineCache.get(key)
+  }
+  const admissionReady = currentBoxAdmissionReady
+  const admissionByTeam = currentBoxAdmissionByTeam
+  const defaultAdmissionPlays = admissionReady
+    ? new Map([...admissionByTeam].map(([key, value]) => [key, value.plays]))
+    : undefined
   const explicitMembershipById = new Map(
     projected.flatMap((item) => {
       // Membership evidence cannot override invalid mechanics, hard player constraints,
@@ -144,8 +112,8 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         return []
       const membership = reviewedAuthorComparisonMembership32(item.memberIds, ownedAgentIds)
       if (!membership) return []
-      // Indexed summaries omit source scope. Resolve the live source only for
-      // experiment matches, so a separate current recommendation is preserved.
+      // A separately confirmed current recommendation already supersedes the
+      // historical comparison-only membership.
       const recognition = resolveCurrent31MainstreamRecognition(item.memberIds)
       if (
         recognition.status === 'confirmed' &&
@@ -153,6 +121,27 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         !isReviewedFallbackTeam(item.memberIds)
       )
         return []
+      const admitted = admissionReady
+        ? admissionByTeam.get([...item.memberIds].sort().join('|'))
+        : undefined
+      const play =
+        admitted?.route === 'exact_two_period_candidate'
+          ? offlineDetails(item.memberIds)?.mechanismDirection.playability
+          : null
+      if (
+        play &&
+        admitted &&
+        admitted.plays.has(canonicalTeamPlayIdentity(play)) &&
+        item.mechanicallyClosed &&
+        item.systemRanking?.status === 'ranked' &&
+        item.systemRanking.genericOrder?.status === 'recommended'
+      )
+        return [
+          [
+            item.candidate.candidateId,
+            { ...membership, independentDefaultAdmission: true as const },
+          ] as const,
+        ]
       return [[item.candidate.candidateId, membership] as const]
     }),
   )
@@ -186,6 +175,10 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         : [],
     ),
   )
+  const hasSystemRankingAuthority = projected.some(
+    (item) => item.rating.status === 'rated' && hasTeamSystemRankingAuthority(item.systemRanking),
+  )
+  const systemRankingDisplayTie = compareAccountCandidateIdentity
   const baseIntrinsicDisplayComparator = (
     left: (typeof projected)[number],
     right: (typeof projected)[number],
@@ -200,27 +193,16 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       left.candidate.candidateId.localeCompare(right.candidate.candidateId)
     )
   }
-  const offlineCache = new Map<string, ReturnType<typeof lookupCurrent31TeamIntrinsicDetails>>()
-  const offlineDetails = (ids: readonly string[]) => {
-    const key = [...ids].sort().join('|')
-    if (!offlineCache.has(key))
-      offlineCache.set(key, lookupCurrent31TeamIntrinsicDetails(ids, 'offline-match'))
-    return offlineCache.get(key)
-  }
-  const recommendationPrerequisites =
-    input.validationIntrinsicProjectionMode === 'direct'
-      ? createTeamRecommendationPrerequisiteResolver({
-          basis: 'formed_reference',
-          directions: currentReviewedTeamSourceDirections(),
-          roster: input.roster,
-          reviewVersion: currentVersionProjection.gameVersion,
-        })
-      : (ids: readonly string[]) => ({
-          status: offlineDetails(ids)?.prerequisiteStatus ?? 'condition-unknown',
-        })
+  const recommendationPrerequisites = createTeamRecommendationPrerequisiteResolver({
+    basis: 'account',
+    directions: currentReviewedTeamSourceDirections(),
+    roster: input.roster,
+    reviewVersion: currentVersionProjection.gameVersion,
+  })
   const sourceRecommendation = (item: (typeof projected)[number]) => {
     if (
-      explicitMembershipById.has(item.candidate.candidateId) ||
+      (explicitMembershipById.has(item.candidate.candidateId) &&
+        !explicitMembershipById.get(item.candidate.candidateId)?.independentDefaultAdmission) ||
       preparedBenchmarkIds.has(item.candidate.candidateId)
     )
       return false
@@ -236,14 +218,19 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       recommendationPrerequisites(item.memberIds).status === 'eligible'
     )
   }
-  // Players choose an intrinsically strong team before requesting its gear fit.
-  // Source preference refines a band; it cannot move a weaker band above it.
+  // Production system ranking owns the intrinsic order. Until it is available,
+  // source preference refines a legacy band without moving a weaker band above it.
   const baseDefaultStrengthComparator = (
     left: (typeof projected)[number],
     right: (typeof projected)[number],
   ) => {
     if (left.rating.status !== 'rated' || right.rating.status !== 'rated')
       return baseIntrinsicDisplayComparator(left, right)
+    if (hasSystemRankingAuthority)
+      return (
+        compareTeamSystemRankingAuthority(left.systemRanking, right.systemRanking) ||
+        systemRankingDisplayTie(left, right)
+      )
     return (
       ratingOrder(left.rating.ratingBand) - ratingOrder(right.rating.ratingBand) ||
       Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)) ||
@@ -255,10 +242,12 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       .filter((item) => item.rating.status === 'rated')
       .sort(baseDefaultStrengthComparator),
     (item) =>
-      JSON.stringify([
-        item.rating.status === 'rated' ? item.rating.ratingBand : null,
-        sourceRecommendation(item),
-      ]),
+      hasSystemRankingAuthority
+        ? `system-authority:${item.candidate.candidateId}`
+        : JSON.stringify([
+            item.rating.status === 'rated' ? item.rating.ratingBand : null,
+            sourceRecommendation(item),
+          ]),
     (item) => item.memberIds,
   )
   const allIntrinsicOrdered = intrinsicOrdering.ordered
@@ -286,8 +275,10 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       candidateId: item.candidate.candidateId,
       memberIds: item.memberIds,
       sourceRecommended: sourceRecommendation(item),
+      accountPrerequisiteStatus: recommendationPrerequisites(item.memberIds).status,
       explicitSelectionOnly:
-        explicitMembershipById.has(item.candidate.candidateId) ||
+        (explicitMembershipById.has(item.candidate.candidateId) &&
+          !explicitMembershipById.get(item.candidate.candidateId)?.independentDefaultAdmission) ||
         preparedBenchmarkIds.has(item.candidate.candidateId),
       inferredStrength: item.inferredStrength,
       ratingStatus: item.rating.status,
@@ -297,8 +288,12 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       recommendationScore: item.recommendationScore,
       withdrawn: withdrawnKeys.has([...item.memberIds].sort().join('|')),
       sourceExcluded: isReviewedFallbackTeam(item.memberIds),
+      teamSystemRanking: item.systemRanking,
     })),
     (candidate) => {
+      // Frozen generic authority already admits this trio independently of legacy
+      // primary-output evidence. The pool does not consume that identity here.
+      if (candidate.teamSystemRanking?.genericOrder?.status === 'recommended') return null
       if (input.validationIntrinsicProjectionMode !== 'direct')
         return offlineDetails(candidate.memberIds)?.primaryOutputAgentId ?? null
       const phoenixReference = resolveReviewedPhoenixTeam33(candidate.memberIds)
@@ -311,10 +306,53 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         ? features.primaryOutputAgentId
         : null
     },
-    { includePortfolioFallback: input.preference.teamCount > 1 },
+    {
+      includePortfolioFallback: input.preference.teamCount > 1,
+      ...(admissionReady
+        ? {
+            admission: (candidate) => {
+              const allowed = admissionByTeam.get([...candidate.memberIds].sort().join('|'))
+              if (!allowed) return null
+              const play = selectDefaultTeamAdmissionPlay(
+                candidate.memberIds,
+                offlineDetails(candidate.memberIds)?.mechanismDirection,
+                allowed.plays,
+              )
+              if (!play || !allowed.plays.has(canonicalTeamPlayIdentity(play))) return null
+              return {
+                tier:
+                  allowed.route === 'exact_guide_or_observation_candidate' ||
+                  allowed.route === 'exact_two_period_candidate' ||
+                  allowed.route === 'two_period_source_backed_candidate'
+                    ? ('exact' as const)
+                    : ('alternative' as const),
+                primary: play.primaryOutputAgentId,
+              }
+            },
+          }
+        : {}),
+    },
   )
+  // A stale admission must not reopen the ranked universe. Keep sourced rated
+  // directions, or one actionable fallback if the account has none. Selection
+  // and portfolio eligibility remain available independently.
+  const staleDefaults = admissionReady
+    ? new Set<string>()
+    : selectStaleAdmissionDefaults(
+        allIntrinsicOrdered
+          .filter((item) => recommendationPool.defaultIds.has(item.candidate.candidateId))
+          .map((item) => ({
+            candidateId: item.candidate.candidateId,
+            sourceRated:
+              sourceRecommendation(item) &&
+              !isReviewedFallbackTeam(item.memberIds) &&
+              item.rating.status === 'rated' &&
+              item.rating.ratingBand !== 'Experimental' &&
+              item.rating.confidence !== 'experimental',
+          })),
+      )
   const defaultRecommendation = (item: (typeof projected)[number]) =>
-    recommendationPool.defaultIds.has(item.candidate.candidateId)
+    (admissionReady ? recommendationPool.defaultIds : staleDefaults).has(item.candidate.candidateId)
   const portfolioEligible = (item: (typeof projected)[number]) =>
     recommendationPool.eligibleIds.has(item.candidate.candidateId)
   const intrinsicOrdered = allIntrinsicOrdered.filter(defaultRecommendation)
@@ -334,54 +372,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   const intrinsicShortlistIds = new Set(
     intrinsicShortlist.map((item) => item.candidate.candidateId),
   )
-  const ordered = [...projected].sort(baseComparator)
-  const realInvestmentCache = new Map<string, AccountCultivationRealInvestment>()
-  const realInvestmentAgentCache = new Map<string, AgentRealInvestmentDetail>()
-  const realInvestmentFor = (item: (typeof ordered)[number]) => {
-    const missingDiscSlots = item.account.buildCompletionDistance.missingDiscSlots
-    const cacheKey = JSON.stringify([
-      item.memberIds.toSorted(),
-      missingDiscSlots,
-      item.account.potentialGaps.map((gap) => [gap.agentId, gap.current, gap.minimum]),
-    ])
-    const cached = realInvestmentCache.get(cacheKey)
-    if (cached) return cached
-    const realInvestment = evaluateAccountCultivationRealInvestment({
-      memberIds: item.memberIds,
-      roster: input.roster,
-      agentInvestmentCache: realInvestmentAgentCache,
-      ...(missingDiscSlots === null
-        ? {}
-        : {
-            targetFit: {
-              status: missingDiscSlots === 0 ? ('ready' as const) : ('partial' as const),
-              uniqueDiscCount: Math.max(0, 18 - missingDiscSlots),
-              gaps: [],
-            },
-          }),
-      potentialGaps: item.account.potentialGaps,
-    })
-    realInvestmentCache.set(cacheKey, realInvestment)
-    return realInvestment
-  }
-  const accountProjected = ordered.flatMap((item) => {
-    if (item.rating.status !== 'rated') return []
-    const missingDiscSlots = item.account.buildCompletionDistance.missingDiscSlots
-    const realInvestment = realInvestmentFor(item)
-    const account = {
-      ...item.account,
-      investmentCost:
-        missingDiscSlots === null ? item.account.investmentCost : realInvestment.investmentCost,
-    }
-    return [
-      {
-        ...item,
-        account,
-        realInvestment,
-        priorityTier: lightweightPriorityTier(item.rating, account),
-      },
-    ]
-  })
+  const accountProjected = projectAccountCultivationCandidates(projected, input.roster)
   const accountPortfolioOrdered = accountProjected
     .filter((item) => portfolioEligible(item))
     .sort(
@@ -402,6 +393,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       longTermSelectedIds.has(item.candidate.candidateId) ||
       currentSelectedIds.has(item.candidate.candidateId) ||
       intrinsicShortlistIds.has(item.candidate.candidateId) ||
+      defaultRecommendation(item) ||
       item.mechanicallyClosed ||
       item.mainstreamRecognition.status === 'confirmed' ||
       item.hasPreliminaryDirection ||
@@ -457,23 +449,10 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     left: (typeof enriched)[number],
     right: (typeof enriched)[number],
   ) => {
-    const categoryOrder: Record<AccountCultivationMarginalYield['yieldCategory'], number> = {
-      immediate_high_impact: 0,
-      high_efficiency_progression: 1,
-      strategic_high_potential: 2,
-      standard_development: 3,
-      redundant_marginal: 4,
-      unrealizable: 5,
-    }
-    const leftYield = marginalYieldByCandidateId.get(left.candidate.candidateId)!
-    const rightYield = marginalYieldByCandidateId.get(right.candidate.candidateId)!
-    const categoryDifference =
-      categoryOrder[leftYield.yieldCategory] - categoryOrder[rightYield.yieldCategory]
-    if (categoryDifference) return categoryDifference
-    const partialOrder = compareCultivationPriorityPartialOrder(leftYield, rightYield)
-    if (partialOrder.relation === 'left_dominates') return -1
-    if (partialOrder.relation === 'right_dominates') return 1
-    return 0
+    return compareAccountCultivationYield(
+      marginalYieldByCandidateId.get(left.candidate.candidateId)!,
+      marginalYieldByCandidateId.get(right.candidate.candidateId)!,
+    )
   }
   enriched.sort(
     (left, right) =>
@@ -503,12 +482,14 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       preparedBenchmarkIds,
       teamStrengthRankById,
       cultivationRankById,
+      defaultAdmissionPlays,
       validationIntrinsicProjectionMode: input.validationIntrinsicProjectionMode,
       deferDiagnosticInference: input.deferDiagnosticInference,
     })
     const marginalYield = marginalYieldByCandidateId.get(item.candidate.candidateId)
     return {
       ...recommendation,
+      defaultEligible: defaultRecommendation(item),
       realInvestment: item.realInvestment,
       marginalYield,
       cultivationPriority: {
@@ -594,7 +575,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       sourceOrdering: intrinsicOrdering.diagnostics,
     },
     boundary:
-      'Production Workset 与长期目标只由 Authority exact 3-agent + Bangboo Variant 的账户无关 Team Strength 定义；Team Engine 只能补充可执行元数据。Team Strength order 仅表示粗档，Cultivation Priority order 独立输出；来源替代偏好只调整同档同来源类别的可比候选，不生成数值强弱，candidateId 不代表更强。固定事件 numeric diagnostic 不进入评级。',
+      'Production system ranking 就绪时，Production Workset 与默认顺序只由 exact 3-agent 的体系内密度序位决定；跨体系采用稳定展示顺序，unsupported 不冒充 ranked。其未就绪时保留既有 Team Strength 粗档恢复路径。账户装备、旧临时分数和来源替代只影响已证条件下的账户培养或 legacy 同级关系，candidateId 不代表更强；固定事件 numeric diagnostic 不进入评级。',
   }
   return { ...result, fingerprint: stableContentHash(result) }
 }

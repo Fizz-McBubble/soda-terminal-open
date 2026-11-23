@@ -203,5 +203,27 @@ describe('source-bound contextual target panel', () => {
     expect(targetPanelLowerBound(target, '防御力')).toBeNull()
     expect(target.conditions.join()).toContain('不作为当前初始暴击目标')
     expect(target.value).not.toHaveProperty('critRate')
+    const signature = getCurrentBuildTargetPanel('agent-claret', {
+      coreLevel: 7, engineId: 'wengine-14161', engineRefinement: 1, agentLevel: 60,
+    })!
+    expect(signature.value).toHaveProperty('critRate.min', 128.9)
+    expect(signature.value).toHaveProperty('cultivationReference.keys', ['def', 'critRate'])
+    const otherRefinement = getCurrentBuildTargetPanel('agent-claret', {
+      coreLevel: 7, engineId: 'wengine-14161', engineRefinement: 2, agentLevel: 60,
+    })!
+    expect(otherRefinement.value).not.toHaveProperty('critRate')
+  })
+
+  it('does not label an unknown Claret engine as a known non-signature engine', () => {
+    for (const engineId of [null, undefined]) {
+      const target = getCurrentBuildTargetPanel('agent-claret', { coreLevel: 7, engineId })!
+      expect(target.conditions.join()).not.toContain('当前不是猩红渴望配置')
+      expect(target.value).toHaveProperty('def.min', 2300)
+    }
+    const known = getCurrentBuildTargetPanel('agent-claret', {
+      coreLevel: 7,
+      engineId: 'wengine-13021',
+    })!
+    expect(known.conditions.join()).toContain('当前不是猩红渴望配置')
   })
 })

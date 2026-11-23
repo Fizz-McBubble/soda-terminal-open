@@ -1,7 +1,9 @@
+import { Link, useInRouterContext } from 'react-router-dom'
 import type { DriveDisc } from '../domain/schemas'
 import { displayDiscMainValue } from './publicDiscFacts'
 import { formatRecordedDiscSubStat } from './discStatPresentation'
 import { readableAgentName, readableSetName, statLabel } from './warehouseFactLabels'
+import { ExplanationPopover } from '../components/ExplanationPopover'
 import type { SavedUsageReference } from './WarehouseActionDrawerDetails.helpers'
 
 export function DiscAttributeComparison({
@@ -22,11 +24,8 @@ export function DiscAttributeComparison({
     return value ? formatRecordedDiscSubStat(value.stat, value.value, value.upgrades) : '—'
   }
   return (
-    <section className="warehouse-disc-comparison" aria-label="原盘与可比较盘属性比较">
-      <div className="warehouse-action-drawer__section-heading">
-        <h3>属性比较</h3>
-        <span className="warehouse-action-drawer__meta">只比较记录属性，不代表伤害差距</span>
-      </div>
+    <div className="warehouse-disc-comparison" role="region" aria-label="原盘与可比较盘属性比较">
+      <h4>属性差异</h4>
       <div className="warehouse-disc-comparison__grid" role="table">
         <div className="warehouse-disc-comparison__row warehouse-disc-comparison__head" role="row">
           <span role="columnheader">属性</span>
@@ -52,7 +51,7 @@ export function DiscAttributeComparison({
           />
         ))}
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -65,33 +64,58 @@ function ComparisonRow({
   original: string
   candidate: string
 }) {
+  const incomplete = original === '—' || candidate === '—'
+  const change =
+    original === '—' && candidate === '—'
+      ? '均未记录'
+      : incomplete
+        ? '单侧未记录'
+        : original !== candidate
+          ? '有差异'
+          : null
   return (
-    <div className="warehouse-disc-comparison__row" role="row">
-      <span role="rowheader">{label}</span>
+    <div
+      className="warehouse-disc-comparison__row"
+      role="row"
+      data-comparison-change={change ? (incomplete ? 'incomplete' : 'changed') : undefined}
+    >
+      <span role="rowheader">
+        {label}
+        {change ? <small>{change}</small> : null}
+      </span>
       <span role="cell">{original}</span>
       <span role="cell">{candidate}</span>
     </div>
   )
 }
 
-export function SavedUsageReferences({ references }: { references: SavedUsageReference[] }) {
+export function WarehouseSavedUsagePopover({ references }: { references: SavedUsageReference[] }) {
+  const routed = useInRouterContext()
+  if (references.length === 0) return null
   return (
-    <ul>
-      {references.map(({ plan, team }) => {
-        const name = displayedSavedLoadoutName(plan.name)
-        const authority = team?.decisionAuthority
-        return (
-          <li key={plan.id}>
-            <strong>{name}</strong>
-            {plan.active ? ' · 当前方案' : !name.includes('已保存配装') ? ' · 已保存配装' : ''}
-            {team ? ` · ${team.memberIds.map(readableAgentName).join('、')}` : ''}
-            {authority
-              ? ` · ${cultivationPriorityLabel(authority.cultivationPriority)} · ${confidenceLabel(authority.confidence)}`
-              : ''}
-          </li>
-        )
-      })}
-    </ul>
+    <ExplanationPopover label={`${references.length} 个关联方案`}>
+      <ul>
+        {references.map(({ plan, team }) => {
+          const name = displayedSavedLoadoutName(plan.name)
+          const members = plan.memberIds ?? team?.memberIds
+          const authority = team?.decisionAuthority
+          return (
+            <li key={plan.id}>
+              <strong>
+                {routed ? (
+                  <Link to={`/loadouts/plans/${encodeURIComponent(plan.id)}`}>{name}</Link>
+                ) : (
+                  name
+                )}
+              </strong>
+              {plan.active ? ' · 当前方案' : !name.includes('已保存配装') ? ' · 已保存配装' : ''}
+              {members?.length ? ` · ${members.map(readableAgentName).join('、')}` : ''}
+              {authority ? ` · ${cultivationPriorityLabel(authority.cultivationPriority)}` : ''}
+            </li>
+          )
+        })}
+      </ul>
+    </ExplanationPopover>
   )
 }
 
@@ -104,11 +128,4 @@ function cultivationPriorityLabel(tier: string) {
   if (tier === 'short_upgrade') return '短期补强'
   if (tier === 'strategic_build') return '需较多培养'
   return '培养建议待确认'
-}
-
-function confidenceLabel(confidence: string) {
-  if (confidence === 'high') return '评级依据充分'
-  if (confidence === 'medium') return '评级仅供参考'
-  if (confidence === 'low') return '评级依据有限'
-  return '评级待验证'
 }

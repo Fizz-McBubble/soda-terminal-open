@@ -1,0 +1,117 @@
+{
+  "schema": "soda-wengine-display/v1",
+  "gameVersion": "3.3",
+  "adoption": "display_only",
+  "numericAuthority": "current-wengine-static-catalog.v1",
+  "distribution": "local_reference_only_pending_redistribution_review",
+  "items": [
+    {
+      "stableId": "wengine-14164",
+      "sourceName": "涅槃初翎",
+      "specialtyRequirement": "装备后可提升[异常]代理人的战斗能力",
+      "refinements": [
+        {
+          "refinement": 1,
+          "name": "破壳日",
+          "description": "装备者的异常精通提升90点；队伍中任意角色对敌人造成的属性异常伤害产生暴击时，装备者造成的火属性伤害提升40%，持续20秒，重复触发刷新持续时间。"
+        },
+        {
+          "refinement": 2,
+          "name": "破壳日",
+          "description": "装备者的异常精通提升99点；队伍中任意角色对敌人造成的属性异常伤害产生暴击时，装备者造成的火属性伤害提升44%，持续20秒，重复触发刷新持续时间。"
+        },
+        {
+          "refinement": 3,
+          "name": "破壳日",
+          "description": "装备者的异常精通提升108点；队伍中任意角色对敌人造成的属性异常伤害产生暴击时，装备者造成的火属性伤害提升48%，持续20秒，重复触发刷新持续时间。"
+        },
+        {
+          "refinement": 4,
+          "name": "破壳日",
+          "description": "装备者的异常精通提升117点；队伍中任意角色对敌人造成的属性异常伤害产生暴击时，装备者造成的火属性伤害提升52%，持续20秒，重复触发刷新持续时间。"
+        },
+        {
+          "refinement": 5,
+          "name": "破壳日",
+          "description": "装备者的异常精通提升126点；队伍中任意角色对敌人造成的属性异常伤害产生暴击时，装备者造成的火属性伤害提升56%，持续20秒，重复触发刷新持续时间。"
+        }
+      ],
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/weapon/14164.json",
+        "sha256": "006b40349cce50cff242630edec086520ff6f3f196da86e92d935c20794c77ff"
+      }
+    },
+    {
+      "stableId": "wengine-13022",
+      "sourceName": "烛光诡计",
+      "specialtyRequirement": "装备后可提升[锋御]代理人的战斗能力",
+      "refinements": [
+        {
+          "refinement": 1,
+          "name": "惊吓时刻",
+          "description": "发动[强化特殊技]时，装备者暴击率提升8%，持续40秒；装备者对当前生命值低于最大值50%的敌人造成的伤害提升15%。"
+        },
+        {
+          "refinement": 2,
+          "name": "惊吓时刻",
+          "description": "发动[强化特殊技]时，装备者暴击率提升9.2%，持续40秒；装备者对当前生命值低于最大值50%的敌人造成的伤害提升17.3%。"
+        },
+        {
+          "refinement": 3,
+          "name": "惊吓时刻",
+          "description": "发动[强化特殊技]时，装备者暴击率提升10.4%，持续40秒；装备者对当前生命值低于最大值50%的敌人造成的伤害提升19.5%。"
+        },
+        {
+          "refinement": 4,
+          "name": "惊吓时刻",
+          "description": "发动[强化特殊技]时，装备者暴击率提升11.6%，持续40秒；装备者对当前生命值低于最大值50%的敌人造成的伤害提升21.8%。"
+        },
+        {
+          "refinement": 5,
+          "name": "惊吓时刻",
+          "description": "发动[强化特殊技]时，装备者暴击率提升12.8%，持续40秒；装备者对当前生命值低于最大值50%的敌人造成的伤害提升24%。"
+        }
+      ],
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/weapon/13022.json",
+        "sha256": "ef41d4335e37e6319cf53f146d1fdc5c11f46e079b93793c964692c303b1ca76"
+      }
+    },
+    {
+      "stableId": "wengine-14163",
+      "sourceName": "禁罪囚笼",
+      "specialtyRequirement": "装备后可提升[强攻]代理人的战斗能力",
+      "refinements": [
+        {
+          "refinement": 1,
+          "name": "掌中狩恶",
+          "description": "装备者暴击率提升20%；装备者的[普通攻击]命中敌人时，使自身攻击力提升10%，造成的伤害无视目标15%风属性伤害抗性，持续16秒。"
+        },
+        {
+          "refinement": 2,
+          "name": "掌中狩恶",
+          "description": "装备者暴击率提升23%；装备者的[普通攻击]命中敌人时，使自身攻击力提升11.5%，造成的伤害无视目标17.3%风属性伤害抗性，持续16秒。"
+        },
+        {
+          "refinement": 3,
+          "name": "掌中狩恶",
+          "description": "装备者暴击率提升26%；装备者的[普通攻击]命中敌人时，使自身攻击力提升13%，造成的伤害无视目标19.5%风属性伤害抗性，持续16秒。"
+        },
+        {
+          "refinement": 4,
+          "name": "掌中狩恶",
+          "description": "装备者暴击率提升29%；装备者的[普通攻击]命中敌人时，使自身攻击力提升14.5%，造成的伤害无视目标21.8%风属性伤害抗性，持续16秒。"
+        },
+        {
+          "refinement": 5,
+          "name": "掌中狩恶",
+          "description": "装备者暴击率提升32%；装备者的[普通攻击]命中敌人时，使自身攻击力提升16%，造成的伤害无视目标24%风属性伤害抗性，持续16秒。"
+        }
+      ],
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/weapon/14163.json",
+        "sha256": "d87697490b2748eca391d718e9937c7b44c8dc41960dff4b03af4e9041daebc4"
+      }
+    }
+  ]
+}

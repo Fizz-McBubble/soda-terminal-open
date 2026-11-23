@@ -164,6 +164,10 @@
   margin-bottom: 10px;
 }
 .r6-golden .asset-tabs button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 36px;
   flex-shrink: 0;
   white-space: nowrap;
@@ -176,13 +180,34 @@
 }
 .r6-golden .asset-tabs button span {
   font-size: var(--soda-font-caption);
-  color: #aaa4b7;
+  color: var(--soda-text-3);
   margin-left: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.r6-golden .asset-tabs button:not(.active):not(:disabled):is(:hover, :focus-visible) {
+  color: var(--soda-accent-ink);
+  background-color: var(--soda-surface-raised);
 }
 .r6-golden .asset-tabs button.active {
-  background: #e9e4f5;
-  color: #392f59;
-  box-shadow: inset 0 -2px #7f6db3;
+  background-image: linear-gradient(116deg, transparent 75%, rgb(255 255 255 / 12%) 75%);
+  background-color: var(--soda-accent-ink);
+  color: var(--soda-surface);
+}
+.r6-golden .asset-tabs button.active span {
+  color: inherit;
+}
+
+.r6-golden .asset-tabs button::after {
+  content: '';
+  position: absolute;
+  inset: auto 20% 0;
+  height: 2px;
+  background: var(--f5-signal, var(--soda-surface));
+  transform: scaleX(0);
+  transition: transform var(--soda-motion-fast) var(--soda-ease-out);
+}
+.r6-golden .asset-tabs button.active::after {
+  transform: scaleX(1);
 }
 .r6-golden .workspace {
   height: 100%;
@@ -191,7 +216,7 @@
 .r6-golden .split {
   height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 72fr) minmax(310px, 28fr);
+  grid-template-columns: var(--soda-layout-catalog-columns);
   gap: 10px;
 }
 .r6-golden .catalog,

@@ -42,6 +42,13 @@ export {
   projectNormalizedAccountFinalStats,
 } from './normalizedAccountFinalStats'
 
+// Bind the current calculation package's runtime applicability. The baseline
+// ID, formula hash and source-pack hash retain their original review identity.
+const normalizedRuntimeBaseline = Object.freeze({
+  ...currentNormalizedPlanningBaseline,
+  gameVersion: candidateCalculationPackage.gameVersion,
+})
+
 function complete(fieldId: string, sourceHash: string) {
   return {
     state: 'complete' as const,
@@ -161,7 +168,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
       evidenceRefs: [
         `account:${input.accountId}:roster`,
         `account:${input.accountId}:warehouse`,
-        currentNormalizedPlanningBaseline.baselineId,
+        normalizedRuntimeBaseline.baselineId,
       ],
     })
     effectRuntimeMembers.push({
@@ -240,17 +247,17 @@ export function evaluateNormalizedPlanningCandidate(input: {
   }
   const context = compilePlanningCalculationContext({
     contextId: `normalized:${candidate.candidateId}:${input.planningHash}`,
-    gameVersion: currentNormalizedPlanningBaseline.gameVersion,
+    gameVersion: normalizedRuntimeBaseline.gameVersion,
     canonical: {
       packageId: candidateCalculationPackage.packageId,
       packageVersion: candidateCalculationPackage.packageVersion,
       gameVersion: candidateCalculationPackage.gameVersion,
-      contentHash: currentNormalizedPlanningBaseline.sourcePackHash,
+      contentHash: candidateCalculationPackage.contentHash,
       status: 'candidate',
       rollbackPackageId: candidateCalculationPackage.rollbackPackageId,
     },
     accountSnapshot,
-    baseline: currentNormalizedPlanningBaseline,
+    baseline: normalizedRuntimeBaseline,
     memberIds: candidate.memberIds,
     bangboo: bangbooParameter
       ? {
@@ -285,7 +292,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
     memberIds: candidate.memberIds,
     members: effectRuntimeMembers,
     eventUsages,
-    baseline: currentNormalizedPlanningBaseline,
+    baseline: normalizedRuntimeBaseline,
     equipmentModifierBuckets: [
       ...discEffects.buckets,
       ...(sourceTeamEquipment?.directRuntime.buckets ??
@@ -309,11 +316,11 @@ export function evaluateNormalizedPlanningCandidate(input: {
     ),
     calculation: complete(`event-schedule:${agentId}`, context.eventScheduleHash),
     coverage: {
-      activeSeconds: currentNormalizedPlanningBaseline.declaredDurationSeconds,
+      activeSeconds: normalizedRuntimeBaseline.declaredDurationSeconds,
       eligibleEventCount: eventCount,
       coveredEventCount: eventUsages.filter((usage) => usage.ownerAgentId === agentId).length,
     },
-    sourceHash: currentNormalizedPlanningBaseline.formulaHash,
+    sourceHash: normalizedRuntimeBaseline.formulaHash,
   }))
   const interactionSupport: CalculationSupport = {
     supportId: `source-backed-interaction:${candidate.candidateId}`,
@@ -325,7 +332,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
     build: complete('effect-owner-target-snapshot', context.effectBlueprintHash),
     calculation: complete('source-backed-effect-buckets', sourceBackedDamage.runtimeHash),
     coverage: {
-      activeSeconds: currentNormalizedPlanningBaseline.declaredDurationSeconds,
+      activeSeconds: normalizedRuntimeBaseline.declaredDurationSeconds,
       eligibleEventCount: effectResult.dispositions.length,
       coveredEventCount: effectResult.dispositions.length,
     },
@@ -343,16 +350,16 @@ export function evaluateNormalizedPlanningCandidate(input: {
       build: complete('bangboo-scheme-binding', bangbooParameter!.fingerprint),
       calculation: complete('bangboo-normalized-event', bangbooParameter!.fingerprint),
       coverage: {
-        activeSeconds: currentNormalizedPlanningBaseline.declaredDurationSeconds,
+        activeSeconds: normalizedRuntimeBaseline.declaredDurationSeconds,
         eligibleEventCount: 1,
         coveredEventCount: 1,
       },
-      sourceHash: currentNormalizedPlanningBaseline.sourcePackHash,
+      sourceHash: normalizedRuntimeBaseline.sourcePackHash,
     })
   const planningInput = {
     schemaVersion: 'planning-dps-input-v1' as const,
     equipmentBindingMode: 'scheme_parameters' as const,
-    baseline: currentNormalizedPlanningBaseline,
+    baseline: normalizedRuntimeBaseline,
     accountSnapshot,
     calculationTarget: {
       targetId: candidate.candidateId,
@@ -363,7 +370,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
     supports,
     supportHash: stableContentHash(supports),
     solverHash: stableContentHash({
-      model: currentNormalizedPlanningBaseline.baselineId,
+      model: normalizedRuntimeBaseline.baselineId,
       strategy: 'source_backed_effect_buckets_recompute_per_event',
     }),
   }
@@ -376,13 +383,13 @@ export function evaluateNormalizedPlanningCandidate(input: {
       kind: 'member_in_team',
       subjectId: agentId,
       baselineFingerprint,
-      declaredDurationSeconds: currentNormalizedPlanningBaseline.declaredDurationSeconds,
+      declaredDurationSeconds: normalizedRuntimeBaseline.declaredDurationSeconds,
       capabilities,
       totalDamage: sourceBackedDamage.memberDamage.find((member) => member.agentId === agentId)!
         .totalDamage,
       planningDps:
         sourceBackedDamage.memberDamage.find((member) => member.agentId === agentId)!.totalDamage /
-        currentNormalizedPlanningBaseline.declaredDurationSeconds,
+        normalizedRuntimeBaseline.declaredDurationSeconds,
     }),
   )
   const bangbooDamage = bangbooParameter?.directDamage ?? 0
@@ -397,7 +404,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
             supportId: `normalized-bangboo:${candidate.bangbooId}`,
             providerId: candidate.bangbooId,
             totalDamage: bangbooDamage,
-            sourceHash: currentNormalizedPlanningBaseline.sourcePackHash,
+            sourceHash: normalizedRuntimeBaseline.sourcePackHash,
           },
         ]
       : [],

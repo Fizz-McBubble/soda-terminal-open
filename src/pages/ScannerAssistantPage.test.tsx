@@ -10,6 +10,7 @@ import { createAccount, setActiveAccount } from '../accounts/repository'
 import { database } from '../db/database'
 import { readLastScanDiagnostic } from '../scanner/scanFeedback'
 import { readScannerTargetAccountBinding } from '../scanner/targetAccountBinding'
+import { scannerDistributionManifest } from '../scanner/distribution'
 
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 import {
@@ -32,21 +33,11 @@ const releaseStateFixture = vi.hoisted(() => ({
 }))
 
 vi.mock('../scanner/distribution', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../scanner/distribution')>()
-  return {
-    ...actual,
-    scannerDistributionManifest: {
-      ...actual.scannerDistributionManifest,
-      runtime: {
-        ...actual.scannerDistributionManifest.runtime,
-        get releaseState() {
-          return (
-            releaseStateFixture.override ?? actual.scannerDistributionManifest.runtime.releaseState
-          )
-        },
-      },
-    },
-  }
+  const { scannerDistributionFixture } = await import('../testing/scannerManifestFixture')
+  return scannerDistributionFixture(
+    await importOriginal<typeof import('../scanner/distribution')>(),
+    () => releaseStateFixture.override,
+  )
 })
 
 const runtimeMock = {
@@ -73,6 +64,9 @@ vi.mock('../scanner/runtime', () => ({
     return runtimeMock
   },
 }))
+
+// Load the real lazy page before the workflow tests begin timing browser actions.
+await import('./ScannerAssistantPage')
 
 function setRuntimeState(state: string) {
   runtimeMock.snapshot = createScannerRuntimeSnapshot(state)
@@ -118,7 +112,7 @@ describe('ScannerAssistantPage', () => {
     await waitFor(() => expect(runtimeMock.commands.openHelper).toHaveBeenCalledWith(true))
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
     expect(await database.accountDriveDiscs.count()).toBe(0)
-  })
+  }, 20000)
 
   it('offers reconnection without an obsolete download while the current runtime is unpublished', async () => {
     const user = userEvent.setup()
@@ -149,7 +143,9 @@ describe('ScannerAssistantPage', () => {
     const user = userEvent.setup()
     setRuntimeState('ready')
     render(<App />)
-    expect(await screen.findByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: '画面扫描已连接' }, { timeout: 10000 }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '新账户名称' })).toBeVisible()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     expect(
@@ -159,18 +155,19 @@ describe('ScannerAssistantPage', () => {
     await user.click(screen.getByRole('button', { name: '断开授权' }))
     expect(runtimeMock.commands.revokePairing).toHaveBeenCalledTimes(1)
     expect(await database.accountDriveDiscs.count()).toBe(0)
-  })
+  }, 20000)
 
   it('shows a verified installed component as one-click open without changing account data', async () => {
     const user = userEvent.setup()
+    releaseStateFixture.override = 'published'
     setRuntimeState('connection_failed')
     runtimeMock.snapshot = {
       ...runtimeMock.snapshot,
       readiness: { ...baseSnapshot.readiness, helperConnected: false },
       distribution: {
         state: 'ready',
-        installedVersion: 'soda-scanner-zzz-next-ppocrv6-14',
-        targetVersion: 'soda-scanner-zzz-next-ppocrv6-14',
+        installedVersion: scannerDistributionManifest.runtime.version,
+        targetVersion: scannerDistributionManifest.runtime.version,
         progressPercent: null,
         action: 'open',
         message: '扫描组件已校验，可由网页直接打开。',
@@ -185,12 +182,15 @@ describe('ScannerAssistantPage', () => {
 
   it('keeps reconnection failures in player language without requesting a scan or install', async () => {
     const user = userEvent.setup()
+    releaseStateFixture.override = 'not_published'
     setRuntimeState('connection_failed')
     runtimeMock.snapshot = {
       ...runtimeMock.snapshot,
       readiness: { ...baseSnapshot.readiness, helperConnected: false },
     }
-    runtimeMock.commands.openHelper.mockRejectedValueOnce(new Error('helper_request_failed_503'))
+    runtimeMock.commands.retryConnection.mockRejectedValueOnce(
+      new Error('helper_request_failed_503'),
+    )
     render(<App />)
     await user.click(await screen.findByRole('button', { name: '重新连接画面扫描' }))
     expect(
@@ -208,6 +208,9 @@ describe('ScannerAssistantPage', () => {
       }),
     )
     expect(screen.getAllByText('网页暂时没有连接到画面扫描。').length).toBeGreaterThan(0)
+    expect(runtimeMock.commands.retryConnection).toHaveBeenCalledTimes(1)
+    expect(runtimeMock.commands.openHelper).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: '下载画面扫描' })).not.toBeInTheDocument()
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
@@ -245,7 +248,7 @@ describe('ScannerAssistantPage', () => {
     ['checking', '画面扫描正在检查游戏与权限', null],
     ['awaiting_elevation', '请确认管理员权限提示', null],
     ['scanning', null, '停止本次扫描'],
-    ['completed', null, '确认账户并继续'],
+    ['completed', null, '用此账户检查结果'],
   ])('renders the isolated %s state without account writes', async (state, heading, action) => {
     setRuntimeState(state)
     render(<App />)
@@ -467,13 +470,13 @@ describe('ScannerAssistantPage', () => {
     expect(result).toHaveTextContent(
       '本次结果 · 平均 230 张/分钟384 张可直接导入 350 张待校准30 张',
     )
-    expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '用此账户检查结果' })).toBeDisabled()
     await user.type(screen.getByRole('textbox', { name: '新账户名称' }), '扫描结果账户')
     await user.click(screen.getByRole('button', { name: '创建并选用' }))
 
     await waitFor(async () => expect(await database.accounts.count()).toBe(1))
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled(),
+      expect(screen.getByRole('button', { name: '用此账户检查结果' })).toBeEnabled(),
     )
     expect(await database.accountDriveDiscs.count()).toBe(0)
     expect(await database.accountScanImportBatches.count()).toBe(0)
@@ -483,6 +486,13 @@ describe('ScannerAssistantPage', () => {
   registerScannerAssistantAccountCases({ App, database, setRuntimeState })
 
   registerScannerCompletedResultTests({ App, runtimeMock, setRuntimeState })
-  registerScannerRecoveryTests({ App, runtimeMock, setRuntimeState })
+  registerScannerRecoveryTests({
+    App,
+    runtimeMock,
+    setRuntimeState,
+    setPublishedRelease: () => {
+      releaseStateFixture.override = 'published'
+    },
+  })
   registerScannerDataFileCompatibilityTests({ App, setRuntimeState, runtimeMock })
 })

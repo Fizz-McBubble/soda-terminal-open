@@ -95,7 +95,9 @@ describe('scanner single-account backup review', () => {
       expect.any(Function),
       'same_id',
     )
-    expect(screen.getByText(/恢复完成：3 张正式驱动盘/)).toBeInTheDocument()
+    expect(screen.getByText(/恢复完成：3 张驱动盘/)).toHaveTextContent(
+      /备份对应账户“合成账户”.*已设为当前账户/,
+    )
     expect(window.location.pathname).toBe('/system/scanner')
   })
 

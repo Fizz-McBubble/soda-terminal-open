@@ -118,6 +118,44 @@ function makeRequest(
   })
 }
 
+test('scanner r38 candidate and historical revisions survive storage while unknown scanner identities stay rejected', async () => {
+  const { env, kv } = makeEnv()
+  const handler = createScanFeedbackReceiver()
+  for (const scanner of [
+    'ZZZ-Scanner.Next-1.0.49-soda-r22',
+    'ZZZ-Scanner.Next-1.0.49-soda-r37',
+    'ZZZ-Scanner.Next-1.0.49-soda-r38',
+  ]) {
+    const report = {
+      ...validReport,
+      reportId: crypto.randomUUID(),
+      versions: { ...validReport.versions, scanner },
+    }
+    assert.deepEqual(sanitizeScanFeedbackPayload(report), { ok: true, record: report })
+    assert.equal((await handler(makeRequest(report), env)).status, 200)
+    const { receivedAt, ...retrieved } = JSON.parse(storedFor(kv, report.reportId).value)
+    assert.ok(Number.isFinite(Date.parse(receivedAt)))
+    assert.deepEqual(retrieved, report)
+    assert.deepEqual(sanitizeScanFeedbackPayload(retrieved), { ok: true, record: report })
+  }
+  for (const scanner of [
+    'unknown',
+    'scanner-r38b',
+    'ZZZ-Scanner.Next-1.0.49-soda-r38b',
+    'ZZZ-Scanner.Next-1.0.49-soda-r10000',
+    'ZZZ-Scanner.Next-1.0.49-soda-r38/private',
+  ]) {
+    const report = {
+      ...validReport,
+      reportId: crypto.randomUUID(),
+      versions: { ...validReport.versions, scanner },
+    }
+    assert.equal(sanitizeScanFeedbackPayload(report).status, 400)
+    assert.equal((await handler(makeRequest(report), env)).status, 400)
+  }
+  assert.equal(kv.store.size, 3)
+})
+
 test('preserves duplicate guard safe browser projection and concrete stop evidence in durable storage', async () => {
   const { env, kv } = makeEnv()
   const handler = createScanFeedbackReceiver()

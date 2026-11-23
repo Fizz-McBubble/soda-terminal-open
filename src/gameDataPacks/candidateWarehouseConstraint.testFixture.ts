@@ -37,6 +37,7 @@ export function candidateFourPieceInventory(
       })
     return {
       ...sampleDiscs.treasureCandidate,
+      rarity: 'S' as const,
       id: `${idPrefix}-${index + 1}`,
       slot: (index + 1) as DriveDisc['slot'],
       setId: index < 4 ? primary : secondary,

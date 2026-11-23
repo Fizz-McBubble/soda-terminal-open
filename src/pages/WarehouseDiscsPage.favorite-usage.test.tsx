@@ -9,9 +9,9 @@ import { sampleDiscs } from '../evaluation/fixtures'
 import { WarehouseDiscsPage } from './WarehouseDiscsPage'
 import { WarehouseUsedAgents } from './WarehouseUsedAgents'
 import { WarehouseActionDrawer } from './WarehouseActionDrawer'
-import { evidence, use } from './WarehouseRetentionEvidence.testFixture'
+import { evidence, matchingRetentionUse } from './WarehouseRetentionEvidence.testFixture'
 
-const disc = { ...sampleDiscs.treasureCandidate, id: 'favorite-disc' }
+const disc = { ...sampleDiscs.treasureCandidate, id: 'favorite-disc', rarity: 'S' as const }
 function item(): WarehouseActionItem {
   return {
     disc,
@@ -42,8 +42,8 @@ describe('warehouse favorite and actual usage presentation', () => {
           ownedUseAgentIds: [],
           unownedUseAgentIds: [],
           leadingUses: [
-            { ...use('nicole-below-cutoff', 15, 10), agentId: 'agent-nicole' },
-            { ...use('lycaon-below-cutoff', 25, 20), agentId: 'agent-lycaon' },
+            matchingRetentionUse(disc.setId, 'nicole-below-cutoff', 15, 10, 'agent-nicole'),
+            matchingRetentionUse(disc.setId, 'lycaon-below-cutoff', 25, 20, 'agent-lycaon'),
           ],
         }),
       },
@@ -58,6 +58,8 @@ describe('warehouse favorite and actual usage presentation', () => {
           counts: { keep: 0, enhance: 0, cleanup: 1 },
         },
         input: {
+          drafts: [],
+          activePlanIds: {},
           warehouse: { account: { id: 'isolated-owned-reference' }, discs: [disc], roster },
         },
       },
@@ -68,9 +70,9 @@ describe('warehouse favorite and actual usage presentation', () => {
       </MemoryRouter>,
     )
     await userEvent.click(screen.getAllByRole('button', { name: /查看 .*详情，/ })[0]!)
-    const references = screen.getByRole('list', { name: '参考角色用途' })
+    const references = screen.getByRole('list', { name: '适用角色' })
     expect(within(references).getByRole('button', { name: /妮可/ })).toHaveTextContent('已拥有')
-    expect(within(references).getByRole('button', { name: /莱卡恩/ })).toHaveTextContent('储备')
+    expect(within(references).getByRole('button', { name: /莱卡恩/ })).toHaveTextContent('未拥有')
     expect({ actions, roster }).toEqual(before)
   })
   it('renders each exact user once and omits an empty users list', () => {
@@ -130,6 +132,8 @@ describe('warehouse favorite and actual usage presentation', () => {
           counts: { keep: 2, enhance: 0, cleanup: 0 },
         },
         input: {
+          drafts: [],
+          activePlanIds: {},
           warehouse: {
             account: { id: 'isolated-favorite' },
             discs: [disc, other],
@@ -144,7 +148,6 @@ describe('warehouse favorite and actual usage presentation', () => {
         <WarehouseDiscsPage />
       </MemoryRouter>,
     )
-    await userEvent.click(screen.getByText(/更多筛选/))
     expect(screen.queryByRole('combobox', { name: '收藏状态' })).not.toBeInTheDocument()
     for (const name of ['品质与保护', '核对状态', '用途范围'])
       expect(screen.queryByRole('combobox', { name })).not.toBeInTheDocument()
@@ -154,7 +157,6 @@ describe('warehouse favorite and actual usage presentation', () => {
       screen.getByRole('combobox', { name: '排序方式' }).closest('.warehouse-analysis-filters'),
     ).not.toBeNull()
     expect(screen.getByText('驱动盘 · 2 张')).toBeInTheDocument()
-    await userEvent.click(screen.getByText(/更多筛选/))
     await userEvent.click(screen.getAllByRole('button', { name: /查看 .*详情，/ })[0]!)
     await userEvent.click(screen.getByRole('button', { name: /^继续观察/ }))
     expect(screen.getByText('驱动盘 · 0 张')).toBeInTheDocument()
@@ -162,7 +164,7 @@ describe('warehouse favorite and actual usage presentation', () => {
     await userEvent.click(screen.getByRole('combobox', { name: '排序方式' }))
     await userEvent.click(screen.getByRole('option', { name: '培养优先' }))
     expect(screen.getByRole('combobox', { name: '排序方式' })).toHaveValue('development')
-    await userEvent.click(screen.getByRole('button', { name: '清除全部筛选' }))
+    await userEvent.click(screen.getByRole('button', { name: /^继续观察/ }))
     expect(screen.getByRole('combobox', { name: '排序方式' })).toHaveValue('game')
     expect(screen.getByText('驱动盘 · 2 张')).toBeInTheDocument()
     expect(actions).toEqual(before)

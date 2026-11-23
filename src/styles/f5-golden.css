@@ -1,5 +1,8 @@
 @import './f5-golden-shell.css';
+@import './f5-golden-shell-workspace.css';
+@import './f5-golden-shell-motion.css';
 @import './f5-golden-primitives.css';
+@import './f5-golden-feedback.css';
 @import './f5-golden-not-found.css';
 @import './f5-golden-home.css';
 @import './f5-golden-scanner-structure.css';
@@ -11,3 +14,7 @@
 @import './f5-warehouse-retrofit.css';
 @import './f5-warehouse-responsive.css';
 @import './f5-golden-responsive.css';
+
+@import './f5-golden-workbench.css';
+@import './workspace-color-field.css';
+@import './f5-workstation-cadence.css';

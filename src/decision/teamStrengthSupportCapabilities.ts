@@ -1,3 +1,5 @@
+import { recipientCompatible, type SupportMember } from './teamStrengthRecipientCompatibility'
+export { recipientCompatible } from './teamStrengthRecipientCompatibility'
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 import { currentEffectFactAdmission } from '../calculation/currentEffectFactAdmission'
 import { remielleSupportCapabilities } from '../calculation/sourceBoundAgentSupport'
@@ -16,11 +18,6 @@ import {
   statReferences,
 } from '../calculation/currentPlanningEffectDomain'
 import { stableContentHash } from '../gameDataPacks/types'
-import { applicationForReceiver } from '../calculation/currentPlanningDamageModifiers'
-import {
-  teamStrengthActionFacts,
-  teamStrengthSourceActionSemantics,
-} from './teamStrengthActionFacts'
 import { createTeamStrengthReferenceRuntimeMember } from './teamStrengthReferenceState'
 import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditions'
 import type { TeamStrengthRecipientContext } from './teamStrengthReferenceConditionsTypes'
@@ -30,16 +27,8 @@ import {
   baseEffectReceivers,
   hasConditionalGate,
   effectReceivers,
-  expressionReferences,
 } from './teamStrengthSupportExpression'
-type SupportMember = {
-  agentId: string
-  specialty: string
-  attribute: string
-  hpToSheer: boolean
-  hasAftershockCapacity?: boolean
-  actionFacts?: NonNullable<ReturnType<typeof teamStrengthActionFacts>>
-}
+
 const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
 const selfBlueprintsByAgent = new Map<
   string,
@@ -59,7 +48,6 @@ export const selfCapabilitySourceFingerprint = stableContentHash(
     effect.numericExpression.todoBoundary,
   ]),
 )
-const attributes = new Set(['physical', 'fire', 'ice', 'electric', 'ether', 'frost', 'wind'])
 export type SupportRecipientContext = TeamStrengthRecipientContext
 
 export type Capability =
@@ -107,82 +95,15 @@ export function capabilityFor(receiver: EffectReceiver, effectId: string): Capab
   if (/anom_crit/.test(label)) return 'anomaly_critical'
   if (/anomprof/.test(label)) return 'anomaly_proficiency'
   if (/anommas/.test(label)) return 'anomaly_mastery'
-  if (/anom|disorder/.test(label)) return 'anomaly'
-  if (/crit/.test(label)) return 'critical'
   if (/resred|resign/.test(label)) return 'resistance'
   if (/defred|defign|\.pen_/.test(label)) return 'defense'
+  if (/anom|disorder/.test(label)) return 'anomaly'
+  if (/crit/.test(label)) return 'critical'
   if (/daze|\.stun_|\.impact/.test(label)) return 'stun'
   if (/\.atk(?:_|\.|$)/.test(label)) return 'attack'
   if (/\.hp(?:_|\.|$)/.test(label)) return 'health'
   if (/dmg_|dmginc|dmgbonus/.test(label)) return 'damage'
   return null
-}
-
-export function recipientCompatible(
-  member: SupportMember,
-  capability: Capability,
-  receiver: EffectReceiver,
-) {
-  const requiredAttribute = [
-    ...receiver.path.split('.'),
-    ...(receiver.damageType ? [receiver.damageType] : []),
-  ].find((part) => attributes.has(part))
-  if (requiredAttribute && requiredAttribute !== member.attribute) return false
-  // A special damage channel is not interchangeable with a skill category.
-  // Do not lend an Abloom/Aftershock-only buff to every ordinary attacker.
-  if (receiver.damageType === 'abloom') return false
-  // A stunner may have real aftershock damage. Specialty alone neither proves
-  // nor disproves that source-bound action; never lend it to an ordinary attack.
-  if (receiver.damageType === 'aftershock') return member.hasAftershockCapacity === true
-  if (!outputSpecialties.has(member.specialty) && member.specialty !== 'stun') return false
-  const actions = member.actionFacts ?? teamStrengthActionFacts({ agentId: member.agentId })
-  if (!actions?.damage) return false
-  const direct = teamStrengthSourceActionSemantics(actions?.direct ?? null)
-  const sheer = teamStrengthSourceActionSemantics(actions?.sheer ?? null)
-  const sharp = teamStrengthSourceActionSemantics(actions?.sharp ?? null)
-  if (capability === 'sharp' || capability === 'laceration') return sharp?.family === 'sharp'
-  if (capability === 'attack')
-    return direct?.scalingAttribute === 'attack' || sheer?.family === 'sheer'
-  if (capability === 'sheer') {
-    if (sheer?.family === 'sheer') return true
-    // Sheer Force can feed a sourced personal conversion on a non-Rupture
-    // actor (Norma). This admits the stat grant, never Sheer DMG bonuses.
-    return (
-      receiver.path.endsWith('.sheerForce') &&
-      direct?.scalingAttribute === 'attack' &&
-      (selfBlueprintsByAgent.get(member.agentId) ?? []).some(
-        (entry) =>
-          isReviewedTemplateMechanicEffect32(entry) &&
-          !entry.numericExpression.todoBoundary &&
-          entry.targetKinds.includes('self') &&
-          effectReceivers(entry.numericExpression.expressionIr).some(
-            (effect) => effect.path === 'ownBuff.combat.atk',
-          ) &&
-          expressionReferences(entry.numericExpression.expressionIr).includes(
-            'own.final.sheerForce',
-          ),
-      )
-    )
-  }
-  if (capability === 'health') return member.hpToSheer
-  if (
-    ['anomaly', 'anomaly_critical', 'anomaly_proficiency', 'anomaly_mastery'].includes(capability)
-  )
-    return member.specialty === 'anomaly'
-  // The typed core uses rate/damage for direct and sheer; sharp uses crit
-  // rate for its laceration checks but never ordinary crit damage.
-  // An Anomaly-specialty actor may have both ordinary direct damage and an
-  // independent anomaly channel; neither critical rule is borrowed by the other.
-  if (capability === 'critical')
-    return (
-      direct?.family === 'direct' ||
-      sheer?.family === 'sheer' ||
-      (sharp?.family === 'sharp' && applicationForReceiver(receiver.path) === 'crit_rate')
-    )
-  // Locked common/index.ts also supplies rupture's base ATK-to-sheer conversion.
-  // Sheer bypasses defense, not elemental resistance; keep those channels apart.
-  if (capability === 'defense') return direct?.family === 'direct' || sharp?.family === 'sharp'
-  return true
 }
 
 export function compatibleCapabilities(
@@ -191,6 +112,7 @@ export function compatibleCapabilities(
   context: TeamContext,
   recipientContext: SupportRecipientContext = {},
   referenceConditions?: TeamStrengthReferenceConditions,
+  includeCoverageEvidence = false,
 ) {
   const memberIds = inputMembers.map((member) => member.agentId)
   const references = referenceConditions ?? {
@@ -222,9 +144,38 @@ export function compatibleCapabilities(
   const deferredProviders = new Set<string>()
   const sourceConflictProviders = new Set<string>()
   const attributeConditionalRecipients = new Set<string>()
-  function cover(provider: SupportMember, capability: Capability, receiver: EffectReceiver) {
+  const coverageEvidence: Array<{
+    capability: Capability
+    providerAgentId: string
+    recipientAgentId: string
+    effectIdentity: string
+    receiverPath: string
+    damageType: string | null
+  }> = []
+  const selfCoverageEvidence: Array<{
+    capability: string
+    providerAgentId: string
+    effectIdentity: string
+    receiverPath: string
+    damageType: string | null
+  }> = []
+  function cover(
+    provider: SupportMember,
+    capability: Capability,
+    receiver: EffectReceiver,
+    effectIdentity = '',
+  ) {
     for (const target of members) {
-      if (target.agentId === provider.agentId || !recipientCompatible(target, capability, receiver))
+      if (
+        target.agentId === provider.agentId ||
+        !recipientCompatible(
+          target,
+          capability,
+          receiver,
+          effectIdentity,
+          recipientContext.primaryOutputAgentId === target.agentId,
+        )
+      )
         continue
       // Roxy.ts represents these as generic receivers, but the original 3.2
       // description requires Wind or the actual Contamination/Cleanse attribute.
@@ -247,6 +198,15 @@ export function compatibleCapabilities(
       const sources = providers.get(key) ?? new Set<string>()
       sources.add(provider.agentId)
       providers.set(key, sources)
+      if (includeCoverageEvidence)
+        coverageEvidence.push({
+          capability: outputCapability,
+          providerAgentId: provider.agentId,
+          recipientAgentId: target.agentId,
+          effectIdentity,
+          receiverPath: receiver.path,
+          damageType: receiver.damageType,
+        })
     }
   }
   for (const provider of members) {
@@ -284,7 +244,7 @@ export function compatibleCapabilities(
         if (registered && /^(?:teamBuff|notOwnBuff|enemyDebuff)\./.test(receiver.path)) {
           const external = capabilityFor(receiver, effect.effectId)
           if (external) {
-            cover(provider, external, receiver)
+            cover(provider, external, receiver, effect.effectId)
             conditional ||= hasConditionalGate(specialized)
           }
         }
@@ -303,6 +263,14 @@ export function compatibleCapabilities(
         const recipients = selfCovered.get(channel) ?? new Set<string>()
         recipients.add(provider.agentId)
         selfCovered.set(channel, recipients)
+        if (includeCoverageEvidence)
+          selfCoverageEvidence.push({
+            capability: channel,
+            providerAgentId: provider.agentId,
+            effectIdentity: effect.effectId,
+            receiverPath: receiver.path,
+            damageType: receiver.damageType,
+          })
         conditional ||=
           effect.numericExpression.dependencyKinds.includes('conditional_state') ||
           hasConditionalGate(specialized)
@@ -323,19 +291,29 @@ export function compatibleCapabilities(
       // duration-weighted damage, or an initial-panel contribution.
       conditional ||= gate.requiresCombatTrigger || gate.runtimeStateIds.length > 0
       reviewedProviders.add(provider.agentId)
-      cover(provider, reviewedCapability[effect.channel], {
-        path: effect.recipientAttribute
-          ? `sourceBound.external.${effect.recipientAttribute}`
-          : 'sourceBound.external',
-        damageType: null,
-      })
+      cover(
+        provider,
+        reviewedCapability[effect.channel],
+        {
+          path: effect.recipientAttribute
+            ? `sourceBound.external.${effect.recipientAttribute}`
+            : 'sourceBound.external',
+          damageType: null,
+        },
+        effect.channel,
+      )
     }
     if (provider.agentId === 'agent-remielle') {
       const facts = remielleSupportCapabilities()
       if (facts.damage)
-        cover(provider, 'damage', { path: 'teamBuff.combat.common_dmg_', damageType: null })
+        cover(
+          provider,
+          'damage',
+          { path: 'teamBuff.combat.common_dmg_', damageType: null },
+          'common_damage',
+        )
       if (facts.attack && abilityById.get(provider.agentId))
-        cover(provider, 'attack', { path: 'teamBuff.combat.atk', damageType: null })
+        cover(provider, 'attack', { path: 'teamBuff.combat.atk', damageType: null }, 'attack')
       conditional = true
     }
     const effects = getCurrentAgentDecisionMechanicContract(provider.agentId)?.effectContract
@@ -393,7 +371,7 @@ export function compatibleCapabilities(
         if (!/^(?:teamBuff|notOwnBuff|enemyDebuff)\./.test(receiver.path)) continue
         const capability = capabilityFor(receiver, effect.effectId)
         if (!capability) continue
-        cover(provider, capability, receiver)
+        cover(provider, capability, receiver, effect.effectId)
       }
     }
   }
@@ -419,6 +397,32 @@ export function compatibleCapabilities(
     multiProvider:
       [...providers.values()].filter((sources) => sources.size > 1).length /
       Math.max(1, outputCount),
+    providerIdsByRecipient: includeCoverageEvidence
+      ? Object.fromEntries(
+          [...providers.entries()]
+            .sort(([left], [right]) => left.localeCompare(right))
+            .map(([key, sources]) => [key, [...sources].sort()]),
+        )
+      : {},
+    coverageEvidence: includeCoverageEvidence
+      ? coverageEvidence.sort(
+          (left, right) =>
+            left.capability.localeCompare(right.capability) ||
+            left.recipientAgentId.localeCompare(right.recipientAgentId) ||
+            left.providerAgentId.localeCompare(right.providerAgentId) ||
+            left.effectIdentity.localeCompare(right.effectIdentity) ||
+            left.receiverPath.localeCompare(right.receiverPath),
+        )
+      : [],
+    selfCoverageEvidence: includeCoverageEvidence
+      ? selfCoverageEvidence.sort(
+          (left, right) =>
+            left.capability.localeCompare(right.capability) ||
+            left.providerAgentId.localeCompare(right.providerAgentId) ||
+            left.effectIdentity.localeCompare(right.effectIdentity) ||
+            left.receiverPath.localeCompare(right.receiverPath),
+        )
+      : [],
     conditional,
   }
 }

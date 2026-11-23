@@ -475,7 +475,7 @@ export function createStandardImportFromStaging(
       setName: item.candidate.setName as string,
       slot: item.candidate.slot as 1 | 2 | 3 | 4 | 5 | 6,
       level: item.candidate.level as number,
-      rarity: item.candidate.rarity as 'A' | 'S',
+      rarity: item.candidate.rarity as 'B' | 'A' | 'S',
       mainStat: item.candidate.mainStat as StatKey,
       subStats: item.candidate.subStats.map((subStat) => ({
         stat: subStat.stat as StatKey,

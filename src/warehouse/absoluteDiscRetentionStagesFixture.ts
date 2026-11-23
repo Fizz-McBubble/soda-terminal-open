@@ -38,6 +38,11 @@ export const baseProfile: Profile = {
     sourceIds: ['synthetic-build'],
   },
   mainStatsBySlot: { '4': { atk_percent: 'valid', energy_regen: 'valid' } },
+  branchSetPlan: {
+    pattern: '2+2+2',
+    primarySetIds: ['set-test'],
+    secondarySetIds: [],
+  },
   effectUtility: { atk_: 'valid' },
   fourPieceUses: { 'set-test': 'incompatible' },
 }

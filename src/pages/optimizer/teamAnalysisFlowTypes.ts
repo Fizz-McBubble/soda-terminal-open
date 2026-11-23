@@ -19,6 +19,7 @@ import type { useTeamPickerQueries } from './useTeamPickerQueries'
 export interface UseTeamAnalysisFlowOptions {
   accountSummary: ReturnType<typeof useF5AccountSummary>
   decisionWorld: ReturnType<typeof useAccountDecisionWorld>
+  autoStartOnEntry?: boolean
   reservedPlanIds: string[]
   contextAgentId: string | null
   contextPlanId: string | null

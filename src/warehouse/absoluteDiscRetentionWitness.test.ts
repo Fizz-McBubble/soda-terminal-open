@@ -47,6 +47,11 @@ function profile(id: string, patch: Partial<Profile> = {}): Profile {
     coreStats: ['crit_rate', 'crit_dmg'],
     weights: { crit_rate: 1, crit_dmg: 1, atk_percent: 0.75, atk_flat: 0.5 },
     effectUtility: { atk_: 'valid' },
+    branchSetPlan: {
+      pattern: '4+2',
+      primarySetIds: ['synthetic-primary'],
+      secondarySetIds: ['synthetic-set'],
+    },
     mainStatsBySlot: {
       '4': { crit_rate: 'valid' },
       '5': { atk_percent: 'valid' },

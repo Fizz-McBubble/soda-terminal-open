@@ -64,43 +64,50 @@ function inspectCurrent31FormationMechanicStateUncached(
   }
 }
 
-const entries = current31LegalAgentFormations.map((memberIds) => ({
-  memberIds,
-  ...inspectCurrent31FormationMechanicStateUncached(memberIds),
-}))
-
-const mechanicStateByFormation = new Map(
-  entries.map(({ memberIds, ...state }) => [[...memberIds].sort().join('|'), state]),
-)
+const mechanicStateByFormation = new Map<
+  string,
+  ReturnType<typeof inspectCurrent31FormationMechanicStateUncached>
+>()
 
 export function inspectCurrent31FormationMechanicState(
   memberIds: readonly [string, string, string],
 ) {
-  const cached = mechanicStateByFormation.get([...memberIds].sort().join('|'))
-  return cached ? { ...cached } : inspectCurrent31FormationMechanicStateUncached(memberIds)
+  if (!memberIds.every((agentId) => rulesById.has(agentId)))
+    return inspectCurrent31FormationMechanicStateUncached(memberIds)
+  const ordered: [string, string, string] = [...memberIds]
+  ordered.sort((left, right) => left.localeCompare(right))
+  const key = JSON.stringify(ordered)
+  let state = mechanicStateByFormation.get(key)
+  if (!state) {
+    state = inspectCurrent31FormationMechanicStateUncached(ordered)
+    mechanicStateByFormation.set(key, state)
+  }
+  return { ...state }
 }
 
-const count = (predicate: (entry: (typeof entries)[number]) => boolean) =>
-  entries.filter(predicate).length
-
-export const current31FormationMechanicAudit = Object.freeze({
-  contract: 'soda-current-formation-mechanic-audit/v1',
-  population: entries.length,
-  ruleComplete: count((entry) => entry.ruleComplete),
-  fieldTimeWithinBudget: count((entry) => entry.fieldTimeWithinBudget),
-  resourceLoopClosed: count((entry) => entry.resourceLoopClosed),
-  activationAtBase: count((entry) => entry.activationAtBase),
-  activationAtMaximumKnownState: count((entry) => entry.activationAtMaximumKnownState),
-  accountStateDependentActivation: count(
-    (entry) => !entry.activationAtBase && entry.activationAtMaximumKnownState,
-  ),
-  observedPartnerRelationForEveryMember: count(
-    (entry) => entry.observedPartnerRelationForEveryMember,
-  ),
-  observedSourceBackedTeamFamily: count((entry) => entry.observedSourceBackedTeamFamily),
-  sharedMechanicClosedAtBase: count(
-    (entry) => entry.fieldTimeWithinBudget && entry.resourceLoopClosed && entry.activationAtBase,
-  ),
-  boundary:
-    '这是完整合法身份域上的共享机制审计，不是强度排名或 Team DPS。Observed partner 只证明具名关系；未观察不等于 hard-invalid。事件频率、持续时间、队伍 buff owner、实体装备和 CalculationContext 仍须另行编译。',
-})
+export function auditCurrent31FormationMechanics() {
+  const entries = current31LegalAgentFormations.map(inspectCurrent31FormationMechanicStateUncached)
+  const count = (predicate: (entry: (typeof entries)[number]) => boolean) =>
+    entries.filter(predicate).length
+  return Object.freeze({
+    contract: 'soda-current-formation-mechanic-audit/v1',
+    population: entries.length,
+    ruleComplete: count((entry) => entry.ruleComplete),
+    fieldTimeWithinBudget: count((entry) => entry.fieldTimeWithinBudget),
+    resourceLoopClosed: count((entry) => entry.resourceLoopClosed),
+    activationAtBase: count((entry) => entry.activationAtBase),
+    activationAtMaximumKnownState: count((entry) => entry.activationAtMaximumKnownState),
+    accountStateDependentActivation: count(
+      (entry) => !entry.activationAtBase && entry.activationAtMaximumKnownState,
+    ),
+    observedPartnerRelationForEveryMember: count(
+      (entry) => entry.observedPartnerRelationForEveryMember,
+    ),
+    observedSourceBackedTeamFamily: count((entry) => entry.observedSourceBackedTeamFamily),
+    sharedMechanicClosedAtBase: count(
+      (entry) => entry.fieldTimeWithinBudget && entry.resourceLoopClosed && entry.activationAtBase,
+    ),
+    boundary:
+      '这是完整合法身份域上的共享机制审计，不是强度排名或 Team DPS。Observed partner 只证明具名关系；未观察不等于 hard-invalid。事件频率、持续时间、队伍 buff owner、实体装备和 CalculationContext 仍须另行编译。',
+  })
+}

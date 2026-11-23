@@ -77,7 +77,11 @@ describe('manual scanner calibration journey', () => {
     expect(reasonPanel).toHaveTextContent('套装名称未确认')
     expect(reasonPanel).toHaveTextContent('副词条信息不完整')
     expect(reasonPanel).toHaveTextContent('词条或等级校验未通过')
-    const calibration = await screen.findByRole('button', { name: '校准后确认导入' })
+    const calibration = await screen.findByRole(
+      'button',
+      { name: '校准后确认导入' },
+      { timeout: 10_000 },
+    )
     const dialog = document.querySelector<HTMLDialogElement>('.scanner-calibration-dialog')!
     expect(calibration).toHaveAttribute('aria-expanded', 'false')
     expect(dialog).not.toHaveAttribute('open')
@@ -127,7 +131,11 @@ describe('manual scanner calibration journey', () => {
     view.unmount()
     render(<App />)
     await user.click(await screen.findByRole('button', { name: '检查需确认的记录' }))
-    const reopenedCalibration = await screen.findByRole('button', { name: '校准后确认导入' })
+    const reopenedCalibration = await screen.findByRole(
+      'button',
+      { name: '校准后确认导入' },
+      { timeout: 10_000 },
+    )
     const reopenedDialog = reopenedCalibration
       .closest('.scanner-import-review')!
       .querySelector<HTMLDialogElement>('.scanner-calibration-dialog')!

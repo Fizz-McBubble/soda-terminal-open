@@ -13,6 +13,7 @@ import { WarehouseUsedAgents } from './WarehouseUsedAgents'
 import { substatLines } from './warehouseDiscPresentation'
 
 export function WarehouseDiscActionList({
+  listRef,
   actionList,
   listBodyRef,
   setScrollTop,
@@ -27,6 +28,7 @@ export function WarehouseDiscActionList({
   initialFocusDiscId,
   onInitialFocusConsumed,
 }: {
+  listRef: (element: HTMLElement | null) => void
   actionList: ReturnType<typeof projectWarehouseActionListJoin>
   listBodyRef: RefObject<HTMLDivElement | null>
   setScrollTop: (value: number) => void
@@ -142,6 +144,7 @@ export function WarehouseDiscActionList({
 
   return (
     <section
+      ref={listRef}
       className="warehouse-action-list"
       aria-label="当前账户驱动盘行动列表"
       aria-describedby="warehouse-action-list-keyboard-help"
@@ -251,7 +254,7 @@ export function WarehouseDiscActionList({
                     <span className="warehouse-action-row__relations">
                       <WarehouseUsedAgents agentIds={item.usageAgentIds} maxVisible={2} />
                       {!item.usageAgentIds.length ? (
-                        <small>{referenced ? '方案引用' : '暂无使用'}</small>
+                        <small>{referenced ? '方案引用' : '未记录使用'}</small>
                       ) : null}
                     </span>
                     <span className="warehouse-action-row__advice">

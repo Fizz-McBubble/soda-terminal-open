@@ -4,6 +4,7 @@ import {
   type TargetPanelMetricKey,
   type TargetPanelMetricSemantic,
 } from '../gameDataPacks/targetPanelSemantics'
+import { reviewedTargetPanelConditionsForSource } from '../gameDataPacks/reviewedTargetPanelGuidance'
 
 export type TargetPanel = {
   conditions?: readonly string[]
@@ -162,7 +163,10 @@ export function targetPanelPresentation(
   context?: ReviewedTargetContext,
 ): BuildTargetPresentation {
   if (context) panel = resolveReviewedContextualTargetPanel(panel, context)
-  const conditions = [...(panel?.conditions ?? [])]
+  const conditions = [
+    ...(panel?.conditions ?? []),
+    ...(panel?.sourceRefs?.flatMap(({ id }) => reviewedTargetPanelConditionsForSource(id)) ?? []),
+  ]
   const target = readTargetValue(panel, label)
   if (!target) {
     const variants =
@@ -183,16 +187,6 @@ export function targetPanelPresentation(
     conditions.push('此属性为来源可选参考，不作为通用毕业要求。')
   if (target.semantic.observation === 'in_combat')
     conditions.push('此参考按战斗内数值计，不能直接用局外面板判断达标。')
-  if (
-    label === '暴击率' &&
-    typeof target.value !== 'number' &&
-    target.value.max === 50 &&
-    target.semantic.boundary === 'cap' &&
-    panel?.sourceRefs?.some((ref) => ref.id === 'prydwen-ye-shunguang-2.5-2026-08-05')
-  )
-    conditions.push(
-      '暴击率50%是满核心、沧浪行歌四件套增益生效时的配置参考，不是所有配装的物理上限。',
-    )
   return { value: guide, conditions: [...new Set(conditions)] }
 }
 import {

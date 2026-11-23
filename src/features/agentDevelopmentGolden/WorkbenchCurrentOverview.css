@@ -1,0 +1,344 @@
+/* This workspace owns its frame and status rows. Content never sizes the
+   portrait rail, and source counts never move the two lower section headers. */
+.f5v-shell .workbench--single-page .current-overview {
+  --overview-heading-height: 36px;
+  --overview-body-height: 128px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  align-content: start;
+  align-self: start;
+  gap: 0;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-surface);
+  background: var(--soda-surface, #fff);
+  box-shadow: 0 5px 10px rgba(61, 48, 96, 0.05);
+}
+.f5v-shell .workbench--single-page .current-overview::after {
+  content: none;
+}
+.f5v-shell
+  .workbench--single-page
+  .explanation:not(.testing-badge, .release-notes)
+  > .explanation__trigger:not(.button)
+  > .explanation__label {
+  text-decoration: none;
+}
+.f5v-shell .workbench--single-page .current-overview__state,
+.f5v-shell .workbench--single-page .current-overview__panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+.f5v-shell .workbench--single-page .current-overview__state {
+  grid-template-rows: var(--overview-heading-height) auto;
+  row-gap: 8px;
+  padding-right: 16px;
+}
+.f5v-shell .workbench--single-page .current-overview__panel {
+  padding-left: 16px;
+  border-left: 1px solid var(--soda-line);
+}
+.f5v-shell .workbench--single-page .current-overview__state > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  min-height: var(--overview-heading-height);
+  margin: 0;
+}
+.f5v-shell .workbench--single-page .current-overview h2 {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.f5v-shell .workbench--single-page .current-state-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .current-level-fact {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: var(--soda-text-2);
+  background: transparent;
+  font-size: var(--soda-type-meta);
+  line-height: 20px;
+  white-space: nowrap;
+}
+.f5v-shell .workbench--single-page .current-overview__state .edit-current {
+  flex: 0 0 auto;
+  min-height: 36px;
+  margin: 0;
+  padding: 4px 12px;
+  font-size: var(--soda-type-meta);
+  white-space: nowrap;
+}
+.f5v-shell .workbench--single-page .current-status-details {
+  display: grid;
+  grid-template-rows: minmax(var(--overview-body-height), auto) auto;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+}
+.f5v-shell .workbench--single-page .current-status-details > * {
+  min-width: 0;
+  min-height: 0;
+  padding-block: 0;
+}
+.f5v-shell .workbench--single-page .skill-comparison {
+  display: grid;
+  grid-template-rows: 48px 54px;
+  grid-auto-rows: min-content;
+  align-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .skill-comparison__current,
+.f5v-shell .workbench--single-page .skill-comparison__target {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .skill-comparison__label {
+  align-self: center;
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  line-height: 18px;
+  white-space: nowrap;
+}
+.f5v-shell .workbench--single-page .skill-comparison__current > div,
+.f5v-shell .workbench--single-page .skill-comparison__target > div {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .skill-comparison__current > div {
+  border-radius: var(--soda-radius-control);
+  background: linear-gradient(110deg, var(--soda-surface-raised), var(--soda-surface));
+  box-shadow: inset 0 0 0 1px var(--soda-line);
+}
+.f5v-shell .workbench--single-page .skill-comparison__current > div > span,
+.f5v-shell .workbench--single-page .skill-comparison__target > div > span {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 4px 2px;
+  border-radius: var(--soda-radius-control);
+}
+.f5v-shell .workbench--single-page .skill-comparison__skill-label,
+.f5v-shell .workbench--single-page .skill-comparison__target > div > span > small {
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  font-style: normal;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.f5v-shell .workbench--single-page .skill-comparison__skill-label {
+  display: grid;
+  place-items: center;
+  min-block-size: 22px;
+  color: var(--soda-accent-ink);
+}
+.f5v-shell .workbench--single-page .skill-comparison__skill-label > [aria-hidden='true'] {
+  grid-area: 1 / 1;
+}
+.f5v-shell .workbench--single-page .skill-comparison__skill-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+}
+.f5v-shell .workbench--single-page .skill-comparison__skill-icon img {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.f5v-shell .workbench--single-page .skill-comparison__skill-icon:has(.visual-asset-fallback),
+.f5v-shell
+  .workbench--single-page
+  .skill-comparison__skill-label:has(.skill-comparison__skill-icon img)
+  .skill-comparison__skill-fallback {
+  visibility: hidden;
+}
+.f5v-shell .workbench--single-page .skill-comparison__current b,
+.f5v-shell .workbench--single-page .skill-comparison__target > div > span > b {
+  color: var(--soda-text);
+  font-size: var(--soda-type-body);
+  line-height: 22px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.f5v-shell .workbench--single-page .skill-comparison__target > div > span > b {
+  font-weight: 500;
+}
+.f5v-shell .workbench--single-page .skill-comparison__target > div > span.priority {
+  background: color-mix(in srgb, var(--soda-accent) 11%, var(--soda-surface));
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--soda-accent) 80%, transparent);
+}
+.f5v-shell .workbench--single-page .skill-comparison__target > div > span.priority > b {
+  color: var(--soda-accent-ink);
+  font-weight: 700;
+}
+.f5v-shell .workbench--single-page .skill-comparison__target-heading {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 2px;
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .skill-comparison__advice .explanation__trigger {
+  min-height: 22px;
+  padding: 0;
+  font-size: var(--soda-type-meta);
+  line-height: 20px;
+  white-space: nowrap;
+}
+.f5v-shell .workbench--single-page .current-status-feedback {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+  line-height: 18px;
+}
+.f5v-shell .workbench--single-page .current-update-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .current-status-feedback:empty {
+  display: none;
+}
+.f5v-shell .explanation-popover .skill-comparison__priority-order {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+}
+.f5v-shell .skill-comparison__priority-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+.f5v-shell .explanation-popover .skill-comparison__advice-list {
+  display: grid;
+  gap: 12px;
+}
+.f5v-shell .explanation-popover .skill-comparison__advice-list > div {
+  display: grid;
+  grid-template-columns: 3.5em minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+}
+.f5v-shell .explanation-popover .skill-comparison__advice-list > div + div {
+  margin-top: 0;
+}
+.f5v-shell .explanation-popover .skill-comparison__advice-list dd {
+  margin: 0;
+}
+.f5v-shell .workbench--single-page .current-update-status > .button {
+  flex: 0 0 auto;
+  min-height: 24px;
+  padding: 2px 7px;
+  font-size: inherit;
+}
+
+@container soda-viewport (min-width: 1321px) and (max-width: 1550px) {
+  .f5v-shell .workbench--single-page .current-overview {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 295px;
+  }
+}
+@container soda-viewport (max-width: 1320px) {
+  .f5v-shell .workbench--single-page .current-overview {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .f5v-shell .workbench--single-page .current-overview__state {
+    padding-right: 0;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel {
+    padding-top: 16px;
+    padding-left: 0;
+    border-top: 1px solid var(--soda-line);
+    border-left: 0;
+  }
+}
+@container soda-viewport (max-width: 720px) {
+  .f5v-shell .workbench--single-page .skill-comparison__current,
+  .f5v-shell .workbench--single-page .skill-comparison__target {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 4px;
+  }
+  .f5v-shell .workbench--single-page .current-state-actions {
+    gap: 4px;
+  }
+}
+@container soda-viewport (max-width: 600px) {
+  .f5v-shell .workbench--single-page .current-overview {
+    --overview-heading-height: 54px;
+  }
+  .f5v-shell .workbench--single-page .current-overview__state > header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: 24px 28px;
+    gap: 2px 8px;
+  }
+  .f5v-shell .workbench--single-page .current-state-actions {
+    display: contents;
+  }
+  .f5v-shell .workbench--single-page .current-level-fact {
+    justify-self: end;
+  }
+  .f5v-shell .workbench--single-page .current-overview__state .edit-current {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+
+@container soda-viewport (max-width: 430px) {
+  .f5v-shell .workbench--single-page .skill-comparison {
+    grid-template-rows: auto auto;
+  }
+  .f5v-shell .workbench--single-page .skill-comparison__current,
+  .f5v-shell .workbench--single-page .skill-comparison__target {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .f5v-shell .workbench--single-page .skill-comparison__target-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

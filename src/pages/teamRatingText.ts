@@ -1,8 +1,32 @@
+import {
+  referenceRatingBands,
+  teamReferenceIntervalSchema,
+  type GenericReferenceInterval,
+} from '../decision/teamReferenceInterval'
+
 /** One player-facing label for a concrete trio, regardless of its evidence route. */
-export function formatTeamRating(band: string, referenceScore?: number | null) {
+export function formatGraduatedTeamScore(
+  value: import('../decision/graduatedTeamScoreIndex').GraduatedTeamScore,
+) {
+  if (value.unconfirmedBuildAgentIds) return formatTeamRating(value.band)
+  return `评级 ${value.band} · ${value.score} 分`
+}
+
+export function formatTeamRating(
+  band: string,
+  referenceScore?: number | null,
+  referenceInterval?: GenericReferenceInterval | null,
+) {
   // The retained numeric field is a legacy band anchor, not a second estimate.
   // Old saved/exported values remain readable without implying extra precision.
   void referenceScore
+  if (!referenceRatingBands.some((value) => value === band)) return '暂无评级'
+  if (referenceInterval != null) {
+    const interval = teamReferenceIntervalSchema.safeParse(referenceInterval)
+    if (!interval.success || interval.data.lower !== band) return '暂无评级'
+    const { lower, upper } = interval.data
+    return `评级 ${lower === upper ? lower : `${lower}～${upper}`}`
+  }
   return `评级 ${band}`
 }
 
@@ -13,12 +37,15 @@ export function formatTeamRating(band: string, referenceScore?: number | null) {
  */
 export const genericTeamRatingScopeCopy = Object.freeze({
   title: '泛用体系评级参考',
-  listDescription: '按成型队伍的泛用评级排列，同核心搭配参考已复核的替代关系；',
+  listDescription: '按成型队伍的泛用体系评级排列，同核心搭配参考已复核的替代关系；',
 })
 
 export const genericTeamRatingBands = Object.freeze([
-  ['S', '优先参考的强势体系'],
-  ['A+', '强势可选'],
-  ['A', '成熟实用'],
-  ['B', '有明确取舍的替代'],
+  ['S+', '版本标杆'],
+  ['S', '顶级'],
+  ['A+', '优秀'],
+  ['A', '强势'],
+  ['B+', '实用'],
+  ['B', '有差距'],
+  ['C', '偏弱'],
 ] as const)

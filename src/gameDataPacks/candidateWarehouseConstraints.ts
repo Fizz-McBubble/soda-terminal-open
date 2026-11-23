@@ -1,12 +1,17 @@
-import type { AgentDiscProfile } from '../assault/engine'
+import { withGuidanceApplicability } from './candidateWarehouseGuidanceApplicability'
+export { candidateGuidanceFieldAvailable } from './candidateWarehouseGuidanceApplicability'
 import {
-  evaluateCandidateSetPlanEligibility,
-  qualifyCandidateSetPlan,
-} from './candidateSetPlanEligibility'
+  candidateConstraintToDiscProfile,
+  candidateSetPlansForConstraint,
+} from './candidateWarehouseDiscProfile'
+export {
+  candidateConstraintToDiscProfile,
+  candidateSetPlansForConstraint,
+} from './candidateWarehouseDiscProfile'
+import { evaluateCandidateSetPlanEligibility } from './candidateSetPlanEligibility'
 import { getBuildRecommendation, getCurrentBuildProfile } from '../assault/currentBuildProfiles'
 import { driveDiscData } from '../data/gameData'
-import type { DriveDisc, StatKey } from '../domain/schemas'
-import type { TargetPanelSemantics } from './targetPanelSemantics'
+import type { DriveDisc } from '../domain/schemas'
 import {
   playerBuildProfiles30,
   type PlayerBuildField,
@@ -29,86 +34,25 @@ import {
 } from './reviewedTeamDiscConditions'
 import { asStrings, candidateStatKeys, candidateSubStatWeights } from './candidateStatParsing'
 import { getReviewedAdditionalDiscPlans } from './reviewedAdditionalDiscDirections'
+import { getReviewedMainStatAlternatives } from './reviewedMainStatAlternatives'
 import {
-  getReviewedMainStatAlternatives,
-  type ReviewedMainStatAlternative,
-} from './reviewedMainStatAlternatives'
+  getReviewedCurrentMainStatAlternatives33,
+  isReviewedCurrentMainStatAlternativeLegal,
+  resolveReviewedCurrentIndependentDirection33,
+} from './reviewedCurrentGuidance33'
 export { candidateStatKeys, candidateSubStatWeights } from './candidateStatParsing'
-import {
-  getBuildApplicabilityIdentity,
-  type BuildApplicabilityIdentity,
-} from './buildApplicabilityDependencyAnalysis'
 import { withReviewedHoyoBuildDriveDiscSets32 } from './reviewedHoyoBuildDriveDiscSets32'
 import { withReviewedHoyoBuildMiyabiPanel32 } from './reviewedHoyoBuildMiyabiPanels32'
 import { currentGameDataSelection } from './currentGameDataSelection'
 import { getGameData33CandidateWarehouseConstraint } from './gameData33BuildGuidance'
 
-export type CandidateWarehouseConstraint = {
-  agentId: string
-  agentName: string
-  gameVersion: '3.0' | '3.1' | '3.2' | '3.3'
-  status: 'candidate' | 'missing'
-  setPlanReadiness:
-    | {
-        status: 'executable'
-        pattern: CandidateSetPlan['pattern']
-        primarySetIds: string[]
-        secondarySetIds: string[]
-      }
-    | {
-        status: 'non_executable'
-        reason: 'missing_secondary_set' | 'unresolved_set_roles'
-        missingEvidence: string
-      }
-  sources: PlayerBuildSource[]
-  /** Source/reference continuity is separate from current author build review. */
-  guidanceApplicability?: BuildApplicabilityIdentity[]
-  setIds: string[]
-  /** Explicit source branches; readiness is the first-branch compatibility projection. */
-  setPlans?: CandidateSetPlan[]
-  unresolvedSetDirections?: string[]
-  mainStats: Partial<Record<'4' | '5' | '6', StatKey[]>>
-  /** Sourced purpose-specific guidance; never flattened into automatic eligibility. */
-  mainStatAlternatives?: ReviewedMainStatAlternative[]
-  subStatWeights: Partial<Record<StatKey, number>>
-  /** Frozen identity and goal of a source-reviewed exact-team branch. */
-  reviewedTeamDirectionId?: string
-  reviewedTeamDirectionSource?: AppliedReviewedTeamDiscDirection['source']
-  reviewedTeamMindscapeByAgentId?: Record<string, number | null>
-  /** Source-named candidates without fabricated numerical importance. */
-  reviewedSubStatCandidates?: readonly StatKey[]
-  targetPanelApplicability?: {
-    disposition: 'base_reference_not_applicable'
-    directionId: string
-    reason: string
-  }
-  buildObjective?: AppliedReviewedTeamDiscDirection['objective']
-  wEngineDirections: string[]
-  teamAndBangbooPreconditions: string[]
-  progressionDirection: string[]
-  targetPanel?: {
-    level: 60
-    values: Partial<
-      Record<
-        'atk' | 'hp' | 'def' | 'critRate' | 'critDamage',
-        number | { min: number; max?: number; upperOpen?: boolean }
-      >
-    >
-    conditions: string[]
-    sourceIds: string[]
-    label: 'guide_reference_range'
-    targetSemantics?: TargetPanelSemantics
-  }
-  gaps: string[]
-  boundary: string
-  contentHash: string
-}
-
-/** Frozen recommendation payload compiled into a solve-specific Build Intent. */
-export type CandidateWarehouseRecommendation = {
-  agentId: string
-  constraint: CandidateWarehouseConstraint | null
-}
+import type { CandidateWarehouseConstraint } from './candidateWarehouseConstraintTypes'
+export type {
+  CandidateWarehouseConstraint,
+  CandidateWarehouseRecommendation,
+  CandidateBuildGuidanceFieldPath,
+} from './candidateWarehouseConstraintTypes'
+export { candidateBuildGuidanceFieldPaths } from './candidateWarehouseConstraintTypes'
 
 export function deriveCandidateSetPlanReadiness(
   plans: readonly CandidateSetPlan[],
@@ -271,48 +215,91 @@ export const candidateWarehouseConstraints30 = playerBuildProfiles30.map((profil
   candidateConstraint(profile.agentId),
 )
 
-const currentConstraintSnapshots = new WeakMap<
-  CandidateWarehouseConstraint,
-  CandidateWarehouseConstraint
->()
-
-function withGuidanceApplicability(
-  constraint: CandidateWarehouseConstraint,
-): CandidateWarehouseConstraint {
-  const input = {
-    ...constraint,
-    agentId: resolveCurrentReleasedIdentity(constraint.agentId) ?? constraint.agentId,
-    guidanceApplicability: constraint.sources.map((source) =>
-      getBuildApplicabilityIdentity(
-        resolveCurrentReleasedIdentity(constraint.agentId) ?? constraint.agentId,
-        { source },
-      ),
-    ),
-  }
-  const contentHash = stableContentHash({ ...input, contentHash: undefined })
-  const previous = currentConstraintSnapshots.get(constraint)
-  if (previous?.contentHash === contentHash) return previous
-  const snapshot = { ...input, contentHash }
-  currentConstraintSnapshots.set(constraint, snapshot)
-  return snapshot
-}
-
+const currentConstraintCache = new Map<string, CandidateWarehouseConstraint>()
 export function getCandidateWarehouseConstraint(agentId: string) {
   const releasedAgentId = resolveCurrentReleasedIdentity(agentId)
-  if (releasedAgentId === 'agent-phoenix' && currentGameDataSelection.gameVersion === '3.3')
-    return getGameData33CandidateWarehouseConstraint(releasedAgentId)
+  const cached = currentConstraintCache.get(releasedAgentId)
+  if (cached) return cached
   const constraint =
-    candidateWarehouseConstraints32.find((constraint) => constraint.agentId === releasedAgentId) ??
-    candidateWarehouseConstraints30.find(
-      (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
-    ) ??
-    candidateWarehouseConstraints31.find(
-      (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
-    )
+    (releasedAgentId === 'agent-phoenix' || releasedAgentId === 'agent-severian') &&
+    currentGameDataSelection.gameVersion === '3.3'
+      ? getGameData33CandidateWarehouseConstraint(releasedAgentId)
+      : (candidateWarehouseConstraints32.find(
+          (constraint) => constraint.agentId === releasedAgentId,
+        ) ??
+        candidateWarehouseConstraints30.find(
+          (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
+        ) ??
+        candidateWarehouseConstraints31.find(
+          (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
+        ))
   if (!constraint) return undefined
-  return withReviewedHoyoBuildMiyabiPanel32(
-    withReviewedHoyoBuildDriveDiscSets32(withGuidanceApplicability(constraint)),
+  const currentAlternatives =
+    currentGameDataSelection.gameVersion === '3.3'
+      ? getReviewedCurrentMainStatAlternatives33(releasedAgentId)
+      : []
+  if (
+    currentAlternatives.some(
+      (alternative) => !isReviewedCurrentMainStatAlternativeLegal(alternative),
+    )
   )
+    throw new Error(`当前来源的 ${releasedAgentId} 主词与盘位不匹配。`)
+  // A replacement build keeps independently reviewed, non-automatic advice.
+  // Its default main stats and source-declared role remain unchanged.
+  const retainedAlternatives = [
+    ...getReviewedMainStatAlternatives(releasedAgentId),
+    ...currentAlternatives,
+  ].filter(
+    (alternative) =>
+      !constraint.mainStatAlternatives?.some(
+        (existing) =>
+          existing.slot === alternative.slot && existing.source.id === alternative.source.id,
+      ),
+  )
+  const withAlternatives = retainedAlternatives.length
+    ? {
+        ...constraint,
+        mainStatAlternatives: [...(constraint.mainStatAlternatives ?? []), ...retainedAlternatives],
+        sources: [
+          ...constraint.sources,
+          ...retainedAlternatives
+            .map((alternative) => alternative.source)
+            .filter(
+              (source) =>
+                !currentAlternatives.some((alternative) => alternative.source.id === source.id) &&
+                !constraint.sources.some(
+                  (existing) =>
+                    existing.id === source.id && existing.contentHash === source.contentHash,
+                ),
+            ),
+        ],
+      }
+    : constraint
+  const result = withGuidanceApplicability(
+    withReviewedHoyoBuildMiyabiPanel32(withReviewedHoyoBuildDriveDiscSets32(withAlternatives)),
+  )
+  currentConstraintCache.set(releasedAgentId, result)
+  return result
+}
+
+/** Applies only the explicitly resolved single-slot intent; other slots and branches remain intact. */
+export function getCandidateWarehouseConstraintForIndependentDirection(
+  agentId: string,
+  input: { directionId: string; conditionState: 'met' | 'not_met' | 'unknown' },
+): CandidateWarehouseConstraint | undefined {
+  if (currentGameDataSelection.gameVersion !== '3.3') return undefined
+  const releasedAgentId = resolveCurrentReleasedIdentity(agentId)
+  const direction = resolveReviewedCurrentIndependentDirection33(releasedAgentId, input)
+  const base = getCandidateWarehouseConstraint(releasedAgentId)
+  if (!direction || !base) return undefined
+  const selected = {
+    ...base,
+    reviewedIndependentDirectionId: direction.id,
+    mainStats: { ...base.mainStats, [direction.slot]: [...direction.stats] },
+    sources: [...base.sources, direction.source],
+    boundary: `${base.boundary} 已显式选择 ${direction.id}：${direction.condition}`,
+  }
+  return withGuidanceApplicability({ ...selected, contentHash: stableContentHash(selected) })
 }
 
 function sourceForReviewedTeamDiscDirection(
@@ -368,11 +355,22 @@ export function getCandidateWarehouseConstraintForTeam(
   if (directions.length !== 1)
     throw new Error(`代理人 ${base.agentId} 的精确队伍条件匹配到多个冲突盘套分支。`)
   const direction = directions[0]!
+  const dependencyFieldPaths = new Set<
+    NonNullable<CandidateSetPlan['dependencyFieldPaths']>[number]
+  >([
+    ...(direction.setPlan.dependencyFieldPaths ?? []),
+    'build.drive_disc_sets',
+    'build.team_bangboo_scenario',
+  ])
+  const directedSetPlan: CandidateSetPlan = {
+    ...direction.setPlan,
+    dependencyFieldPaths: [...dependencyFieldPaths],
+  }
   const retainedBasePlans = direction.retainBasePlans ? candidateSetPlansForConstraint(base) : []
   const mergedPlans =
-    direction.retainBasePlans && direction.setPlan.purpose === 'conditional'
-      ? [...retainedBasePlans, direction.setPlan]
-      : [direction.setPlan, ...retainedBasePlans]
+    direction.retainBasePlans && directedSetPlan.purpose === 'conditional'
+      ? [...retainedBasePlans, directedSetPlan]
+      : [directedSetPlan, ...retainedBasePlans]
   // A matched trio adds its source branch; it does not satisfy independent
   // baseline prerequisites. Keep unknown alternatives, but apply explicit
   // negative scenario evidence to the entire merged recommendation.
@@ -422,76 +420,6 @@ export function getCandidateWarehouseConstraintForTeam(
     boundary: `${base.boundary} ${direction.boundary}`,
   }
   return withGuidanceApplicability({ ...input, contentHash: stableContentHash(input) })
-}
-
-/** Adapts sourced candidate directions to the existing optimizer input without making it formal. */
-export function candidateConstraintToDiscProfile(
-  constraint: CandidateWarehouseConstraint,
-): AgentDiscProfile | null {
-  if (constraint.status !== 'candidate' || constraint.setPlanReadiness.status !== 'executable')
-    return null
-  const setFit = Object.fromEntries(constraint.setIds.map((setId) => [setId, 1]))
-  return {
-    agentId: constraint.agentId,
-    version: `candidate-${constraint.contentHash.slice(0, 12)}`,
-    statWeights: constraint.subStatWeights,
-    mainStatFit: {
-      1: { hp_flat: 1 },
-      2: { atk_flat: 1 },
-      3: { def_flat: 1 },
-      4: Object.fromEntries((constraint.mainStats['4'] ?? []).map((stat) => [stat, 1])),
-      5: Object.fromEntries((constraint.mainStats['5'] ?? []).map((stat) => [stat, 1])),
-      6: Object.fromEntries((constraint.mainStats['6'] ?? []).map((stat) => [stat, 1])),
-    },
-    setFit,
-    setPlans: candidateSetPlansForConstraint(constraint).map((plan) => ({
-      pattern: plan.pattern,
-      primarySets: plan.primarySetIds,
-      secondarySets: plan.secondarySetIds,
-    })),
-    confidence: 'low',
-    gameVersion: constraint.gameVersion,
-    scenario: constraint.teamAndBangbooPreconditions.join('；'),
-    teamAssumptions: constraint.teamAndBangbooPreconditions,
-    contextRationale: [
-      constraint.boundary,
-      ...candidateSetPlansForConstraint(constraint).flatMap((plan) =>
-        plan.sourceText ? [plan.sourceText] : [],
-      ),
-    ],
-  }
-}
-
-/** One branch-preserving read for the solver and player-facing recommendation. */
-export function candidateSetPlansForConstraint(
-  constraint: CandidateWarehouseConstraint,
-): CandidateSetPlan[] {
-  if (constraint.setPlanReadiness.status !== 'executable') return []
-  const plans = constraint.setPlans ?? [
-    {
-      pattern: constraint.setPlanReadiness.pattern,
-      primarySetIds: constraint.setPlanReadiness.primarySetIds,
-      secondarySetIds: constraint.setPlanReadiness.secondarySetIds,
-    },
-  ]
-  return plans.flatMap((plan) =>
-    plan.pattern === '4+2'
-      ? plan.primarySetIds.flatMap((primarySetId) => {
-          const secondarySetIds = plan.secondarySetIds.filter(
-            (secondarySetId) => secondarySetId !== primarySetId,
-          )
-          return secondarySetIds.length
-            ? [
-                qualifyCandidateSetPlan(constraint.agentId, {
-                  ...plan,
-                  primarySetIds: [primarySetId],
-                  secondarySetIds,
-                }),
-              ]
-            : []
-        })
-      : [qualifyCandidateSetPlan(constraint.agentId, plan)],
-  )
 }
 
 export type CandidateDiscScore = {

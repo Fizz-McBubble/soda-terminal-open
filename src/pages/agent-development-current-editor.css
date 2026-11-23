@@ -3,24 +3,56 @@
   max-height: calc(var(--soda-viewport-height) - 32px);
 }
 
+.planning-dialog[open]:has(.agent-development-current-editor) {
+  display: flex;
+  overflow: hidden;
+}
+
+.planning-dialog:has(.agent-development-current-editor) > .planning-dialog__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .planning-dialog .agent-development-current-editor {
   height: auto;
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex: 1;
   background: transparent;
 }
 
 .planning-dialog .agent-development-current-editor .editor {
+  flex: 1;
+  min-height: 0;
   max-height: none;
-  overflow: visible;
+  overflow: hidden;
   padding: 8px 0 0;
   box-shadow: none;
   background: transparent;
 }
 
-.planning-dialog .agent-development-current-editor__actions {
+.planning-dialog .agent-development-current-editor .agent-editor {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.planning-dialog .agent-development-current-editor .agent-editor__content {
+  overflow: auto;
+  min-height: 0;
+}
+
+.planning-dialog .agent-development-current-editor .agent-editor__actions {
+  position: static;
+  flex-shrink: 0;
+}
+
+.planning-dialog .agent-development-current-editor .wengine-assignment-field {
+  margin-top: 0;
 }
 
 @media (max-width: 600px) {

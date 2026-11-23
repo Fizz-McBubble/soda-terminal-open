@@ -1,4 +1,5 @@
-import { useState, type RefObject } from 'react'
+import { useRef, useState, type RefObject } from 'react'
+import { playerErrorMessage } from '../../../application/playerErrorMessage'
 import type { AssetGoldenProps } from './types'
 import './asset-dialog.css'
 
@@ -20,6 +21,8 @@ export function DiscBulkDeleteDialog({
   onDeleted: () => void
 }) {
   const [deleting, setDeleting] = useState(false)
+  const deletingRef = useRef(false)
+  const [error, setError] = useState<{ pending: typeof pending; message: string } | null>(null)
   const [confirmation, setConfirmation] = useState({ pending, value: '' })
   const value = confirmation.pending === pending ? confirmation.value : ''
   return (
@@ -63,6 +66,7 @@ export function DiscBulkDeleteDialog({
             onChange={(event) => setConfirmation({ pending, value: event.target.value })}
           />
         </label>
+        {error?.pending === pending ? <p role="alert">{error.message}</p> : null}
         <footer>
           <button type="button" className="quiet" disabled={deleting} onClick={onClose}>
             取消
@@ -71,19 +75,26 @@ export function DiscBulkDeleteDialog({
             type="button"
             className="danger"
             disabled={deleting || value !== `删除 ${pending.length} 张`}
-            onClick={() => {
+            onClick={async () => {
+              if (deletingRef.current) return
+              deletingRef.current = true
               setDeleting(true)
-              void onDelete(
-                pending.map((disc) => disc.stableId),
-                Object.fromEntries(pending.map((disc) => [disc.stableId, disc.revision])),
-              )
-                .then((deleted) => {
-                  if (deleted) {
-                    onDeleted()
-                    onClose()
-                  }
-                })
-                .finally(() => setDeleting(false))
+              setError(null)
+              try {
+                const deleted = await onDelete(
+                  pending.map((disc) => disc.stableId),
+                  Object.fromEntries(pending.map((disc) => [disc.stableId, disc.revision])),
+                )
+                if (deleted) {
+                  onDeleted()
+                  onClose()
+                } else setError({ pending, message: '删除失败，请重试。' })
+              } catch (cause) {
+                setError({ pending, message: playerErrorMessage(cause, '删除失败，请重试。') })
+              } finally {
+                deletingRef.current = false
+                setDeleting(false)
+              }
             }}
           >
             确认删除 {pending.length} 张驱动盘

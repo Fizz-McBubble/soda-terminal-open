@@ -29,6 +29,49 @@
   }
 }
 
+@keyframes soda-feedback-check {
+  from {
+    stroke-dashoffset: 30;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes soda-explanation-body-enter {
+  from {
+    opacity: 0.78;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Only the explanation's reading surface moves; its measured top-layer anchor
+   and scroll box stay fixed. The native open/close and focus owners are intact. */
+:root .explanation-popover:popover-open .explanation-popover__body {
+  animation: soda-explanation-body-enter var(--soda-motion-route) var(--soda-ease-out);
+}
+
+:root .f5v-shell .sea-status-banner--success > svg > path:last-child {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 0;
+  animation: soda-feedback-check var(--soda-motion-emphasis) var(--soda-ease-out);
+}
+
+/* Completion surfaces share one bounded confirmation; actions are already live. */
+:root
+  .f5v-shell
+  :is(.formal-import-success__mark, .asset-quick-read__complete-summary, .scanner-task__completion)
+  > svg
+  > path:last-child {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 0;
+  animation: soda-feedback-check var(--soda-motion-emphasis) var(--soda-ease-out);
+}
+
 :root .f5v-shell :is(button, .button, summary),
 :root :is(.f5v-select-menu-popover, .explanation-popover) button {
   transition:
@@ -87,38 +130,22 @@
   background-color: var(--soda-surface-raised);
 }
 
-/* Portals do not inherit shell selectors. Both accessibility and the explicit
-   project override must stop their transitions as well as shell animation. */
+/* Portals do not inherit shell selectors, so the system preference must cover
+   them explicitly as well as the shell animation surface. */
 @media (prefers-reduced-motion: reduce) {
   :root .f5v-shell *,
   :root .f5v-shell *::before,
   :root .f5v-shell *::after,
-  :root :is(.f5v-select-menu-popover, .explanation-popover),
-  :root :is(.f5v-select-menu-popover, .explanation-popover) * {
+  :root :is(.f5v-select-menu-popover, .explanation-popover, dialog, [popover]),
+  :root :is(.f5v-select-menu-popover, .explanation-popover, dialog, [popover]) * {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
   }
 
   :root
-    .f5v-shell
+    :is(.f5v-shell, dialog, [popover])
     :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):is(:hover, :active) {
     transform: none !important;
   }
-}
-
-:root[data-soda-motion='off'] .f5v-shell *,
-:root[data-soda-motion='off'] .f5v-shell *::before,
-:root[data-soda-motion='off'] .f5v-shell *::after,
-:root[data-soda-motion='off'] :is(.f5v-select-menu-popover, .explanation-popover),
-:root[data-soda-motion='off'] :is(.f5v-select-menu-popover, .explanation-popover) * {
-  animation: none !important;
-  transition: none !important;
-  scroll-behavior: auto !important;
-}
-
-:root[data-soda-motion='off']
-  .f5v-shell
-  :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):is(:hover, :active) {
-  transform: none !important;
 }

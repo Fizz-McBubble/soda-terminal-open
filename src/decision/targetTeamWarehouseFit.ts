@@ -1,5 +1,5 @@
 import type { CoreWarehouse } from '../accounts/coreFlow'
-import { contentHash } from '../evaluation/contentHash'
+import { compareReviewedDiscAssignment } from './reviewedTeamDiscPairs'
 import {
   candidateRecommendationForSetPlan,
   createAccountCandidateGenerationCache,
@@ -12,7 +12,6 @@ import {
   type CandidateWarehouseRecommendation,
 } from '../gameDataPacks/candidateWarehouseConstraints'
 import type { BangbooSelection } from '../teamEngine/contracts'
-import { projectTeamEquipmentRecommendations } from './teamEquipmentRecommendations'
 import { optimizerOptionsFromBuildIntent, type TeamJointBuildIntent } from './buildIntent'
 import type { TeamAssignmentObjective } from '../optimizer/selectTeamObjectiveAssignment'
 import {
@@ -20,7 +19,12 @@ import {
   targetTeamPlanCompletion,
   completeTargetTeamPlan,
 } from './targetTeamWarehouseFitComparison'
-import { candidateTeamSetScore } from '../optimizer/candidateTeamSetScore'
+import {
+  projectTargetTeamWarehouseFit,
+  type TargetTeamWarehouseFitSourceResult,
+} from './targetTeamWarehouseFitProjection'
+
+export { projectTargetTeamWarehouseFit }
 import {
   candidateSetPlanPriority,
   candidateSetPlanIdentity,
@@ -43,24 +47,7 @@ type SourceBranchOptions = {
   remainingBranches: CandidateWarehouseRecommendation[]
 }
 
-type SourceTeamSolveResult = {
-  plan: CandidateWarehousePlan
-  branchSearch: {
-    attempts: number
-    budget: number
-    completePlansCompared?: number
-    searchComplete?: boolean
-  } & (
-    | {
-        status: 'preferred' | 'conflict_fallback' | 'source_preferred_partial' | 'not_needed'
-        preferredMemberCount: number
-      }
-    | {
-        status: 'dynamic_objective' | 'completion_fallback' | 'budget_fallback'
-        preferredMemberCount: null
-      }
-  )
-}
+type SourceTeamSolveResult = TargetTeamWarehouseFitSourceResult
 
 function sourceBranchChoiceIdentity(choice: SourceBranchChoice) {
   const constraint = choice.recommendation.constraint
@@ -80,7 +67,7 @@ function improvesTargetTeamCompletion(
   return (
     candidateCompletion.completeMemberCount > baselineCompletion.completeMemberCount ||
     (candidateCompletion.completeMemberCount === baselineCompletion.completeMemberCount &&
-      candidateCompletion.uniqueDiscCount > baselineCompletion.uniqueDiscCount)
+      candidateCompletion.matchedSlots > baselineCompletion.matchedSlots)
   )
 }
 
@@ -205,10 +192,9 @@ function solveSourceOrderedTargetTeam(input: {
   options: CandidateWarehouseOptions
 }): SourceTeamSolveResult {
   if (input.options.teamAssignmentObjective?.domain === 'game_legal_inventory') {
-    const source = solveSourceOrderedTargetTeam({
-      ...input,
-      options: { ...input.options, teamAssignmentObjective: undefined },
-    })
+    const sourceOptions = { ...input.options, teamAssignmentObjective: undefined }
+    const fallback = solveSourceOrderedTargetTeam({ ...input, options: sourceOptions })
+    const source = compareReviewedDiscAssignment(fallback, input.buildIntent, input.warehouse, sourceOptions)
     const objective = input.options.teamAssignmentObjective
     const plan = solveCandidateWarehouse(
       input.warehouse.discs,
@@ -229,11 +215,7 @@ function solveSourceOrderedTargetTeam(input: {
       },
       input.buildIntent.recommendations,
     )
-    const isComplete = (value: typeof plan) =>
-      value.loadouts.length === 3 &&
-      value.loadouts.every((loadout) => loadout.discs.length === 6) &&
-      new Set(value.loadouts.flatMap((loadout) => loadout.discs.map((item) => item.disc.id)))
-        .size === 18
+    const isComplete = (value: typeof plan) => completeTargetTeamPlan(value, input.buildIntent.agentIds)
     if (
       !isComplete(plan) ||
       (isComplete(source.plan) &&
@@ -430,67 +412,14 @@ export function calculateTargetTeamWarehouseFit(input: {
   teamAssignmentObjective?: TeamAssignmentObjective
 }) {
   const { buildIntent } = input
-  const memberIds = buildIntent.agentIds
-  const { plan, branchSearch } = solveSourceOrderedTargetTeam({
+  const options = {
+    ...optimizerOptionsFromBuildIntent(buildIntent),
+    teamAssignmentObjective: input.teamAssignmentObjective,
+  }
+  const source = solveSourceOrderedTargetTeam({
     warehouse: input.warehouse,
     buildIntent,
-    options: {
-      ...optimizerOptionsFromBuildIntent(buildIntent),
-      teamAssignmentObjective: input.teamAssignmentObjective,
-    },
+    options,
   })
-  const equipmentRecommendations = projectTeamEquipmentRecommendations({
-    memberIds,
-    bangbooSelection: input.bangbooSelection,
-    roster: input.warehouse.roster,
-  })
-  const loadouts = plan.loadouts.map((loadout) => ({
-    agentId: loadout.agentId,
-    discIds: loadout.discs.map((choice) => choice.disc.id),
-  }))
-  const discIds = loadouts.flatMap((loadout) => loadout.discIds)
-  const discsReady =
-    loadouts.length === 3 &&
-    loadouts.every((loadout) => loadout.discIds.length === 6) &&
-    new Set(discIds).size === 18
-  const namedDiscGaps = memberIds.flatMap((agentId) => {
-    const assigned = loadouts.find((loadout) => loadout.agentId === agentId)?.discIds.length ?? 0
-    return assigned === 6 ? [] : [`成员“${agentId}”当前只形成 ${assigned}/6 张可验证实体驱动盘。`]
-  })
-  const status = discsReady
-    ? ('ready' as const)
-    : discIds.length > 0
-      ? ('partial' as const)
-      : ('unavailable' as const)
-  const result = {
-    contract: 'soda-target-team-warehouse-fit/v2' as const,
-    candidateId: buildIntent.exactTeam.candidateId,
-    memberIds,
-    buildIntent,
-    ...(input.teamAssignmentObjective
-      ? { assignmentObjectiveFingerprint: input.teamAssignmentObjective.fingerprint }
-      : {}),
-    status,
-    solverMethod: 'bounded_heuristic' as const,
-    exactWithinModel: false as const,
-    discCount: discIds.length,
-    uniqueDiscCount: new Set(discIds).size,
-    totalScore: candidateTeamSetScore(plan.loadouts),
-    gaps: [
-      ...namedDiscGaps,
-      ...plan.gaps,
-      ...(branchSearch.status === 'conflict_fallback'
-        ? [
-            `为避免共用驱动盘，已调整 ${memberIds.length - branchSearch.preferredMemberCount} 名代理人的套装搭配。`,
-          ]
-        : []),
-    ],
-    warehousePlan: plan,
-    sourceBranchSearch: branchSearch,
-    loadouts,
-    equipmentRecommendations,
-    sideEffect: 'read_only' as const,
-    boundary: `${plan.boundary} 仅代理人与驱动盘绑定真实账号状态；音擎与邦布为默认候选推荐，不作为实体库存或完成度门槛。仅在用户显式选择目标队伍后执行，列表、评级与短名单查询不得预加载本求解。`,
-  }
-  return { ...result, fingerprint: contentHash(result) }
+  return projectTargetTeamWarehouseFit(input, compareReviewedDiscAssignment(source, buildIntent, input.warehouse, options))
 }

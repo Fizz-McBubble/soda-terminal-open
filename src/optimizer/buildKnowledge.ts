@@ -45,6 +45,7 @@ const knowledgeProfileSchema = z.object({
       pattern: z.enum(['4+2', '2+2+2']),
       primarySets: z.array(z.string().min(1)).min(1),
       secondarySets: z.array(z.string().min(1)),
+      fitBonusEligible: z.boolean().optional(),
     }),
   ),
   sources: z.array(sourceSchema).min(1),

@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 import { requireCurrentScannerHelper, verifyScannerHelperIdentity } from './runtimeHelperVersion'
 import {
   compareToolVersion,
@@ -11,6 +11,17 @@ import {
   assetQuickReadDownloadAvailable,
   assetQuickReadRelease,
 } from '../assetQuickRead/distribution'
+
+const minimumFixture = vi.hoisted(() => ({ version: null as string | null }))
+vi.mock('./distribution', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./distribution')>()
+  const { withHelperMinimumFixture } = await import('./helperMinimum.testFixture')
+  return withHelperMinimumFixture(actual, minimumFixture)
+})
+
+beforeEach(() => {
+  minimumFixture.version = null
+})
 
 it('compares observed versions without treating unknown or newer versions as old', () => {
   expect(compareToolVersion('2.3.10', '2.3.11')).toBe(-1)
@@ -68,7 +79,8 @@ it('accepts both frozen download identities but rejects mismatched or unrecogniz
   ).toBe(false)
   expect(assetQuickReadDownloadAvailable({ ...candidate, version: '9.0.0' })).toBe(false)
 })
-it('connects a newer compatible Helper without asking the player to downgrade', () => {
+it('connects a newer reviewed Helper without downgrading against the historical 2.3.9 minimum', () => {
+  minimumFixture.version = '2.3.9'
   const identity = {
     service: 'soda-terminal-scanner-helper',
     version: '2.3.11',
@@ -81,11 +93,33 @@ it('connects a newer compatible Helper without asking the player to downgrade', 
   expect(() =>
     requireCurrentScannerHelper(scannerDistributionManifest.helper.version),
   ).not.toThrow()
-  expect(() => requireCurrentScannerHelper('2.3.9')).toThrow()
-  expect(() => requireCurrentScannerHelper('2.4.1')).toThrow()
+  expect(() => requireCurrentScannerHelper('2.3.8')).toThrow()
+  expect(() => requireCurrentScannerHelper('2.4.1')).not.toThrow()
+  expect(() => requireCurrentScannerHelper('2.4.2')).not.toThrow()
+  expect(() => requireCurrentScannerHelper('2.4.3')).not.toThrow()
+  expect(() => requireCurrentScannerHelper('2.4.4')).not.toThrow()
+  expect(() => requireCurrentScannerHelper('2.4.5')).toThrow()
   expect(() => requireCurrentScannerHelper(null)).toThrow()
   expect(() => verifyScannerHelperIdentity({ ...identity, protocolVersion: 4 })).toThrow()
   expect(() => verifyScannerHelperIdentity({ ...identity, accountWriteEnabled: true })).toThrow()
+})
+
+it('admits published 2.3.20 and reviewed successor Helpers while requiring outdated ones to update', () => {
+  expect(scannerDistributionManifest.helper.version).toBe('2.3.20')
+  for (const version of ['2.3.20', '2.3.21', '2.4.0', '2.4.1', '2.4.2', '2.4.3', '2.4.4']) {
+    expect(() => requireCurrentScannerHelper(version)).not.toThrow()
+  }
+  for (const version of ['2.3.9', '2.3.19']) {
+    expect(() => requireCurrentScannerHelper(version)).toThrow('请更新画面扫描后再扫描')
+    expect(scannerToolUpgradeNotice({ helper: version })).toBe(
+      `画面扫描有新版本（v${scannerDistributionManifest.helper.installerVersion}），请更新。`,
+    )
+  }
+  minimumFixture.version = '2.4.4'
+  for (const version of ['2.3.20', '2.4.1', '2.4.2', '2.4.3']) {
+    expect(() => requireCurrentScannerHelper(version)).toThrow('请更新画面扫描后再扫描')
+  }
+  expect(() => requireCurrentScannerHelper('2.4.4')).not.toThrow()
 })
 
 it('accurately identifies installer-only upgrades versus runtime/helper/scanner upgrades', () => {

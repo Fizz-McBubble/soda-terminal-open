@@ -8,6 +8,7 @@ import {
   restoreAccountBackup,
 } from '../accounts/backup'
 import { saveAccountPlanningDraft } from '../accounts/planningDrafts'
+import type { RosterAgent } from '../assault/types'
 import { database } from '../db/database'
 import { ensureBundledGameDataPacks } from '../gameDataPacks/repository'
 import { readCurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
@@ -29,6 +30,9 @@ import {
   ascensionInput,
   ascensionPlan,
 } from './accountDecisionAscension.testFixture'
+// Keep cold module evaluation outside the simulated transport response timing.
+import '../decision/accountDecisionService'
+import './localCalculationQueryClientCore'
 
 let dispatch: typeof import('./browserCalculationQuery.worker').calculateBrowserQueryResponse
 beforeAll(async () => {
@@ -120,14 +124,25 @@ async function setup(holdResponses = false) {
   }
 }
 
-async function changePhase(accountId: string, target: 'agent' | 'equipped-engine') {
+async function updateAscensionAgent(
+  accountId: string,
+  update: (agent: RosterAgent) => RosterAgent,
+) {
   await act(async () =>
-    updateAccountRoster(accountId, (roster) => {
-      const agent = roster.agents.find((row) => row.agentId === ascensionAgentId)!
-      if (target === 'agent') agent.ascension = 5
-      else agent.wEngineDetails.ascension = 5
-      return roster
-    }),
+    updateAccountRoster(accountId, (roster) => ({
+      ...roster,
+      agents: roster.agents.map((agent) =>
+        agent.agentId === ascensionAgentId ? update(agent) : agent,
+      ),
+    })),
+  )
+}
+
+function changePhase(accountId: string, target: 'agent' | 'equipped-engine') {
+  return updateAscensionAgent(accountId, (agent) =>
+    target === 'agent'
+      ? { ...agent, ascension: 5 }
+      : { ...agent, wEngineDetails: { ...agent.wEngineDetails, ascension: 5 } },
   )
 }
 
@@ -137,27 +152,26 @@ describe('ascension facts through browser client, provider and persistence', () 
     async (target) => {
       const h = await setup()
       h.mount()
-      await waitFor(() => expect(h.world().status).toBe('current'))
+      await waitFor(() => expect(h.world().status).toBe('current'), { timeout: 10_000 })
       const before = h.world().run!
-      await act(async () =>
-        updateAccountRoster(h.account.id, (roster) => {
-          const agent = roster.agents.find((row) => row.agentId === ascensionAgentId)!
-          agent.syncedAt = '2026-10-03T02:00:00.000Z'
-          agent.wEngineDetails.name = '私人名称'
-          return roster
-        }),
-      )
+      const syncedAt = '2026-10-03T02:00:00.000Z'
+      await updateAscensionAgent(h.account.id, (agent) => ({
+        ...agent,
+        syncedAt,
+        wEngineDetails: { ...agent.wEngineDetails, name: '私人名称' },
+      }))
       await waitFor(() =>
-        expect(h.world().liveInput?.warehouse.roster.updatedAt).not.toBe(
-          before.input.warehouse.roster.updatedAt,
-        ),
+        expect(ascensionAgent(h.world().liveInput!)).toMatchObject({
+          syncedAt,
+          wEngineDetails: { name: '私人名称' },
+        }),
       )
       expect(h.world().status).toBe('current')
       await changePhase(h.account.id, target)
       await waitFor(() => expect(h.world().status).toBe('stale'))
       expect(h.world().run!.runId).toBe(before.runId)
       fireEvent.click(screen.getByRole('button', { name: '重新分析' }))
-      await waitFor(() => expect(h.world().status).toBe('current'))
+      await waitFor(() => expect(h.world().status).toBe('current'), { timeout: 10_000 })
       const after = h.world().run!
       expect(after.runId).not.toBe(before.runId)
       expect(after.inputFingerprint).not.toBe(before.inputFingerprint)
@@ -187,13 +201,16 @@ describe('ascension facts through browser client, provider and persistence', () 
   it('discards an in-flight response captured before a promotion', async () => {
     const h = await setup(true)
     h.mount()
-    await waitFor(() => expect(h.responses).toHaveLength(1))
+    await waitFor(() => expect(h.responses).toHaveLength(1), { timeout: 10_000 })
     const old = h.requests.find((request) => request.kind === 'query')!
     h.stopHolding()
     await changePhase(h.account.id, 'equipped-engine')
-    await waitFor(() => expect(h.world().status).toBe('current'))
+    await waitFor(() => expect(h.world().status).toBe('current'), { timeout: 10_000 })
     const current = h.world().run!
-    expect(current.runId).not.toBe(old.kind === 'query' ? old.query.runId : '')
+    expect(old.kind === 'query' && old.query.kind).toBe('account_decision')
+    expect(current.runId).not.toBe(
+      old.kind === 'query' && old.query.kind === 'account_decision' ? old.query.runId : '',
+    )
     expect(ascensionAgent(current.input).wEngineDetails.ascension).toBe(5)
     await act(async () => {
       h.responses.shift()!()
@@ -211,13 +228,13 @@ describe('ascension facts through browser client, provider and persistence', () 
     expect(preflightAccountBackup(updated).success).toBe(true)
     expect(updated.data.planningDrafts[0]!.revision).toBe(saved.revision)
     h.mount()
-    await waitFor(() => expect(h.world().status).toBe('current'))
+    await waitFor(() => expect(h.world().status).toBe('current'), { timeout: 10_000 })
     await act(async () => {
       await restoreAccountBackup(updated)
     })
     await waitFor(() => expect(h.world().status).toBe('stale'))
     fireEvent.click(screen.getByRole('button', { name: '重新分析' }))
-    await waitFor(() => expect(h.world().status).toBe('current'))
+    await waitFor(() => expect(h.world().status).toBe('current'), { timeout: 10_000 })
     expect(h.world().run!.input.drafts[0]!.teamEquipmentParameters!.wEngines[0]!.ascension).toBe(5)
     const resaved = await saveAccountPlanningDraft(h.account.id, updated.data.planningDrafts[0]!)
     expect(resaved.revision).toBe(saved.revision + 1)

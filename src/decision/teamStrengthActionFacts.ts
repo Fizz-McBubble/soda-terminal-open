@@ -7,6 +7,10 @@ import {
   resolveSourceEventQuantity32,
 } from '../calculation/sourceEventQuantity32'
 import { getPlanningDamageEventSemantics } from '../calculation/currentPlanningDamageModifiers'
+import {
+  resolveTeamStrengthSourceActionBranches,
+  type SourceActionBranch,
+} from './teamStrengthSourceActionBranches'
 
 type ResolvedEvent = Extract<ReturnType<typeof resolveCurrentAgentEvent>, { status: 'supported' }>
 
@@ -17,7 +21,10 @@ export type TeamStrengthSourceAction = {
     condition: string
     boundary: string
   }
-  sourceBranch?: 'light_defensive' | 'heavy_defensive' | 'chain_defensive'
+  sourceBranch?: string
+  sourceRequirements?: string[]
+  sourceRefs?: string[]
+  execution?: 'background_trigger'
   skill: string
   eventIds: string[]
   damageMultiplier: number
@@ -44,6 +51,10 @@ export function teamStrengthSourceActionSemantics(action: TeamStrengthSourceActi
 export function teamStrengthActionFacts(input: {
   agentId: string
   skillLevel?: number
+  /** Membership selects source alternatives; it never supplies a buff state. */
+  memberIds?: readonly string[]
+  potential?: number | null
+  declaredUsesByEventId?: Readonly<Record<string, number>>
   declaredRateSecondsByEventId?: Readonly<Record<string, number>>
 }) {
   const contract = getCurrentAgentEventContract(input.agentId)
@@ -56,7 +67,12 @@ export function teamStrengthActionFacts(input: {
   for (const event of contract.eventContract.events) {
     // Catalog Ultimates share the chain skill bucket. Do not introduce an
     // Ultimate-use policy merely because that bucket is in the ordinary scope.
-    if (!skills.has(event.skill) || /^Ultimate/.test(event.actionId)) continue
+    if (
+      !skills.has(event.skill) ||
+      /^Ultimate/.test(event.actionId) ||
+      event.formulaBinding?.automaticPlanningEligible === false
+    )
+      continue
     const key = `${event.skill}:${event.actionId}`
     packets.set(key, [...(packets.get(key) ?? []), event])
   }
@@ -107,97 +123,153 @@ export function teamStrengthActionFacts(input: {
       })
       continue
     }
-    const events = packet.filter((event) => event.formulaProjection !== 'raw_only')
-    if (!events.length) continue
-    const blockers: string[] = []
-    const resolved: {
-      event: ResolvedEvent
-      quantity: TeamStrengthSourceAction['quantities'][number]
-    }[] = []
-    for (const source of events) {
-      const event = resolveCurrentAgentEvent({
-        stableId: input.agentId,
-        eventId: source.eventId,
-        skillLevel,
+    const sourceBranches = resolveTeamStrengthSourceActionBranches({
+      upstreamKey: contract.upstreamKey,
+      actionId: packet[0]!.actionId,
+      source: contract.source,
+      hitIndices: packet.map((event) => event.hitIndex),
+      memberIds: input.memberIds,
+      potential: input.potential,
+    })
+    if (sourceBranches.status === 'unsupported') {
+      excludedActions.push({ actionId: packet[0]!.actionId, blockers: sourceBranches.blockers })
+      continue
+    }
+    if (sourceBranches.status === 'supported' && sourceBranches.unresolvedIndices.length)
+      excludedActions.push({
+        actionId: packet[0]!.actionId,
+        blockers: [`unresolved_source_rows:${sourceBranches.unresolvedIndices.join(',')}`],
       })
-      const rate = isSourceRateEvent32(input.agentId, source.eventId)
-      const quantity = resolveSourceEventQuantity32({
-        ownerAgentId: input.agentId,
-        eventId: source.eventId,
-        occurrenceCount: 1,
-        ...(rate ? { durationSeconds: input.declaredRateSecondsByEventId?.[source.eventId] } : {}),
-      })
-      if (event.status !== 'supported') {
-        blockers.push(`${source.eventId}: ${event.blockers.join('; ')}`)
-        continue
+    type PacketBranch = {
+      events: typeof packet
+      definition?: SourceActionBranch
+      sourceRefs?: string[]
+      sourceBranch?: string
+    }
+    const branches: PacketBranch[] =
+      sourceBranches.status === 'supported'
+        ? sourceBranches.branches.map((definition) => ({
+            events: definition.indices.map(
+              (index) => packet.find((event) => event.hitIndex === index)!,
+            ),
+            definition,
+            sourceBranch: definition.branchId,
+            sourceRefs: sourceBranches.sourceRefs,
+          }))
+        : defensive
+          ? packet.map((event) => ({
+              events: [event],
+              sourceBranch: ['light_defensive', 'heavy_defensive', 'chain_defensive'][
+                event.hitIndex
+              ]!,
+            }))
+          : [{ events: packet }]
+    for (const branch of branches) {
+      const events = branch.events.filter((event) => event.formulaProjection !== 'raw_only')
+      if (!events.length) continue
+      const blockers: string[] = []
+      const resolved: {
+        event: ResolvedEvent
+        quantity: TeamStrengthSourceAction['quantities'][number]
+      }[] = []
+      for (const source of events) {
+        const event = resolveCurrentAgentEvent({
+          stableId: input.agentId,
+          eventId: source.eventId,
+          skillLevel,
+        })
+        const requirement = branch.definition?.quantityRequirements?.find(
+          (row) => row.index === source.hitIndex,
+        )
+        const count =
+          requirement?.unit === 'occurrences' ? input.declaredUsesByEventId?.[source.eventId] : 1
+        if (count === undefined || !Number.isInteger(count) || count <= 0) {
+          blockers.push(`${source.eventId}: explicit_source_occurrence_count_required`)
+          continue
+        }
+        const rate = isSourceRateEvent32(input.agentId, source.eventId)
+        if (requirement?.unit === 'seconds' && !rate) {
+          blockers.push(`${source.eventId}: source_rate_formula_binding_required`)
+          continue
+        }
+        const quantity = resolveSourceEventQuantity32({
+          ownerAgentId: input.agentId,
+          eventId: source.eventId,
+          occurrenceCount: count,
+          ...(rate
+            ? { durationSeconds: input.declaredRateSecondsByEventId?.[source.eventId] }
+            : {}),
+        })
+        if (event.status !== 'supported') {
+          blockers.push(`${source.eventId}: ${event.blockers.join('; ')}`)
+          continue
+        }
+        if (quantity.status !== 'supported') {
+          blockers.push(`${source.eventId}: ${quantity.reason}`)
+          continue
+        }
+        if (
+          ![event.damageMultiplier, event.dazeMultiplier, event.anomalyBuildup].every(
+            (value) => Number.isFinite(value) && value >= 0,
+          )
+        ) {
+          blockers.push(`${source.eventId}: nonfinite_or_negative_source_coefficient`)
+          continue
+        }
+        resolved.push({
+          event,
+          quantity: { eventId: source.eventId, unit: quantity.unit, value: quantity.value },
+        })
       }
-      if (quantity.status !== 'supported') {
-        blockers.push(`${source.eventId}: ${quantity.reason}`)
+      if (blockers.length || resolved.length !== events.length) {
+        excludedActions.push({ actionId: events[0]!.actionId, blockers })
         continue
       }
       if (
-        ![event.damageMultiplier, event.dazeMultiplier, event.anomalyBuildup].every(
-          (value) => Number.isFinite(value) && value >= 0,
+        defensive &&
+        resolved.some(
+          ({ event, quantity }) =>
+            event.damageMultiplier !== 0 ||
+            event.anomalyBuildup !== 0 ||
+            quantity.unit !== 'coefficient_uses',
         )
       ) {
-        blockers.push(`${source.eventId}: nonfinite_or_negative_source_coefficient`)
+        excludedActions.push({
+          actionId: events[0]!.actionId,
+          blockers: ['unreviewed_defensive_assist_mixed_channels'],
+        })
         continue
       }
-      resolved.push({
-        event,
-        quantity: { eventId: source.eventId, unit: quantity.unit, value: quantity.value },
-      })
-    }
-    // A partial packet must not compete against a complete source action.
-    if (blockers.length || resolved.length !== events.length) {
-      excludedActions.push({ actionId: events[0]!.actionId, blockers })
-      continue
-    }
-    if (
-      defensive &&
-      resolved.some(
-        ({ event, quantity }) =>
-          event.damageMultiplier !== 0 ||
-          event.anomalyBuildup !== 0 ||
-          quantity.unit !== 'coefficient_uses',
-      )
-    ) {
-      excludedActions.push({
-        actionId: events[0]!.actionId,
-        blockers: ['unreviewed_defensive_assist_mixed_channels'],
-      })
-      continue
-    }
-    const branches = defensive ? resolved.map((row) => [row]) : [resolved]
-    for (const branch of branches) {
-      const families = new Set(branch.map(({ event }) => event.formulaFamily))
-      const attributes = new Set(branch.map(({ event }) => event.scalingAttribute))
+      const families = new Set(resolved.map(({ event }) => event.formulaFamily))
+      const attributes = new Set(resolved.map(({ event }) => event.scalingAttribute))
       actions.push({
         actionId: events[0]!.actionId,
-        ...(defensive
+        ...(branch.sourceBranch ? { sourceBranch: branch.sourceBranch } : {}),
+        ...(branch.definition
           ? {
-              sourceBranch: (['light_defensive', 'heavy_defensive', 'chain_defensive'] as const)[
-                events.find((source) => source.eventId === branch[0]!.event.eventId)!.hitIndex
-              ]!,
+              sourceSequence: branch.definition.sourceSequence,
+              sourceRequirements: branch.definition.requirements,
             }
           : {}),
+        ...(branch.sourceRefs ? { sourceRefs: branch.sourceRefs } : {}),
+        ...(branch.definition?.execution ? { execution: branch.definition.execution } : {}),
         skill: events[0]!.skill,
-        eventIds: branch.map(({ event }) => event.eventId),
-        damageMultiplier: branch.reduce(
+        eventIds: resolved.map(({ event }) => event.eventId),
+        damageMultiplier: resolved.reduce(
           (sum, { event, quantity }) => sum + event.damageMultiplier * quantity.value,
           0,
         ),
-        dazeMultiplier: branch.reduce(
+        dazeMultiplier: resolved.reduce(
           (sum, { event, quantity }) => sum + event.dazeMultiplier * quantity.value,
           0,
         ),
-        anomalyBuildup: branch.reduce(
+        anomalyBuildup: resolved.reduce(
           (sum, { event, quantity }) => sum + event.anomalyBuildup * quantity.value,
           0,
         ),
         formulaFamily: families.size === 1 ? [...families][0]! : null,
         scalingAttribute: attributes.size === 1 ? [...attributes][0]! : null,
-        quantities: branch.map(({ quantity }) => quantity),
+        quantities: resolved.map(({ quantity }) => quantity),
       })
     }
   }
@@ -211,6 +283,7 @@ export function teamStrengthActionFacts(input: {
           // A declared rate exposure is not the same unit as one coefficient use.
           // Keep it available for diagnostics; do not rank it against hit packets.
           action.quantities.every((quantity) => quantity.unit === 'coefficient_uses') &&
+          action.execution !== 'background_trigger' &&
           predicate(action) &&
           action[metric] > 0,
       )

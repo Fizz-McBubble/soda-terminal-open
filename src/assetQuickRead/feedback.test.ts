@@ -1,6 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 import {
   assetFailureDiagnostic,
+  assetQuickReadStatusDiagnostic,
   AssetQuickReadRequestError,
   sanitizeAssetDiagnostic,
 } from './diagnostics'
@@ -273,6 +274,80 @@ it.each(['import_recovery_limit_reached', 'import_snapshot_reused'] as const)(
     expect(JSON.stringify(report)).not.toContain('private')
   },
 )
+
+it('retains the named Bridge 1.1.1 candidate and historical identities in failure and status producers', () => {
+  for (const version of ['1.0.0', '1.0.7', '1.0.999', '1.1.0', '1.1.1']) {
+    for (const report of [
+      assetFailureDiagnostic('startup', undefined, failedNativeJob, version),
+      assetQuickReadStatusDiagnostic('error', failedNativeJob, version),
+    ]) {
+      expect(report.versions).toEqual({ bridge: version, protocol: '1' })
+      expect(['capture_open_failed', 'status_only']).toContain(report.code)
+      expect(sanitizeAssetDiagnostic(report)).toEqual(report)
+      expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+      saveAssetDiagnostic(report)
+      expect(readAssetDiagnostic()).toEqual(report)
+      expect(JSON.stringify(report)).not.toMatch(/private|targetAccountId|jobId/)
+    }
+  }
+})
+
+it('keeps unknown Bridge identities unknown and rejects invented runtime versions or game protocol fields', () => {
+  for (const version of [
+    undefined,
+    'unknown',
+    '1.1.2',
+    '1.1.9',
+    '1.2.0',
+    '1.2.1',
+    '1.3.0',
+    '2.0.0',
+    '1.1.1-private',
+  ]) {
+    const report = assetFailureDiagnostic('startup', undefined, failedNativeJob, version)
+    expect(report.versions).toEqual({})
+    expect(report.code).toBe('capture_open_failed')
+    expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+    if (version !== undefined) {
+      const poisoned = { ...report, versions: { bridge: version, protocol: '1' } }
+      expect(sanitizeAssetDiagnostic(poisoned)).toBeNull()
+      expect(sanitizeScanFeedbackPayload(poisoned)).toEqual({ status: 400 })
+    }
+  }
+  const report = assetFailureDiagnostic('startup', undefined, failedNativeJob, '1.1.1')
+  for (const versions of [
+    { bridge: '1.1.1', protocol: '3.3' },
+    { bridge: '1.1.1', protocol: '1', gameProtocol: '3.3' },
+    { bridge: '1.1.1', protocol: '1', token: 'private' },
+  ]) {
+    expect(sanitizeAssetDiagnostic({ ...report, versions })).toBeNull()
+    expect(sanitizeScanFeedbackPayload({ ...report, versions })).toEqual({ status: 400 })
+  }
+})
+
+it('preserves Bridge 1.1.1 through explicit runtime submission and receipt readback without automatic posting', async () => {
+  const report = assetFailureDiagnostic('startup', undefined, failedNativeJob, '1.1.1')
+  const fetcher = vi.fn<typeof fetch>().mockImplementation(async (url, init) => {
+    expect(url).toBe('/_soda/scan-feedback')
+    expect(init).toMatchObject({ method: 'POST', credentials: 'omit' })
+    const sent = JSON.parse(init?.body as string)
+    expect(sent.versions).toEqual({ bridge: '1.1.1', protocol: '1' })
+    expect(sanitizeScanFeedbackPayload(sent)).toEqual({ ok: true, record: report })
+    return Response.json({
+      status: 'received',
+      reportId: report.reportId,
+      receivedAt: '2026-10-23T08:45:00.000Z',
+    })
+  })
+  saveAssetDiagnostic(report)
+  const restored = readAssetDiagnostic()!
+  expect(restored.versions).toEqual({ bridge: '1.1.1', protocol: '1' })
+  expect(readAssetReceipt(restored)).toBeNull()
+  expect(fetcher).not.toHaveBeenCalled()
+  await submitAssetFeedback(restored, fetcher)
+  expect(readAssetReceipt(readAssetDiagnostic()!)?.report).toEqual(report)
+  expect(fetcher).toHaveBeenCalledOnce()
+})
 
 it('keeps the released bridge version, final counts and timing through the cloud allowlist', () => {
   const report = assetFailureDiagnostic(

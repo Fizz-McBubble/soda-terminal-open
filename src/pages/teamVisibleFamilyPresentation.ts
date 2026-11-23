@@ -1,5 +1,5 @@
 import type { TeamLoadoutOverviewFamily, TeamLoadoutOverviewItem } from './teamLoadoutOverviewTypes'
-import { compareTeamRecommendations, recommendationStrengthBucket } from './teamRecommendationRank'
+import { orderRankedTeamItems, orderTeamRecommendations } from './teamRecommendationOrdering'
 
 /** Rebuild an already calculated family after a local display filter. */
 export function rebuildVisibleFamily(
@@ -36,38 +36,19 @@ export function rebuildVisibleFamily(
   }
 }
 
-/** A display filter may change a family's strongest visible variant. Reorder
- * supplied ratings, then apply only the private producer's reviewed tie links. */
-export function orderVisibleFamilies(families: readonly TeamLoadoutOverviewFamily[]) {
+/** Order by the displayed variant, or the strongest visible variant when none is selected. */
+export function orderVisibleFamilies(
+  families: readonly TeamLoadoutOverviewFamily[],
+  activeVariants: Readonly<Record<string, string>> = {},
+) {
   const ranked = families.map((family) => ({
     family,
-    strongest: family.variants.reduce(
-      (best, item) => (compareTeamRecommendations(item, best) < 0 ? item : best),
-      family.variants[0]!,
-    ),
+    strongest:
+      family.variants.find((item) => item.id === activeVariants[family.id]) ??
+      orderTeamRecommendations(family.variants)[0]!,
   }))
-  ranked.sort((left, right) => compareTeamRecommendations(left.strongest, right.strongest))
-  const ordered: typeof ranked = []
-  const keyOf = (ids: readonly string[]) => [...ids].sort().join('|')
-  for (let start = 0; start < ranked.length; ) {
-    const bucket = recommendationStrengthBucket(ranked[start]!.strongest)
-    let end = start + 1
-    while (end < ranked.length && recommendationStrengthBucket(ranked[end]!.strongest) === bucket)
-      end += 1
-    const pending = ranked.slice(start, end)
-    while (pending.length) {
-      const visibleKeys = new Set(pending.map(({ strongest }) => keyOf(strongest.agentIds)))
-      const index = pending.findIndex(({ strongest }) => {
-        const memberKey = keyOf(strongest.agentIds)
-        return !pending.some(
-          ({ strongest: other }) =>
-            other.preferredOverMemberKeys?.includes(memberKey) &&
-            visibleKeys.has(keyOf(other.agentIds)),
-        )
-      })
-      ordered.push(...pending.splice(index < 0 ? 0 : index, 1))
-    }
-    start = end
-  }
-  return ordered.map(({ family }) => family)
+  const familyByStrongest = new Map(ranked.map((entry) => [entry.strongest, entry.family]))
+  return orderRankedTeamItems(ranked.map((entry) => entry.strongest)).map(
+    (strongest) => familyByStrongest.get(strongest)!,
+  )
 }

@@ -1,34 +1,14 @@
+import type { ReactNode } from 'react'
 import { currentDriveDiscRecommendationCatalog } from '../../../gameDataPacks/currentDriveDiscRecommendationCatalog'
-import bangbooDisplay from '../../../gameDataPacks/data/current-bangboo-display.3.1.json'
 import { EffectDescription } from '../../EffectDescription'
 import { WEngineReferencePanel } from './WEngineReference'
-import type { CatalogItem } from './types'
+import { AgentReferencePanel } from './AgentReference'
+import { BangbooReferencePanel } from './BangbooReference'
+import type { CatalogItem, CatalogReferenceProps } from './types'
 
 type CatalogReference = {
   title: string
   facts: Array<{ label: string; name?: string; value: string }>
-}
-
-function bangbooReference(
-  item: CatalogItem,
-  skillLevel: number,
-  additionalAbilityLevel: number,
-): CatalogReference | null {
-  const entry = bangbooDisplay.items.find((entry) => entry.stableId === item.stableId)
-  if (!entry) return null
-  return {
-    title: '技能效果',
-    facts: entry.skills.map((skill) => {
-      const level = skill.slot === 'b' ? additionalAbilityLevel : skillLevel
-      const effect = skill.levels.find((entry) => entry.level === level) ?? skill.levels[0]
-      const role = skill.slot === 'a' ? '主动技' : skill.slot === 'b' ? '额外能力' : '邦布连携技'
-      return {
-        label: `${role} · Lv.${effect.level}`,
-        name: effect.name,
-        value: effect.description.replace(/^\[[^\]]+\]\s*/, ''),
-      }
-    }),
-  }
 }
 
 function driveDiscReference(item: CatalogItem): CatalogReference | null {
@@ -46,25 +26,52 @@ function driveDiscReference(item: CatalogItem): CatalogReference | null {
 
 export function CatalogReferencePanel({
   item,
-  skillLevel = 1,
   additionalAbilityLevel = 1,
-}: {
-  item: CatalogItem
-  skillLevel?: number
-  additionalAbilityLevel?: number
-}) {
+  agentView,
+  agentProgress,
+}: CatalogReferenceProps) {
+  if (item.entityType === 'agent')
+    return (
+      <AgentReferencePanel
+        key={item.stableId}
+        stableId={item.stableId}
+        attribute={item.attribute}
+        view={agentView}
+        progress={agentProgress}
+      />
+    )
   if (item.entityType === 'wengine')
     return <WEngineReferencePanel key={item.stableId} stableId={item.stableId} />
-  const reference =
-    item.entityType === 'bangboo'
-      ? bangbooReference(item, skillLevel, additionalAbilityLevel)
-      : item.entityType === 'drive_disc_set'
-        ? driveDiscReference(item)
-        : null
+  if (item.entityType === 'bangboo')
+    return (
+      <BangbooReferencePanel
+        key={`${item.stableId}:${additionalAbilityLevel}`}
+        stableId={item.stableId}
+        initialStar={additionalAbilityLevel}
+      />
+    )
+  const reference = item.entityType === 'drive_disc_set' ? driveDiscReference(item) : null
   if (!reference) return null
+  return <ReferenceFacts reference={reference} />
+}
+
+function ReferenceFacts({
+  reference,
+  controls,
+}: {
+  reference: CatalogReference
+  controls?: ReactNode
+}) {
   return (
     <section className="editor-section catalog-reference" aria-label={reference.title}>
-      <h3>{reference.title}</h3>
+      {controls ? (
+        <div className="bangboo-reference__heading">
+          <h3>{reference.title}</h3>
+          {controls}
+        </div>
+      ) : (
+        <h3>{reference.title}</h3>
+      )}
       <dl className="catalog-reference__facts">
         {reference.facts.map((fact) => (
           <div key={fact.label}>

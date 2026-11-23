@@ -66,7 +66,7 @@ describe('source-bound Pan next incoming recipient through runtime and event gra
       expect.objectContaining({
         effectKey: panMeridianFlowEffectKey32,
         fields: ['meridian_flow', panMeridianFlowIncomingReference32],
-        reason: expect.stringContaining('未知'),
+        reason: '该次增益的触发与接受者尚未绑定。',
         sourceRefs: expect.arrayContaining(f.entries[0].sourceRefs),
       }),
     )

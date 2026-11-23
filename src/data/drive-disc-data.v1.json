@@ -3,17 +3,17 @@
   "gameVersion": "3.0",
   "dataVersion": "zzz-drive-disc-3.0-s4.1",
   "updatedAt": "2026-06-29T00:00:00.000Z",
-  "contentHash": "187etbe",
+  "contentHash": "w1c8hw",
   "sources": [
     {
       "id": "adepti-2.7-metadata",
       "url": "https://github.com/D1firehail/AdeptiScanner-ZZZ/blob/master/AdeptiScanner%20ZZZ/ScannerFiles/ArtifactInfo_readable.json",
-      "note": "交叉核对 2.7 的 26 个套装、号位主属性与各稀有度副词条步进。"
+      "note": "核对 2.7 的套装与号位主属性；其 A、B 级生命和攻击副词条步进与其他来源冲突，未用于确定这四项。"
     },
     {
       "id": "zzz-scanner-valid-metadata",
       "url": "https://github.com/samsaq/ZZZ-Scanner/blob/main/Python_Scanner/validMetadata.py",
-      "note": "交叉核对号位约束、主属性基础值、等级上限与数值校验方法。"
+      "note": "交叉核对号位约束、主属性基础值、等级上限与数值校验方法；A、B 级生命和攻击步进采用此来源，仍与其他来源存在冲突。"
     },
     {
       "id": "bwiki-drive-discs",
@@ -29,6 +29,16 @@
       "id": "zzz-3.0-drive-discs",
       "url": "https://news.17173.com/content/06102026/123423486.shtml",
       "note": "交叉核对 3.0 新增呼啸沙龙、拂晓行纪的中英文名和套装效果。"
+    },
+    {
+      "id": "nanoka-3.3-equipment-31400",
+      "url": "https://static.nanoka.cc/zzz/3.3/zh/equipment/31400.json",
+      "note": "激素朋克：仅核对四件效果文字修正；3.3 中文原件 SHA256 45A40302875B46EB38483EF4DCCE20AC29B99DFAB270075EFF9A673B057050D7，不改变 3.0 主体来源版本或计算语义。"
+    },
+    {
+      "id": "nanoka-3.3-equipment-32800",
+      "url": "https://static.nanoka.cc/zzz/3.3/zh/equipment/32800.json",
+      "note": "静听嘉音：仅核对四件效果文字修正；3.3 中文原件 SHA256 5B5A853E8304813637A35283E1B52CE1861AE46C58F05F85A23FF51D891807F3，不改变 3.0 主体来源版本或计算语义。"
     }
   ],
   "driveDiscSets": [
@@ -38,7 +48,7 @@
       "englishName": "Woodpecker Electro",
       "aliases": ["啄木鸟电音", "Woodpecker Electro", "WoodpeckerElectro"],
       "twoPieceEffect": "暴击率提升8%。",
-      "fourPieceEffect": "普通攻击、闪避反击或强化特殊技命中并触发暴击时，分别提供1层攻击力提升9%的增益，持续6秒。",
+      "fourPieceEffect": "普通攻击、闪避反击或强化特殊技命中并触发暴击时，分别提供1层攻击力提升9%的增益，持续6秒；不同招式分别结算持续时间。",
       "version": "1.0"
     },
     {
@@ -65,7 +75,7 @@
       "englishName": "Freedom Blues",
       "aliases": ["自由蓝调", "Freedom Blues", "FreedomBlues"],
       "twoPieceEffect": "异常精通提升30点。",
-      "fourPieceEffect": "强化特殊技命中时，使目标对应属性异常积蓄抗性降低35%，持续8秒。",
+      "fourPieceEffect": "强化特殊技命中敌人时，根据装备者的属性类型，使目标对应属性异常积蓄抗性降低20%，持续8秒；相同属性的效果不可叠加。",
       "version": "1.0"
     },
     {
@@ -74,7 +84,7 @@
       "englishName": "Hormone Punk",
       "aliases": ["激素朋克", "Hormone Punk", "HormonePunk"],
       "twoPieceEffect": "攻击力提升10%。",
-      "fourPieceEffect": "进入接战状态或换入前场时，攻击力提升25%，持续10秒，20秒内最多触发一次。",
+      "fourPieceEffect": "成为接战状态下的当前操作角色时，装备者的攻击力提升25%，持续10秒，20秒内最多触发一次。",
       "version": "1.0"
     },
     {
@@ -92,7 +102,7 @@
       "englishName": "Swing Jazz",
       "aliases": ["摇摆爵士", "Swing Jazz", "SwingJazz"],
       "twoPieceEffect": "能量自动回复提升20%。",
-      "fourPieceEffect": "发动连携技或终结技时，全队造成的伤害提升15%，持续12秒。",
+      "fourPieceEffect": "发动连携技或终结技时，全队造成的伤害提升15%，持续12秒；同名被动效果不叠加。",
       "version": "1.0"
     },
     {
@@ -101,7 +111,7 @@
       "englishName": "Chaos Jazz",
       "aliases": ["混沌爵士", "Chaos Jazz", "ChaosJazz"],
       "twoPieceEffect": "异常精通提升30点。",
-      "fourPieceEffect": "火属性和电属性伤害提升15%；位于后场时强化特殊技和支援攻击伤害提升20%。",
+      "fourPieceEffect": "火属性和电属性伤害提升15%；位于后场时，强化特殊技和支援攻击伤害提升20%，换入前场后该效果仍保留5秒，该保留效果7.5秒内最多触发一次。",
       "version": "1.2"
     },
     {
@@ -110,7 +120,7 @@
       "englishName": "Proto Punk",
       "aliases": ["原始朋克", "Proto Punk", "ProtoPunk"],
       "twoPieceEffect": "施加的护盾值提升15%。",
-      "fourPieceEffect": "任意角色发动招架支援或回避支援时，全队造成的伤害提升15%，持续10秒。",
+      "fourPieceEffect": "任意角色发动招架支援或回避支援时，全队造成的伤害提升15%，持续10秒；同名被动效果不叠加。",
       "version": "1.2"
     },
     {
@@ -128,7 +138,7 @@
       "englishName": "Chaotic Metal",
       "aliases": ["混沌重金属", "Chaotic Metal", "ChaoticMetal"],
       "twoPieceEffect": "以太属性伤害提升10%。",
-      "fourPieceEffect": "任意角色对敌人施加侵蚀效果时，暴击伤害提升20%，持续8秒，并可按效果触发次数追加提升。",
+      "fourPieceEffect": "装备者的暴击伤害提升20%；队伍中任意角色触发侵蚀效果的额外伤害时，该增益额外提升5.5%，最多叠加6层，持续8秒，重复触发刷新持续时间。",
       "version": "1.0"
     },
     {
@@ -173,7 +183,7 @@
       "englishName": "Astral Voice",
       "aliases": ["静听嘉音", "Astral Voice", "AstralVoice", "嘉音"],
       "twoPieceEffect": "攻击力提升10%。",
-      "fourPieceEffect": "任意队员通过快速支援入场时，全队获得1层星语，最多3层，持续15秒，重复触发刷新持续时间；每层使通过快速支援入场的角色造成的伤害提升8%。同名被动效果不叠加。",
+      "fourPieceEffect": "任意队员通过快速支援入场时，全队获得1层嘉音，最多3层，持续15秒，重复触发刷新持续时间；每层使通过快速支援入场的角色造成的伤害提升8%。同名被动效果不叠加。",
       "version": "1.4"
     },
     {
@@ -182,7 +192,7 @@
       "englishName": "Shadow Harmony",
       "aliases": ["如影相随", "Shadow Harmony", "ShadowHarmony"],
       "twoPieceEffect": "追加攻击和冲刺攻击造成的伤害提升15%。",
-      "fourPieceEffect": "追加攻击或冲刺攻击命中且属性一致时叠层，每层攻击力和暴击率提升4%，最多3层。",
+      "fourPieceEffect": "追加攻击或冲刺攻击命中敌人时，若本次伤害与装备者的属性一致，则获得1层增益，同一招式内最多触发1次；每层使装备者攻击力提升4%、暴击率提升4%，最多叠加3层，持续15秒，重复触发刷新持续时间。",
       "version": "1.6"
     },
     {
@@ -191,7 +201,7 @@
       "englishName": "Phaethon's Melody",
       "aliases": ["法厄同之歌", "Phaethon's Melody", "PhaethonsMelody"],
       "twoPieceEffect": "异常掌控提升8%。",
-      "fourPieceEffect": "任意角色发动强化特殊技时，异常精通提升45点；若发动者不是装备者，以太伤害提升25%。",
+      "fourPieceEffect": "队伍中任意角色发动强化特殊技时，装备者的异常精通提升45点，持续8秒；若发动者不是装备者本人，装备者造成的以太伤害提升25%。",
       "version": "1.6"
     },
     {
@@ -200,7 +210,7 @@
       "englishName": "Yunkui Tales",
       "aliases": ["云岿如我", "Yunkui Tales", "YunkuiTales"],
       "twoPieceEffect": "生命值提升10%。",
-      "fourPieceEffect": "发动强化特殊技、连携技或终结技时叠加暴击率，满3层时贯穿伤害提升10%。",
+      "fourPieceEffect": "发动强化特殊技、连携技或终结技时，暴击率提升4%，最多叠加3层，持续15秒，重复触发刷新持续时间；拥有3层时，贯穿伤害提升10%。",
       "version": "2.0"
     },
     {
@@ -209,7 +219,7 @@
       "englishName": "King of the Summit",
       "aliases": ["山大王", "King of the Summit", "KingOfTheSummit"],
       "twoPieceEffect": "攻击造成的失衡值提升6%。",
-      "fourPieceEffect": "击破角色发动强化特殊技或连携技时提升全队暴击伤害；装备者暴击率达50%时效果额外提升。",
+      "fourPieceEffect": "装备者为击破角色时，发动强化特殊技或连携技会使全队角色的暴击伤害提升15%；装备者暴击率大于等于50%时，暴击伤害额外提升15%，持续15秒，重复触发刷新持续时间；同名被动效果不叠加。",
       "version": "2.0"
     },
     {
@@ -218,7 +228,7 @@
       "englishName": "Dawn's Bloom",
       "aliases": ["拂晓生花", "Dawn's Bloom", "DawnsBloom"],
       "twoPieceEffect": "普通攻击造成的伤害提升15%。",
-      "fourPieceEffect": "普通攻击伤害提升20%；强攻角色发动强化特殊技或终结技后额外提升20%，持续25秒。",
+      "fourPieceEffect": "普通攻击造成的伤害提升20%；装备者为强攻角色时，发动强化特殊技或终结技会使普通攻击造成的伤害额外提升20%，持续25秒，重复触发刷新持续时间。",
       "version": "2.2"
     },
     {
@@ -236,7 +246,7 @@
       "englishName": "White Water Ballad",
       "aliases": ["沧浪行歌", "White Water Ballad", "WhiteWaterBallad"],
       "twoPieceEffect": "物理伤害提升10%。",
-      "fourPieceEffect": "处于以太帷幕时提高暴击率；强攻角色开启或延长以太帷幕后进一步提高暴击率和攻击力。",
+      "fourPieceEffect": "装备者处于任意以太帷幕中时，自身暴击率提升10%；离开以太帷幕后，该效果仍保留15秒。装备者为强攻角色时，开启或延长以太帷幕会使自身暴击率提升10%、攻击力提升10%，持续30秒，重复触发刷新持续时间。两段暴击率可叠加。",
       "version": "2.5"
     },
     {
@@ -245,7 +255,7 @@
       "englishName": "Shining Aria",
       "aliases": ["流光咏叹", "Shining Aria", "ShiningAria"],
       "twoPieceEffect": "以太属性伤害提升10%。",
-      "fourPieceEffect": "普通攻击命中时提升异常精通；敌人进入失衡状态时造成的伤害提升25%。",
+      "fourPieceEffect": "装备者发动普通攻击命中敌人时，自身异常精通提升36点，持续8秒，重复触发刷新持续时间；场上有敌人进入失衡状态时，装备者造成的伤害提升25%，持续18秒，重复触发刷新持续时间。",
       "version": "2.5"
     },
     {
@@ -254,7 +264,7 @@
       "englishName": "Bunny in Wonderland",
       "aliases": ["雪兔梦游仙境", "雪兔", "Bunny in Wonderland", "BunnyInWonderland"],
       "twoPieceEffect": "生命值提升10%。",
-      "fourPieceEffect": "防护角色发动强化特殊技，或任意角色触发招架/回避支援时，全队伤害提升6%，最多3层。",
+      "fourPieceEffect": "装备者为防护角色时：装备者发动强化特殊技，或队伍中任意角色发动招架支援、回避支援时，全队造成的伤害提升6%，最多叠加3层，持续25秒，层数逐层衰减，获得或衰减时刷新持续时间；同名被动效果不叠加。",
       "version": "2.7"
     },
     {
@@ -263,7 +273,7 @@
       "englishName": "Notes From the Chained",
       "aliases": ["囚徒手记", "Notes From the Chained", "NotesFromTheChained"],
       "twoPieceEffect": "冰属性伤害提升10%。",
-      "fourPieceEffect": "触发异放时提升异常精通；触发冻结时提升属性异常伤害和紊乱伤害。",
+      "fourPieceEffect": "装备者触发异放时，异常精通提升48点，持续30秒，重复触发刷新持续时间；装备者触发冻结时，造成的所有属性异常伤害和紊乱伤害提升16%，持续30秒，重复触发刷新持续时间。",
       "version": "2.7"
     },
     {
@@ -272,7 +282,7 @@
       "englishName": "Wuthering Salon",
       "aliases": ["呼啸沙龙", "呼哮沙龙", "啼啭莎龙", "Wuthering Salon", "WutheringSalon"],
       "twoPieceEffect": "风属性伤害提升10%。",
-      "fourPieceEffect": "发动强化特殊技时异常精通提升25点，最多2层；触发风化后造成的伤害提升18%，持续40秒。",
+      "fourPieceEffect": "装备者发动强化特殊技时，自身异常精通提升25点，最多叠加2层，持续40秒，重复触发刷新持续时间；装备者触发风化后，自身造成的伤害提升18%，持续40秒，重复触发刷新持续时间。",
       "version": "3.0"
     },
     {
@@ -281,7 +291,7 @@
       "englishName": "The Sky Ablaze",
       "aliases": ["拂晓行纪", "The Sky Ablaze", "TheSkyAblaze"],
       "twoPieceEffect": "以太属性伤害提升10%。",
-      "fourPieceEffect": "以太属性代理人暴击伤害提升30%；发动强化特殊技或终结技时攻击力提升10%，持续30秒。",
+      "fourPieceEffect": "装备者为以太属性代理人时，暴击伤害提升30%；装备者发动强化特殊技或终结技时，攻击力提升10%，持续30秒，重复触发刷新持续时间。",
       "version": "3.0"
     }
   ],

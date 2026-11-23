@@ -17,6 +17,8 @@ export function bindReviewedRinaPotentialTeamStats32(input: {
   eventId: string
   observation?: PotentialApplicationEvent
   initialStatsProvenance: PotentialInitialStatsProvenance
+  /** Supply explicitly for a combat observation; menu panels carry statBasis32. */
+  rinaPenetrationBasis?: 'out_of_combat' | 'includes_potential'
 }) {
   const buckets: SourceBackedPlanningEffectBucket[] = []
   const provider = input.members.find((member) => member.agentId === 'agent-rina')
@@ -48,6 +50,7 @@ export function bindReviewedRinaPotentialTeamStats32(input: {
       potential: provider.potential,
       initialStats: provider.initialStats,
       provenance: input.initialStatsProvenance,
+      rinaPenetrationBasis: input.rinaPenetrationBasis ?? provider.statBasis32,
     },
     event: observed,
   }).filter(

@@ -39,19 +39,19 @@ export type L3BoxTeamTemplate = {
 
 /** The only adopted runtime source for source-constrained BOX templates. */
 export const l3BoxTeamTemplateProjectionIdentity = {
-  packageId: 'l3-40356c64ad0d6d5a5e01',
-  manifestSha256: '58EBF42D1EFE23266FFDE5114738EBB4506239FC1F71B90E6E49E3B3565DDA02',
+  packageId: 'l3-0dd6af3f8cc593147835',
+  manifestSha256: '2304511318EB8F7F534DFB736619758806EC686D36A0A98224500C0BF2A3E95F',
   partitions: {
     'teams-modes.ndjson': '207C6D5550F96D80A062B04F2F884488198A3F4AF8199E69AA7E79E4F6DA81A6',
     'team-recommendation-seeds.ndjson':
       '455E8B0F644FC99F095D63AA63E1A6413A0C6D93F9F1EDF6191549391E45D2CE',
-    'candidate.ndjson': '56490981357608A2AA7E2543518078FCA056CA5BF668EA20DC5AD056F1C07F01',
+    'candidate.ndjson': '3D8B4A5CCF0001496F53A906FF6123578AAE27995219B2D528E7702B56313FC8',
     'gaps.ndjson': '85B6AC1DF81174226907A665FD437881C70B0949A05465AAEFB18AD95E54917B',
   },
 } as const
 
 /**
- * Generated from the adopted L3 `l3-40356c64ad0d6d5a5e01/teams-modes.ndjson`.
+ * Generated from the adopted L3 `l3-0dd6af3f8cc593147835/teams-modes.ndjson`.
  * Runtime deliberately imports this closed projection instead of reading L1/L2/L3 files.
  */
 export const l3BoxTeamTemplates: readonly L3BoxTeamTemplate[] = [

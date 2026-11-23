@@ -28,6 +28,14 @@
   height: 1px;
   margin-left: 6px;
   background: var(--f5-line);
+  background-image: linear-gradient(var(--soda-accent), var(--soda-accent));
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  transition: background-size var(--soda-motion-route) var(--soda-ease-out);
+}
+
+.f5v-shell .scanner-method-steps > li.is-complete::after {
+  background-size: 100% 100%;
 }
 
 .f5v-shell .scanner-method-steps__number {
@@ -40,19 +48,25 @@
   border-radius: 50%;
   background: var(--soda-surface-raised, #f4f2f8);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--soda-motion-fast) var(--soda-ease-out),
+    color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out);
 }
 
 .f5v-shell .scanner-method-steps .is-current {
-  color: var(--button-primary-background, #7960ad);
+  color: var(--soda-accent);
   font-weight: 700;
 }
 
 .f5v-shell .scanner-method-steps .is-current .scanner-method-steps__number {
-  background: var(--button-primary-background, #7960ad);
+  background: var(--soda-accent);
   color: #fff;
+  box-shadow: 0 0 0 3px var(--soda-surface-raised);
 }
 
 .f5v-shell .scanner-method-steps .is-complete .scanner-method-steps__number {
-  background: #eee8f7;
-  color: var(--button-primary-background, #7960ad);
+  background: var(--soda-surface-raised);
+  color: var(--soda-accent);
 }

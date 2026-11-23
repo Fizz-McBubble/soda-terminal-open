@@ -20,7 +20,7 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
       stars: 1,
       activationStatus: 'unknown',
     })
-    expect(result.baseUtilities[0]?.value).toBe(9.6)
+    expect(result.baseUtilities[0]?.value).toBe(8.8)
     expect(result.recommendationReason).toContain('条件待核实')
     expect(result.recommendationReason).not.toContain('合计回复11.52')
     expect(result.recipientFit).toBe('unknown')
@@ -98,9 +98,9 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
       stars: 1,
       activationStatus: 'active',
     })
-    // Pickup agent still receives 6.4 base energy points
-    expect(projActive.comparableSlice?.value).toBe(6.4)
-    expect(projActive.recommendationReason).toContain('接收6.4点普通能量')
+    // At 1 star the active skill uses Lv6: 2.5 + Level * 0.05 + four growth rows.
+    expect(projActive.comparableSlice?.value).toBe(6)
+    expect(projActive.recommendationReason).toContain('接收6点普通能量')
     // Additional ability is off-field: +60% at 1-star
     expect(projActive.recommendationReason).toContain(
       '为处于后场的代理人额外回复本次接触回复量的60%普通能量',
@@ -126,9 +126,9 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
       stars: 1,
       activationStatus: 'active',
     })
-    expect(proj.comparableSlice?.value).toBe(2.0)
+    expect(proj.comparableSlice?.value).toBe(1.6)
     expect(proj.comparableSlice?.key.deliveryModel).toBe('pickup_summon_3')
-    expect(proj.recommendationReason).toContain('每枚回复2点普通能量（共3枚）')
+    expect(proj.recommendationReason).toContain('每枚回复1.6点普通能量（共3枚）')
     expect(proj.recommendationReason).toContain('提供92点攻击增益')
   })
 
@@ -147,20 +147,20 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
       stars: 1,
       activationStatus: 'inactive',
     })
-    expect(projInactive.comparableSlice?.value).toBe(9.6)
-    expect(projInactive.recommendationReason).toContain('接收9.6点普通能量')
+    expect(projInactive.comparableSlice?.value).toBe(8.8)
+    expect(projInactive.recommendationReason).toContain('接收8.8点普通能量')
     expect(projInactive.recommendationReason).toContain('本队未激活额外能力')
 
-    // Active 1-star (+20%): 9.6 * 1.2 = 11.52
+    // Active 1-star uses Lv6 (+20%): 8.8 * 1.2 = 10.56
     const proj1 = projectBangbooUtility({
       memberIds: victoriaTrio,
       bangbooId: 'bangboo-butler',
       stars: 1,
       activationStatus: 'active',
     })
-    expect(proj1.comparableSlice?.value).toBe(11.52)
-    expect(proj1.recommendationReason).toContain('接收9.6点普通能量')
-    expect(proj1.recommendationReason).toContain('额外提升20%能量回复（合计回复11.52点普通能量）')
+    expect(proj1.comparableSlice?.value).toBe(10.56)
+    expect(proj1.recommendationReason).toContain('接收8.8点普通能量')
+    expect(proj1.recommendationReason).toContain('额外提升20%能量回复（合计回复10.56点普通能量）')
 
     // Active 5-star (+40%): 9.6 * 1.4 = 13.44
     const proj5 = projectBangbooUtility({
@@ -180,10 +180,11 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
       stars: 1,
       activationStatus: 'active',
     })
-    // 10% * 1.2 = 12% heal, 11.5% * 1.2 = 13.8% shield, 0.4 + 0.04 = 0.44/s regen
-    expect(projActive.recommendationReason).toContain('回复12%邦布生命上限')
-    expect(projActive.recommendationReason).toContain('提供13.8%邦布生命上限护盾')
-    expect(projActive.recommendationReason).toContain('普通能量自动回复提高0.44点/秒')
+    // Lv6 base at 1 star: 9% heal, 10.5% shield, 0.3/s regen.
+    // The 1-star additional ability raises them by 20% to 10.8%, 12.6%, 0.34/s.
+    expect(projActive.recommendationReason).toContain('回复10.8%邦布生命上限')
+    expect(projActive.recommendationReason).toContain('提供12.6%邦布生命上限护盾')
+    expect(projActive.recommendationReason).toContain('普通能量自动回复提高0.34点/秒')
     expect(projActive.recommendationReason).toContain('各分支概率未公布')
     expect(projActive.recommendationReason).not.toContain('不得假设')
     expect(projActive.recommendationReason).not.toContain('伪平均')
@@ -196,13 +197,14 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
       stars: 1,
       activationStatus: 'active',
     })
-    // 15% * 1.2 = 18% ratio, 15 + 3 = 18 triggers
-    expect(projActive.recommendationReason).toContain('技能倍率18%')
+    // At 1 star the active skill uses Lv6; the additional ability raises
+    // the trigger count from 15 to 18 without multiplying the base ratio.
+    expect(projActive.recommendationReason).toContain('技能倍率15%')
     expect(projActive.recommendationReason).toContain('邦布生命值上限')
     expect(projActive.recommendationReason).not.toContain('基准待核实')
-    expect(projActive.baseUtilities[0]?.absoluteValue).toBeCloseTo(4632 * 0.15)
-    expect(projActive.effectiveUtilities[0]?.absoluteValue).toBeCloseTo(4632 * 0.18)
-    expect(projActive.comparableSlice?.value).toBeCloseTo(4632 * 0.18)
+    expect(projActive.baseUtilities[0]?.absoluteValue).toBeCloseTo(4632 * 0.125)
+    expect(projActive.effectiveUtilities[0]?.absoluteValue).toBeCloseTo(4632 * 0.15)
+    expect(projActive.comparableSlice?.value).toBeCloseTo(4632 * 0.15)
     expect(projActive.comparableSlice?.key.cooldownSeconds).toBe(20)
     expect(projActive.recommendationReason).toContain('每场战斗最多触发18次')
   })
@@ -215,15 +217,15 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
       stars: 3, // star 3 activates at 1 Spook Shack member
       activationStatus: 'active',
     })
-    // Base: bubble 8% * 1.3 = 10.4%, star 3.9 * 1.3 = 5.07
-    expect(projActive.recommendationReason).toContain('技能倍率10.4%')
+    // At 3 stars the active skill is Lv8; the star-3 ability provides +30%.
+    expect(projActive.recommendationReason).toContain('技能倍率9.36%')
     expect(projActive.recommendationReason).toContain('邦布生命值上限')
     expect(
       projActive.effectiveUtilities.find((output) => output.branchId === 'spectral_bubble')
         ?.absoluteValue,
-    ).toBeCloseTo(5095 * 0.104)
+    ).toBeCloseTo(5095 * 0.0936)
     expect(projActive.comparableSlice).toBeUndefined()
-    expect(projActive.recommendationReason).toContain('5.07点普通能量')
+    expect(projActive.recommendationReason).toContain('4.81点普通能量')
     expect(projActive.recommendationReason).toContain('星莹与幻泡生成概率随前场生命值动态变化')
   })
 

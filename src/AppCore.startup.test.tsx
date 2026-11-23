@@ -2,7 +2,15 @@ import Dexie from 'dexie'
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import AppCore, { type DecisionEnvironment } from './AppCore'
+// Transform the home module before timing storage gating; measure cold loading in-browser.
+import './pages/DashboardPage'
+import {
+  shouldAutoCalculateAccountDecision,
+  shouldAutoCalculatePlayerDecisionWorld,
+  playerDecisionInputObservation,
+} from './application/decisionRoutePolicy'
 import { AppHealthProvider } from './appHealth'
+import * as assetInstall from './assets/visualAssetInstallCoordinator'
 import { createBrowserCalculationQueryClient } from './application/browserCalculationQueryClient'
 import { database, initializeDatabase } from './db/database'
 import { currentVersionProjection } from './gameDataPacks/currentVersionProjection'
@@ -30,6 +38,65 @@ afterEach(async () => {
   database.close()
   await Dexie.delete(database.name)
 })
+
+it('keeps scanner work manual while retaining normal local auto calculation', () => {
+  expect(
+    shouldAutoCalculatePlayerDecisionWorld({
+      pathname: '/system/scanner',
+      search: '',
+      mode: 'local',
+      onlineMode: false,
+      onlineAllowed: false,
+    }),
+  ).toBe(false)
+  expect(
+    shouldAutoCalculatePlayerDecisionWorld({
+      pathname: '/development',
+      search: '',
+      mode: 'local',
+      onlineMode: false,
+      onlineAllowed: false,
+    }),
+  ).toBe(true)
+})
+
+it('does not subscribe utility routes to the full account decision input', () => {
+  expect(playerDecisionInputObservation('/system/scanner')).toBe(false)
+  expect(playerDecisionInputObservation('/system/help/')).toBe(false)
+  expect(playerDecisionInputObservation('/')).toBe(true)
+  for (const tab of ['agents', 'wengines', 'bangboos']) {
+    expect(playerDecisionInputObservation('/assets/' + tab)).toBe('disabled')
+  }
+  expect(playerDecisionInputObservation('/assets/discs')).toBe(true)
+  expect(playerDecisionInputObservation('/assets/account')).toBe(true)
+  expect(playerDecisionInputObservation('/loadouts/team')).toBe(true)
+})
+
+it('loads the full image catalog at app mount and retries when connectivity returns', async () => {
+  const { decisionEnvironment } = startupEnvironment()
+  const ensure = vi.spyOn(assetInstall, 'ensureOfficialCatalogInstalled')
+  ensure.mockRejectedValue(new Error('offline'))
+  const app = () => (
+    <AppCore HealthProvider={AppHealthProvider} decisionEnvironment={decisionEnvironment} />
+  )
+  const { unmount, rerender } = render(app())
+  try {
+    expect(ensure).toHaveBeenCalledOnce()
+    expect(ensure).toHaveBeenCalledWith()
+    expect(
+      await screen.findByRole('link', { name: /^前往扫描与导入/ }, { timeout: 10_000 }),
+    ).toBeInTheDocument()
+    rerender(app())
+    expect(ensure).toHaveBeenCalledOnce()
+    act(() => window.dispatchEvent(new Event('online')))
+    expect(ensure).toHaveBeenCalledTimes(2)
+    unmount()
+    act(() => window.dispatchEvent(new Event('online')))
+    expect(ensure).toHaveBeenCalledTimes(2)
+  } finally {
+    ensure.mockRestore()
+  }
+}, 20_000)
 
 it('shows the existing shell and current version while storage waits, then opens the home page', async () => {
   const environment = startupEnvironment()
@@ -64,6 +131,21 @@ it('shows the existing shell and current version while storage waits, then opens
   expect(screen.getByText(`资料版本 ${currentVersionProjection.gameVersion}`)).toBeInTheDocument()
   expect(initializer).toHaveBeenCalledWith(expect.objectContaining({ gameVersion: '3.3' }))
   expect(environment.createWorker).not.toHaveBeenCalled()
+})
+
+it('defers full analysis only for a personal read with a real local facts capability', () => {
+  for (const path of ['/development', '/development/agent-billy']) {
+    expect(shouldAutoCalculateAccountDecision(path, '', 'local', true)).toBe(false)
+    expect(playerDecisionInputObservation(path, 'local', true)).toBe(false)
+    expect(shouldAutoCalculateAccountDecision(path, '', 'local', false)).toBe(true)
+    expect(shouldAutoCalculateAccountDecision(path, '', 'remote', true)).toBe(true)
+  }
+  expect(
+    shouldAutoCalculateAccountDecision('/development/agent-billy/loadouts', '', 'local', true),
+  ).toBe(true)
+  expect(playerDecisionInputObservation('/development/agent-billy/loadouts', 'local', true)).toBe(
+    true,
+  )
 })
 
 it('keeps a failed database behind the existing recovery screen', async () => {

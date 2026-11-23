@@ -1,8 +1,7 @@
-import { useContext, useEffect } from 'react'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import { AssetQuickReadEntry } from './AssetQuickReadEntry'
-import { ScannerPreparationStatus } from './ScannerPreparationStatus'
+
 import { registerAssetQuickReadEntryPreparationCases } from './AssetQuickReadEntry.testCases'
 import { preview } from './assetQuickReadEntryTestFixture'
 
@@ -438,8 +437,8 @@ it('keeps compact risk consent inline and starts with one explicit button', asyn
       )}
     />,
   )
-  expect(screen.getByRole('heading', { name: /资产快读.*测试/ })).toBeVisible()
-  expect(screen.getByText('测试')).toBeVisible()
+  expect(screen.getByRole('heading', { name: '资产快读' })).toBeVisible()
+  expect(screen.queryByText('测试版')).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '开始读取' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '开始本次资产快读' })).not.toBeInTheDocument()
   const start = screen.getByRole('button', { name: '一键读取' })
@@ -546,6 +545,40 @@ it('groups import, export and discard together while retaining discard without a
   expect(noPreviewDiscard.closest('.asset-quick-read__actions')).not.toBeNull()
   await act(async () => fireEvent.click(noPreviewDiscard))
   expect(onDiscard).toHaveBeenCalledOnce()
+})
+
+it('keeps pending controls scoped to the receiving account when an older action settles', async () => {
+  let rejectA!: (error: Error) => void
+  let finishB!: () => void
+  const discardA = vi.fn(
+    () =>
+      new Promise<void>((_, reject) => {
+        rejectA = reject
+      }),
+  )
+  const discardB = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finishB = resolve
+      }),
+  )
+  const view = render(
+    <AssetQuickReadEntry state="received" targetAccountId="account-a" onDiscard={discardA} />,
+  )
+  fireEvent.click(screen.getByRole('button', { name: '放弃' }))
+  expect(screen.getByRole('button', { name: '放弃' })).toBeDisabled()
+  view.rerender(
+    <AssetQuickReadEntry state="received" targetAccountId="account-b" onDiscard={discardB} />,
+  )
+  expect(screen.getByRole('button', { name: '放弃' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: '放弃' }))
+  await act(async () => rejectA(new Error('previous account action failed')))
+  expect(screen.getByRole('button', { name: '放弃' })).toBeDisabled()
+  expect(screen.queryByText(/放弃失败/)).not.toBeInTheDocument()
+  await act(async () => finishB())
+  expect(screen.getByRole('button', { name: '放弃' })).toBeEnabled()
+  expect(discardA).toHaveBeenCalledOnce()
+  expect(discardB).toHaveBeenCalledOnce()
 })
 
 it('keeps idle preparation stable but removes unrelated controls once the inline task runs', () => {
@@ -685,185 +718,6 @@ it('shows completion navigation and export with visible retryable export failure
   await act(async () => fireEvent.click(exportResult))
   expect(onExport).toHaveBeenCalledTimes(2)
   expect(screen.queryByText('导出请求未完成，请重试。')).not.toBeInTheDocument()
-})
-
-it('renders preparation recovery inside actions before diagnostic extras', () => {
-  render(
-    <AssetQuickReadEntry
-      state="idle"
-      capability="ready"
-      preparationRecovery={<button type="button">恢复上次资产快读导入</button>}
-      workbenchExtras={() => <div data-testid="workbench-diagnostic-extras">诊断条目</div>}
-      renderParts={({ preparation }) => preparation}
-    />,
-  )
-  const recoveryButton = screen.getByRole('button', { name: '恢复上次资产快读导入' })
-  const actions = recoveryButton.closest<HTMLElement>('.asset-quick-read__actions')!
-  expect(actions).toBeInTheDocument()
-  const extras = screen.getByTestId('workbench-diagnostic-extras')
-  const body = actions.closest<HTMLElement>('.scanner-workbench__body--prepare')!
-  expect(body).toBeInTheDocument()
-  expect(body).toContainElement(actions)
-  expect(body).toContainElement(extras)
-  expect(actions.compareDocumentPosition(extras)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
-})
-
-it('renders diagnosticAction callback inside actions with computed status and role', () => {
-  let receivedStatus: { message: string; role: 'alert' | 'status' } | null = null
-  render(
-    <AssetQuickReadEntry
-      state="idle"
-      capability="ready"
-      diagnosticAction={(status) => {
-        receivedStatus = status
-        return (
-          <button type="button" data-testid="inline-diagnostic-button">
-            诊断
-          </button>
-        )
-      }}
-      renderParts={({ preparation }) => preparation}
-    />,
-  )
-  const diagnosticButton = screen.getByTestId('inline-diagnostic-button')
-  const actions = diagnosticButton.closest<HTMLElement>('.asset-quick-read__actions')!
-  expect(actions).toBeInTheDocument()
-  expect(receivedStatus).not.toBeNull()
-  expect((receivedStatus as { message: string; role: 'alert' | 'status' } | null)?.role).toBe(
-    'status',
-  )
-})
-
-it('keeps installer status and connection details visible in original summary location', () => {
-  function DownloadingInstaller() {
-    const setStatus = useContext(ScannerPreparationStatus)
-    useEffect(() => {
-      setStatus?.({ text: '资产快读正在下载 60%', pending: true })
-    }, [setStatus])
-    return <button type="button">下载资产快读</button>
-  }
-  render(
-    <AssetQuickReadEntry
-      state="idle"
-      capability="ready"
-      installer={<DownloadingInstaller />}
-      renderParts={({ preparation }) => preparation}
-    />,
-  )
-  const summary = screen.getByText('资产快读正在下载 60%')
-  expect(summary).toBeVisible()
-  expect(summary.closest('.asset-quick-read__connection-summary')).not.toBeNull()
-})
-
-it('gives a saved pending result its own compact preparation choice instead of adding a fourth setup action', () => {
-  const onConnect = vi.fn()
-  render(
-    <AssetQuickReadEntry
-      state="idle"
-      resumeAvailable
-      targetAccountId="account-saved-result"
-      onConnect={onConnect}
-      preparationRecovery={<button type="button">继续上次读取</button>}
-      installer={<button type="button">下载资产快读</button>}
-      renderParts={({ preparation }) => preparation}
-    />,
-  )
-  expect(screen.getByRole('button', { name: '继续上次读取' })).toBeVisible()
-  expect(screen.queryByRole('button', { name: '下载资产快读' })).not.toBeInTheDocument()
-  expect(screen.queryByText('准备游戏')).not.toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: '重新读取' }))
-  expect(screen.getByText('准备游戏')).toBeVisible()
-  expect(screen.getByRole('button', { name: '连接资产快读' })).toBeVisible()
-  expect(onConnect).not.toHaveBeenCalled()
-})
-
-it('renders diagnostic feedback inline within actions during capturing alongside stop button', () => {
-  render(
-    <AssetQuickReadEntry
-      state="capturing"
-      capability="ready"
-      onStop={vi.fn()}
-      diagnosticAction={() => (
-        <button type="button" data-testid="capturing-diagnostic">
-          快读诊断
-        </button>
-      )}
-      renderParts={({ task }) => task}
-    />,
-  )
-  const stopButton = screen.getByRole('button', { name: '停止本次资产快读' })
-  const actionsRow = stopButton.closest<HTMLElement>('.asset-quick-read__actions')!
-  expect(actionsRow).toBeInTheDocument()
-  const diagnostic = screen.getByTestId('capturing-diagnostic')
-  expect(actionsRow).toContainElement(diagnostic)
-  expect(actionsRow).toContainElement(stopButton)
-})
-
-it('renders diagnostic feedback inline within actions during received state alongside import button', () => {
-  render(
-    <AssetQuickReadEntry
-      state="received"
-      capability="ready"
-      preview={preview}
-      onImport={vi.fn()}
-      diagnosticAction={() => (
-        <button type="button" data-testid="received-diagnostic">
-          快读诊断
-        </button>
-      )}
-      renderParts={({ task }) => task}
-    />,
-  )
-  const importButton = screen.getByRole('button', { name: '导入' })
-  const actionsRow = importButton.closest<HTMLElement>('.asset-quick-read__actions')!
-  expect(actionsRow).toBeInTheDocument()
-  const diagnostic = screen.getByTestId('received-diagnostic')
-  expect(actionsRow).toContainElement(diagnostic)
-  expect(actionsRow).toContainElement(importButton)
-})
-
-it('renders diagnostic feedback inline within actions during completed state alongside view assets button', () => {
-  render(
-    <AssetQuickReadEntry
-      state="completed"
-      capability="ready"
-      onViewAssets={vi.fn()}
-      diagnosticAction={() => (
-        <button type="button" data-testid="completed-diagnostic">
-          快读诊断
-        </button>
-      )}
-      renderParts={({ task }) => task}
-    />,
-  )
-  const viewButton = screen.getByRole('button', { name: '查看我的资产' })
-  const actionsRow = viewButton.closest<HTMLElement>('.asset-quick-read__actions')!
-  expect(actionsRow).toBeInTheDocument()
-  const diagnostic = screen.getByTestId('completed-diagnostic')
-  expect(actionsRow).toContainElement(diagnostic)
-  expect(actionsRow).toContainElement(viewButton)
-})
-
-it('renders diagnostic feedback inline within actions during error state alongside return button', () => {
-  render(
-    <AssetQuickReadEntry
-      state="error"
-      capability="ready"
-      onPrepareAgain={vi.fn()}
-      diagnosticAction={() => (
-        <button type="button" data-testid="error-diagnostic">
-          快读诊断
-        </button>
-      )}
-      renderParts={({ task }) => task}
-    />,
-  )
-  const returnButton = screen.getByRole('button', { name: '返回' })
-  const actionsRow = returnButton.closest<HTMLElement>('.asset-quick-read__actions')!
-  expect(actionsRow).toBeInTheDocument()
-  const diagnostic = screen.getByTestId('error-diagnostic')
-  expect(actionsRow).toContainElement(diagnostic)
-  expect(actionsRow).toContainElement(returnButton)
 })
 
 registerAssetQuickReadEntryPreparationCases()

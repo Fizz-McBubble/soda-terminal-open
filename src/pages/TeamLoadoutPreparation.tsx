@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react'
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import { useState } from 'react'
 import type { AccountPlanningDraft } from '../accounts/types'
 import type { CoreWarehouse } from '../accounts/coreFlow'
@@ -10,7 +10,8 @@ import {
 } from '../accounts/teamPortfolioPreference'
 import { getAgentName } from '../application/publicRosterNames'
 import { savedPlanDisplayName } from '../application/savedPlanDisplayName'
-import { VisualEntityImage } from '../components/VisualEntityImage'
+import { TeamLoadoutRowContent } from './TeamLoadoutRowContent'
+import { currentTeamCultivation } from '../application/formedCultivationGaps'
 import type { TeamLoadoutOverviewItem } from './teamLoadoutOverviewTypes'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { orderTeamMembersForDisplay } from '../application/teamMemberDisplayOrder'
@@ -22,6 +23,7 @@ type SavedTeamPlanSummary = Pick<
   | 'selection'
   | 'teamPortfolioSnapshot'
   | 'teamExecutionSnapshot'
+  | 'candidateWarehouse'
   | 'solutionContext'
 >
 
@@ -48,7 +50,11 @@ export function TeamSavedPlanList({
         <h2 id="saved-team-plans-title">已保存方案</h2>
         <p>选择方案查看配装。</p>
       </header>
-      <div role="list" aria-label="已保存方案">
+      <div
+        className="f5v-box-team-overview f5v-box-analysis-entry__saved-plan-list"
+        role="list"
+        aria-label="已保存方案"
+      >
         {plans.map((plan) => {
           const portfolio = plan.teamPortfolioSnapshot
           const agentIds = portfolio
@@ -68,55 +74,71 @@ export function TeamSavedPlanList({
           const bangbooSummary = portfolio
             ? portfolio.executions
                 .map((execution) =>
-                  execution.bangbooId ? playerFacingBangbooLabel(execution.bangbooId) : '未纳入',
+                  execution.bangbooId
+                    ? playerFacingBangbooLabel(execution.bangbooId)
+                    : '邦布未记录',
                 )
                 .join(' · ')
             : null
+          const savedDiscs = new Set(plan.candidateWarehouse?.loadouts
+            .filter((member) => plan.selection.agentIds.includes(member.agentId))
+            .flatMap((member) => member.discIds))
+          const discSummary = savedDiscs.size ? `已保存 ${savedDiscs.size} 张不同驱动盘` : null
           const summary = portfolio
             ? `${portfolio.requestedTeamCount} 队 · ${memberNames} · ${bangbooSummary} · ${portfolio.uniquePhysicalDiscIds.length}/${portfolio.requestedTeamCount * 18} 张驱动盘`
-            : memberNames || '成员记录待补齐'
+            : memberNames || '成员未记录'
           const rating = currentSavedTeamRatingLabel({
             plan: plan as AccountPlanningDraft,
             publicItem: publicItems?.find((item) => item.id === `saved:${plan.id}`),
           })
+          const firstExecution = portfolio?.executions[0]
+          const portraitAgentIds = portfolio
+            ? (firstExecution?.memberIds ?? [])
+            : plan.selection.agentIds
+          const bangbooId = portfolio
+            ? (firstExecution?.bangbooId ?? null)
+            : plan.selection.bangbooId
+          const item = {
+            agentIds: portraitAgentIds,
+            deploymentOrder: portfolio
+              ? firstExecution?.deploymentOrder
+              : plan.teamExecutionSnapshot?.deploymentOrder,
+            formedTeamReference: portfolio ? undefined : plan.solutionContext?.formedTeamReference,
+            currentMemberCultivation: warehouse
+              ? currentTeamCultivation(portraitAgentIds, warehouse.roster)
+              : undefined,
+            bangbooId,
+            bangbooLabel: bangbooId ? playerFacingBangbooLabel(bangbooId) : '',
+          }
           return (
             <div key={plan.id} role="listitem">
               <button
+                className="f5v-box-team-row"
                 type="button"
-                aria-label={`${savedPlanDisplayName(plan)}，${summary}，打开已保存方案`}
+                aria-label={`${savedPlanDisplayName(plan)}，${summary}${!portfolio && bangbooId ? `，${playerFacingBangbooLabel(bangbooId)}` : ''}，打开已保存方案`}
                 data-player-route={`/loadouts/plans/${encodeURIComponent(plan.id)}`}
                 onClick={() => onOpen(plan.id)}
               >
-                <span className="f5v-box-analysis-entry__saved-plan-portraits" aria-hidden="true">
-                  {agentIds.map((agentId) => (
-                    <VisualEntityImage
-                      className="f5v-box-analysis-entry__saved-plan-portrait"
-                      compactFallback
-                      entityType="agent"
-                      entityId={agentId}
-                      key={agentId}
-                      name={getAgentName(agentId)}
-                      slotId="agent.square-avatar"
-                      consumer="box.team-overview"
-                    />
-                  ))}
-                </span>
-                <span>
-                  <strong>{savedPlanDisplayName(plan)}</strong>
-                  <small>
-                    {rating ? `${rating} · ` : null}
-                    <SavedPlanGraduationLabel
-                      plan={plan}
-                      warehouse={warehouse}
-                      publicCompletion={
-                        publicItems?.find((item) => item.id === `saved:${plan.id}`)
-                          ?.graduationCompletion
-                      }
-                    />
-                  </small>
-                  <small>{summary}</small>
-                </span>
-                <ChevronRight aria-hidden="true" size={18} />
+                <TeamLoadoutRowContent
+                  item={item}
+                  title={savedPlanDisplayName(plan)}
+                  rating={
+                    rating ? <small className="f5v-box-team-reference">{rating}</small> : null
+                  }
+                  meta={
+                    <>
+                      <SavedPlanGraduationLabel
+                        plan={plan}
+                        warehouse={warehouse}
+                        publicCompletion={
+                          publicItems?.find((item) => item.id === `saved:${plan.id}`)
+                            ?.graduationCompletion
+                        }
+                      />
+                      {portfolio ? <small>{summary}</small> : discSummary ? <small>{discSummary}</small> : null}
+                    </>
+                  }
+                />
               </button>
             </div>
           )
@@ -145,9 +167,9 @@ export function TeamConstraintResetPanel({
     try {
       const preference = await getTeamPortfolioPreference(accountId)
       await restoreDefaultTeamRecommendation(accountId, preference)
-      setMessage('已恢复默认推荐；培养优先、已保存方案与账户资产均保留。请重新分析当前队伍。')
+      setMessage('已恢复默认推荐，请重新分析当前队伍。')
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '恢复默认推荐失败。')
+      setMessage(playerErrorMessage(error, '恢复默认推荐失败。'))
     }
   }
   return (

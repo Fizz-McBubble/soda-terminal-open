@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { useState, type ReactNode } from 'react'
 import { ScannerPreparationStatus, type PreparationStatus } from './ScannerPreparationStatus'
 import { ScannerInstallerAction } from './ScannerInstallerAction'
@@ -7,6 +7,7 @@ import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { initialDistributionSnapshot } from '../scanner/distribution'
 import { installerTransferStatus } from '../scanner/installerTransferStatus'
 import type { InstallerTransferProgress } from '../scanner/installerDownload'
+import { assetQuickReadRelease } from '../assetQuickRead/distribution'
 
 const { download, release } = vi.hoisted(() => ({
   download: vi.fn(),
@@ -18,8 +19,21 @@ const { download, release } = vi.hoisted(() => ({
     sha256: 'a'.repeat(64),
   },
 }))
-vi.mock('../scanner/installerDownload', () => ({ downloadScannerInstaller: download }))
+vi.mock('../scanner/installerDownload', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../scanner/installerDownload')>()
+  return { ...actual, downloadScannerInstaller: download }
+})
 vi.mock('../scanner/installerRelease', () => ({ readInstallerRelease: async () => release }))
+vi.mock('../scanner/distribution', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../scanner/distribution')>()
+  return {
+    ...actual,
+    scannerDistributionManifest: {
+      ...actual.scannerDistributionManifest,
+      runtime: { ...actual.scannerDistributionManifest.runtime, releaseState: 'published' },
+    },
+  }
+})
 
 function Preparation({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<PreparationStatus>({ text: '尚未连接', pending: false })
@@ -40,7 +54,9 @@ const progress: InstallerTransferProgress = {
 }
 beforeEach(() => {
   download.mockReset().mockImplementation(() => new Promise(() => {}))
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(assetQuickReadRelease)))
 })
+afterEach(() => vi.unstubAllGlobals())
 
 it.each([
   ['画面扫描', () => <ScannerInstallerAction distribution={initialDistributionSnapshot} />],

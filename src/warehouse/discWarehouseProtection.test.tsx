@@ -1,8 +1,9 @@
-import { beforeAll, describe, expect, it } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { render, screen, cleanup, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { driveDiscData } from '../data/gameData'
 import { createEmptyRoster } from '../assault/catalog'
-import { world, input as worldInput } from '../decision/warehouseActionProjection.testFixture'
+import { input as worldInput } from '../decision/warehouseActionProjection.testFixture'
 import { projectWarehouseActions } from '../application/warehouseActionProjection'
 import { WarehouseRetentionEvidence } from '../pages/WarehouseRetentionEvidence'
 import { analyzeAccountWarehouse } from './discWarehouseAnalysis'
@@ -57,30 +58,45 @@ function intrinsic(
 }
 
 describe('current protection action and intrinsic quality', () => {
-  let template: Awaited<ReturnType<typeof world>>
-  beforeAll(async () => {
-    template = await world('current', 'cleanup_candidate')
-  })
-
   function project(source: WarehouseAnalysisInput) {
-    const current = structuredClone(template)
-    current.run.input.warehouse.discs = source.discs
-    current.run.input.warehouse.roster = source.roster
-    current.run.input.drafts = source.drafts
-    current.run.snapshot.warehouse = analyzeAccountWarehouse(source)
-    return projectWarehouseActions(current).actions[0]!
+    const { warehouse } = worldInput()
+    return projectWarehouseActions({
+      status: 'current',
+      run: {
+        runId: 'warehouse-protection',
+        input: {
+          warehouse: { ...warehouse, discs: source.discs, roster: source.roster },
+          drafts: source.drafts,
+        },
+        snapshot: {
+          warehouse: analyzeAccountWarehouse(source),
+          sideEffect: 'read_only',
+          account: { accountId: source.accountId },
+          fingerprint: { inputHash: 'warehouse-protection' },
+          claims: { warehouse: { status: 'candidate', summary: '' } },
+        },
+      },
+    }).actions[0]!
   }
 
-  it('keeps the unprotected low quality path executable as manual cleanup review', () => {
+  it('keeps the unprotected PEN-led low quality path in review instead of cleanup', () => {
     const action = project(input())
-    expect(action.action).toBe('cleanup')
-    expect(action.absoluteRetention?.nextAction?.kind).toBe('manual_cleanup')
-    expect(action.absoluteRetention?.disposition).toBe('cleanup_candidate')
+    expect(action.action).toBe('enhance')
+    expect(action.absoluteRetention?.nextAction?.kind).toBe('review_quality')
+    expect(action.absoluteRetention?.disposition).toBe('review')
+    expect(action.recommendationState).toBe('needs_review')
+    expect(action.absoluteRetention?.blockedBy).toContainEqual(
+      expect.objectContaining({
+        field: 'cleanupCalibration.secondaryPenPrimary',
+        kind: 'policy',
+        predicateId: 'independent-pen-primary-calibration-20261025',
+      }),
+    )
   })
 
   it.each(Array.from({ length: 15 }, (_, index) => index + 1))(
     'gives a consistent keep action and every current protection source for mask %s',
-    (mask) => {
+    async (mask) => {
       const source = input(mask)
       const before = structuredClone(source)
       const unprotected = analyzeAccountWarehouse(input()).decisions[0]!.absoluteRetention!
@@ -110,14 +126,18 @@ describe('current protection action and intrinsic quality', () => {
       const status = screen.getByRole('status')
       expect(status.textContent).toContain('下一步：保留')
       expect(status.textContent).not.toContain('人工清理')
-      const scoreFacts = screen.getByRole('group', { name: '副词条参考评分' })
+      // The current contract places the same score behind a recommended agent avatar.
+      await userEvent.click(screen.getAllByRole('button', { name: /查看.*的词条匹配/ })[0]!)
+      const scoreFacts = within(screen.getByRole('dialog')).getByRole('group', { name: '词条匹配' })
       expect(scoreFacts).toBeVisible()
-      expect(scoreFacts).toHaveTextContent('副词条评分')
-      expect(scoreFacts).toHaveTextContent('保留参考线')
+      expect(
+        within(screen.getByRole('dialog')).getByRole('heading', { name: '词条匹配' }),
+      ).toBeVisible()
+      expect(scoreFacts).not.toHaveTextContent('保留参考')
       expect(scoreFacts.querySelector('details')).toBeNull()
       expect(screen.queryByText('查看参考评分')).not.toBeInTheDocument()
       expect(
-        scoreFacts.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_PRECEDING,
+        status.compareDocumentPosition(scoreFacts) & Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy()
       expect(screen.getByText('处理前请先确认是否仍在使用。')).toBeTruthy()
       expect(
@@ -179,8 +199,8 @@ describe('current protection action and intrinsic quality', () => {
       savedPlanReferenced: false,
       portfolioReferenced: false,
     })
-    expect(project(source).absoluteRetention?.nextAction?.kind).toBe('manual_cleanup')
-    expect(project(source).action).toBe('cleanup')
+    expect(project(source).absoluteRetention?.nextAction?.kind).toBe('review_quality')
+    expect(project(source).action).toBe('enhance')
   })
 
   it('requires reference review for unresolved simultaneous demand without claiming direct protection', () => {

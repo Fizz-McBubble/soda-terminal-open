@@ -1,66 +1,211 @@
 .f5v-box-team-variants {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   padding: 0 !important;
 }
 .f5v-box-team-variants > div {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-control);
+  background: var(--soda-surface);
 }
 .f5v-box-team-variant-button {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) max-content;
   align-items: center;
   width: 100%;
   min-width: 0;
-  gap: 12px;
-  min-height: 52px !important;
-  padding: 8px !important;
+  gap: 9px;
+  min-height: 44px !important;
+  padding: 6px 9px !important;
   border: 0 !important;
   border-bottom: 1px solid var(--soda-line) !important;
   border-radius: 0;
   background: transparent !important;
+  color: var(--soda-text);
   text-align: left;
   cursor: pointer;
 }
+.f5v-box-team-variant-button:last-child {
+  border-bottom: 0 !important;
+}
 .f5v-box-team-variant-button:hover,
 .f5v-box-team-variant-button.is-selected {
-  background: #eee8f8 !important;
+  background: color-mix(in srgb, var(--soda-accent) 7%, var(--soda-surface)) !important;
+}
+.f5v-box-team-variant-button.is-selected {
+  box-shadow: inset 3px 0 0 var(--soda-accent);
+}
+.f5v-box-team-variants .f5v-box-team-variant-button:focus-visible {
+  outline: 2px solid var(--soda-accent);
+  outline-offset: -2px;
+}
+.f5v-box-team-variant-leading {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+}
+.f5v-box-team-variant-current-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--soda-accent);
+  color: #fff;
 }
 .f5v-box-team-variant-button .f5v-box-team-portraits {
-  gap: 3px;
-  flex: none;
+  display: block;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  overflow: hidden;
 }
-.f5v-box-team-variant-button > .f5v-box-team-variant-copy {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px 12px;
-  min-width: 0;
-  color: var(--soda-text);
-  font-size: 14px;
-  line-height: 20px;
-}
-.f5v-box-team-variant-copy small {
-  font-size: 12px;
-  font-weight: 400;
-  white-space: nowrap;
+.f5v-box-team-variant-button .f5v-box-team-portrait-slot {
+  display: block;
+  width: 28px;
+  height: 28px;
 }
 .f5v-box-team-variant-button .f5v-box-team-portrait-frame,
 .f5v-box-team-variant-button .f5v-box-team-portrait,
 .f5v-box-team-variant-button .visual-asset-fallback {
-  width: 34px;
-  height: 34px;
-  flex-basis: 34px;
-  border-radius: var(--soda-radius-tag);
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 8px;
+}
+.f5v-box-team-variant-button .f5v-box-team-portrait-frame {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--soda-text) 13%, var(--soda-line));
+  background: transparent;
+}
+.f5v-box-team-variant-button .f5v-box-team-portrait {
+  border: 0;
+  object-fit: cover;
+}
+.f5v-box-team-variant-button .f5v-box-team-mindscape-badge {
+  right: 1px;
+  bottom: 1px;
+  min-width: 13px;
+  height: 13px;
+  padding: 0 2px;
+  border-radius: 3px;
+  font-size: 9px;
+}
+.f5v-box-team-variant-avatar-count {
+  position: absolute;
+  right: -4px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border: 1px solid var(--soda-line);
+  border-radius: 999px;
+  background: var(--soda-surface);
+  color: var(--soda-text-2);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.f5v-box-team-variant-name {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.f5v-box-team-variant-name strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--soda-text);
+  font-size: 13px;
+  font-weight: 680;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.f5v-box-team-variant-name small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--soda-text-3);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.f5v-box-team-variant-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  white-space: nowrap;
+}
+.f5v-box-team-variant-rating {
+  min-width: 36px;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--soda-accent) 24%, var(--soda-line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--soda-accent) 6%, var(--soda-surface));
+  color: var(--soda-accent);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.f5v-box-team-variant-status {
+  color: var(--soda-text-2);
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 16px;
+}
+.f5v-box-team-variant-status.is-direct {
+  color: var(--soda-success, #33745d);
+}
+.f5v-box-team-variant-status.is-adjust,
+.f5v-box-team-variant-status.is-confirm {
+  color: var(--soda-warn, #805b19);
+}
+.f5v-box-team-variant-status.is-build,
+.f5v-box-team-variant-status.is-pending {
+  color: var(--soda-text-3);
 }
 .f5v-box-team-variants-more {
-  justify-self: start;
-  min-height: 36px;
-  border: 0;
-  background: transparent;
+  justify-self: end;
+  min-height: 30px;
+  padding: 3px 8px;
+  border: 0 !important;
+  border-radius: 999px;
+  background: transparent !important;
   color: var(--soda-accent);
+  font-size: 12px;
+  font-weight: 650;
   cursor: pointer;
+}
+.f5v-box-team-variants-more:hover {
+  background: color-mix(in srgb, var(--soda-accent) 7%, var(--soda-surface)) !important;
+}
+@container soda-viewport (max-width: 460px) {
+  .f5v-box-team-variant-button {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 4px 8px;
+    padding-block: 7px !important;
+  }
+  .f5v-box-team-variant-leading {
+    grid-row: 1 / span 2;
+  }
+  .f5v-box-team-variant-meta {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
 }

@@ -11,6 +11,9 @@ import scannerRuntimeManifest from '../../public/downloads/scanner-runtime-relea
 import { scannerDistributionManifest } from './distribution'
 import scanFeedbackContract from './scanFeedback.contract.json'
 import { scannerInstallerFileName } from './installerDownload'
+import { sanitizeInstallerFeedback } from '../assetQuickRead/installerFeedback'
+import { sanitizeScanDiagnostic } from './diagnostics'
+import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
 import {
   compareToolVersion,
   scannerToolReleaseVersions,
@@ -109,7 +112,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     ).toBe('扫描助手有新版本，请更新画面扫描。')
   })
 
-  it('matches diagnostic feedback contract version patterns against published manifests', () => {
+  it('matches diagnostic feedback contract version patterns against current manifests', () => {
     // Bridge version in manifest matches assetQuickRead bridge pattern
     expect(assetQuickReadManifest.bridgeVersion).toMatch(
       new RegExp(scanFeedbackContract.assetQuickRead.versionPatterns.bridge),
@@ -136,7 +139,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     )
 
     // Installer version patterns:
-    // Preserve historical identities and accept the newly published decimal carry.
+    // Preserve historical identities and accept the reviewed decimal carry.
     const assetInstallerPattern = new RegExp(
       scanFeedbackContract.assetQuickReadInstaller.versionPattern,
     )
@@ -152,6 +155,90 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     )
     expect(scannerInstallerManifest.version).toMatch(screenInstallerPattern)
     expect('1.0.9').not.toMatch(screenInstallerPattern)
+  })
+
+  it('preserves published 1.2.3/2.3.20/r37 and candidate 1.3.0/2.4.4/r42 diagnostic identities through browser and receiver validation', () => {
+    const report = {
+      schema: 1,
+      reportId: '10f44460-1234-4123-8123-abc123abc123',
+      release: 'native-version-regression',
+      outcome: 'failed',
+      stage: 'connection',
+      code: 'helper_unavailable',
+      versions: {
+        installer: scannerInstallerManifest.version,
+        helper: scannerInstallerManifest.helperVersion,
+        scanner: scannerRuntimeManifest.captureVersion,
+        runtime: scannerRuntimeManifest.runtimeVersion,
+        ocr: scannerRuntimeManifest.ocrVersion,
+      },
+      counts: { processed: null, total: null },
+      durationMs: 0,
+      environment: { captureMode: 'unknown', browser: 'unknown' },
+      evidence: {},
+    }
+    expect(sanitizeScanDiagnostic(report)).toEqual(report)
+    expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+
+    const candidateReport = {
+      ...report,
+      versions: {
+        installer: '1.3.0',
+        helper: '2.4.4',
+        scanner: 'ZZZ-Scanner.Next-1.0.49-soda-r42',
+        runtime: 'soda-scanner-zzz-next-ppocrv6-18-rc8-26-local-20261027',
+        ocr: scannerRuntimeManifest.ocrVersion,
+      },
+    }
+    expect(sanitizeScanDiagnostic(candidateReport)).toEqual(candidateReport)
+    expect(sanitizeScanFeedbackPayload(candidateReport)).toEqual({
+      ok: true,
+      record: candidateReport,
+    })
+  })
+
+  const installerReport = {
+    schema: 1,
+    tool: 'screen_scanner_installer',
+    reportId: '10f44460-1234-4123-8123-abc123abc123',
+    installerVersion: scannerInstallerManifest.version,
+    stage: 'verify',
+    code: 'runtime_file_identity_mismatch',
+    durationMs: 0,
+    attempts: [],
+  }
+
+  it('accepts published 1.2.3 installer feedback and preserved 1.3.0 candidate diagnostics through browser and receiver validation', () => {
+    expect(installerReport.installerVersion).toBe('1.2.3')
+    expect(sanitizeInstallerFeedback(installerReport)).toEqual(installerReport)
+    expect(sanitizeScanFeedbackPayload(installerReport)).toEqual({
+      ok: true,
+      record: installerReport,
+    })
+    const candidateInstallerReport = { ...installerReport, installerVersion: '1.3.0' }
+    expect(sanitizeInstallerFeedback(candidateInstallerReport)).toEqual(candidateInstallerReport)
+    expect(sanitizeScanFeedbackPayload(candidateInstallerReport)).toEqual({
+      ok: true,
+      record: candidateInstallerReport,
+    })
+  })
+
+  it.each([
+    { installerVersion: '1.0.9' },
+    { installerVersion: '1.3.1' },
+    { installerVersion: '1.4.0' },
+    { installerVersion: '2.0.0' },
+    { installerVersion: '01.3.0' },
+    { installerVersion: '1.3.0+unreviewed' },
+    { code: 'unreviewed' },
+    { stage: 'unreviewed' },
+    { token: 'fixture' },
+    { path: "soda-source-ref:6bf055db38b506c85110bad11c88e53e" },
+    { url: 'https://private.invalid' },
+  ])('keeps unreviewed installer versions and unsafe feedback fields rejected: %j', (patch) => {
+    const report = { ...installerReport, ...patch }
+    expect(sanitizeInstallerFeedback(report)).toBeNull()
+    expect(sanitizeScanFeedbackPayload(report)).toEqual({ status: 400 })
   })
 
   it('enforces semantic anti-conflation of independent tool components', () => {

@@ -12,6 +12,7 @@ export {
 import type { TargetTeamEquipmentParameterSelection } from './targetTeamAccountBoundBenchmark'
 import {
   getCandidateWarehouseConstraint,
+  getCandidateWarehouseConstraintForIndependentDirection,
   getCandidateWarehouseConstraintForTeam,
   type CandidateWarehouseRecommendation,
 } from '../gameDataPacks/candidateWarehouseConstraints'
@@ -35,11 +36,17 @@ type BuildIntentConstraints = {
 
 export type BuildIntentRecommendation = CandidateWarehouseRecommendation
 
+export type IndependentDirectionSelection = {
+  directionId: string
+  conditionState: 'met' | 'not_met' | 'unknown'
+}
+
 export type AgentIndependentBuildIntent = {
   contract: typeof buildIntentContract
   scope: 'agent_independent'
   resourcePolicy: 'advisory'
   agentIds: [string]
+  independentDirection?: IndependentDirectionSelection
   recommendations: BuildIntentRecommendation[]
   constraints: BuildIntentConstraints
   fingerprint: string
@@ -60,6 +67,7 @@ export type TeamJointBuildIntent = {
     /** Optional only for historical snapshots; new intents always preserve unknown as null. */
     agentMindscapeById?: Record<string, number | null>
     selectedDirectionIdByAgentId?: Record<string, string>
+    reviewedDiscPlay?: { playId: string; evidence: string }
   }
   recommendations: BuildIntentRecommendation[]
   constraints: BuildIntentConstraints
@@ -116,7 +124,10 @@ function recommendations(
     const constraint = teamCondition
       ? getCandidateWarehouseConstraintForTeam(agentId, teamCondition)
       : getCandidateWarehouseConstraint(agentId)
-    return { agentId, constraint: constraint ? structuredClone(constraint) : null }
+    return {
+      agentId,
+      constraint: constraint ? structuredClone(constraint) : null,
+    }
   })
 }
 
@@ -136,7 +147,9 @@ function constraints(
         }
       : {}),
     ...(options.effectiveCritObjectivesByAgent
-      ? { effectiveCritObjectivesByAgent: structuredClone(options.effectiveCritObjectivesByAgent) }
+      ? {
+          effectiveCritObjectivesByAgent: structuredClone(options.effectiveCritObjectivesByAgent),
+        }
       : {}),
   }
 }
@@ -154,21 +167,41 @@ function withFingerprint<T extends Omit<BuildIntent, 'fingerprint'>>(
 
 export function compileAgentBuildIntent(input: {
   agentId: string
+  independentDirection?: IndependentDirectionSelection
   developmentPriorityAgentIds?: readonly string[]
   optimizerOptions?: AccountOptimizerOptions
 }): AgentIndependentBuildIntent {
   if (!input.agentId) throw new Error('单人 Build Intent 缺少代理人身份。')
+  const selectedConstraint = input.independentDirection
+    ? getCandidateWarehouseConstraintForIndependentDirection(
+        input.agentId,
+        input.independentDirection,
+      )
+    : undefined
+  if (input.independentDirection && !selectedConstraint)
+    throw new Error('所选个人方向不存在或其条件尚未确认满足。')
   return withFingerprint({
     contract: buildIntentContract,
     scope: 'agent_independent',
     resourcePolicy: 'advisory',
     agentIds: [input.agentId],
-    recommendations: recommendations([input.agentId]),
+    ...(input.independentDirection
+      ? { independentDirection: { ...input.independentDirection } }
+      : {}),
+    recommendations: selectedConstraint
+      ? [
+          {
+            agentId: input.agentId,
+            constraint: structuredClone(selectedConstraint),
+          },
+        ]
+      : recommendations([input.agentId]),
     constraints: constraints(input.optimizerOptions ?? {}, input.developmentPriorityAgentIds ?? []),
   })
 }
 
 export function compileTeamBuildIntent(input: {
+  reviewedDiscPlay?: TeamJointBuildIntent['exactTeam']['reviewedDiscPlay']
   candidateId: string
   memberIds: readonly [string, string, string]
   bangbooId: string
@@ -193,6 +226,7 @@ export function compileTeamBuildIntent(input: {
     resourcePolicy: 'within_team_exclusive',
     agentIds,
     exactTeam: {
+      ...(input.reviewedDiscPlay ? { reviewedDiscPlay: input.reviewedDiscPlay } : {}),
       candidateId: input.candidateId,
       bangbooId: input.bangbooId,
       scenarioTags: unique(input.scenarioTags ?? []).sort(),
@@ -343,7 +377,13 @@ export function compilePortfolioBuildIntent(input: {
 export function currentBuildIntentRecommendationState(intent: BuildIntent) {
   const staleAgentIds: string[] = []
   const currentFor = (agentId: string) => {
-    if (intent.scope === 'agent_independent') return getCandidateWarehouseConstraint(agentId)
+    if (intent.scope === 'agent_independent')
+      return intent.independentDirection
+        ? getCandidateWarehouseConstraintForIndependentDirection(
+            agentId,
+            intent.independentDirection,
+          )
+        : getCandidateWarehouseConstraint(agentId)
     const memberIds =
       intent.scope === 'team_joint'
         ? intent.agentIds
@@ -374,7 +414,10 @@ export function currentBuildIntentRecommendationState(intent: BuildIntent) {
   }
   for (const recommendation of intent.recommendations) {
     const current = currentFor(recommendation.agentId)
-    if ((current?.contentHash ?? null) !== (recommendation.constraint?.contentHash ?? null))
+    if (
+      (intent.scope === 'agent_independent' && intent.independentDirection && !current) ||
+      (current?.contentHash ?? null) !== (recommendation.constraint?.contentHash ?? null)
+    )
       staleAgentIds.push(recommendation.agentId)
   }
   return {
@@ -399,7 +442,9 @@ export function optimizerOptionsFromBuildIntent(
     excludedDiscIds: [...intent.constraints.excludedDiscIds],
     allowLocked: intent.constraints.allowLocked,
     ...(intent.constraints.panelInputsByAgent
-      ? { panelInputsByAgent: structuredClone(intent.constraints.panelInputsByAgent) }
+      ? {
+          panelInputsByAgent: structuredClone(intent.constraints.panelInputsByAgent),
+        }
       : {}),
     ...(intent.constraints.effectiveCritObjectivesByAgent
       ? {

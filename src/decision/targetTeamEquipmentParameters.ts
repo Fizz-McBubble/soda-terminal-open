@@ -1,3 +1,4 @@
+import { admittedTeamBangbooOptions } from './admittedTeamBangbooOptions'
 import { normalizeTargetTeamEquipmentParameters } from '../application/publicTargetTeamEquipmentFingerprint'
 import { currentBangbooDirectory } from '../assault/catalog'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
@@ -177,7 +178,7 @@ function shortlistedPlayerConfirmableTargetBangbooIds(
   retainedBangbooId?: string,
 ) {
   const legacyIds = legacyPlayerConfirmableTargetBangbooIds(input)
-  const recommendedIds = targetTeamBangbooOptions(input).map((option) => option.bangbooId)
+  const recommendedIds = admittedTeamBangbooOptions(input).map((option) => option.bangbooId)
   const reviewedIds = reviewedSourceBangbooOptions(input).map((option) => option.bangbooId)
   const validIds = new Set([
     ...legacyIds,

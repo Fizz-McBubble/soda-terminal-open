@@ -5,7 +5,14 @@ import {
   assetQuickReadRelease,
   type AssetQuickReadRelease,
 } from '../assetQuickRead/distribution'
-import { downloadAssetQuickReadInstaller } from '../assetQuickRead/installerDownload'
+import {
+  downloadAssetQuickReadInstaller,
+  readAssetQuickReadInstallerRelease,
+} from '../assetQuickRead/installerDownload'
+import {
+  createInstallerDownloadFeedbackReport,
+  installerDownloadFailureDetails,
+} from '../scanner/installerDownload'
 import type { InstallerTransferProgress } from '../scanner/installerDownload'
 import {
   installerTransferStatus,
@@ -39,6 +46,13 @@ export function AssetQuickReadInstallerAction({
   const [bytes, setBytes] = useState(0)
   const [transfer, setTransfer] = useState<InstallerTransferProgress | null>(null)
   const [notice, setNotice] = useState('')
+  const [resolvedRelease, setResolvedRelease] = useState<{
+    source: AssetQuickReadRelease
+    value: AssetQuickReadRelease
+  } | null>(null)
+  const [feedbackReport, setFeedbackReport] = useState<ReturnType<
+    typeof createInstallerDownloadFeedbackReport
+  > | null>(null)
   const [connecting, setConnecting] = useState(false)
   const request = useRef<AbortController | null>(null)
   const mounted = useRef(false)
@@ -48,9 +62,10 @@ export function AssetQuickReadInstallerAction({
   const downloadButton = useRef<HTMLButtonElement>(null)
   const cancelButton = useRef<HTMLButtonElement>(null)
   const restoreFocus = useRef(false)
-  const available = assetQuickReadDownloadAvailable(release)
+  const activeRelease = resolvedRelease?.source === release ? resolvedRelease.value : release
+  const available = assetQuickReadDownloadAvailable(activeRelease)
   const upgradeNotice = connected
-    ? assetQuickReadUpgradeNotice(toolVersion, release.bridgeVersion ?? release.version)
+    ? assetQuickReadUpgradeNotice(toolVersion, activeRelease.bridgeVersion ?? activeRelease.version)
     : null
   const pending = state === 'downloading' || state === 'saving'
   useEffect(() => {
@@ -82,7 +97,7 @@ export function AssetQuickReadInstallerAction({
       try {
         await callback()
       } catch {
-        if (mounted.current) setNotice('尚未连接。完成安装后，点击连接资产快读继续。')
+        if (mounted.current) setNotice('资产快读连接未完成，请重试连接。')
       } finally {
         connectPending.current = false
         if (mounted.current) setConnecting(false)
@@ -116,26 +131,58 @@ export function AssetQuickReadInstallerAction({
     const controller = new AbortController()
     request.current = controller
     const current = () => mounted.current && request.current === controller
+    const startedAt = performance.now()
     left.current = false
     attempted.current = false
     setState('downloading')
     setBytes(0)
     setTransfer(null)
     setNotice('')
+    setFeedbackReport(null)
+    let downloadRelease: AssetQuickReadRelease | null = activeRelease
     try {
-      const result = await downloadAssetQuickReadInstaller({
-        release,
-        signal: controller.signal,
-        onProgress: (value) => {
-          if (current()) setBytes(value)
-        },
-        onTransfer: (progress) => {
-          if (current()) setTransfer(progress)
-        },
-        onSaving: () => {
-          if (current()) setState('saving')
-        },
-      })
+      downloadRelease = await readAssetQuickReadInstallerRelease(controller.signal)
+      if (!current()) return
+      setResolvedRelease({ source: release, value: downloadRelease })
+      let result: Awaited<ReturnType<typeof downloadAssetQuickReadInstaller>>
+      for (let recovery = 0; ; recovery += 1) {
+        try {
+          result = await downloadAssetQuickReadInstaller({
+            release: downloadRelease,
+            signal: controller.signal,
+            onProgress: (value) => {
+              if (current()) setBytes(value)
+            },
+            onTransfer: (progress) => {
+              if (current()) setTransfer(progress)
+            },
+            onSaving: () => {
+              if (current()) setState('saving')
+            },
+          })
+          break
+        } catch (error) {
+          const details = installerDownloadFailureDetails(error)
+          if (
+            recovery > 0 ||
+            details?.code !== 'installer_download_release_changed' ||
+            controller.signal.aborted
+          )
+            throw error
+          const refreshed = await readAssetQuickReadInstallerRelease(controller.signal)
+          if (!current()) return
+          if (
+            refreshed.version === downloadRelease.version &&
+            refreshed.size === downloadRelease.size &&
+            refreshed.sha256 === downloadRelease.sha256
+          )
+            throw error
+          downloadRelease = refreshed
+          setResolvedRelease({ source: release, value: refreshed })
+          setBytes(0)
+          setTransfer(null)
+        }
+      }
       if (current()) {
         restoreFocus.current ||= document.activeElement === cancelButton.current
         setState(result)
@@ -143,9 +190,26 @@ export function AssetQuickReadInstallerAction({
     } catch (error) {
       if (current()) {
         restoreFocus.current ||= document.activeElement === cancelButton.current
-        setState(controller.signal.aborted ? 'cancelled' : 'error')
-        if (error instanceof DOMException && error.name === 'TimeoutError')
-          setNotice('连接超时，请重新下载以继续。')
+        const cancelled = controller.signal.aborted
+        setState(cancelled ? 'cancelled' : 'error')
+        if (!cancelled) {
+          const expected = downloadRelease ?? activeRelease
+          setFeedbackReport(
+            createInstallerDownloadFeedbackReport({
+              tool: 'asset_quick_read_installer',
+              installerVersion: expected.version,
+              expectedSize: expected.size ?? 0,
+              expectedSha256: expected.sha256 ?? '',
+              durationMs: performance.now() - startedAt,
+              error,
+            }),
+          )
+        }
+        if (
+          installerDownloadFailureDetails(error)?.code === 'installer_download_timeout' ||
+          (error instanceof DOMException && error.name === 'TimeoutError')
+        )
+          setNotice(installerOutcomeMessage('error', true))
       }
     } finally {
       if (request.current === controller) request.current = null
@@ -154,19 +218,29 @@ export function AssetQuickReadInstallerAction({
   const progress =
     state === 'saving'
       ? '正在准备文件'
-      : `下载中 ${Math.min(100, Math.floor((bytes / (release.size ?? 1)) * 100))}%`
+      : `下载中 ${Math.min(100, Math.floor((bytes / (activeRelease.size ?? 1)) * 100))}%`
+  const timedOut =
+    notice === installerOutcomeMessage('error', true) ||
+    feedbackReport?.code === 'installer_download_timeout'
+  const outcomeText = notice || installerOutcomeMessage(state, timedOut)
+  const showOutcome = state === 'error' || state === 'cancelled' || Boolean(notice)
   const feedback = pending
     ? state === 'downloading' && transfer
       ? installerTransferStatus(transfer)
       : progress
-    : connected
-      ? upgradeNotice || ''
-      : notice || installerOutcomeMessage(state)
+    : showOutcome
+      ? outcomeText
+      : connected
+        ? upgradeNotice || ''
+        : outcomeText
+  const feedbackHref = feedbackReport
+    ? `/installer-feedback#${encodeURIComponent(JSON.stringify(feedbackReport))}`
+    : null
   useEffect(() => {
     publishStatus?.({ text: feedback, pending })
     return () => publishStatus?.({ text: '', pending: false })
   }, [publishStatus, feedback, pending])
-  if (connected && !upgradeNotice && !pending) return null
+  if (connected && !upgradeNotice && !pending && !showOutcome && !feedbackReport) return null
   return (
     <div className="scanner-installer asset-quick-read-installer">
       <div className={`scanner-installer__control${pending ? ' is-pending' : ''}`}>
@@ -177,7 +251,7 @@ export function AssetQuickReadInstallerAction({
           title={
             !available
               ? '资产快读安装包尚未发布，当前不能下载。'
-              : `资产快读安装包 v${release.version}`
+              : `资产快读安装包 v${activeRelease.version}`
           }
           disabled={!available || blocked || pending || connecting}
           onClick={() => void download()}
@@ -192,7 +266,7 @@ export function AssetQuickReadInstallerAction({
                 : '下载资产快读'}
           {!pending && available && (
             <small className="asset-quick-read-installer__version" aria-hidden="true">
-              v{release.version}
+              v{activeRelease.version}
             </small>
           )}
         </button>
@@ -203,7 +277,7 @@ export function AssetQuickReadInstallerAction({
               aria-label="资产快读下载进度"
               aria-valuetext={`${progress} · ${feedback}`}
               value={bytes}
-              max={release.size ?? 1}
+              max={activeRelease.size ?? 1}
             />
             <button
               ref={cancelButton}
@@ -223,8 +297,20 @@ export function AssetQuickReadInstallerAction({
       {feedback && !publishStatus && (
         <div className="asset-quick-read-installer__feedback" role="status">
           {feedback}
+          {feedbackHref ? (
+            <a className="scanner-installer__fallback" href={feedbackHref}>
+              报告下载问题
+            </a>
+          ) : null}
         </div>
       )}
+      {feedbackHref && publishStatus ? (
+        <div className="scanner-installer__feedback">
+          <a className="scanner-installer__fallback" href={feedbackHref}>
+            报告下载问题
+          </a>
+        </div>
+      ) : null}
     </div>
   )
 }

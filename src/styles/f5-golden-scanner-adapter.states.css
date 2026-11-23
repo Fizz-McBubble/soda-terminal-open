@@ -63,6 +63,12 @@
   padding-bottom: 0;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-shell .scanner-import-complete__next {
+    animation: soda-local-content-enter var(--soda-motion-overlay) var(--soda-ease-out);
+  }
+}
+
 .f5v-shell dialog.scanner-task__confirmation {
   width: min(640px, calc(100vw - 48px));
   max-height: calc(var(--soda-viewport-height) - 48px);

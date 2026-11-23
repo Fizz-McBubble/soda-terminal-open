@@ -13,18 +13,19 @@ import type {
   SetFacts,
 } from './absoluteDiscRetentionContract'
 import {
-  history,
+  createRetentionProfileScorer,
   profileValid,
-  scoreProfile,
+  recommendationSetFit,
   twoPieceApplicability,
 } from './absoluteDiscRetentionScoring'
-import { approvedRarityRetention } from './approvedRarityRetention'
 import { selectRetentionWitnesses } from './absoluteDiscRetentionSelection'
+import { cleanupCalibrationBlockers } from './retentionCleanupCalibration'
 export type * from './absoluteDiscRetentionContract'
 export { twoPieceApplicability } from './absoluteDiscRetentionScoring'
 const EPS = 1e-8
 
 function relevant(disc: Disc, profile: Profile, set: SetFacts | undefined) {
+  if (profile.restrictedSlots && !profile.restrictedSlots.includes(disc.slot)) return false
   // A verified negative main/set gate remains valid even if an unrelated numeric field is malformed.
   if (!profile.verified || !profile.sourceIds.length) return true
   if (
@@ -32,11 +33,9 @@ function relevant(disc: Disc, profile: Profile, set: SetFacts | undefined) {
     profile.mainStatsBySlot[String(disc.slot)]?.[disc.mainStat] === 'incompatible'
   )
     return false
-  return (
-    !set ||
-    twoPieceApplicability(set, profile) !== 'incompatible' ||
-    (profile.fourPieceUses?.[disc.setId] ?? 'incompatible') !== 'incompatible'
-  )
+  const twoPieceFit = set ? twoPieceApplicability(set, profile) : 'conditional'
+  const fourPieceFit = profile.fourPieceUses?.[disc.setId] ?? 'incompatible'
+  return recommendationSetFit(profile, disc.setId, twoPieceFit, fourPieceFit) !== 'incompatible'
 }
 function coverageBlockers(
   disc: Disc,
@@ -121,6 +120,46 @@ export function assessDisc(
   policy: QualityPolicy,
   annotation: { readonly protected?: boolean; readonly ownedAgentIds?: readonly string[] } = {},
 ): Decision {
+  return assessPreparedDisc(
+    disc,
+    catalog,
+    policy,
+    createRetentionProfileScorer(catalog.rules),
+    annotation,
+  )
+}
+
+function assessPreparedDisc(
+  disc: Disc,
+  catalog: Catalog,
+  policy: QualityPolicy,
+  prepareScoring: ReturnType<typeof createRetentionProfileScorer>,
+  annotation: { readonly protected?: boolean; readonly ownedAgentIds?: readonly string[] },
+): Decision {
+  if (disc.rarity !== 'S') {
+    return {
+      discId: disc.id,
+      qualityDisposition: 'review',
+      recommendation: annotation.protected ? 'protected' : 'review',
+      reasons: ['rarity_outside_analysis_scope'],
+      evidence: [],
+      bestUseProfileId: null,
+      bestUseScore: null,
+      ownedUseAgentIds: [],
+      unownedUseAgentIds: [],
+      policyId: policy.id,
+      sourceCoverage: 'partial',
+      reasonKind: 'missing_fact',
+      nextAction: action(
+        'keep',
+        '此盘不纳入 S 级驱动盘分析，记录继续保留。',
+        '不据此建议强化或清理。',
+      ),
+      blockedBy: [],
+      witnessProfileIds: [],
+      reviewedUseScope: '',
+    }
+  }
   const evidence: QualityEvidence[] = []
   let disposition: Disposition = 'review'
   let reasonKind: RetentionReasonKind = 'missing_fact'
@@ -134,14 +173,13 @@ export function assessDisc(
     '缺口未闭合时暂停清理。',
   )
   try {
-    history(disc, catalog.rules)
-    const rarityDecision = approvedRarityRetention(disc, policy, Boolean(annotation.protected))
-    if (rarityDecision) return rarityDecision
+    const score = prepareScoring(disc)
     const released = new Set(catalog.releasedAgentIds)
     const sets = catalog.sets.filter((row) => row.id === disc.setId)
     const set = sets.length === 1 ? sets[0] : undefined
     const gaps = coverageBlockers(disc, catalog, set)
     for (const profile of catalog.profiles.filter((row) => released.has(row.agentId))) {
+      if (profile.restrictedSlots && !profile.restrictedSlots.includes(disc.slot)) continue
       if (!profileValid(profile, catalog.rules)) {
         if (relevant(disc, profile, set))
           gaps.push({
@@ -156,7 +194,7 @@ export function assessDisc(
         continue
       }
       try {
-        evidence.push(scoreProfile(disc, profile, set, catalog.rules, policy))
+        evidence.push(score(profile, set, policy))
       } catch {
         if (relevant(disc, profile, set))
           gaps.push({
@@ -172,7 +210,11 @@ export function assessDisc(
     }
     const relevantUses = evidence.filter((row) => row.useState !== 'incompatible')
     const usable = ordered(
-      relevantUses.filter((row) => row.useState === 'valid' || row.useState === 'conditional'),
+      relevantUses.filter(
+        (row) =>
+          row.recommendationSetFit !== 'incompatible' &&
+          (row.useState === 'valid' || row.useState === 'conditional'),
+      ),
     )
     const missing = relevantUses.filter(
       (row) =>
@@ -193,7 +235,7 @@ export function assessDisc(
           detail: '该构筑和号位缺少有效品质阈值。',
           sourceIds: row.sourceIds,
         })
-    const functionalContext = usable.filter(
+    const functionalContext = relevantUses.filter(
       (row) =>
         row.functionalState === 'needs_build_context' ||
         ((row.functionalState === 'ready' || row.functionalState === 'needs_level') &&
@@ -216,12 +258,20 @@ export function assessDisc(
     const calibrated =
       policy.calibration === 'approved' &&
       (!policy.calibratedRarities || policy.calibratedRarities.includes(disc.rarity))
-    const { winner, readyFunction, growingFunction, borderline, trial, investmentGaps, strictLow } =
-      selectRetentionWitnesses(usable, policy, {
-        materialComplete: !materialGaps.length,
-        functionalContextComplete: !functionalBlockers.length,
-        cleanupCalibrated: calibrated,
-      })
+    const {
+      winner,
+      readyFunction,
+      growingFunction,
+      borderline,
+      trial,
+      admittedValidTrial,
+      investmentGaps,
+      strictLow,
+    } = selectRetentionWitnesses(usable, policy, {
+      materialComplete: !gaps.length,
+      functionalContextComplete: !functionalBlockers.length,
+      cleanupCalibrated: calibrated,
+    })
     if (winner) {
       disposition = 'keep'
       witnesses = [winner]
@@ -258,6 +308,18 @@ export function assessDisc(
         `已证实的单盘主词功能尚需强化；先到 +${growingFunction.investment.nextLevel} 后重新分析。`,
         '用途前提或记录变化时停止；主词功能完成后按功能保留，不继续追副词。',
         growingFunction.investment.nextLevel,
+      )
+    } else if (admittedValidTrial) {
+      disposition = 'observe'
+      reasonKind = 'try_next_upgrade'
+      witnesses = [admittedValidTrial]
+      blockedBy = materialGaps
+      reasons = ['next_upgrade_trial_qualified', 'not_an_investment_probability']
+      nextAction = action(
+        'try_upgrade',
+        `仅建议试到 +${admittedValidTrial.investment.nextLevel}，记录结果后重新分析。`,
+        '若用途前提、核心结构或已获得品质未达到该阶段门槛，停止继续投入；不是一路强化到满级。',
+        admittedValidTrial.investment.nextLevel,
       )
     } else if (materialGaps.length || functionalBlockers.length) {
       witnesses = functionalContext
@@ -403,18 +465,37 @@ export function assessDisc(
       '记录修正前暂停清理。',
     )
   }
+  const calibrationBlockers =
+    disposition === 'cleanup_candidate' ? cleanupCalibrationBlockers(disc, catalog, evidence) : []
+  if (calibrationBlockers.length) {
+    disposition = 'review'
+    reasonKind = 'missing_fact'
+    sourceCoverage = 'partial'
+    blockedBy.push(...calibrationBlockers)
+    reasons.push('cleanup_calibration_scope_unresolved')
+    nextAction = action(
+      'review_quality',
+      '穿透强化为主的成品先核对具名用途，当前依据不足以建议清理。',
+      '用途与保留需求未确认前暂停清理；该盘已满级，不再建议强化。',
+    )
+  }
   const deduped = [
     ...new Map(
       blockedBy.map((row) => [`${row.profileId ?? ''}:${row.field}:${row.predicateId}`, row]),
     ).values(),
   ]
   const usable = ordered(
-    evidence.filter((row) => row.useState === 'valid' || row.useState === 'conditional'),
+    evidence.filter(
+      (row) =>
+        row.recommendationSetFit !== 'incompatible' &&
+        (row.useState === 'valid' || row.useState === 'conditional'),
+    ),
   )
   const best = witnesses[0] ?? usable[0]
   const useful = evidence.filter(
     (row) =>
       row.useState !== 'incompatible' &&
+      row.recommendationSetFit !== 'incompatible' &&
       (row.functionalMain ||
         (row.cutoffs && row.possibleFinalScore.upper + EPS >= row.cutoffs.cleanupBelow)),
   )
@@ -456,8 +537,9 @@ export function assessWarehouse(
   const counts = new Map<string, number>()
   for (const disc of discs) counts.set(disc.id, (counts.get(disc.id) ?? 0) + 1)
   const protectedIds = new Set(annotations.protectedIds ?? [])
+  const prepareScoring = createRetentionProfileScorer(catalog.rules)
   return discs.map((disc) => {
-    const decision = assessDisc(disc, catalog, policy, {
+    const decision = assessPreparedDisc(disc, catalog, policy, prepareScoring, {
       protected: protectedIds.has(disc.id),
       ownedAgentIds: annotations.ownedAgentIds,
     })

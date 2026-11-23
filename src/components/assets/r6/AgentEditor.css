@@ -1,0 +1,94 @@
+.r6-golden .agent-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  container: agent-editor / inline-size;
+  min-width: 0;
+  min-height: 0;
+}
+
+.r6-golden .editor:has(.agent-editor),
+.r6-golden .split--catalog-browse > .editor:has(.agent-editor) {
+  overflow: hidden;
+}
+
+.r6-golden .agent-editor__content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+
+.r6-golden .agent-editor__content > .editor-section {
+  margin-top: var(--soda-space-3);
+  padding-top: 0;
+  border-top: 0;
+}
+
+.r6-golden .agent-editor .agent-editor-progress .fields {
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+}
+
+.r6-golden .agent-editor[data-purpose='assets'] .agent-editor-progress .fields:not(.three) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.r6-golden .agent-editor .agent-editor-skills .fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.r6-golden .agent-editor .wengine-assignment-field__levels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.r6-golden .agent-editor__actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--soda-space-2);
+  margin-top: var(--soda-space-3);
+  padding: var(--soda-space-3) 0;
+  border-top: 1px solid var(--soda-line);
+  background: var(--soda-surface, #fff);
+}
+
+.r6-golden .agent-editor__save-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--soda-space-2);
+  margin-left: auto;
+}
+
+.r6-golden .agent-editor__view-toggle {
+  flex-shrink: 0;
+}
+
+.r6-golden .agent-editor__actions .editor-action {
+  position: static;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.r6-golden .agent-editor__actions .editor-action > small {
+  display: none;
+}
+
+@container agent-editor (min-width: 560px) {
+  .r6-golden .agent-editor .agent-editor-skills .fields {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@container agent-editor (max-width: 300px) {
+  .r6-golden .agent-editor .agent-editor-progress .fields,
+  .r6-golden .agent-editor .agent-editor-skills .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

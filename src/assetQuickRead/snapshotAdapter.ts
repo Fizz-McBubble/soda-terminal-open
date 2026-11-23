@@ -1,3 +1,4 @@
+import { validateSnapshotResponses } from './snapshotResponseValidation'
 import { z } from 'zod'
 import { publicScannerDriveDiscData } from '../application/publicScannerCatalog'
 import type { ObservedAgentField, RosterAgent } from '../assault/types'
@@ -64,7 +65,7 @@ export function convertAssetSnapshot(
   const result: AssetQuickReadCandidate = {
     capturedAt,
     snapshotSha256: context.snapshotSha256,
-    protocolVersion: '3.2',
+    protocolVersion: parsed.success ? parsed.data.source.protocol_version : '3.2',
     discs: {
       format: 'soda-terminal-drive-disc-import',
       formatVersion: 1,
@@ -87,7 +88,7 @@ export function convertAssetSnapshot(
     for (const error of parsed.error.issues.slice(0, 30))
       issue(
         'invalid_snapshot',
-        '快照结构、版本或读取范围不符合当前国服3.2适配合同。',
+        '快照结构、版本或读取范围不符合已支持的国服适配合同。',
         'snapshot',
         undefined,
         error.path.join('.'),
@@ -122,21 +123,7 @@ export function convertAssetSnapshot(
     counts.s_discs + counts.a_discs + counts.b_discs + counts.unknown_rarity_discs !== counts.discs
   )
     issue('count_mismatch', '资产数量与记录或稀有度分布不一致。')
-  const expectedResponses = { discs: [3933, 12], engines: [1382, 12], agents: [2470, 8] }
-  const responseKinds = new Set<string>()
-  for (const response of snapshot.response_observations) {
-    const expected = expectedResponses[response.kind]
-    if (
-      responseKinds.has(response.kind) ||
-      response.command_id !== expected[0] ||
-      response.status_field !== expected[1] ||
-      (response.status_presence === 'omitted'
-        ? response.status_value !== null || response.assessment !== 'omitted_semantics_unverified'
-        : response.status_value !== 0 || response.assessment !== 'zero_semantics_unverified')
-    )
-      issue('invalid_response_observation', '三类读取响应身份或状态不符合当前观察范围。')
-    responseKinds.add(response.kind)
-  }
+  validateSnapshotResponses(snapshot, issue)
   const value = (
     ob: SnapshotObservation,
     min: number,
@@ -169,22 +156,11 @@ export function convertAssetSnapshot(
     })
     return indexed
   }
-  const inScopeDisc = (disc: (typeof assets.discs)[number]) => {
-    const catalog = disc.catalog_id.value
-    const rarity = catalog === null ? null : (Math.floor(catalog / 10) % 10) + 1
-    return rarity !== 3 && rarity !== 4
-  }
-  const discIndex = ids(assets.discs.filter(inScopeDisc), 'discs')
-  // Lower-grade identities only explain unsupported equipment relationships;
-  // they never enter validation, preview, import or S-disc duplicate authority.
-  for (const disc of assets.discs.filter((row) => !inScopeDisc(row))) {
-    if (disc.uid.value !== null && !discIndex.has(disc.uid.value))
-      discIndex.set(disc.uid.value, disc)
-  }
+  const discIndex = ids(assets.discs, 'discs')
   const engineIndex = ids(unreliableEngines ? [] : assets.engines, 'engines')
   ;(unreliableEngines ? [] : assets.engines).forEach((engine, index) => {
     if (engine.catalog_id.value === null || !engineIdentities.has(engine.catalog_id.value))
-      issue('unknown_engine_catalog', '音擎目录身份未识别。', 'engines', index, 'catalog_id')
+      issue('unknown_engine_catalog', '音擎尚未识别。', 'engines', index, 'catalog_id')
     if (engine.level.presence === 'present') value(engine.level, 0, 60, 'engines', index, 'level')
     if (engine.phase.presence === 'present') value(engine.phase, 1, 5, 'engines', index, 'phase')
     if (engine.modification.presence === 'present')
@@ -194,17 +170,6 @@ export function convertAssetSnapshot(
   let actualA = 0
   let actualB = 0
   assets.discs.forEach((disc, index) => {
-    const observedCatalog = disc.catalog_id.value
-    const observedRarity =
-      observedCatalog === null ? null : (Math.floor(observedCatalog / 10) % 10) + 1
-    if (observedRarity === 3) {
-      actualB++
-      return
-    }
-    if (observedRarity === 4) {
-      actualA++
-      return
-    }
     const before = issues.length
     const catalog = value(disc.catalog_id, 1, 0xffffffff, 'discs', index, 'catalog_id')
     const uid = disc.uid.value
@@ -215,8 +180,7 @@ export function convertAssetSnapshot(
     if (rarity === 5) actualS++
     if (rarity === 4) actualA++
     if (rarity === 3) actualB++
-    if (!setId)
-      issue('unknown_disc_catalog', '驱动盘套装目录身份未识别。', 'discs', index, 'catalog_id')
+    if (!setId) issue('unknown_disc_catalog', '驱动盘套装尚未识别。', 'discs', index, 'catalog_id')
     if (![3, 4, 5].includes(rarity) || slot < 1 || slot > 6)
       issue('unsupported_disc_catalog', '驱动盘品级或号位未识别。', 'discs', index, 'catalog_id')
     const rarityName = rarity === 3 ? 'B' : rarity === 4 ? 'A' : 'S'
@@ -227,7 +191,7 @@ export function convertAssetSnapshot(
       'discs',
       index,
       'level',
-      0,
+      rarity === 5 ? 0 : undefined,
     )
     const main = disc.main_stat
     const mainInfo = main?.key.value === null || !main ? undefined : statsById[main.key.value]
@@ -266,10 +230,11 @@ export function convertAssetSnapshot(
         !info ||
         !step ||
         base === null ||
+        base === 0 ||
         add === null ||
         add < 1 ||
         add > 6 ||
-        base !== step.baseValue * (info[1] ? 100 : 1) ||
+        (rarity === 5 && step && base !== step.baseValue * (info[1] ? 100 : 1)) ||
         seenStats.has(info[0]) ||
         info[0] === mainStat
       ) {
@@ -295,11 +260,11 @@ export function convertAssetSnapshot(
         index,
         'substats',
       )
-    if (issues.length === before && setId && rarity === 5)
+    if (issues.length === before && setId && [3, 4, 5].includes(rarity))
       result.discs.discs.push({
         setId,
         slot: slot as 1 | 2 | 3 | 4 | 5 | 6,
-        rarity: 'S',
+        rarity: rarityName,
         level,
         mainStat,
         subStats,
@@ -313,7 +278,7 @@ export function convertAssetSnapshot(
     actualB !== counts.b_discs ||
     counts.unknown_rarity_discs !== 0
   )
-    issue('rarity_count_mismatch', 'S级盘分布与目录记录不一致。')
+    issue('rarity_count_mismatch', '驱动盘品级分布与目录记录不一致。')
   const agentRecords = unreliableAgents ? [] : assets.agents
   const occurrences = (values: (number | null)[]) => {
     const counts = new Map<number, number>()
@@ -330,7 +295,7 @@ export function convertAssetSnapshot(
     const id = value(agent.catalog_id, 1, 0xffffffff, 'agents', index, 'catalog_id')
     const identity = id === undefined ? undefined : agentIdentities.get(String(id))
     if (!identity || id === undefined) {
-      issue('unknown_agent_catalog', '代理人目录身份未识别。', 'agents', index)
+      issue('unknown_agent_catalog', '代理人尚未识别。', 'agents', index)
       return
     }
     if ((agentIds.get(id) ?? 0) > 1) {
@@ -350,7 +315,15 @@ export function convertAssetSnapshot(
     if (level !== undefined) observedFields.push('level')
     if (promotion !== undefined) observedFields.push('ascension')
     if (mindscape !== undefined) observedFields.push('mindscape')
-    const potential = observePotentialDetail(agent.potential_detail_id, id)
+    const potential: ReturnType<typeof observePotentialDetail> =
+      snapshot.source.protocol_version === '3.2'
+        ? observePotentialDetail(agent.potential_detail_id, id)
+        : {
+            warning:
+              agent.potential_detail_id?.presence === 'present'
+                ? '潜能资料暂未适配；本次保留原值。'
+                : undefined,
+          }
     if (potential.level !== undefined) {
       fields.potentialImage = potential.level
       observedFields.push('potentialImage')
@@ -364,7 +337,6 @@ export function convertAssetSnapshot(
       (code, message) => issue(code, message, 'agents', index, 'skills'),
     )
     const equippedSourceIds: string[] = []
-    let unsupportedEquippedDisc = false
     let invalidEquippedDisc = false
     const seenSlots = new Set<number>()
     for (const equip of agent.dressed_equips) {
@@ -390,22 +362,13 @@ export function convertAssetSnapshot(
         continue
       }
       seenSlots.add(slot)
-      if ((Math.floor(disc.catalog_id.value / 10) % 10) + 1 !== 5) {
-        unsupportedEquippedDisc = true
-        continue
-      }
       equippedSourceIds[slot - 1] = sourceId(uid!)
     }
-    const references =
-      invalidEquippedDisc || unsupportedEquippedDisc ? [] : equippedSourceIds.filter(Boolean)
+    const references = invalidEquippedDisc ? [] : equippedSourceIds.filter(Boolean)
     // The pinned AgentData load contains complete equipment on each observed
     // agent. An empty repeated field means unequipped, not a missing agent.
-    // Invalid references and unsupported A/B equipment are still unobserved.
-    if (!invalidEquippedDisc && !unsupportedEquippedDisc) observedFields.push('equippedDiscIds')
-    if (unsupportedEquippedDisc)
-      warnings.push(
-        `${identity.name}当前装备包含A/B级盘，尚不支持同步该代理人的装备盘关系；保留原记录。`,
-      )
+    // Invalid references remain unobserved.
+    if (!invalidEquippedDisc) observedFields.push('equippedDiscIds')
     // An omitted weapon reference is unobserved, not authority to clear an old equipment field.
     const weaponUid = agent.weapon_uid.value
     if (agent.weapon_uid.presence === 'present' && weaponUid === 0) {
@@ -490,7 +453,11 @@ export function convertAssetSnapshot(
     warnings.push(
       `${equippedEnginesWithUnobservedProgression}件当前音擎的等级或突破未读到，保留原值；可先导入，再手动补齐。`,
     )
-  warnings.push('本次仅检查已出现的代理人和S级盘；未观测资产不删除，快照不构成全量仓库证明。')
+  warnings.push(
+    counts.a_discs || counts.b_discs
+      ? '本次仅检查已出现的代理人和驱动盘；未观测资产不删除，快照不构成全量仓库证明。'
+      : '本次仅检查已出现的代理人和S级盘；未观测资产不删除，快照不构成全量仓库证明。',
+  )
   if (result.discs.discs.length && !standardDriveDiscImportSchema.safeParse(result.discs).success)
     issue('invalid_standard_disc_import', '转换后驱动盘不符合标准导入合同。')
   if (!result.discs.discs.length && !result.agents.length)

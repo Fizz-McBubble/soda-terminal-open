@@ -34,7 +34,7 @@
 .formal-import-success__copy h1 {
   margin: 0;
   color: var(--sea-text-1);
-  font-size: clamp(1.75rem, 2.3vw, 2.5rem);
+  font-size: clamp(1.75rem, calc(2.3 * var(--soda-type-vw, 1vw)), 2.5rem);
   line-height: 1.12;
   letter-spacing: -0.03em;
   text-wrap: balance;

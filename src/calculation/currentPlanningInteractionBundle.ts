@@ -93,6 +93,8 @@ export function compileCurrentPlanningInteractionBundle(input: {
   remielleRadiance32?: unknown
   resourceTimelineDeclaration32?: unknown
   sourceActionUsages32?: readonly PlanningEventUsage[]
+  /** Resource window from the selected baseline; does not rescale normalized observations. */
+  baselineDurationSeconds?: number
 }) {
   const timeline = compileCurrentPlanningFormationEffectTimeline(input.memberIds)
   if (timeline.status === 'unsupported') return timeline
@@ -101,6 +103,7 @@ export function compileCurrentPlanningInteractionBundle(input: {
     input.remielleRadiance32,
     input.resourceTimelineDeclaration32,
     input.sourceActionUsages32,
+    input.baselineDurationSeconds,
   )
   if (resources.status === 'unsupported') return resources
   const effects = compileCurrentPlanningFormationEffectObservations(input, timeline)

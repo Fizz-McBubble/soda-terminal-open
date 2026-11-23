@@ -23,15 +23,13 @@ export function projectAccountDecisionModule(world: ReadyWorld, module: AccountD
   const allSlots = projectAccountDecisionCapabilitySlots(snapshot, world.status === 'stale')
   const slots = accountDecisionModuleCapabilities[module].map((capability) => allSlots[capability])
   const state = moduleState(slots.map((item) => item.state))
-  const unavailableCount = slots.filter((item) => item.state === 'unavailable').length
-  const partialCount = slots.filter((item) => item.state === 'partial').length
   const cultivationSlot = slots.find((item) => item.id === 'cultivation_priority')
   const summary =
     state === 'stale'
-      ? '账户资料已有变化；旧培养顺序仍保留，重新分析前不作为当前建议。'
+      ? '按当前角色和装备更新养成建议。'
       : state === 'ready'
         ? (cultivationSlot?.summary ?? '当前页面所需的账户决策已经准备好。')
-        : `已准备好的建议仍可查看；${partialCount} 项范围有限，${unavailableCount} 项尚缺完整依据。`
+        : '查看已生成的养成建议。'
   return {
     module,
     runId: world.run.runId,
@@ -44,15 +42,9 @@ export function projectAccountDecisionModule(world: ReadyWorld, module: AccountD
   }
 }
 
-export function projectAgentDecision(world: ReadyWorld, agentId: string) {
+/** Directory summaries do not need to scan every team or warehouse decision. */
+export function projectAgentDecisionSummary(world: ReadyWorld, agentId: string) {
   const snapshot = world.run.snapshot
-  const allocation = snapshot.allocation.global.find((item) => item.agentId === agentId) ?? null
-  const teams = snapshot.teamEngine.recommendations.filter((team) =>
-    team.memberIds.includes(agentId),
-  )
-  const warehouseFitCount = snapshot.warehouse.decisions.filter((decision) =>
-    decision.fitAgentIds.includes(agentId),
-  ).length
   const authority = snapshot.decisionAuthority
   const authorityRecommendation =
     authority.status === 'ready'
@@ -69,7 +61,7 @@ export function projectAgentDecision(world: ReadyWorld, agentId: string) {
         : 'unsupported'
   const summary =
     status === 'stale'
-      ? '账户资料已变化；保留较早快照中的角色结论，等待显式重新分析。'
+      ? '养成建议需要重新分析。'
       : !modeled
         ? '当前还没有包含该代理人的完整三人队伍建议。'
         : `${cultivationPriorityLabel(authorityRecommendation.cultivationPriority)} · ${authorityRecommendation.teamRating === 'Experimental' ? '队伍强弱尚不确定' : `队伍 ${authorityRecommendation.teamRating} 档`}`
@@ -79,11 +71,21 @@ export function projectAgentDecision(world: ReadyWorld, agentId: string) {
     fingerprint: snapshot.fingerprint.inputHash,
     status,
     summary,
-    allocation,
-    teams,
-    warehouseFitCount,
     authorityRecommendation,
     nextAction: world.nextAction,
+  }
+}
+
+export function projectAgentDecision(world: ReadyWorld, agentId: string) {
+  const snapshot = world.run.snapshot
+  return {
+    ...projectAgentDecisionSummary(world, agentId),
+    allocation: snapshot.allocation.global.find((item) => item.agentId === agentId) ?? null,
+    teams: snapshot.teamEngine.recommendations.filter((team) => team.memberIds.includes(agentId)),
+    warehouseFitCount: snapshot.warehouse
+      ? snapshot.warehouse.decisions.filter((decision) => decision.fitAgentIds.includes(agentId))
+          .length
+      : null,
   }
 }
 

@@ -24,12 +24,13 @@ export const observedAgentFields = [
 const observedMarkerSchema = z.object({
   capturedAt: z.string().datetime({ offset: true }),
   snapshotSha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
+  protocolVersion: z.enum(['3.2', '3.3']).optional(),
 })
 
 export const observedAgentFactsSchema = z.object({
   schemaVersion: z.literal(1),
   source: z.literal('asset_quick_read'),
-  protocolVersion: z.literal('3.2'),
+  protocolVersion: z.enum(['3.2', '3.3']),
   fields: z.partialRecord(z.enum(observedAgentFields), observedMarkerSchema),
 })
 
@@ -40,7 +41,7 @@ export function normalizeObservedAgentFacts(input: unknown): ObservedAgentFacts 
   if (
     candidate.schemaVersion !== 1 ||
     candidate.source !== 'asset_quick_read' ||
-    candidate.protocolVersion !== '3.2'
+    (candidate.protocolVersion !== '3.2' && candidate.protocolVersion !== '3.3')
   )
     return undefined
   if (!candidate.fields || typeof candidate.fields !== 'object' || Array.isArray(candidate.fields))
@@ -53,7 +54,12 @@ export function normalizeObservedAgentFacts(input: unknown): ObservedAgentFacts 
     if (marker.success) fields[field] = marker.data
   }
   return Object.keys(fields).length
-    ? { schemaVersion: 1, source: 'asset_quick_read', protocolVersion: '3.2', fields }
+    ? {
+        schemaVersion: 1,
+        source: 'asset_quick_read',
+        protocolVersion: candidate.protocolVersion,
+        fields,
+      }
     : undefined
 }
 

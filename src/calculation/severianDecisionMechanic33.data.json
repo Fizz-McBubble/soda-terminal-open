@@ -1,0 +1,17 @@
+{
+  "schema": "soda-reviewed-severian-decision-parameters/v1",
+  "gameVersion": "3.3",
+  "sourceVersion": "3.3",
+  "sourceLocator": "passive.level.1631501..1631507.desc[0]:first-clause;passive.level.1631501..1631507.desc[1]",
+  "sourceSha256": "89f3a03b90fca880851352d6d686e6bbe658411d7b4cdf6b78d2a14a97ff5974",
+  "critDamageBonusByCoreLevel": [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6],
+  "damageBonusByCoreLevel": [0.125, 0.146, 0.167, 0.188, 0.208, 0.229, 0.25],
+  "windTeammateExtraDamageBonusByCoreLevel": [0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.3],
+  "additionalAbilityAtkPerCritRatePercent": 8.5,
+  "additionalAbilityMaxCritRatePercent": 100,
+  "additionalAbilityMaxBonusAtk": 850,
+  "recipient": "self",
+  "coreLevelIndex": "explicit_core_level_minus_one_no_default",
+  "codeOrigin": "local_source_text_projection_no_upstream_formula_code",
+  "gameDataRedistribution": "not_confirmed_no_raw_text_or_media_in_projection"
+}

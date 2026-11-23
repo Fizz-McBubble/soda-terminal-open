@@ -300,6 +300,586 @@
       "historicalIndexVerified": false,
       "autoAdopt": false,
       "boundary": "Fresh source capture restores byte-identical adopted detail records and numeric/skill semantics; the historical index and capture manifest are not recovered. Original source locators, game version and generator pin remain adopted identity. No new game-version adoption or upstream formula-source verification is implied."
+    },
+    "ascensionSupplement": {
+      "sourceVersions": ["3.2", "3.3"],
+      "boundary": "Archived Chinese release details; only ascension rows are supplemented. Adopted historical English identity and its prior review remain separate.",
+      "sources": [
+        {
+          "gameId": "53001",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53001.json",
+          "sha256": "CF669F75904C3E602DD49FE09F1ED78C72DA83AEC439CC5BC8396519CA33FBE0",
+          "bytes": 15243
+        },
+        {
+          "gameId": "53001",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53001.json",
+          "sha256": "CF669F75904C3E602DD49FE09F1ED78C72DA83AEC439CC5BC8396519CA33FBE0",
+          "bytes": 15243
+        },
+        {
+          "gameId": "53002",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53002.json",
+          "sha256": "EFDDFA37B4EDC90367A570DD554CF1B58F53822C9023AAEB27EA88EF58D0E9F8",
+          "bytes": 11792
+        },
+        {
+          "gameId": "53002",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53002.json",
+          "sha256": "EFDDFA37B4EDC90367A570DD554CF1B58F53822C9023AAEB27EA88EF58D0E9F8",
+          "bytes": 11792
+        },
+        {
+          "gameId": "53003",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53003.json",
+          "sha256": "7CFDFDCB79C893464FD7DABFCE6D7D2B5D9CCF21DEA613077ACA2D78ACE9DC90",
+          "bytes": 11906
+        },
+        {
+          "gameId": "53003",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53003.json",
+          "sha256": "7CFDFDCB79C893464FD7DABFCE6D7D2B5D9CCF21DEA613077ACA2D78ACE9DC90",
+          "bytes": 11906
+        },
+        {
+          "gameId": "53004",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53004.json",
+          "sha256": "80B4CA50431906A296B76D847B39DEE82F1671B329DCD8E67742F96A2DE140A1",
+          "bytes": 10486
+        },
+        {
+          "gameId": "53004",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53004.json",
+          "sha256": "80B4CA50431906A296B76D847B39DEE82F1671B329DCD8E67742F96A2DE140A1",
+          "bytes": 10486
+        },
+        {
+          "gameId": "53005",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53005.json",
+          "sha256": "C88703E2938C3B9D54CF910EA4BA58FAE95041360939207DCB68F761695D050B",
+          "bytes": 17170
+        },
+        {
+          "gameId": "53005",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53005.json",
+          "sha256": "C88703E2938C3B9D54CF910EA4BA58FAE95041360939207DCB68F761695D050B",
+          "bytes": 17170
+        },
+        {
+          "gameId": "53006",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53006.json",
+          "sha256": "8400B150AF0915FD46844FAEF82AD70E272DE8CD4DD4D084B8DC718619158CDF",
+          "bytes": 14016
+        },
+        {
+          "gameId": "53006",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53006.json",
+          "sha256": "8400B150AF0915FD46844FAEF82AD70E272DE8CD4DD4D084B8DC718619158CDF",
+          "bytes": 14016
+        },
+        {
+          "gameId": "53007",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53007.json",
+          "sha256": "ED484204337A595D58E37EDF47B7DCFCBBAB5FD3DA561E503908B29064595EDB",
+          "bytes": 15030
+        },
+        {
+          "gameId": "53007",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53007.json",
+          "sha256": "ED484204337A595D58E37EDF47B7DCFCBBAB5FD3DA561E503908B29064595EDB",
+          "bytes": 15030
+        },
+        {
+          "gameId": "53008",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53008.json",
+          "sha256": "82D4C6E82A5C9E0B2BDA4E969C0FD5DBD317A3C529A13D97983DDE0F166D0F3E",
+          "bytes": 9102
+        },
+        {
+          "gameId": "53008",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53008.json",
+          "sha256": "82D4C6E82A5C9E0B2BDA4E969C0FD5DBD317A3C529A13D97983DDE0F166D0F3E",
+          "bytes": 9102
+        },
+        {
+          "gameId": "53009",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53009.json",
+          "sha256": "AFA8A8070245BC1DE1787A94FC0775B7952DD3BBCBE5593B358825FD3EC1C0C7",
+          "bytes": 14100
+        },
+        {
+          "gameId": "53009",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53009.json",
+          "sha256": "AFA8A8070245BC1DE1787A94FC0775B7952DD3BBCBE5593B358825FD3EC1C0C7",
+          "bytes": 14100
+        },
+        {
+          "gameId": "53010",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53010.json",
+          "sha256": "2BBEEC04C71B74A55E42401A510FDF9BC14A93E3A746DDE1D57EC8EBB6C46829",
+          "bytes": 15315
+        },
+        {
+          "gameId": "53010",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53010.json",
+          "sha256": "2BBEEC04C71B74A55E42401A510FDF9BC14A93E3A746DDE1D57EC8EBB6C46829",
+          "bytes": 15315
+        },
+        {
+          "gameId": "53011",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53011.json",
+          "sha256": "8FA2364AB92FC68DAC79CA80DFEEF264EC6EA989E075F4CBAD68CDF513976162",
+          "bytes": 10124
+        },
+        {
+          "gameId": "53011",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53011.json",
+          "sha256": "8FA2364AB92FC68DAC79CA80DFEEF264EC6EA989E075F4CBAD68CDF513976162",
+          "bytes": 10124
+        },
+        {
+          "gameId": "53012",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53012.json",
+          "sha256": "B94D6E84488BAA483BDD6C8B3DB177C487B82D54A0B153289435668E5E04C9C8",
+          "bytes": 7771
+        },
+        {
+          "gameId": "53012",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53012.json",
+          "sha256": "B94D6E84488BAA483BDD6C8B3DB177C487B82D54A0B153289435668E5E04C9C8",
+          "bytes": 7771
+        },
+        {
+          "gameId": "53013",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53013.json",
+          "sha256": "A7958AF208CA26F8ECAB87FC4F77681AA2720539B6C0312AE0267AC40CD74A2A",
+          "bytes": 14858
+        },
+        {
+          "gameId": "53013",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53013.json",
+          "sha256": "A7958AF208CA26F8ECAB87FC4F77681AA2720539B6C0312AE0267AC40CD74A2A",
+          "bytes": 14858
+        },
+        {
+          "gameId": "53014",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53014.json",
+          "sha256": "D32F2F765167BB7352708EBAD5EC4F2C8FB142306394C64BC055DDB633092ADF",
+          "bytes": 10576
+        },
+        {
+          "gameId": "53014",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53014.json",
+          "sha256": "D32F2F765167BB7352708EBAD5EC4F2C8FB142306394C64BC055DDB633092ADF",
+          "bytes": 10576
+        },
+        {
+          "gameId": "53015",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53015.json",
+          "sha256": "B1217274EB24D57CE27EE805DEC2E409DB9CAB1434985D52BDB25C16BB8AFB08",
+          "bytes": 16416
+        },
+        {
+          "gameId": "53015",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53015.json",
+          "sha256": "B1217274EB24D57CE27EE805DEC2E409DB9CAB1434985D52BDB25C16BB8AFB08",
+          "bytes": 16416
+        },
+        {
+          "gameId": "53016",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53016.json",
+          "sha256": "7CF9A2851011BC515920B0A6198E374086404219C409D6632A2097E3187A076F",
+          "bytes": 16930
+        },
+        {
+          "gameId": "53016",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53016.json",
+          "sha256": "7CF9A2851011BC515920B0A6198E374086404219C409D6632A2097E3187A076F",
+          "bytes": 16930
+        },
+        {
+          "gameId": "53017",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53017.json",
+          "sha256": "4E39602339C0D78886790063CC8A6C66EB8BDD007A79369AD7C890481FCC393F",
+          "bytes": 15645
+        },
+        {
+          "gameId": "53017",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53017.json",
+          "sha256": "4E39602339C0D78886790063CC8A6C66EB8BDD007A79369AD7C890481FCC393F",
+          "bytes": 15645
+        },
+        {
+          "gameId": "53019",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53019.json",
+          "sha256": "FBF01C4D5C657B5C1BB3FED0BE79187A871E3BAFA30769CB97807B01646A91A9",
+          "bytes": 16654
+        },
+        {
+          "gameId": "53019",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53019.json",
+          "sha256": "FBF01C4D5C657B5C1BB3FED0BE79187A871E3BAFA30769CB97807B01646A91A9",
+          "bytes": 16654
+        },
+        {
+          "gameId": "53021",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/53021.json",
+          "sha256": "D5844C98AB5C4273DBD7617BC0BAFFD3578732142B937FCF60DF332FEE0C66E1",
+          "bytes": 14637
+        },
+        {
+          "gameId": "53021",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/53021.json",
+          "sha256": "D5844C98AB5C4273DBD7617BC0BAFFD3578732142B937FCF60DF332FEE0C66E1",
+          "bytes": 14637
+        },
+        {
+          "gameId": "54001",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54001.json",
+          "sha256": "9D57F6CD036871197CF1ABAD300A0AA8391ED7E3DF62D6BCEDFA8021C4528B3F",
+          "bytes": 16908
+        },
+        {
+          "gameId": "54001",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54001.json",
+          "sha256": "9D57F6CD036871197CF1ABAD300A0AA8391ED7E3DF62D6BCEDFA8021C4528B3F",
+          "bytes": 16908
+        },
+        {
+          "gameId": "54002",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54002.json",
+          "sha256": "F927EDA80B4B0739686BD27953E20547C58CC4CF642775F0689B26FE43769D63",
+          "bytes": 15657
+        },
+        {
+          "gameId": "54002",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54002.json",
+          "sha256": "F927EDA80B4B0739686BD27953E20547C58CC4CF642775F0689B26FE43769D63",
+          "bytes": 15657
+        },
+        {
+          "gameId": "54003",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54003.json",
+          "sha256": "922D52927CE7B9BF5DB5C29E5F4CFB999D24EAFACC2A55C1F553B0E73326DE5B",
+          "bytes": 20402
+        },
+        {
+          "gameId": "54003",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54003.json",
+          "sha256": "922D52927CE7B9BF5DB5C29E5F4CFB999D24EAFACC2A55C1F553B0E73326DE5B",
+          "bytes": 20402
+        },
+        {
+          "gameId": "54004",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54004.json",
+          "sha256": "B6085500ED8233652B55C4781021A4F36033A00D212172850F21E0816BBD3610",
+          "bytes": 13866
+        },
+        {
+          "gameId": "54004",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54004.json",
+          "sha256": "B6085500ED8233652B55C4781021A4F36033A00D212172850F21E0816BBD3610",
+          "bytes": 13866
+        },
+        {
+          "gameId": "54005",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54005.json",
+          "sha256": "56B2FBBC2F230AEC20718F3DC22C01C85C13DDE24FC0B35FC2EE8F9630E24601",
+          "bytes": 15670
+        },
+        {
+          "gameId": "54005",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54005.json",
+          "sha256": "56B2FBBC2F230AEC20718F3DC22C01C85C13DDE24FC0B35FC2EE8F9630E24601",
+          "bytes": 15670
+        },
+        {
+          "gameId": "54006",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54006.json",
+          "sha256": "D01E621D3697F88663398CBA4A4EACB6ADB4CFAEFD383F4ED88C117F900FFACC",
+          "bytes": 16481
+        },
+        {
+          "gameId": "54006",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54006.json",
+          "sha256": "D01E621D3697F88663398CBA4A4EACB6ADB4CFAEFD383F4ED88C117F900FFACC",
+          "bytes": 16481
+        },
+        {
+          "gameId": "54008",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54008.json",
+          "sha256": "2AFC34C8B72B3A7DC6E18D945E83C12784A742817E4CE760EE8C4C17AA3B0261",
+          "bytes": 15904
+        },
+        {
+          "gameId": "54008",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54008.json",
+          "sha256": "2AFC34C8B72B3A7DC6E18D945E83C12784A742817E4CE760EE8C4C17AA3B0261",
+          "bytes": 15904
+        },
+        {
+          "gameId": "54009",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54009.json",
+          "sha256": "0AE4966A6ABC2251BFE78C027647B72A14CD988E7C0F1C7980E007DFA766BFF8",
+          "bytes": 15743
+        },
+        {
+          "gameId": "54009",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54009.json",
+          "sha256": "0AE4966A6ABC2251BFE78C027647B72A14CD988E7C0F1C7980E007DFA766BFF8",
+          "bytes": 15743
+        },
+        {
+          "gameId": "54010",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54010.json",
+          "sha256": "B98D082E9F219A6423CA25D5B8697BE142678208BEDF43819E6C873CF589398A",
+          "bytes": 15270
+        },
+        {
+          "gameId": "54010",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54010.json",
+          "sha256": "B98D082E9F219A6423CA25D5B8697BE142678208BEDF43819E6C873CF589398A",
+          "bytes": 15270
+        },
+        {
+          "gameId": "54011",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54011.json",
+          "sha256": "2EBEA7EED2B0494C9BEDB73B2A3663961680ADF162A59FB5440881EF61B99950",
+          "bytes": 15074
+        },
+        {
+          "gameId": "54011",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54011.json",
+          "sha256": "2EBEA7EED2B0494C9BEDB73B2A3663961680ADF162A59FB5440881EF61B99950",
+          "bytes": 15074
+        },
+        {
+          "gameId": "54012",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54012.json",
+          "sha256": "85070F9238F3E21577496543C57E63383ABF475DC46CF30DDFA6DB2377B85407",
+          "bytes": 14922
+        },
+        {
+          "gameId": "54012",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54012.json",
+          "sha256": "85070F9238F3E21577496543C57E63383ABF475DC46CF30DDFA6DB2377B85407",
+          "bytes": 14922
+        },
+        {
+          "gameId": "54013",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54013.json",
+          "sha256": "44E6C629E08ABE858ED08D4609CC1A4FBCA9E471D87496A0EC8952F79E7057D3",
+          "bytes": 19560
+        },
+        {
+          "gameId": "54013",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54013.json",
+          "sha256": "44E6C629E08ABE858ED08D4609CC1A4FBCA9E471D87496A0EC8952F79E7057D3",
+          "bytes": 19560
+        },
+        {
+          "gameId": "54014",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54014.json",
+          "sha256": "7F22A355DA06BA2B9EAFB16ED954FC24812A1DFC95A66A87506F289A8F9250DF",
+          "bytes": 16633
+        },
+        {
+          "gameId": "54014",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54014.json",
+          "sha256": "7F22A355DA06BA2B9EAFB16ED954FC24812A1DFC95A66A87506F289A8F9250DF",
+          "bytes": 16633
+        },
+        {
+          "gameId": "54015",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54015.json",
+          "sha256": "F9F55017608A93B6ED3B974CAF93BF0ECD5794DDB5CC2B383190CC4D7D0DDB54",
+          "bytes": 17904
+        },
+        {
+          "gameId": "54015",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54015.json",
+          "sha256": "F9F55017608A93B6ED3B974CAF93BF0ECD5794DDB5CC2B383190CC4D7D0DDB54",
+          "bytes": 17904
+        },
+        {
+          "gameId": "54016",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54016.json",
+          "sha256": "A4A27B1C3D1B50DC03F57545D41930FE5A3CFDFD412691A21AC6B06E951D2FF0",
+          "bytes": 23324
+        },
+        {
+          "gameId": "54016",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54016.json",
+          "sha256": "A4A27B1C3D1B50DC03F57545D41930FE5A3CFDFD412691A21AC6B06E951D2FF0",
+          "bytes": 23324
+        },
+        {
+          "gameId": "54017",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54017.json",
+          "sha256": "896A27571F00D6BC0B5878325B6D3A4FAF179335B1218A4BF5FCFC75095A58B1",
+          "bytes": 15756
+        },
+        {
+          "gameId": "54017",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54017.json",
+          "sha256": "896A27571F00D6BC0B5878325B6D3A4FAF179335B1218A4BF5FCFC75095A58B1",
+          "bytes": 15756
+        },
+        {
+          "gameId": "54018",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54018.json",
+          "sha256": "8CEC08666998A2840C7FA3EDA5D31AFF34C6CFF3ADE534E2FF692EAEF78F7EFF",
+          "bytes": 18869
+        },
+        {
+          "gameId": "54018",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54018.json",
+          "sha256": "8CEC08666998A2840C7FA3EDA5D31AFF34C6CFF3ADE534E2FF692EAEF78F7EFF",
+          "bytes": 18869
+        },
+        {
+          "gameId": "54019",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54019.json",
+          "sha256": "239C618CC0E9C89E1545C32D731AAB755EB0A3BDE3A0A1EA8D17C20F2960F3EF",
+          "bytes": 16431
+        },
+        {
+          "gameId": "54019",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54019.json",
+          "sha256": "239C618CC0E9C89E1545C32D731AAB755EB0A3BDE3A0A1EA8D17C20F2960F3EF",
+          "bytes": 16431
+        },
+        {
+          "gameId": "54020",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54020.json",
+          "sha256": "1B23190F5C4DA3166A682D2179B2126AD5AFE6E8530B19CE4C267364D32CF665",
+          "bytes": 16872
+        },
+        {
+          "gameId": "54020",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54020.json",
+          "sha256": "1B23190F5C4DA3166A682D2179B2126AD5AFE6E8530B19CE4C267364D32CF665",
+          "bytes": 16872
+        },
+        {
+          "gameId": "54021",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54021.json",
+          "sha256": "78F761CD620222C0DE7832FFAAAEDA1992992B0C5FB4F4ED8754724C5BED61C7",
+          "bytes": 19251
+        },
+        {
+          "gameId": "54021",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54021.json",
+          "sha256": "78F761CD620222C0DE7832FFAAAEDA1992992B0C5FB4F4ED8754724C5BED61C7",
+          "bytes": 19251
+        },
+        {
+          "gameId": "54022",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54022.json",
+          "sha256": "FA7E144E031E6B319F413BBCE2F85A84B4756C864BA36D673564514875DB7454",
+          "bytes": 16680
+        },
+        {
+          "gameId": "54022",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54022.json",
+          "sha256": "FA7E144E031E6B319F413BBCE2F85A84B4756C864BA36D673564514875DB7454",
+          "bytes": 16680
+        },
+        {
+          "gameId": "54023",
+          "sourceVersion": "3.2",
+          "url": "https://static.nanoka.cc/zzz/3.2/zh/bangboo/54023.json",
+          "sha256": "122A39B842BBFCD924F065802AD137BAEBD988423F59786B5FA0AF17D1A4FF8F",
+          "bytes": 19627
+        },
+        {
+          "gameId": "54023",
+          "sourceVersion": "3.3",
+          "url": "https://static.nanoka.cc/zzz/3.3/zh/bangboo/54023.json",
+          "sha256": "122A39B842BBFCD924F065802AD137BAEBD988423F59786B5FA0AF17D1A4FF8F",
+          "bytes": 19627
+        }
+      ]
     }
   },
   "coverage": {
@@ -329,12 +909,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 47, "defence": 38 },
-          "30": { "hp": 376, "attack": 233, "defence": 75 },
-          "40": { "hp": 564, "attack": 699, "defence": 113 },
-          "50": { "hp": 752, "attack": 1864, "defence": 151 },
-          "60": { "hp": 940, "attack": 4661, "defence": 188 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 47, "defence": 38, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 233, "defence": 75, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 699, "defence": 113, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1864, "defence": 151, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4661, "defence": 188, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -432,12 +1012,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 47, "defence": 41 },
-          "30": { "hp": 376, "attack": 233, "defence": 81 },
-          "40": { "hp": 564, "attack": 699, "defence": 122 },
-          "50": { "hp": 752, "attack": 1864, "defence": 163 },
-          "60": { "hp": 940, "attack": 4661, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 47, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 233, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 699, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1864, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4661, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -515,12 +1095,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 228, "attack": 46, "defence": 35 },
-          "30": { "hp": 455, "attack": 228, "defence": 69 },
-          "40": { "hp": 683, "attack": 685, "defence": 104 },
-          "50": { "hp": 910, "attack": 1827, "defence": 139 },
-          "60": { "hp": 1138, "attack": 4568, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 228, "attack": 46, "defence": 35, "critRate": 0, "critDamage": 0 },
+          "30": { "hp": 455, "attack": 228, "defence": 69, "critRate": 0, "critDamage": 0 },
+          "40": { "hp": 683, "attack": 685, "defence": 104, "critRate": 0, "critDamage": 0 },
+          "50": { "hp": 910, "attack": 1827, "defence": 139, "critRate": 0, "critDamage": 0 },
+          "60": { "hp": 1138, "attack": 4568, "defence": 173, "critRate": 0, "critDamage": 0 }
         }
       },
       "skills": [
@@ -596,12 +1176,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 44, "defence": 41 },
-          "30": { "hp": 376, "attack": 219, "defence": 81 },
-          "40": { "hp": 564, "attack": 657, "defence": 122 },
-          "50": { "hp": 752, "attack": 1753, "defence": 163 },
-          "60": { "hp": 940, "attack": 4381, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 44, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 219, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 657, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1753, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4381, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -671,12 +1251,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 228, "attack": 44, "defence": 41 },
-          "30": { "hp": 455, "attack": 219, "defence": 81 },
-          "40": { "hp": 683, "attack": 657, "defence": 122 },
-          "50": { "hp": 910, "attack": 1753, "defence": 163 },
-          "60": { "hp": 1138, "attack": 4381, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 228, "attack": 44, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 455, "attack": 219, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 683, "attack": 657, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 910, "attack": 1753, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1138, "attack": 4381, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -780,12 +1360,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -883,12 +1463,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 47, "defence": 38 },
-          "30": { "hp": 376, "attack": 233, "defence": 75 },
-          "40": { "hp": 564, "attack": 699, "defence": 113 },
-          "50": { "hp": 752, "attack": 1864, "defence": 151 },
-          "60": { "hp": 940, "attack": 4661, "defence": 188 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 47, "defence": 38, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 233, "defence": 75, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 699, "defence": 113, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1864, "defence": 151, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4661, "defence": 188, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -986,12 +1566,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 228, "attack": 44, "defence": 41 },
-          "30": { "hp": 455, "attack": 219, "defence": 81 },
-          "40": { "hp": 683, "attack": 657, "defence": 122 },
-          "50": { "hp": 910, "attack": 1753, "defence": 163 },
-          "60": { "hp": 1138, "attack": 4381, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 228, "attack": 44, "defence": 41, "critRate": 0, "critDamage": 0 },
+          "30": { "hp": 455, "attack": 219, "defence": 81, "critRate": 0, "critDamage": 0 },
+          "40": { "hp": 683, "attack": 657, "defence": 122, "critRate": 0, "critDamage": 0 },
+          "50": { "hp": 910, "attack": 1753, "defence": 163, "critRate": 0, "critDamage": 0 },
+          "60": { "hp": 1138, "attack": 4381, "defence": 203, "critRate": 0, "critDamage": 0 }
         }
       },
       "skills": [
@@ -1067,12 +1647,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -1170,12 +1750,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 47, "defence": 38 },
-          "30": { "hp": 376, "attack": 233, "defence": 75 },
-          "40": { "hp": 564, "attack": 699, "defence": 113 },
-          "50": { "hp": 752, "attack": 1864, "defence": 151 },
-          "60": { "hp": 940, "attack": 4661, "defence": 188 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 47, "defence": 38, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 233, "defence": 75, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 699, "defence": 113, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1864, "defence": 151, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4661, "defence": 188, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -1273,12 +1853,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -1348,12 +1928,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 228, "attack": 44, "defence": 41 },
-          "30": { "hp": 455, "attack": 219, "defence": 81 },
-          "40": { "hp": 683, "attack": 657, "defence": 122 },
-          "50": { "hp": 910, "attack": 1753, "defence": 163 },
-          "60": { "hp": 1138, "attack": 4381, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 228, "attack": 44, "defence": 41, "critRate": 0, "critDamage": 0 },
+          "30": { "hp": 455, "attack": 219, "defence": 81, "critRate": 0, "critDamage": 0 },
+          "40": { "hp": 683, "attack": 657, "defence": 122, "critRate": 0, "critDamage": 0 },
+          "50": { "hp": 910, "attack": 1753, "defence": 163, "critRate": 0, "critDamage": 0 },
+          "60": { "hp": 1138, "attack": 4381, "defence": 203, "critRate": 0, "critDamage": 0 }
         }
       },
       "skills": [
@@ -1423,12 +2003,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -1526,12 +2106,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -1601,12 +2181,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -1712,12 +2292,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -1823,12 +2403,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 228, "attack": 44, "defence": 41 },
-          "30": { "hp": 455, "attack": 219, "defence": 81 },
-          "40": { "hp": 683, "attack": 657, "defence": 122 },
-          "50": { "hp": 910, "attack": 1753, "defence": 163 },
-          "60": { "hp": 1138, "attack": 4381, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 228, "attack": 44, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 455, "attack": 219, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 683, "attack": 657, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 910, "attack": 1753, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1138, "attack": 4381, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -1932,12 +2512,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2035,12 +2615,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 41 },
-          "30": { "hp": 376, "attack": 247, "defence": 81 },
-          "40": { "hp": 564, "attack": 741, "defence": 122 },
-          "50": { "hp": 752, "attack": 1976, "defence": 163 },
-          "60": { "hp": 940, "attack": 4941, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2138,12 +2718,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 61, "defence": 38 },
-          "30": { "hp": 414, "attack": 303, "defence": 75 },
-          "40": { "hp": 621, "attack": 909, "defence": 113 },
-          "50": { "hp": 828, "attack": 2424, "defence": 151 },
-          "60": { "hp": 1034, "attack": 6059, "defence": 188 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 61, "defence": 38, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 303, "defence": 75, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 621, "attack": 909, "defence": 113, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 828, "attack": 2424, "defence": 151, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6059, "defence": 188, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2249,12 +2829,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2352,12 +2938,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 188, "attack": 49, "defence": 38 },
-          "30": { "hp": 376, "attack": 247, "defence": 75 },
-          "40": { "hp": 564, "attack": 741, "defence": 113 },
-          "50": { "hp": 752, "attack": 1976, "defence": 151 },
-          "60": { "hp": 940, "attack": 4941, "defence": 188 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 188, "attack": 49, "defence": 38, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 376, "attack": 247, "defence": 75, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 564, "attack": 741, "defence": 113, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 752, "attack": 1976, "defence": 151, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 940, "attack": 4941, "defence": 188, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2469,12 +3055,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 250, "attack": 59, "defence": 35 },
-          "30": { "hp": 501, "attack": 297, "defence": 69 },
-          "40": { "hp": 751, "attack": 891, "defence": 104 },
-          "50": { "hp": 1001, "attack": 2375, "defence": 139 },
-          "60": { "hp": 1252, "attack": 5938, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 250, "attack": 59, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 501, "attack": 297, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 751, "attack": 891, "defence": 104, "critRate": 0.225, "critDamage": 0.25 },
+          "50": {
+            "hp": 1001,
+            "attack": 2375,
+            "defence": 139,
+            "critRate": 0.45,
+            "critDamage": 0.25
+          },
+          "60": { "hp": 1252, "attack": 5938, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2572,12 +3164,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2681,12 +3279,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 64, "defence": 38 },
-          "30": { "hp": 414, "attack": 321, "defence": 75 },
-          "40": { "hp": 621, "attack": 963, "defence": 113 },
-          "50": { "hp": 828, "attack": 2569, "defence": 151 },
-          "60": { "hp": 1034, "attack": 6423, "defence": 188 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 64, "defence": 38, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 321, "defence": 75, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 621, "attack": 963, "defence": 113, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 828, "attack": 2569, "defence": 151, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6423, "defence": 188, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2784,12 +3382,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 61, "defence": 38 },
-          "30": { "hp": 414, "attack": 303, "defence": 75 },
-          "40": { "hp": 621, "attack": 909, "defence": 113 },
-          "50": { "hp": 828, "attack": 2424, "defence": 151 },
-          "60": { "hp": 1034, "attack": 6059, "defence": 188 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 61, "defence": 38, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 303, "defence": 75, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 621, "attack": 909, "defence": 113, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 828, "attack": 2424, "defence": 151, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6059, "defence": 188, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -2903,12 +3501,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 61, "defence": 38 },
-          "30": { "hp": 414, "attack": 303, "defence": 75 },
-          "40": { "hp": 621, "attack": 909, "defence": 113 },
-          "50": { "hp": 828, "attack": 2424, "defence": 151 },
-          "60": { "hp": 1034, "attack": 6059, "defence": 188 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 61, "defence": 38, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 303, "defence": 75, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 621, "attack": 909, "defence": 113, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 828, "attack": 2424, "defence": 151, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6059, "defence": 188, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3014,12 +3612,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 250, "attack": 59, "defence": 35 },
-          "30": { "hp": 501, "attack": 297, "defence": 69 },
-          "40": { "hp": 751, "attack": 891, "defence": 104 },
-          "50": { "hp": 1001, "attack": 2375, "defence": 139 },
-          "60": { "hp": 1252, "attack": 5938, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 250, "attack": 59, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 501, "attack": 297, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 751, "attack": 891, "defence": 104, "critRate": 0.225, "critDamage": 0.25 },
+          "50": {
+            "hp": 1001,
+            "attack": 2375,
+            "defence": 139,
+            "critRate": 0.45,
+            "critDamage": 0.25
+          },
+          "60": { "hp": 1252, "attack": 5938, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3117,12 +3721,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3220,12 +3830,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3323,12 +3939,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 61, "defence": 41 },
-          "30": { "hp": 414, "attack": 303, "defence": 81 },
-          "40": { "hp": 621, "attack": 909, "defence": 122 },
-          "50": { "hp": 828, "attack": 2424, "defence": 163 },
-          "60": { "hp": 1034, "attack": 6059, "defence": 203 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 61, "defence": 41, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 303, "defence": 81, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 621, "attack": 909, "defence": 122, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 828, "attack": 2424, "defence": 163, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6059, "defence": 203, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3434,12 +4050,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 63, "defence": 35 },
-          "30": { "hp": 414, "attack": 315, "defence": 69 },
-          "40": { "hp": 621, "attack": 945, "defence": 104 },
-          "50": { "hp": 828, "attack": 2521, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6302, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 63, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 315, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 621, "attack": 945, "defence": 104, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 828, "attack": 2521, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6302, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3537,12 +4153,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 250, "attack": 59, "defence": 35 },
-          "30": { "hp": 501, "attack": 297, "defence": 69 },
-          "40": { "hp": 751, "attack": 891, "defence": 104 },
-          "50": { "hp": 1001, "attack": 2375, "defence": 139 },
-          "60": { "hp": 1252, "attack": 5938, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 250, "attack": 59, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 501, "attack": 297, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 751, "attack": 891, "defence": 104, "critRate": 0.225, "critDamage": 0.25 },
+          "50": {
+            "hp": 1001,
+            "attack": 2375,
+            "defence": 139,
+            "critRate": 0.45,
+            "critDamage": 0.25
+          },
+          "60": { "hp": 1252, "attack": 5938, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3640,12 +4262,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 65, "defence": 35 },
-          "30": { "hp": 414, "attack": 324, "defence": 69 },
-          "40": { "hp": 621, "attack": 973, "defence": 104 },
-          "50": { "hp": 828, "attack": 2593, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6483, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 65, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 324, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 621, "attack": 973, "defence": 104, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 828, "attack": 2593, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6483, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3765,12 +4387,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3868,12 +4496,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 250, "attack": 59, "defence": 35 },
-          "30": { "hp": 501, "attack": 297, "defence": 69 },
-          "40": { "hp": 751, "attack": 891, "defence": 104 },
-          "50": { "hp": 1001, "attack": 2375, "defence": 139 },
-          "60": { "hp": 1252, "attack": 5938, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 250, "attack": 59, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 501, "attack": 297, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 751, "attack": 891, "defence": 104, "critRate": 0.225, "critDamage": 0.25 },
+          "50": {
+            "hp": 1001,
+            "attack": 2375,
+            "defence": 139,
+            "critRate": 0.45,
+            "critDamage": 0.25
+          },
+          "60": { "hp": 1252, "attack": 5938, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -3971,12 +4605,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -4074,12 +4714,12 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 59, "defence": 35 },
-          "30": { "hp": 414, "attack": 297, "defence": 69 },
-          "40": { "hp": 621, "attack": 891, "defence": 104 },
-          "50": { "hp": 828, "attack": 2375, "defence": 139 },
-          "60": { "hp": 1034, "attack": 5938, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 59, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 297, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": { "hp": 621, "attack": 891, "defence": 104, "critRate": 0.225, "critDamage": 0.25 },
+          "50": { "hp": 828, "attack": 2375, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 5938, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -4185,12 +4825,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -4296,12 +4942,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -4399,12 +5051,18 @@
         "critDamage": 0.5,
         "penetrationRatio": 0,
         "ascensionByLevelCap": {
-          "10": { "hp": 0, "attack": 0, "defence": 0 },
-          "20": { "hp": 207, "attack": 67, "defence": 35 },
-          "30": { "hp": 414, "attack": 333, "defence": 69 },
-          "40": { "hp": 621, "attack": 1000, "defence": 104 },
-          "50": { "hp": 828, "attack": 2666, "defence": 139 },
-          "60": { "hp": 1034, "attack": 6665, "defence": 173 }
+          "10": { "hp": 0, "attack": 0, "defence": 0, "critRate": 0, "critDamage": 0 },
+          "20": { "hp": 207, "attack": 67, "defence": 35, "critRate": 0.045, "critDamage": 0 },
+          "30": { "hp": 414, "attack": 333, "defence": 69, "critRate": 0.225, "critDamage": 0 },
+          "40": {
+            "hp": 621,
+            "attack": 1000,
+            "defence": 104,
+            "critRate": 0.225,
+            "critDamage": 0.25
+          },
+          "50": { "hp": 828, "attack": 2666, "defence": 139, "critRate": 0.45, "critDamage": 0.25 },
+          "60": { "hp": 1034, "attack": 6665, "defence": 173, "critRate": 0.45, "critDamage": 0.5 }
         }
       },
       "skills": [
@@ -4483,5 +5141,5 @@
       }
     }
   ],
-  "contentHash": "71ACF4A0754F975D27CAF88B74911F234ADAF93162495BB10BBA78946CED0A85"
+  "contentHash": "1EDDA83A322195059F2EA3AA7450E3A962A3A066357430B5160F583EDBBC8074"
 }

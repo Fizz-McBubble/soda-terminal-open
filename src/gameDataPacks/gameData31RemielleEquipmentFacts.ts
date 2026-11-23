@@ -350,6 +350,7 @@ export const fields: IntakeField[] = [
     value: {
       anomalyProficiency: 50,
       lumifluxAnomalyDamagePercent: 15,
+      wearerAttribute: 'lumiflux',
       durationSeconds: 15,
       offFieldRetention: 'always',
       trigger: ['enter_field', 'switch_to_active'],

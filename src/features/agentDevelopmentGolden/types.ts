@@ -8,6 +8,8 @@ export type JourneyScenario =
   | 'save-recovery'
   | 'empty-discs'
 
+export type WarehouseAnalysisIntent = 'compare' | 'generate'
+
 export type AgentSummary = {
   agentId: string
   name: string
@@ -31,6 +33,8 @@ export type AgentSummary = {
   cultivationPriority?: string
   confidence?: string
   nextTrainingSteps?: string[]
+  cinemaLevels?: number[] | null
+  equipmentProgress?: { engine: string; discs: string }
   skillStatus?: AgentSkillTrainingStatus
   trainingContext?: {
     hasPrioritySkillGap: boolean
@@ -42,6 +46,7 @@ export type AgentSkillTrainingStatus =
   | 'pending'
   | 'stale'
   | 'unknown'
+  | 'target-unknown'
   | 'no-target'
   | 'complete'
   | 'has-gaps'
@@ -49,7 +54,12 @@ export type AgentSkillTrainingStatus =
 export type OverviewAgent = AgentSummary
 
 export type DiscFact = {
-  conflicts?: Array<{ agentId: string; name: string }>
+  recordedStatKeys?: readonly string[]
+  conflicts?: Array<{
+    agentId: string
+    name: string
+    usage?: 'current_equipment' | 'saved_plan' | 'equipment_and_plan'
+  }>
   id: string
   label: string
   slot: number
@@ -63,7 +73,12 @@ export type DiscFact = {
   level: number
   main: string
   mainValue: string
-  subs: Array<{ name: string; value: string; hits: number; effective?: boolean }>
+  subs: Array<{
+    name: string
+    value: string
+    hits: number
+    effective?: boolean
+  }>
   effective: string
   grade: 'A+' | 'A' | 'B+' | '未评定'
   score?: number
@@ -94,6 +109,7 @@ export type LoadoutRow = {
  * only; repositories and solver details stay in the route adapter. */
 export type GoldenWorkbenchData = {
   panelScopeKey?: string
+  saveScopeKey?: string
   agentId: string
   name: string
   rarity: string
@@ -138,30 +154,52 @@ export type GoldenWorkbenchData = {
       priority: boolean
       key?: string
       targetLevel?: number | null
+      baseTargetLevel?: number | null
       targetType?: 'exact_integer' | 'minimum_reference' | 'soda_derived'
       exactTarget?: number | null
       minimumReference?: number | null
       nextLevel?: { status: string; tooltip: string } | null
-      sodaDerived?: { band: string; targetLevel: number; label: string } | null
+      sodaDerived?: {
+        band: string
+        targetLevel: number
+        baseTargetLevel?: number
+        label: string
+      } | null
     }>
-    /** Historical full-potential guide reference. It never changes current account skills or solver input. */
+    /** Applied to target display only for observed P6; it never changes account data or solver input. */
     potentialSkillReference?: {
       conditionLabel: string
       skills: Array<{ label: string; recommended: string }>
+      priorityGroups?: string[][]
     }
     skillPriority: string[]
-    panel: Array<{ name: string; value: string }>
+    skillPriorityGroups?: string[][]
+    panel: Array<{
+      name: string
+      value: string
+      key?: string
+      unit?: 'points' | 'percent' | 'points_per_second' | 'regen_bonus_percent'
+      semantic?: import('../../gameDataPacks/targetPanelSemantics').TargetPanelMetricSemantic
+      /** Placement never removes a source reference or changes a solver weight. */
+      placement?: 'primary' | 'reference'
+      mechanic?: boolean
+    }>
     panelDirection?: string
     panelConditions?: readonly string[]
+    panelSourceNotes?: readonly string[]
     teams: Array<{
       label: string
       members: string
       note?: string
       conditions?: readonly string[]
-      visuals: Array<{ entityType: 'agent' | 'bangboo'; entityId: string; name: string }>
+      visuals: Array<{
+        entityType: 'agent' | 'bangboo'
+        entityId: string
+        name: string
+      }>
     }>
     engines: Array<{
-      tier: '首选' | '替代' | '下位' | '候选方向' | '备选' | 'S级替代' | 'A级下位替代'
+      tier: '推荐' | '首选' | '替代' | '下位' | '候选方向' | '备选' | 'S级替代' | 'A级下位替代'
       name: string
       /** Player-facing attribute direction mapped from the available data foundation. */
       bonus: string
@@ -195,7 +233,12 @@ export type GoldenWorkbenchData = {
               pieces?: never
             }
           | {
-              pieces: Array<{ entityId: string; name: string; effect: string; count: 2 | 4 }>
+              pieces: Array<{
+                entityId: string
+                name: string
+                effect: string
+                count: 2 | 4
+              }>
               fourPiece?: never
               twoPiece?: never
             }
@@ -203,8 +246,14 @@ export type GoldenWorkbenchData = {
       >
       mainStats: Array<{ slot: string; value: string }>
       mainStatAlternatives?: Array<{
+        sourceId: string
+        slot: '4' | '5' | '6'
+        stats: string[]
+        purpose: 'transition' | 'personal_damage' | 'anomaly_support' | 'short_fight' | 'secondary'
         label: string
         condition: string
+        directionId?: string
+        scope?: { primarySetIds: readonly string[]; secondarySetIds?: readonly string[] }
         sourceUrl: string
         sourceVersion: string | null
       }>
@@ -255,6 +304,8 @@ export type GoldenWorkbenchData = {
   }
   /** A historical plan is a recorded read-only six-disc reference, not a new warehouse solve. */
   mode?: 'current' | 'saved'
+  /** Saved target facts stay separate from the current account state above. */
+  comparisonTarget?: import('../../application/publicDevelopmentWorkbenchRoute').DevelopmentComparisonTarget
   discSource: '当前方案' | '当前已装备' | '仓库候选' | '未关联实体盘'
   discs: DiscFact[]
 }
@@ -263,6 +314,7 @@ export type GoldenTop10Data = {
   /** Full source applicability for the short values in allStats, keyed by player-facing label. */
   targetConditionsByLabel?: Readonly<Record<string, readonly string[]>>
   panelScopeKey?: string
+  saveScopeKey?: string
   currentLoadout?: LoadoutRow
   candidateSearch?: import('../../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
   candidateSearchByRank?: Readonly<
@@ -279,7 +331,12 @@ export type GoldenTop10Data = {
   valueBenchmarks?: import('../../calculation/valueBenchmarkComparison').ValueBenchmarkComparison[]
   discs: DiscFact[]
   /** The 4–5 role-relevant metrics visible by default. */
-  coreStats: Array<{ key: string; label: string; unit: '%' | ''; highlight: boolean }>
+  coreStats: Array<{
+    key: string
+    label: string
+    unit: '%' | ''
+    highlight: boolean
+  }>
   /** Every attribute recorded on the compared six-disc candidates. */
   allStats: Array<{
     key: string
@@ -298,7 +355,11 @@ export type GoldenTop10Data = {
   baselineKind?: 'actual' | 'saved' | 'candidate' | 'none'
   baselineLabel?: string
   /** Frozen on explicit solve; retained while the player refreshes the warehouse. */
-  snapshot?: { capturedAt: string; stale: boolean }
+  snapshot?: {
+    capturedAt: string
+    stale: boolean
+    staleReason?: 'input_changed' | 'session_unavailable'
+  }
 }
 
 export type AgentDevelopmentGoldenProps = {
@@ -309,18 +370,37 @@ export type AgentDevelopmentGoldenProps = {
   onOpenAgent?: (agentId: string) => void
   onOpenSavedAgent?: (agentId: string) => void
   onEditCurrent?: () => void
-  currentUpdate?: { message: string; detail?: string; onRetry?: () => void }
+  currentUpdate?: {
+    message: string
+    detail?: string
+    onRetry?: () => void
+    tone?: 'progress' | 'failed'
+  }
+  workbenchComparisonConditions?: import('react').ReactNode
   onContinueOptimization?: () => void
   onToggleFavorite?: (agentId: string) => void | Promise<void>
   onDeleteAgentPlan?: (agentId: string) => void
   workbench?: GoldenWorkbenchData
   top10?: GoldenTop10Data
   onNavigate?: (view: JourneyView) => void
-  onSavePlan?: (candidateRank: number) => void | Promise<void>
+  onSavePlan?: (candidateRank: number) =>
+    | void
+    | { savedPlanId: string; refreshPending: true; savedPlanUrl?: string }
+    | Promise<void | {
+        savedPlanId: string
+        refreshPending: true
+        savedPlanUrl?: string
+      }>
   /** Changes the read-only candidate preview; it never writes account equipment. */
   onSelectCandidatePlan?: (candidateRank: number) => void
   /** Starts the page's bounded, read-only warehouse candidate solve. */
-  onAnalyzeWarehouse?: () => void
+  onAnalyzeWarehouse?: (
+    intent: WarehouseAnalysisIntent,
+    parameters?: import('../../decision/developmentValueBenchmark').DevelopmentComparisonParameters,
+    declarations?: import('../../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
+  ) => void | Promise<void>
+  /** Aborts an in-flight read-only warehouse candidate solve on the workbench. */
+  onCancelWarehouseAnalysis?: () => void
   /** Replaces a prior frozen candidate snapshot with a fresh bounded, read-only solve. */
   onReanalyzeWarehouse?: () => void | Promise<void>
   comparisonScenarioControl?: import('react').ReactNode

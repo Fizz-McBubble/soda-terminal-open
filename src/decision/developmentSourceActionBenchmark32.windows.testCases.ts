@@ -6,7 +6,23 @@ import { createLevel60NeutralEffectRuntimeMember } from '../calculation/currentP
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
 import { evaluateSourceBackedPlanningTeamDps } from '../calculation/currentPlanningTeamDpsRuntime'
+
+// The source-action comparisons are separate from the default ordinary-anomaly settlement.
+const fixedPotentialActionDeclaration = {
+  sourceRefs: ['test-scope:source-action-no-ordinary-anomaly-preparation'],
+  personalOrdinaryAnomaly: undefined,
+}
+
 export function registerDevelopmentSourceWindowTests32() {
+  const declaredYeState = {
+    sourceRefs: ['explicit-fixed-event-enhanced-state'],
+    ye: {
+      yeShunguangEnlightenedMind32: true,
+      yeShunguangVerdictActive32: true,
+      yeShunguangVerdictTargetInside32: false,
+    },
+  }
+
   it('consumes declared White Water windows in the actual personal comparison without inferring them from Unity', () => {
     const { warehouse, baseline } = fixture()
     const agentId = 'agent-ye-shunguang'
@@ -16,7 +32,14 @@ export function registerDevelopmentSourceWindowTests32() {
       level: 60,
       ascension: 5,
       mindscape: 0,
-      skillLevels: { basic: 12, dodge: 12, assist: 12, special: 12, chain: 12, core: 7 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
+      },
     })
     for (const disc of baseline) disc.setId = 'set-white-water-ballad'
     const before = JSON.stringify(warehouse)
@@ -26,14 +49,23 @@ export function registerDevelopmentSourceWindowTests32() {
       discs: baseline,
       stale: false,
       parameters: {
-        wEngine: { engineId: 'wengine-12001', level: 40, ascension: 3, refinement: 1 },
+        wEngine: {
+          engineId: 'wengine-12001',
+          level: 40,
+          ascension: 3,
+          refinement: 1,
+        },
       },
     }
-    const unknown = evaluateDevelopmentValueBenchmarkSide(common)
+    const unknown = evaluateDevelopmentValueBenchmarkSide({
+      ...common,
+      eventConditionDeclaration: declaredYeState,
+    })
     const inactive = evaluateDevelopmentValueBenchmarkSide({
       ...common,
       eventConditionDeclaration: {
         sourceRefs: ['explicit-fixed-event-window'],
+        ye: declaredYeState.ye,
         whiteWaterBalladCritWindow: false,
         whiteWaterBalladAttackWindow: false,
       },
@@ -42,6 +74,7 @@ export function registerDevelopmentSourceWindowTests32() {
       ...common,
       eventConditionDeclaration: {
         sourceRefs: ['explicit-fixed-event-window'],
+        ye: declaredYeState.ye,
         whiteWaterBalladCritWindow: true,
         whiteWaterBalladAttackWindow: true,
       },
@@ -66,7 +99,7 @@ export function registerDevelopmentSourceWindowTests32() {
     expect(JSON.stringify(warehouse)).toBe(before)
   })
 
-  it('consumes Ye Unity in the ordinary personal comparison without a calibration producer', () => {
+  it('consumes Ye Unity with explicit enhanced-event state and no calibration producer', () => {
     const { warehouse, baseline } = fixture()
     const agentId = 'agent-ye-shunguang'
     const agent = warehouse.roster.agents.find((row) => row.agentId === agentId)!
@@ -75,18 +108,44 @@ export function registerDevelopmentSourceWindowTests32() {
       level: 60,
       ascension: 5,
       mindscape: 0,
-      skillLevels: { basic: 12, dodge: 12, assist: 12, special: 12, chain: 12, core: 7 },
-    })
-    const before = JSON.stringify(warehouse)
-    const side = evaluateDevelopmentValueBenchmarkSide({
-      warehouse,
-      agentId,
-      discs: baseline,
-      stale: false,
-      parameters: {
-        wEngine: { engineId: 'wengine-12001', level: 40, ascension: 3, refinement: 1 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
       },
     })
+    const before = JSON.stringify(warehouse)
+    const evaluate = (eventConditionDeclaration?: typeof declaredYeState) =>
+      evaluateDevelopmentValueBenchmarkSide({
+        warehouse,
+        agentId,
+        discs: baseline,
+        stale: false,
+        eventConditionDeclaration,
+        parameters: {
+          wEngine: {
+            engineId: 'wengine-12001',
+            level: 40,
+            ascension: 3,
+            refinement: 1,
+          },
+        },
+      })
+    const undeclared = evaluate()
+    expect(undeclared.state).toBe('unsupported')
+    expect(undeclared.reasons.join(';')).toContain(
+      'ye_enlightened_event_state_missing_or_inactive32',
+    )
+    const inactive = evaluate({
+      ...declaredYeState,
+      ye: { ...declaredYeState.ye, yeShunguangEnlightenedMind32: false },
+    })
+    expect(inactive.state).toBe('unsupported')
+    expect(inactive.reasons.join(';')).toContain('ye_enlightened_event_state_missing_or_inactive32')
+    const side = evaluate(declaredYeState)
     expect(side.state, side.reasons.join(';')).toBe('supported')
     expect(side.coverage?.includedEffectKeys).toContain('agent-ye-shunguang:reviewed_unity_crit32')
     expect(side.coverage?.includedEffectKeys).toContain(
@@ -105,7 +164,14 @@ export function registerDevelopmentSourceWindowTests32() {
       level: 60,
       ascension: 5,
       mindscape: 0,
-      skillLevels: { basic: 12, dodge: 12, assist: 12, special: 12, chain: 12, core: 7 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
+      },
     })
     const side = evaluateDevelopmentValueBenchmarkSide({
       warehouse,
@@ -113,7 +179,12 @@ export function registerDevelopmentSourceWindowTests32() {
       discs: baseline,
       stale: false,
       parameters: {
-        wEngine: { engineId: 'wengine-12001', level: 40, ascension: 3, refinement: 1 },
+        wEngine: {
+          engineId: 'wengine-12001',
+          level: 40,
+          ascension: 3,
+          refinement: 1,
+        },
       },
     })
     expect(side.state, side.reasons.join(';')).toBe('supported')
@@ -140,7 +211,14 @@ export function registerDevelopmentSourceWindowTests32() {
       ascension: 5,
       mindscape: 0,
       potentialImage: 0,
-      skillLevels: { basic: 12, dodge: 12, assist: 12, special: 12, chain: 12, core: 7 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
+      },
     })
     const evaluate = () =>
       evaluateDevelopmentValueBenchmarkSide({
@@ -148,8 +226,15 @@ export function registerDevelopmentSourceWindowTests32() {
         agentId,
         discs: baseline,
         stale: false,
+        eventConditionDeclaration:
+          agentId === 'agent-burnice' ? fixedPotentialActionDeclaration : undefined,
         parameters: {
-          wEngine: { engineId: 'wengine-12001', level: 40, ascension: 3, refinement: 1 },
+          wEngine: {
+            engineId: 'wengine-12001',
+            level: 40,
+            ascension: 3,
+            refinement: 1,
+          },
         },
       })
     const zero = evaluate()
@@ -179,7 +264,14 @@ export function registerDevelopmentSourceWindowTests32() {
       ascension: 4,
       mindscape: 0,
       potentialImage: 0,
-      skillLevels: { basic: 12, dodge: 12, assist: 12, special: 12, chain: 12, core: 7 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
+      },
     })
     const evaluate = () =>
       evaluateDevelopmentValueBenchmarkSide({
@@ -187,8 +279,15 @@ export function registerDevelopmentSourceWindowTests32() {
         agentId,
         discs: baseline,
         stale: false,
+        eventConditionDeclaration:
+          agentId === 'agent-grace' ? fixedPotentialActionDeclaration : undefined,
         parameters: {
-          wEngine: { engineId: 'wengine-12001', level: 40, ascension: 3, refinement: 1 },
+          wEngine: {
+            engineId: 'wengine-12001',
+            level: 40,
+            ascension: 3,
+            refinement: 1,
+          },
         },
       })
     const zero = evaluate()
@@ -214,7 +313,14 @@ export function registerDevelopmentSourceWindowTests32() {
       ascension: 4,
       mindscape: 0,
       potentialImage: 6,
-      skillLevels: { basic: 12, dodge: 12, assist: 12, special: 12, chain: 12, core: 7 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
+      },
     })
     const solo = evaluateDevelopmentValueBenchmarkSide({
       warehouse,
@@ -222,7 +328,12 @@ export function registerDevelopmentSourceWindowTests32() {
       discs: baseline,
       stale: false,
       parameters: {
-        wEngine: { engineId: 'wengine-12001', level: 40, ascension: 3, refinement: 1 },
+        wEngine: {
+          engineId: 'wengine-12001',
+          level: 40,
+          ascension: 3,
+          refinement: 1,
+        },
       },
     })
     expect(solo.state, solo.reasons.join(';')).toBe('supported')
@@ -232,8 +343,20 @@ export function registerDevelopmentSourceWindowTests32() {
     const memberIds = ['agent-soldier-11', 'agent-burnice', 'agent-nekomata'] as const
     const members = memberIds.map((id) => {
       const member = createLevel60NeutralEffectRuntimeMember(id)
-      const stats = { ...member.initialStats, crit_: 1, crit_dmg_: 1, atk: 1000, damageBonus: 0 }
-      return { ...member, level: 1, potential: 0, initialStats: stats, finalStats: stats }
+      const stats = {
+        ...member.initialStats,
+        crit_: 1,
+        crit_dmg_: 1,
+        atk: 1000,
+        damageBonus: 0,
+      }
+      return {
+        ...member,
+        level: 1,
+        potential: 0,
+        initialStats: stats,
+        finalStats: stats,
+      }
     })
     const actor = members[0]!
     const event = getCurrentAgentEventContract(actor.agentId)!.eventContract.events[0]!
@@ -247,7 +370,11 @@ export function registerDevelopmentSourceWindowTests32() {
       },
     ]
     const evaluate = () => {
-      const prepared = prepareReviewedPotentialEvents32({ member: actor, memberIds, eventUsages })!
+      const prepared = prepareReviewedPotentialEvents32({
+        member: actor,
+        memberIds,
+        eventUsages,
+      })!
       return evaluateSourceBackedPlanningTeamDps({
         members,
         memberIds,

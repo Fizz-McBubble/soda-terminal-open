@@ -16,6 +16,8 @@ import {
   type UpstreamExpressionIR,
 } from './currentUpstreamExpressionIR'
 import { planningAnomalyLifecycleEffectInactive32 } from './currentPlanningAnomalyLifecycleIdentity32'
+import { isReviewedTemplateMechanicEffect32 } from './reviewedTemplateMechanicEffects32'
+import { bindReviewedAstraCoreAttack32 } from './reviewedAstraCoreAttack32'
 
 /** Only factual growth, team activation and explicitly declared action conditions
  * may close a branch. Missing observations are deliberately absent, never zero.
@@ -26,7 +28,17 @@ export function reduceObservedPlanningEffect32(
   observations: Readonly<Record<string, unknown>> = {},
   memberIds: readonly string[] = [member.agentId],
 ) {
-  if (entry.numericExpression.sourceStatus !== 'upstream_expression_available') return null
+  if (entry.effectKey === 'agent-astra:core_atk') {
+    const grant = bindReviewedAstraCoreAttack32({ memberIds, references: observations })
+    // Missing prior grants cannot be proven inactive by the Cadenza UI switch.
+    if (grant.status !== 'supported') return null
+    observations = { ...observations, idyllic_cadenza: grant.numericGate }
+  }
+  if (
+    entry.numericExpression.sourceStatus !== 'upstream_expression_available' &&
+    (!isReviewedTemplateMechanicEffect32(entry) || entry.providerAgentId !== member.agentId)
+  )
+    return null
   if (planningAnomalyLifecycleEffectInactive32(entry.effectKey, observations))
     return { expression: { kind: 'literal', value: 0 } as UpstreamExpressionIR, inactive: true }
   const contract = getCurrentAgentDecisionMechanicContract(member.agentId)

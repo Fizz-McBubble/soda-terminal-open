@@ -1,7 +1,26 @@
 import { describe, expect, it } from 'vitest'
-import { reviewedAgentPanelBaseline32 } from './reviewedAgentPanelBaseline32'
+import {
+  reviewedAgentPanelBaseline32,
+  getReviewedRuptureResourceBaseline,
+} from './reviewedAgentPanelBaseline32'
 
 describe('reviewed ordinary-energy panel baseline', () => {
+  it('retains per-agent resource evidence and never extrapolates Yixuan efficiency', () => {
+    for (const id of [
+      'agent-yixuan',
+      'agent-banyue',
+      'agent-yidhari',
+      'agent-starlight-billy',
+      'agent-manato',
+    ]) {
+      const entry = getReviewedRuptureResourceBaseline(id)!
+      expect(entry.base.maxAdrenaline).toBe(120)
+      expect(entry.source.sha256).toMatch(/^[a-f0-9]{64}$/)
+      if (id === 'agent-yixuan') expect(entry.base.adrenalineGenerationRate).toBe(0)
+      else expect(entry.base.adrenalineGenerationRate).toBeUndefined()
+    }
+    expect(getReviewedRuptureResourceBaseline('agent-anby')).toBeUndefined()
+  })
   it('binds the normal energy values to a pinned source and explicit boundary', () => {
     expect(reviewedAgentPanelBaseline32.normalEnergy).toMatchObject({
       generationRate: 100,

@@ -6,20 +6,24 @@ import type { VisualAssetConsumer } from '../../assets/visualAssetSlots'
 export function DevelopmentDiscCard({
   disc,
   changed,
+  slotAction,
+  showGrade = true,
   consumer = 'agent-development.workbench',
   conflictContext = 'development',
 }: {
   disc: DiscFact
   changed?: boolean | null
+  slotAction?: string
+  showGrade?: boolean
   consumer?: VisualAssetConsumer
   conflictContext?: 'development' | 'equipment_or_plan'
 }) {
   const subs = [...disc.subs]
   while (subs.length < 4) subs.push({ name: '未录入', value: '—', hits: 0 })
   const users = disc.conflicts ?? []
-  const usageLabel = (name: string) =>
+  const usageLabel = (name: string, usage?: NonNullable<DiscFact['conflicts']>[number]['usage']) =>
     conflictContext === 'equipment_or_plan'
-      ? `与${name}的装备或保存方案共用`
+      ? `与${name}的${usage === 'current_equipment' ? '当前装备' : usage === 'saved_plan' ? '保存方案' : usage === 'equipment_and_plan' ? '当前装备及保存方案' : '装备或保存方案'}共用`
       : `已用于${name}的养成方案`
   const mainLabel = disc.main.replace(/百分比$/, '').replace(/属性伤害$/, '伤害')
   const statusClass = changed === true ? 'is-changed' : changed === false ? 'is-retained' : ''
@@ -27,6 +31,8 @@ export function DevelopmentDiscCard({
     <article
       className={`disc-card development-disc-card ${statusClass}`.trim()}
       data-slot={disc.slot}
+      data-comparison={changed === true ? 'changed' : changed === false ? 'retained' : undefined}
+      data-result-layer={disc.slot}
     >
       <header>
         <span className="development-disc-card__slot">{disc.slot}号位</span>
@@ -37,11 +43,11 @@ export function DevelopmentDiscCard({
             }`.trim()}
           >
             {changed === undefined
-              ? disc.grade === '未评定'
-                ? disc.score
+              ? !showGrade || disc.grade === '未评定'
+                ? (disc.score ?? '—')
                 : [disc.grade, disc.score].filter((x) => x !== undefined).join(' · ')
               : changed === null
-                ? '方案用盘'
+                ? '候选盘'
                 : changed
                   ? '需替换'
                   : '沿用'}
@@ -52,7 +58,7 @@ export function DevelopmentDiscCard({
               key={user.agentId}
               tabIndex={0}
               role="img"
-              aria-label={usageLabel(user.name)}
+              aria-label={usageLabel(user.name, user.usage)}
             >
               <VisualEntityImage
                 entityType="agent"
@@ -62,7 +68,7 @@ export function DevelopmentDiscCard({
                 consumer={consumer}
               />
               <span className="development-disc-card__tooltip" aria-hidden="true">
-                {usageLabel(user.name)}
+                {usageLabel(user.name, user.usage)}
               </span>
             </span>
           ))}
@@ -73,12 +79,10 @@ export function DevelopmentDiscCard({
               role="img"
               aria-label={
                 conflictContext === 'equipment_or_plan'
-                  ? usageLabel(
-                      users
-                        .slice(2)
-                        .map((user) => user.name)
-                        .join('、'),
-                    )
+                  ? users
+                      .slice(2)
+                      .map((user) => usageLabel(user.name, user.usage))
+                      .join('；')
                   : `还用于${users
                       .slice(2)
                       .map((user) => user.name)
@@ -88,12 +92,10 @@ export function DevelopmentDiscCard({
               +{users.length - 2}
               <span className="development-disc-card__tooltip" aria-hidden="true">
                 {conflictContext === 'equipment_or_plan' ? (
-                  usageLabel(
-                    users
-                      .slice(2)
-                      .map((user) => user.name)
-                      .join('、'),
-                  )
+                  users
+                    .slice(2)
+                    .map((user) => usageLabel(user.name, user.usage))
+                    .join('；')
                 ) : (
                   <>
                     还用于
@@ -149,7 +151,12 @@ export function DevelopmentDiscCard({
           </li>
         ))}
       </ul>
-      <footer>{/\d/.test(disc.effective) ? `有效副属性 ${disc.effective}` : '有效副属性 —'}</footer>
+      {/\d/.test(disc.effective) || slotAction ? (
+        <footer>
+          {/\d/.test(disc.effective) ? <span>有效副属性 {disc.effective}</span> : null}
+          {slotAction ? <strong className="development-disc-card__slot-action">{slotAction}</strong> : null}
+        </footer>
+      ) : null}
     </article>
   )
 }

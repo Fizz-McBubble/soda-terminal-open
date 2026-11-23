@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { bundledGameDataPacks, gameBase31Current } from './baseline'
 import { currentVersionAdoption32, gameBase32Current } from './currentVersionAdoption32'
 import { currentVersionProjection } from './currentVersionProjection'
@@ -13,7 +13,17 @@ import { gameData31CurrentCanonical } from './gameData31CurrentCanonical'
 import { incremental32RecoveryPolicy } from './incremental32RecoveryPolicy'
 import { gameDataSourceSchema, validateManifest } from './types'
 
-describe('installed 3.2 Phase II read-view adoption', () => {
+// Exercise the retained 3.2 read-view explicitly; production selects 3.3,
+// covered independently in currentVersionAdoption33.test.ts.
+vi.mock('./currentGameDataSelection', () => ({
+  currentGameDataSelection: {
+    gameVersion: '3.2',
+    packageId: 'game-base-3.2.0-current',
+    phase: 'phase_ii',
+  },
+}))
+
+describe('retained 3.2 Phase II read-view adoption', () => {
   it('distinguishes official announcements, community catalogues and local adoption provenance', () => {
     expect(
       gameBase32Current.sources.filter((source) => source.verification === 'official_reference'),

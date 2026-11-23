@@ -47,6 +47,32 @@ export function twoPieceApplicability(set: SetFacts, profile: Profile): Applicab
     }),
   )
 }
+
+/**
+ * A set enters a recommendation only when its exact ID occurs in the profile's
+ * sourced set plan and the role uses it in the corresponding main/secondary slot.
+ * Effect utility by itself is not a recommendation.
+ */
+export function recommendationSetFit(
+  profile: Profile,
+  setId: string,
+  twoPieceFit: Applicability,
+  fourPieceFit: Applicability,
+): Applicability {
+  const plan = profile.branchSetPlan
+  if (!plan) return 'conditional'
+  if (plan.pattern === '4+2' || plan.pattern === '4+unconfirmed') {
+    if (plan.primarySetIds.includes(setId))
+      return allFit([profile.availability ?? 'valid', fourPieceFit])
+    if (plan.secondarySetIds.includes(setId))
+      return allFit([profile.availability ?? 'valid', twoPieceFit])
+    if (plan.pattern === '4+unconfirmed' && twoPieceFit === 'incompatible') return 'incompatible'
+    return plan.pattern === '4+unconfirmed' ? 'conditional' : 'incompatible'
+  }
+  if (plan.pattern === '2+2+2' && plan.primarySetIds.includes(setId))
+    return allFit([profile.availability ?? 'valid', twoPieceFit])
+  return 'incompatible'
+}
 function validateRules(rules: GameRules): void {
   if (
     !rules.sourceIds.length ||
@@ -158,17 +184,18 @@ function validCutoffs(x: Cutoffs | undefined): x is Cutoffs {
     x.premiumFrom <= 100,
   )
 }
-export function scoreProfile(
+function scorePreparedProfile(
   disc: Disc,
   profile: Profile,
   set: SetFacts | undefined,
   rules: GameRules,
   policy: QualityPolicy,
+  h: ReturnType<typeof history>,
+  possibleUnlocks: readonly string[][],
+  normalization: ReturnType<typeof fixedQualityNormalization>,
 ): QualityEvidence {
-  const h = history(disc, rules)
   const standard = rules.rarities[rules.standardRarity]!
   // Fixed per role/slot rules, never adjusted to this disc's initial 3/4 lines or the inventory.
-  const normalization = fixedQualityNormalization(profile, rules, disc.mainStat)
   const { maximumRaw } = normalization
   const noSubstatGoal =
     profile.goal === 'functional' &&
@@ -192,10 +219,6 @@ export function scoreProfile(
       sum + (line.value / standard.steps[line.stat]!) * (profile.weights[line.stat] ?? 0),
     0,
   )
-  const unseen = Object.keys(h.native.steps).filter(
-    (stat) => stat !== disc.mainStat && !disc.subStats.some((line) => line.stat === stat),
-  )
-  const possibleUnlocks = combinations(unseen, h.unlocks)
   if (!possibleUnlocks.length) throw new Error('incomplete_legal_substat_pool')
   let lower = Infinity,
     upper = -Infinity
@@ -216,15 +239,19 @@ export function scoreProfile(
   ])
   const twoPieceFit = set ? twoPieceApplicability(set, profile) : 'conditional'
   const fourPieceFit = profile.fourPieceUses?.[disc.setId] ?? 'incompatible'
-  // A four-piece condition cannot restrict an independent two-piece use.
+  // Effect utility only: setFit does not prove a complete six-disc composition,
+  // a second copy of this set, or that any set effect is currently active.
   const setFit = anyFit([twoPieceFit, allFit([profile.availability ?? 'valid', fourPieceFit])])
+  const recommendationFit = recommendationSetFit(profile, disc.setId, twoPieceFit, fourPieceFit)
   const cutoffs = policy.byProfile[profile.id]?.[String(disc.slot)]
   return {
     profileId: profile.id,
     agentId: profile.agentId,
     sourceIds: [...profile.sourceIds, ...(set?.sourceIds ?? [])],
+    ...(profile.branchSetPlan ? { branchSetPlan: profile.branchSetPlan } : {}),
     mainFit,
     setFit,
+    recommendationSetFit: recommendationFit,
     twoPieceFit,
     fourPieceFit,
     currentScore: asScore(raw),
@@ -249,6 +276,7 @@ export function scoreProfile(
       twoPieceFit,
       fourPieceFit,
       setFit,
+      recommendationSetFit: recommendationFit,
       currentScore: asScore(raw),
       possibleUpper: asScore(upper),
       remainingNodes: h.remainingNodes,
@@ -256,4 +284,51 @@ export function scoreProfile(
       normalizationInputStats: normalization.inputStats,
     }),
   }
+}
+
+/** Scope normalization reuse to one assessment's rule and profile objects. */
+export function createRetentionProfileScorer(rules: GameRules) {
+  const normalizations = new Map<
+    Profile,
+    Map<string, ReturnType<typeof fixedQualityNormalization>>
+  >()
+  return (disc: Disc) => {
+    const enhancementHistory = history(disc, rules)
+    const unseenStats = Object.keys(enhancementHistory.native.steps).filter(
+      (stat) => stat !== disc.mainStat && !disc.subStats.some((line) => line.stat === stat),
+    )
+    const possibleUnlocks = combinations(unseenStats, enhancementHistory.unlocks)
+    return (profile: Profile, set: SetFacts | undefined, policy: QualityPolicy) => {
+      let byMain = normalizations.get(profile)
+      if (!byMain) {
+        byMain = new Map()
+        normalizations.set(profile, byMain)
+      }
+      let normalization = byMain.get(disc.mainStat)
+      if (!normalization) {
+        normalization = fixedQualityNormalization(profile, rules, disc.mainStat)
+        byMain.set(disc.mainStat, normalization)
+      }
+      return scorePreparedProfile(
+        disc,
+        profile,
+        set,
+        rules,
+        policy,
+        enhancementHistory,
+        possibleUnlocks,
+        normalization,
+      )
+    }
+  }
+}
+
+export function scoreProfile(
+  disc: Disc,
+  profile: Profile,
+  set: SetFacts | undefined,
+  rules: GameRules,
+  policy: QualityPolicy,
+): QualityEvidence {
+  return createRetentionProfileScorer(rules)(disc)(profile, set, policy)
 }

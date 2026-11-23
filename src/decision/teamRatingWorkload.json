@@ -1,0 +1,28 @@
+{
+  "id": "graduated-team-strength/v1",
+  "openingSeconds": 30,
+  "screeningSeconds": 90,
+  "referenceSeconds": 180,
+  "start": "fresh_encounter",
+  "interval": "left_closed_right_open",
+  "clock": "elapsed_combat_countdown",
+  "damageOwners": "three_party_agents",
+  "metric": "total_landed_damage",
+  "criticalHits": "expected_value",
+  "referenceScore": 100,
+  "scoreResolution": 1,
+  "openingEnergy": { "base": 40, "cap": 120 },
+  "enemy": {
+    "assistOpportunitySourceSha256": "9405966afffed55c1dcd8fc673fbefa7e3e772478dae337f17cb26c3dbc074f8",
+    "dazeCap": 17582.7,
+    "stunSeconds": 12,
+    "stunMultiplier": 1.5,
+    "assaultBaseCap": 4500,
+    "anomalyBaseCap": 3750,
+    "windBaseCap": 1875
+  },
+  "scenes": [
+    { "class": "neutral", "id": "neutral-single-target", "defense": 700, "resistance": 0.2 },
+    { "class": "high_defense", "id": "high-defense-single-target", "defense": 1000, "resistance": 0.2 }
+  ]
+}

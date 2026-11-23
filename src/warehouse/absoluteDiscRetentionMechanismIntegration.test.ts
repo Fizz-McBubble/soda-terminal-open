@@ -77,7 +77,7 @@ describe('warehouse quality consumes the adopted game mechanisms', () => {
     const disc: DriveDisc = {
       id: 'synthetic-ben-shield-disc',
       slot: 6,
-      setId: 'set-soul-rock',
+      setId: 'set-woodpecker-electro',
       rarity: 'S',
       level: 15,
       mainStat: 'def_percent',
@@ -110,6 +110,18 @@ describe('warehouse quality consumes the adopted game mechanisms', () => {
       result.absoluteRetention?.witnessProfileIds?.some((id) => id.startsWith('agent-ben:')),
     ).toBe(true)
     expect(result.cleanupSafety.cleanupEvidenceComplete).toBe(false)
+    const alternative = analyzeAccountWarehouse({
+      ...input,
+      discs: [{ ...disc, setId: 'set-soul-rock' }],
+    }).decisions[0]!
+    expect(alternative.absoluteRetention).toMatchObject({
+      reasonKind: 'conditional_use',
+      nextAction: { kind: 'check_condition' },
+    })
+    expect(
+      alternative.absoluteRetention?.leadingUses.some((use) => use.agentId === 'agent-ben'),
+    ).toBe(false)
+    expect(alternative.cleanupSafety.cleanupEvidenceComplete).toBe(false)
     const ben = roster.agents.find((agent) => agent.agentId === 'agent-ben')!
     ben.owned = true
     const owned = analyzeAccountWarehouse(input).decisions[0]!

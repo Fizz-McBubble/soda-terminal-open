@@ -60,6 +60,13 @@ export const pinnedScannerAssetUrlRc818 =
 export const pinnedScannerAssetUrlRc819 =
   'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.19-local.20261021/soda-scanner-runtime-18-rc8-19-local-20261021-win-x64.zip'
 
+// Reviewed local candidate routing; the public manifest remains independently adopted.
+export const pinnedScannerAssetUrlRc825 =
+  'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.25-local.20261027/soda-scanner-runtime-18-rc8-25-local-20261027-win-x64.zip'
+
+export const pinnedScannerAssetUrlRc826 =
+  'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.26-local.20261027/soda-scanner-runtime-18-rc8-26-local-20261027-win-x64.zip'
+
 export function scannerAssetLocation(manifest) {
   if (typeof manifest?.assetName !== 'string' || !/^[A-Za-z0-9._-]+\.zip$/.test(manifest.assetName))
     throw new Error('scanner_release_asset_invalid')
@@ -194,6 +201,18 @@ export function scannerAssetLocation(manifest) {
     manifest.assetUrl === pinnedScannerAssetUrlRc819 &&
     manifest.assetName === 'soda-scanner-runtime-18-rc8-19-local-20261021-win-x64.zip' &&
     manifest.releaseTag === 'scanner-runtime-v18.0.0-rc.8.19-local.20261021'
+  )
+    return 'github-release'
+  if (
+    manifest.assetUrl === pinnedScannerAssetUrlRc825 &&
+    manifest.assetName === 'soda-scanner-runtime-18-rc8-25-local-20261027-win-x64.zip' &&
+    manifest.releaseTag === 'scanner-runtime-v18.0.0-rc.8.25-local.20261027'
+  )
+    return 'github-release'
+  if (
+    manifest.assetUrl === pinnedScannerAssetUrlRc826 &&
+    manifest.assetName === 'soda-scanner-runtime-18-rc8-26-local-20261027-win-x64.zip' &&
+    manifest.releaseTag === 'scanner-runtime-v18.0.0-rc.8.26-local.20261027'
   )
     return 'github-release'
   throw new Error('scanner_release_asset_invalid')

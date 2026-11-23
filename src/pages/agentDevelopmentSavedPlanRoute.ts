@@ -1,5 +1,21 @@
 import type { AccountPlanningDraft } from '../accounts/types'
 import type { DriveDisc } from '../domain/schemas'
+import {
+  comparePersonalCurrentReferences,
+  isPersonalCurrentReference,
+  isPersonalSavedAgentPlan,
+  resolvePersonalReferenceDiscs,
+} from '../accounts/personalCurrentReference'
+
+export type SavedAgentPlanComparisonTarget = {
+  wEngine: {
+    engineId: string
+    level: number
+    ascension?: number
+    refinement: number
+  } | null
+  potential: number | null
+}
 
 export type SavedAgentPlanRouteResolution =
   | { status: 'current'; plan: AccountPlanningDraft | undefined }
@@ -7,30 +23,27 @@ export type SavedAgentPlanRouteResolution =
   | { status: 'missing' }
   | { status: 'references_changed' }
 
+/** Read-only comparison intent. Missing fields stay unknown instead of borrowing current facts. */
+export function savedAgentPlanComparisonTarget(
+  plan: AccountPlanningDraft,
+): SavedAgentPlanComparisonTarget {
+  const parameters = plan.solutionContext?.comparisonParameters
+  return {
+    wEngine: parameters?.wEngine ? { ...parameters.wEngine } : null,
+    potential: parameters?.potential ?? null,
+  }
+}
+
 function matchesAgentPlan(plan: AccountPlanningDraft, agentId: string) {
-  return (
-    plan.kind === 'agent' &&
-    plan.state === 'saved' &&
-    plan.selection.agentIds.length === 1 &&
-    plan.selection.agentIds[0] === agentId
-  )
+  return isPersonalSavedAgentPlan(plan, agentId)
 }
 
 function hasCompleteReferences(plan: AccountPlanningDraft, discs: DriveDisc[]) {
-  const referencedDiscs = discs.filter((disc) => plan.warehouseRefs.includes(disc.id))
-  return (
-    plan.warehouseRefs.length === 6 &&
-    new Set(plan.warehouseRefs).size === 6 &&
-    referencedDiscs.length === 6 &&
-    new Set(referencedDiscs.map((disc) => disc.slot)).size === 6
-  )
+  return resolvePersonalReferenceDiscs(plan, discs) !== null
 }
 
 function newestCurrentReference(plans: AccountPlanningDraft[]) {
-  return plans.toSorted(
-    (left, right) =>
-      right.updatedAt.localeCompare(left.updatedAt) || right.revision - left.revision,
-  )[0]
+  return plans.toSorted(comparePersonalCurrentReferences)[0]
 }
 
 export function resolveSavedAgentPlanRoute(input: {
@@ -50,12 +63,7 @@ export function resolveSavedAgentPlanRoute(input: {
         : { status: 'references_changed' }
     }
     const currentReference = newestCurrentReference(
-      planningDrafts.filter(
-        (plan) =>
-          matchesAgentPlan(plan, agentId) &&
-          plan.savedRole === 'current_reference' &&
-          plan.solutionContext?.scope === 'agent_independent',
-      ),
+      planningDrafts.filter((plan) => isPersonalCurrentReference(plan, agentId)),
     )
     if (!currentReference) return { status: 'current', plan: undefined }
     return hasCompleteReferences(currentReference, discs)

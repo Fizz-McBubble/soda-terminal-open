@@ -16,108 +16,20 @@ import { isReviewedSourceAtomContractValid } from './reviewedBangbooSourceContra
 import { reviewedSourceTeamDirectionProjection32 } from './reviewedSourceTeamDirectionProjection32'
 import { reviewedCurrentTeamGuidance32 } from './reviewedCurrentTeamGuidance32'
 import { reviewedHoyoBuildCurrentTeams32 } from './reviewedHoyoBuildCurrentTeams32'
-import type { TeamOutputModuleResolution } from './teamOutputModuleContract'
 import { resolveReviewedTeamOutputModule } from './reviewedTeamOutputModuleEvidence'
 import { reviewedPhoenixSourceDirections33 } from '../decision/reviewedPhoenixTeams33'
+import { reviewedSeverianSourceDirections33 } from './reviewedSeverianTeam33'
 
-type NestedDirectionRecord = (typeof nestedTeamDirections.records)[number] & {
-  additionalConditionSources?: NonNullable<
-    (typeof nestedTeamDirections.records)[number]['additionalConditionSource']
-  >[]
-}
-
-export type TeamRecommendationPrerequisite =
-  | { kind: 'potential_minimum'; agentId: string; minimum: number }
-  | { kind: 'wengine'; agentId: string; engineId: string }
-
-export type ReviewedTeamSourceDirection = {
-  memberIds: readonly [string, string, string]
-  outputModule?: TeamOutputModuleResolution
-  sourceRefs: {
-    id: string
-    url: string
-    sourceVersion: string
-    checkedAt: string
-    contentHash: string
-    observationRole?: 'author_comparison_setup'
-    locator?: string
-    hashDefinition?: string
-    equipmentConditions?: readonly { agentId: string; sourceEquipmentName: string }[]
-    /** Explicit recommendation gates only; effect windows are not team eligibility gates. */
-    recommendationPrerequisites?: readonly TeamRecommendationPrerequisite[]
-    scenario?: string
-    /** Exact-team page replay, separate from the adopted coarse rating. */
-    verificationStatus?: string
-    sourceUpdatedAt?: string | null
-    nestedEvidence?: NestedDirectionRecord['nested']
-    imageEvidence?: { imageSha256: string; region: string; sourceLocator?: ImageSourceLocator }
-    unresolvedAuthorBangbooOptions?: UnresolvedAuthorBangbooOption[]
-    visualIdentityCorroboration?: ImageDirectionRecord['visualIdentityCorroboration']
-    conditionReview?: { originalConditions: string[]; disposition: string }
-    additionalConditionEvidence?: NestedDirectionRecord['additionalConditionSource']
-    additionalConditionEvidences?: NestedDirectionRecord['additionalConditionSources']
-    additionalMembershipEvidence?: NestedDirectionRecord['additionalMembershipSources']
-    additionalImageMembershipEvidence?: ImageDirectionRecord['additionalMembershipSources']
-    sourceConflictReview?: Record<string, unknown>
-    imageLabelConflict?: unknown
-    bangbooIdentityCrosschecks?: unknown
-    imageIdentityReview?: unknown
-    additionalBangbooEvidence?: NestedDirectionRecord['additionalBangbooSources']
-    bangbooEffectExclusions?: NestedDirectionRecord['bangbooEffectExclusions']
-    sourceLocalSlotId?: string
-    legacyBodyHash?: string
-  }[]
-  conditions: string[]
-  /** Keep observation conditions attached to their source when exact trios merge. */
-  conditionsBySourceId?: Record<string, readonly string[]>
-  /** Author-listed alternatives; never an activation or default recommendation. */
-  sourceBangbooOptionIds?: string[]
-}
-
-type ReusedDirectionRecord = (typeof reusedTeamDirections.records)[number] & {
-  sourceBangbooOptionIds?: string[]
-  sourceLocalSlotId?: string
-  source?: {
-    url: string
-    sourceVersion: string
-    checkedAt: string
-    normalizedBodySha256: string
-    sourceUpdatedAt?: string
-  }
-}
-
-type ImageSourceLocator = {
-  opIndex: number
-  fieldPath: (string | number)[]
-  unitRawSha256: string
-  imageId: string
-  url: string
-}
-type UnresolvedAuthorBangbooOption = {
-  visibleLabel: string
-  labelMappedStableId: string
-  reason: string
-}
-type ImageDirectionRecord = (typeof imageTeamDirections.records)[number] & {
-  sourceLocalSlotId?: string
-  sourceVersion?: string
-  checkedAt?: string
-  sourceUpdatedAt?: string
-  conditionReview?: { originalConditions: string[]; disposition: string }
-  imageSourceLocator?: ImageSourceLocator
-  unresolvedAuthorBangbooOptions?: UnresolvedAuthorBangbooOption[]
-  additionalConditionSources?: NestedDirectionRecord['additionalConditionSources']
-  additionalMembershipSources?: {
-    locator: { kind: string; opIndex: number; fieldPath: (string | number)[] }
-    unitRawSha256: string
-    textSha256: string
-    text: string
-  }[]
-  sourceConflictReview?: Record<string, unknown>
-  imageLabelConflict?: unknown
-  bangbooIdentityCrosschecks?: unknown
-  imageIdentityReview?: unknown
-}
+import type {
+  NestedDirectionRecord,
+  ReusedDirectionRecord,
+  ImageDirectionRecord,
+  ReviewedTeamSourceDirection,
+} from './reviewedTeamSourceDirectionTypes'
+export type {
+  TeamRecommendationPrerequisite,
+  ReviewedTeamSourceDirection,
+} from './reviewedTeamSourceDirectionTypes'
 
 /** Separate negative/conditional notes; this function never contributes candidates. */
 export function currentReviewedTeamCompatibilityNotes(): ReviewedTeamSourceDirection[] {
@@ -265,10 +177,7 @@ export function currentReviewedTeamSourceSlotSiblings(
   return [...siblings.values()]
 }
 
-/** Exact team observations are discovery inputs, never strength/Bangboo defaults. */
-export function currentReviewedTeamSourceDirections(
-  reviewVersion: string = currentVersionProjection.gameVersion,
-): readonly ReviewedTeamSourceDirection[] {
+function projectReviewedTeamSourceDirections(reviewVersion: string) {
   const released = new Set(
     currentScopeManifest.entries
       .filter(
@@ -283,6 +192,7 @@ export function currentReviewedTeamSourceDirections(
       : []),
     ...reviewedSourceTeamDirectionProjection32(reviewVersion === '3.3' ? '3.2' : reviewVersion),
     ...reviewedPhoenixSourceDirections33(reviewVersion),
+    ...reviewedSeverianSourceDirections33(reviewVersion),
     ...reviewedTeamPublishedStrength.facts
       .filter((fact) => !fact.withdrawn && fact.sourceVersion === reviewVersion)
       .map((fact) => ({
@@ -458,6 +368,11 @@ export function currentReviewedTeamSourceDirections(
       conditions: [...(atom.conditions ?? [])],
     })),
   ]
+  const guideReplayByUrlAndTeam = new Map<string, (typeof reviewedTeamGuides.records)[number]>()
+  for (const record of reviewedTeamGuides.records) {
+    const key = `${record.url}\u0000${memberKey(record.memberIds)}`
+    if (!guideReplayByUrlAndTeam.has(key)) guideReplayByUrlAndTeam.set(key, record)
+  }
   const byMembers = new Map<string, ReviewedTeamSourceDirection>()
   for (const observation of observations) {
     if (
@@ -466,17 +381,16 @@ export function currentReviewedTeamSourceDirections(
     )
       continue
     const key = memberKey(observation.memberIds)
-    observation.outputModule ??= resolveReviewedTeamOutputModule(observation.memberIds)
-    observation.sourceRefs = observation.sourceRefs
+    const outputModule =
+      observation.outputModule ?? resolveReviewedTeamOutputModule(observation.memberIds)
+    const sourceRefs = observation.sourceRefs
       .map((ref) => {
         // A local 3.2 exact-team review remains current even when its original
         // author page is older; replay metadata applies only to older claims.
         if (ref.verificationStatus === 'reviewed_exact_team_current_32') return ref
         // Nested replay is an independent unit, not an older top-level page verification.
         if (ref.nestedEvidence || ref.imageEvidence) return ref
-        const replay = reviewedTeamGuides.records.find(
-          (record) => record.url === ref.url && memberKey(record.memberIds) === key,
-        )
+        const replay = guideReplayByUrlAndTeam.get(`${ref.url}\u0000${key}`)
         if (!replay) return ref
         return {
           ...ref,
@@ -496,13 +410,13 @@ export function currentReviewedTeamSourceDirections(
       )
     const existing = byMembers.get(key)
     const conditionsBySourceId = Object.fromEntries(
-      observation.sourceRefs.map((ref) => [
+      sourceRefs.map((ref) => [
         ref.id,
         [...(observation.conditionsBySourceId?.[ref.id] ?? observation.conditions)],
       ]),
     )
     if (existing) {
-      existing.sourceRefs.push(...observation.sourceRefs)
+      existing.sourceRefs.push(...sourceRefs)
       existing.conditions = [...new Set([...existing.conditions, ...observation.conditions])]
       for (const [id, conditions] of Object.entries(conditionsBySourceId)) {
         existing.conditionsBySourceId ??= {}
@@ -519,9 +433,24 @@ export function currentReviewedTeamSourceDirections(
     } else
       byMembers.set(key, {
         ...observation,
-        sourceRefs: [...observation.sourceRefs],
+        outputModule,
+        sourceRefs,
         conditionsBySourceId,
       })
   }
   return [...byMembers.values()]
+}
+
+const directionsByReviewVersion = new Map<string, readonly ReviewedTeamSourceDirection[]>()
+
+/** Share the bundled discovery projection across consumers within the same review version. */
+export function currentReviewedTeamSourceDirections(
+  reviewVersion: string = currentVersionProjection.gameVersion,
+): readonly ReviewedTeamSourceDirection[] {
+  let directions = directionsByReviewVersion.get(reviewVersion)
+  if (!directions) {
+    directions = projectReviewedTeamSourceDirections(reviewVersion)
+    directionsByReviewVersion.set(reviewVersion, directions)
+  }
+  return directions
 }

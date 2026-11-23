@@ -35,6 +35,7 @@ export function runCommunityPreflight({
   }
   const steps = [
     ['scripts/source-manifest.mjs', '--check'],
+    ['scripts/generate-box-startup-indexes.mjs', '--check'],
     ['scripts/test-community.mjs', '--runtime-check'],
     ['node_modules/typescript/bin/tsc', '--noEmit', '--project', 'tsconfig.json'],
     ...(selected.length
@@ -57,32 +58,74 @@ export function runCommunityPreflight({
 }
 
 /** Check the installed generated consumers before spending a full remote test run. */
-export async function checkCommunityRuntime(candidate = root) {
-  const { createServer } = await import('vite')
-  const server = await createServer({
-    root: candidate,
-    server: { middlewareMode: true, hmr: false, watch: null },
-    appType: 'custom',
-  })
+export async function checkCommunityRuntime(
+  candidate = root,
+  { loadModule = null, createServer: customCreateServer = null } = {},
+) {
+  let server = null
+  const resolveModule = async (specifier) => {
+    if (loadModule) return loadModule(specifier)
+    if (!server) {
+      const { createServer } = customCreateServer
+        ? { createServer: customCreateServer }
+        : await import('vite')
+      server = await createServer({
+        root: candidate,
+        server: { middlewareMode: true, hmr: false, watch: null },
+        appType: 'custom',
+      })
+    }
+    return server.ssrLoadModule(specifier)
+  }
   try {
-    const { current31TeamIntrinsicIndexStatus: index } = await server.ssrLoadModule(
-      '/src/decision/current31TeamIntrinsicIndex.ts',
-    )
+    const { current31TeamIntrinsicIndexStatus: index, lookupCurrent31TeamIntrinsicSummary } =
+      await resolveModule('/src/decision/current31TeamIntrinsicIndex.ts')
     if (index.status !== 'ready')
       throw new Error(`community_runtime_index_not_ready: ${index.reason}`)
-    const { inferTeamStrength } = await server.ssrLoadModule('/src/decision/teamStrengthModel.ts')
-    const named = inferTeamStrength(['agent-jane', 'agent-burnice', 'agent-caesar'])
-    if (!named || !Number.isFinite(named.score))
-      throw new Error('community_runtime_model_not_ready')
+    const namedIndex = lookupCurrent31TeamIntrinsicSummary?.([
+      'agent-jane',
+      'agent-burnice',
+      'agent-caesar',
+    ])
+    if (!namedIndex || namedIndex.ratingStatus !== 'rated')
+      throw new Error('community_runtime_index_not_ready: named team unrated')
+
+    // The legacy regression model is purely diagnostic and must never be treated as production authority.
+    const { teamStrengthModelPolicy } = await resolveModule('/src/decision/teamStrengthModel.ts')
+    if (!teamStrengthModelPolicy || !teamStrengthModelPolicy.diagnosticOnly)
+      throw new Error('community_runtime_diagnostic_model_escaped')
+
+    // Production ranking authority must come from the designated production ranking consumer.
+    // Generic recommendations require the adopted coarse/condition method and intact artifact identity.
+    const {
+      currentGenericTeamRankingStatus: ranking,
+      lookupCurrentGenericTeamRanking: lookupCurrentTeamSystemRanking,
+    } = await resolveModule('/src/decision/teamGenericRanking.ts')
+    const { teamGenericRankingPolicy: method } = await resolveModule(
+      '/src/decision/teamGenericRankingMethod.ts',
+    )
+    if (
+      method?.contract !== 'soda-generic-team-ranking/v1' ||
+      method.fullTimelineRequired !== false
+    )
+      throw new Error('community_runtime_team_system_ranking_not_production_eligible')
+    if (ranking.status !== 'ready')
+      throw new Error(`community_runtime_team_system_ranking_not_ready: ${ranking.reason}`)
+
+    const named = lookupCurrentTeamSystemRanking?.(['agent-jane', 'agent-burnice', 'agent-caesar'])
+    if (!named || named.status !== 'ranked' || named.genericOrder?.status !== 'recommended')
+      throw new Error('community_runtime_team_system_ranking_unranked')
+
     console.log(
       JSON.stringify({
         scope: 'community-runtime-preflight',
         index: 'ready',
-        namedScore: named.score,
+        ranking: ranking.status,
+        namedRank: named.genericOrder.band,
       }),
     )
   } finally {
-    await server.close()
+    if (server) await server.close()
   }
 }
 
@@ -128,6 +171,10 @@ function runCommunityTests({ nodeOnly = false, shard } = {}) {
       'run',
       '--config',
       'vite.config.ts',
+      '--pool',
+      'threads',
+      '--maxWorkers',
+      '1',
       ...(shard ? ['--shard', shard] : []),
       ...communityTests,
     ],

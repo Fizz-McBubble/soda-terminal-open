@@ -2,6 +2,7 @@ import { stableContentHash } from '../gameDataPacks/types'
 import type { qualifyReviewedPreparedBenchmark32 } from './reviewedPreparedBenchmark32'
 import type { qualifyReviewedPreparedTeamBenchmark32 } from './reviewedPreparedTeamBenchmark32'
 import type { evaluateReviewedFunctionalCapacity32 } from './reviewedFunctionalCapacity32'
+import type { PersonalObjective32 } from '../decision/personalDevelopmentObjective32'
 import {
   hasWellFormedValueBenchmarkCoverage,
   valueBenchmarkEvidencePolicy,
@@ -52,6 +53,11 @@ export type ValueBenchmarkSide = {
   planningDps: number | null
   calculationFingerprint: string | null
   reasons: string[]
+  /** Personal declared objective, separate from fixed-event damage. */
+  personalObjective32?: PersonalObjective32
+  /** Initial operands for same-context functional non-regression checks. */
+  personalFunctionalInputs32?: { initialAttack: number; initialHp: number }
+  personalFunctionalEquipmentIdentity32?: string
   coverage?: ValueBenchmarkCoverage
   /** Internal same-action non-regression evidence; never a damage-equivalent score. */
   functionalCapacities32?: ReturnType<typeof evaluateReviewedFunctionalCapacity32>
@@ -81,7 +87,10 @@ export type ValueBenchmarkComparisonBasis = {
     candidate: ValueBenchmarkState
     comparison: ValueBenchmarkState
   }
-  rankingMethod: 'fixed_event_planning_dps_delta' | 'prepared_anomaly_settlement_damage_delta'
+  rankingMethod:
+    | 'fixed_event_planning_dps_delta'
+    | 'fixed_single_action_damage_delta'
+    | 'prepared_anomaly_settlement_damage_delta'
 }
 
 export type ValueBenchmarkComparison = ReturnType<typeof compareValueBenchmarkSides> & {
@@ -207,12 +216,20 @@ export function compareValueBenchmarkSides(input: {
   const preparedAnomaly =
     input.baseline.coverage?.domain === 'prepared_anomaly_settlement' &&
     input.candidate.coverage?.domain === 'prepared_anomaly_settlement'
+  const singleAction =
+    input.baseline.coverage?.domain === 'fixed_event_direct_damage' &&
+    input.candidate.coverage?.domain === 'fixed_event_direct_damage' &&
+    input.baseline.dimensions.duration === 'not_applicable' &&
+    input.candidate.dimensions.duration === 'not_applicable' &&
+    input.baseline.planningDps === null &&
+    input.candidate.planningDps === null
+  const damageOnly = preparedAnomaly || singleAction
   const crossDomain =
     input.baseline.coverage?.domain !== input.candidate.coverage?.domain &&
     (input.baseline.coverage?.domain === 'prepared_anomaly_settlement' ||
       input.candidate.coverage?.domain === 'prepared_anomaly_settlement')
   const numeric = (
-    preparedAnomaly
+    damageOnly
       ? [input.baseline.totalDamage, input.candidate.totalDamage]
       : [
           input.baseline.totalDamage,
@@ -290,11 +307,9 @@ export function compareValueBenchmarkSides(input: {
     ? input.candidate.totalDamage! - input.baseline.totalDamage!
     : null
   const planningDpsDelta =
-    comparable && !preparedAnomaly
-      ? input.candidate.planningDps! - input.baseline.planningDps!
-      : null
+    comparable && !damageOnly ? input.candidate.planningDps! - input.baseline.planningDps! : null
   const rawPlanningDpsPercentDelta =
-    comparable && !preparedAnomaly && input.baseline.planningDps !== 0
+    comparable && !damageOnly && input.baseline.planningDps !== 0
       ? (planningDpsDelta! / input.baseline.planningDps!) * 100
       : null
   const planningDpsPercentDelta =
@@ -318,7 +333,7 @@ export function compareValueBenchmarkSides(input: {
     changedDimensions.length === 1 && input.independentCounterfactual
       ? ('single_variable' as const)
       : ('combination' as const)
-  const comparisonDelta = preparedAnomaly ? totalDamageDelta : planningDpsDelta
+  const comparisonDelta = damageOnly ? totalDamageDelta : planningDpsDelta
   const verdict =
     comparisonDelta === null
       ? ('not_comparable' as const)
@@ -352,7 +367,9 @@ export function compareValueBenchmarkSides(input: {
     },
     rankingMethod: preparedAnomaly
       ? 'prepared_anomaly_settlement_damage_delta'
-      : 'fixed_event_planning_dps_delta',
+      : singleAction
+        ? 'fixed_single_action_damage_delta'
+        : 'fixed_event_planning_dps_delta',
   }
   const core = {
     contract: valueBenchmarkComparisonContract,

@@ -18,13 +18,25 @@ import { scoreProfile, twoPieceApplicability } from './absoluteDiscRetentionScor
 import { reviewedHpRetentionEvidence } from './reviewedHpRetentionEvidence'
 
 afterEach(() => vi.restoreAllMocks())
+type HpSample = {
+  readonly id: string
+  readonly agentId: string
+  readonly branchIndex: number
+}
 const ids = [
-  'agent-zhao:base-0:fnv1a-2a59',
-  'agent-zhao:base-1:fnv1a-f244',
-  'agent-lucia:base-0:fnv1a-782d',
-]
-const cases = ids.flatMap((id) => [4, 5, 6].map((slot) => ({ id, slot })))
+  { id: 'agent-zhao:base-0:fnv1a-2a59', agentId: 'agent-zhao', branchIndex: 0 },
+  { id: 'agent-zhao:base-1:fnv1a-f244', agentId: 'agent-zhao', branchIndex: 1 },
+  { id: 'agent-lucia:base-0:fnv1a-782d', agentId: 'agent-lucia', branchIndex: 0 },
+  { id: 'agent-zhao:base-2:fnv1a-bb99', agentId: 'agent-zhao', branchIndex: 2 },
+] as const satisfies readonly HpSample[]
+const cases = ids.flatMap((sample) => [4, 5, 6].map((slot) => ({ ...sample, slot })))
 const native = catalog.rules.rarities.S!
+function profileFor(sample: Pick<HpSample, 'agentId' | 'branchIndex'>) {
+  const prefix = `${sample.agentId}:base-${sample.branchIndex}:`
+  const matches = catalog.profiles.filter((row) => row.id.startsWith(prefix))
+  expect(matches, `expected one current profile for ${prefix}`).toHaveLength(1)
+  return matches[0]!
+}
 function fixture(profile: Profile, slot: number, level = 0, hpHits = 0): Disc {
   const set = catalog.sets.find((row) => twoPieceApplicability(row, profile) !== 'incompatible')!
   return {
@@ -50,17 +62,18 @@ function score(disc: Disc, profile: Profile) {
   )
 }
 
-describe('nine source-bound HP-main investment combinations', () => {
+describe('nine retained HP-main investment combinations and three equivalent alias combinations', () => {
   it.each(cases)(
     '$id slot $slot has a positive secondary input without lowering global core policy',
-    ({ id, slot }) => {
-      const profile = catalog.profiles.find((row) => row.id === id)!
+    (sample) => {
+      const { slot } = sample
+      const profile = profileFor(sample)
       const disc = fixture(profile, slot)
       const before = JSON.stringify(disc)
       const use = score(disc, profile)
       expect(JSON.stringify(disc)).toBe(before)
       expect(use.investment).toMatchObject({
-        calibrationId: `named-secondary-hp-investment-r1:${id}:S:${slot}:hp_percent`,
+        calibrationId: `named-secondary-hp-investment-r1:${profile.id}:S:${slot}:hp_percent`,
         qualified: true,
         minimumLines: 0,
         minimumCoreLines: 0,
@@ -103,8 +116,9 @@ describe('nine source-bound HP-main investment combinations', () => {
   )
   it.each(cases)(
     '$id slot $slot still rejects stalled progress, poor legal ceiling and absent HP input',
-    ({ id, slot }) => {
-      const profile = catalog.profiles.find((row) => row.id === id)!
+    (sample) => {
+      const { slot } = sample
+      const profile = profileFor(sample)
       for (const [level, hpHits, qualified] of [
         [3, 0, true],
         [6, 0, false],
@@ -130,18 +144,18 @@ describe('nine source-bound HP-main investment combinations', () => {
       expect(score(fixture(profile, slot, 15, 5), profile).investment.qualified).toBe(false)
     },
   )
-  it('allows a legal three-line unlock without inventing an upgrade and preserves six prior Zhao left-slot calibrations', () => {
-    for (const id of ids) {
-      const profile = catalog.profiles.find((row) => row.id === id)!
+  it('allows a legal three-line unlock and retains six prior Zhao left-slot calibrations plus the equivalent alias', () => {
+    for (const sample of ids) {
+      const profile = profileFor(sample)
       const seed = fixture(profile, 4)
       expect(
         score({ ...seed, subStats: seed.subStats.slice(0, 3) }, profile).investment.qualified,
       ).toBe(true)
       expect(score({ ...seed, level: 3 }, profile).investment.qualified).toBe(true)
     }
-    for (const id of ids.slice(0, 2))
+    for (const sample of [...ids.slice(0, 2), ids[3]])
       for (const slot of [1, 2, 3]) {
-        const profile = catalog.profiles.find((row) => row.id === id)!
+        const profile = profileFor(sample)
         const main = ['hp_flat', 'atk_flat', 'def_flat'][slot - 1]!
         const disc = {
           ...fixture(profile, slot),
@@ -162,7 +176,7 @@ describe('nine source-bound HP-main investment combinations', () => {
       }
   })
   it('rejects changed weights, sources, identity, rarity or main and stale upstream bindings', () => {
-    const profile = catalog.profiles.find((row) => row.id === ids[0])!
+    const profile = profileFor(ids[0])
     const disc = fixture(profile, 4)
     for (const patch of [
       { id: 'unknown' },
@@ -186,6 +200,28 @@ describe('nine source-bound HP-main investment combinations', () => {
         policy,
       ),
     ).toBeNull()
+    const adoptedRef = 'hoyobuild-agent-zhao-drive-discs-32-20261020:fnv1a-7879a21b'
+    expect(profile.sourceIds).toContain(adoptedRef)
+    expect(profile.weightEvidence!.sourceIds).toContain(adoptedRef)
+    for (const changed of [
+      {
+        ...profile,
+        sourceIds: profile.sourceIds.filter((source) => source !== adoptedRef),
+        weightEvidence: {
+          ...profile.weightEvidence!,
+          sourceIds: profile.weightEvidence!.sourceIds.filter((source) => source !== adoptedRef),
+        },
+      },
+      {
+        ...profile,
+        sourceIds: [...profile.sourceIds, 'unreviewed-source:extra'],
+        weightEvidence: {
+          ...profile.weightEvidence!,
+          sourceIds: [...profile.weightEvidence!.sourceIds, 'unreviewed-source:extra'],
+        },
+      },
+    ])
+      expect(resolveNamedInvestmentCalibration(disc, changed, catalog.rules, policy)).toBeNull()
     const original = mechanics.getCurrentAgentEventContract(profile.agentId)!
     vi.spyOn(mechanics, 'getCurrentAgentEventContract').mockReturnValue({
       ...original,

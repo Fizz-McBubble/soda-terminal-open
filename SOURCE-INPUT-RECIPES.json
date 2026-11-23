@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "mode": "ordered-byte-concatenation",
+  "files": [
+    {
+      "target": "src/gameDataPacks/generated/team-system-ranking.v1.json",
+      "targetBytes": 36390173,
+      "targetSha256": "f9c8602c901b8abee3a4781dfc7ab6fca83f06879119838c5cf869d9f563769e",
+      "chunkSizeBytes": 25165824,
+      "chunks": [
+        {
+          "path": "src/gameDataPacks/generated/team-system-ranking.v1.json.part-000",
+          "bytes": 25165824,
+          "sha256": "101dd76b18b297a23198e1108df62dc0f537abbec73a5b5e6021fcce917ec995"
+        },
+        {
+          "path": "src/gameDataPacks/generated/team-system-ranking.v1.json.part-001",
+          "bytes": 11224349,
+          "sha256": "3caa9d7063cab28d715fd65d7abbc43ab611b7ef541fe2bda2f91393f5279bf3"
+        }
+      ]
+    }
+  ]
+}

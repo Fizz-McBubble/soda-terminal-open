@@ -131,9 +131,12 @@ export function evaluateCandidateSetPlanEligibility(
     }
   if (!condition)
     return {
-      status: 'unrestricted',
+      status: plan.purpose === 'conditional' ? 'condition-unknown' : 'unrestricted',
       kind: 'source-scenario',
-      reason: '该分支没有本模块已采用的推荐场景条件。',
+      reason:
+        plan.purpose === 'conditional'
+          ? '来源限定了适用条件，但尚无可验证的结构化条件，不能视为无条件推荐。'
+          : '该分支没有本模块已采用的推荐场景条件。',
       boundary,
     }
   const result = (

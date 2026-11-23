@@ -30,6 +30,8 @@ const labels: Record<string, string> = {
     '静听嘉音：这次伤害的角色经快速支援入场，且15秒受益效果仍有效',
   'MoonlightLullaby:exSpecial_ult_used':
     '月光骑士颂：穿戴者施放强化特殊技或终结技后的25秒增益仍有效',
+  'BunnyInWonderland:exSpecial_assist':
+    '雪兔梦游仙境：穿戴者强化特殊技或队员招架、回避支援触发后，当前有效的层数（0至3）',
   'SwingJazz:chain_or_ult': '摇滚爵士：穿戴者施放连携技或终结技后的12秒增益仍有效',
   'ProtoPunk:def_assist_or_evasive_assist':
     '原始朋克：队员发动防御支援或回避支援后的10秒增益仍有效',
@@ -76,6 +78,7 @@ export function appendReviewedDriveDiscConditions32(
       const stack =
         ref === 'AstralVoice:astral' ||
         ref === 'WoodpeckerElectro:crit_basic_dodge_ex' ||
+        ref === 'BunnyInWonderland:exSpecial_assist' ||
         ref === 'YunkuiTales:uponLaunchExSpecialChainOrUlt'
       const referenceKey = `disc:${equipped.setId}:${ref}`
       if (

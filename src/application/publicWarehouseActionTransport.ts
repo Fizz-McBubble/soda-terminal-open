@@ -55,9 +55,9 @@ export function packPublicWarehouseActions(
   // Agent lists have already become numeric references. Count only strings
   // which the evidence encoder will actually see on the wire.
   const textCodec = warehouseEvidenceTextCodec(interned)
-  const textActions = interned.map((item) => textCodec.encode(item) as PackedAction)
+  const textActions = textCodec.encodeAll(interned) as PackedAction[]
   const objectCodec = warehouseObjectCodec(textActions)
-  const actions = textActions.map((item) => objectCodec.encode(item) as PackedAction)
+  const actions = objectCodec.encodeAll(textActions) as PackedAction[]
   return {
     ...projection,
     agentListsVersion: 3,

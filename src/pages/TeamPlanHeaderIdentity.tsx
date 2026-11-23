@@ -25,10 +25,12 @@ export function TeamPlanHeaderIdentity({
       >
         <ArrowLeft size={16} aria-hidden="true" /> 返回选择队伍
       </button>
-      <h1 ref={headingRef} tabIndex={-1}>
-        {title}
-      </h1>
-      <TeamRatingLine label={teamRatingLabel} />
+      <div className="optimizer-plan__team-title-line">
+        <h1 ref={headingRef} tabIndex={-1}>
+          {title}
+        </h1>
+        <TeamRatingLine label={teamRatingLabel} />
+      </div>
     </div>
   )
 }

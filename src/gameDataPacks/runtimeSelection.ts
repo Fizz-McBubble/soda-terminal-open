@@ -1,10 +1,25 @@
-import { database, type SodaDatabase } from '../db/database'
-import { compiledCurrentGameBase, currentVersionProjection } from './currentVersionProjection'
+import { database, type SodaDatabase } from '../db/databaseCore'
+import compiledCurrentGameBase from './generated/compiledRuntimeManifestIdentity.json'
+import { publicVersionIdentity } from '../application/publicVersionIdentity'
 import { validateManifest } from './types'
 import { isCompatibleManifestContent } from './manifestContentCompatibility'
 
 export const currentGameDataRuntimeSelectionContract =
   'soda-current-game-data-runtime-selection/v1' as const
+
+if (
+  compiledCurrentGameBase.id !== publicVersionIdentity.packageId ||
+  compiledCurrentGameBase.packageVersion !== publicVersionIdentity.packageVersion ||
+  compiledCurrentGameBase.gameVersion !== publicVersionIdentity.gameVersion ||
+  compiledCurrentGameBase.contentHash !== publicVersionIdentity.contentHash ||
+  compiledCurrentGameBase.rollbackTo !== publicVersionIdentity.rollbackPackageId
+)
+  throw new Error('Installed game-data display and runtime identities do not match.')
+
+/** Stable callback; the repair repository is loaded only when repair is requested. */
+export async function repairCurrentGameDataOnDemand() {
+  return (await import('./repository')).repairBundledCurrentGameData()
+}
 
 export type CurrentGameDataRuntimeSelection =
   | {
@@ -47,9 +62,9 @@ export async function readCurrentGameDataRuntimeSelection(
     return {
       contract: currentGameDataRuntimeSelectionContract,
       status: 'compiled_current',
-      packageId: currentVersionProjection.packageId,
-      packageVersion: currentVersionProjection.packageVersion,
-      gameVersion: currentVersionProjection.gameVersion,
+      packageId: compiledCurrentGameBase.id,
+      packageVersion: compiledCurrentGameBase.packageVersion,
+      gameVersion: compiledCurrentGameBase.gameVersion,
       source: 'implicit_compiled_baseline',
     }
   }

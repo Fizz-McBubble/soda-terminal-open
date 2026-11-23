@@ -1,18 +1,16 @@
 import type { DiscFact } from '../features/agentDevelopmentGolden/types'
 import { getCandidateStatLabels } from '../application/publicCandidateLabels'
 import type { AccountDiscChoice } from '../optimizer/optimizeAccountBuilds'
-import type { DriveDisc, StatKey } from '../domain/schemas'
-import {
-  formatDiscStatValue as formatDiscStatValueWithRules,
-  type DiscStatRules,
-} from './publicDiscFacts'
+import type { DriveDisc, DriveDiscDataManifest, StatKey } from '../domain/schemas'
+import { scoringDiscRecordIssue } from '../domain/discScoringInput'
+import { formatDiscStatValue as formatDiscStatValueWithRules } from './publicDiscFacts'
 
 /**
  * Player-facing disc facts have one implementation; each build only binds its allowed sources: the
  * value rules and set-name resolution plus the reviewed preferred sub-stat keys for one agent.
  */
 export type DiscFactPresentationSources = {
-  rules: DiscStatRules | null | undefined
+  rules: DriveDiscDataManifest['rules'] | null | undefined
   displayDriveDiscSet: (setId: string) => string
   /** Null means the agent has no published/reviewed direction at all. */
   preferredStatKeysFor: (agentId: string) => string[] | null
@@ -34,7 +32,7 @@ export function createDiscFactPresentation(sources: DiscFactPresentationSources)
   }
 
   function discGradeFor(score: number | undefined): DiscFact['grade'] {
-    if (score === undefined) return '未评定'
+    if (score === undefined || !Number.isFinite(score)) return '未评定'
     if (score >= 75) return 'A+'
     if (score >= 50) return 'A'
     return 'B+'
@@ -50,16 +48,16 @@ export function createDiscFactPresentation(sources: DiscFactPresentationSources)
     disc,
     set,
     mainValue,
-    formatSubStatValue,
   }: {
     agentId: string
     choice: AccountDiscChoice | null
     disc: DriveDisc
     set: string
     mainValue: string
-    formatSubStatValue?: (stat: StatKey, value: number) => string
   }): DiscFact {
-    const reviewed = effectiveStatsFor(agentId)
+    const eligible = scoringDiscRecordIssue(disc, sources.rules) === null
+    const reviewed = eligible ? effectiveStatsFor(agentId) : null
+    const score = eligible && choice && Number.isFinite(choice.score) ? choice.score : undefined
     const effectiveStats = new Set(
       disc.subStats
         .filter((stat) => (reviewed ? reviewed.has(stat.stat) : false))
@@ -70,6 +68,7 @@ export function createDiscFactPresentation(sources: DiscFactPresentationSources)
       .reduce((total, stat) => total + stat.upgrades + 1, 0)
     return {
       id: disc.id,
+      recordedStatKeys: [disc.mainStat, ...disc.subStats.map((sub) => sub.stat)],
       label: `实体盘 ${disc.slot}号位`,
       slot: disc.slot,
       set,
@@ -87,7 +86,7 @@ export function createDiscFactPresentation(sources: DiscFactPresentationSources)
         return subStat
           ? {
               name: getCandidateStatLabels([subStat.stat], '副词条')[0] ?? '副词条待补',
-              value: (formatSubStatValue ?? formatDiscStatValue)(subStat.stat, subStat.value),
+              value: formatDiscStatValue(subStat.stat, subStat.value),
               // The initial sub-stat line is not a game enhancement. Keep its value,
               // but show only actual +N upgrade hits to match the in-game panel.
               hits: subStat.upgrades,
@@ -96,8 +95,8 @@ export function createDiscFactPresentation(sources: DiscFactPresentationSources)
           : { name: '未录入', value: '—', hits: 0, effective: false }
       }),
       effective: reviewed ? `${effectiveEnhancements} 次命中` : '尚未评定',
-      grade: discGradeFor(choice?.score),
-      score: choice ? Math.round(choice.score * 10) / 10 : undefined,
+      grade: discGradeFor(score),
+      score: score === undefined ? undefined : Math.round(score * 10) / 10,
     }
   }
 

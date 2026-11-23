@@ -1,0 +1,471 @@
+{
+  "contract": "team-rotation-summaries/v1",
+  "gameVersion": "3.3",
+  "rows": [
+    {
+      "playId": "sha256:4b0cc2bf437a768b4465c1bfc32c5ab418d1b7ad22f48d32a1a1d902dd9c929b",
+      "memberIds": ["agent-phoenix", "agent-velina", "agent-yuzuha"],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "柚叶先用普攻攒能量，接强化特殊技；菲欧妮衔接普攻三、四段，再切维琳娜强化特殊技。",
+      "handoff": "柚叶给增益后交菲欧妮，菲欧妮普攻第三、四段结束后交维琳娜补风异常。",
+      "loop": "菲欧妮以普攻三、四段衔接强化特殊技；维琳娜续上风异常，柚叶补强化特殊技维持增益。",
+      "burst": "菲欧妮资源充足时连续打出强化攻击；维琳娜触发涡流后及时切回菲欧妮接续输出。",
+      "evidence": {
+        "axisSha256": "6125c68a67fe01283e39d9e5dbe7a0d59f0dfb5e58d77e1b6282cacb63d1cebe",
+        "policySha256": "6125c68a67fe01283e39d9e5dbe7a0d59f0dfb5e58d77e1b6282cacb63d1cebe",
+        "draftSha256": "4aa7fb33a76d7d153d1abf9fc1c13655b4d090da21753200b1d1858f85eee8d4"
+      }
+    },
+    {
+      "playId": "sha256:e67a0b7f705017c000bfca0070ed4210c9dc8e181d7ac788c14579c63dfdd603",
+      "memberIds": ["agent-phoenix", "agent-remielle", "agent-velina"],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "蕾米埃尔强化特殊技起手，切菲欧妮强化特殊技接普攻三、四段，再切维琳娜打风异常。",
+      "handoff": "维琳娜强化特殊技后，菲欧妮接快速支援；蕾米埃尔用支援与特殊攻击续效果再交回菲欧妮。",
+      "loop": "维琳娜强化特殊技后由菲欧妮快速支援；蕾米埃尔通过支援、特殊攻击续上效果，再交回菲欧妮。",
+      "burst": "菲欧妮集中打出强化攻击与终结技；蕾米埃尔穿插支援，维琳娜补风异常接续涡流。",
+      "evidence": {
+        "axisSha256": "427d45dd4b403ce20ce014afe6708206a29d47887d8d18f556f93056aa8d6528",
+        "policySha256": "427d45dd4b403ce20ce014afe6708206a29d47887d8d18f556f93056aa8d6528",
+        "draftSha256": "340425e61ac76bb91162f28f1717aafd4b2398fa54e4168dbf990b5b8d451ab7"
+      }
+    },
+    {
+      "playId": "sha256:474c2d75878f00318b2cc5ed668284cb969dfe73f38aaf8e085ec85df1d3f867",
+      "memberIds": ["agent-claret", "agent-norma", "agent-rina"],
+      "primaryAgentId": "agent-claret",
+      "opening": "丽娜冲刺攻击起手，诺姆释放强化特殊技，再切克拉蕾强化特殊技进入连段。",
+      "handoff": "丽娜起手后交诺姆，诺姆打完强化特殊技再交克拉蕾；连携接完也交回克拉蕾。",
+      "loop": "克拉蕾强化特殊技后接普攻与特殊攻击；丽娜补人偶，诺姆补强化特殊技维持后台攻击。",
+      "burst": "敌人失衡时接连携，切回克拉蕾继续连段；终结技就绪后释放并衔接后续攻击。",
+      "evidence": {
+        "axisSha256": "2333745799d8630781d4ccd0d74554493e8e5793e3e16f0cb96b153b26d0b99b",
+        "policySha256": "4a27b06fda496a640e4c33a80c514f24f93f71259ea9715c1e4dd6c1ec7248a5",
+        "draftSha256": "268470cfa7da248ab8a06481d27f8df9f11f71e2c998b7d388ae66127cb91267"
+      }
+    },
+    {
+      "playId": "sha256:1c027e343ddeb8e11f46bc875cc7ad13a72594002191c3fb1292d7cbc3bf89e8",
+      "memberIds": ["agent-miyabi", "agent-vivian", "agent-yuzuha"],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "柚叶强化特殊技起手，雅接快速支援；柚叶二影触发连携时让薇薇安补入场。",
+      "handoff": "柚叶强化特殊技后雅接快速支援。柚叶二影触发连携时，由薇薇安补入场。",
+      "loop": "雅用普攻与强化特殊技积攒落霜；薇薇安补飞羽、护羽，柚叶在增益结束前补强化特殊技。",
+      "burst": "雅攒满6点落霜后释放三段蓄力斩；以紊乱衔接下一轮，避免落霜溢出。",
+      "evidence": {
+        "axisSha256": "1e7eee1096afdac5c64b8d91c36197e0acd1440a70d040b81e383889ab1e5727",
+        "policySha256": "935e32ee4394adf2b8cbe56b2e64ff140024ff1906fc92866fa3852a2acd5e53",
+        "draftSha256": "ee4d8ed73cdc896e738bfc00525140104b830c4dfd61b4443727b6061bc1d493"
+      }
+    },
+    {
+      "playId": "sha256:82f8d52e486b6b65f43426d20842450d0e450188b2b07b52ca4d634bbacfa93b",
+      "memberIds": ["agent-astra", "agent-vivian", "agent-yanagi"],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "耀嘉音特殊技起手，薇薇安接快速支援，再切柳使用强化特殊技。",
+      "handoff": "耀嘉音特殊技交薇薇安快速支援，再切柳；薇薇安补好护羽即退场。",
+      "loop": "柳持续站场积累电异常，普攻后切换架势；薇薇安补护羽后退场，耀嘉音保持演奏。",
+      "burst": "敌人进入异常后由柳强化特殊技或终结技触发极性紊乱，带动薇薇安的后台攻击。",
+      "evidence": {
+        "axisSha256": "bae70af1e04df9596982d1e598779ea12d7cb76ddd057a972e436af32edd3040",
+        "policySha256": "8b9bf87668433859ed32d9af5a33ad8b06cc785f597ff57130a97105c3a60309",
+        "draftSha256": "d1b88de17ced5aa7fceca109e599b41f5328756c5e18d1722deb16f76eece841"
+      }
+    },
+    {
+      "playId": "sha256:39b56e1db9b9634e860ff5c5a8f8c64b8c3daaf6d2b9af1a267bb4651a0f8508",
+      "memberIds": ["agent-hugo", "agent-lighter", "agent-trigger"],
+      "primaryAgentId": "agent-hugo",
+      "opening": "扳机先进入狙击姿态积攒决意，随后切雨果普攻输出。",
+      "handoff": "扳机攒起决意后交雨果；莱特备好士气时再接快速支援推进失衡。",
+      "loop": "雨果普攻攒能量，扳机在后台协同；莱特攒满士气后接快速支援，打完强化拳击推进失衡。",
+      "burst": "失衡后先让雨果连携，再释放终结技和强化特殊技打出总攻。",
+      "evidence": {
+        "axisSha256": "f157b9de459e8b6d2ace3ad1f81ab2e0ddbaa5802ad1854e954861584cc3b86f",
+        "policySha256": "d0010032bb86983d8e6fa5462d7830a2fa8736c8aa0037af1ccc75f47c06774d",
+        "draftSha256": "2d48cee15a07aa7ef3c188f447681151064a6c35295cf76d45aa6bef6b27fcc8"
+      }
+    },
+    {
+      "playId": "sha256:8d83f9b9050c1679a349d29391fefb5a04031553744e6068af2e68b5d63973a1",
+      "memberIds": ["agent-astra", "agent-hugo", "agent-lighter"],
+      "primaryAgentId": "agent-hugo",
+      "opening": "耀嘉音特殊技起手，雨果接快速支援后开始普攻。",
+      "handoff": "耀嘉音先让雨果接快速支援。需要推进失衡时，留出莱特攒满士气后的快速支援机会。",
+      "loop": "雨果普攻攒能量；莱特攒满士气后接快速支援，打完强化拳击，耀嘉音维持演奏。",
+      "burst": "失衡后由雨果连携起手，再用终结技和强化特殊技打出总攻。",
+      "evidence": {
+        "axisSha256": "5dd152834e5fd53f3c316ee3dd0b23f98d4228cf256625e63d67dcbb7f79e99b",
+        "policySha256": "480ba0f66e02cd1e5e5a7ee5230e92866b46939b453f4c59e9cd7008ae3a585c",
+        "draftSha256": "2c64f8b879e80f1866d76b030b1d5a8da7f91afaa3ebfff24869a85ae2b8cb0b"
+      }
+    },
+    {
+      "playId": "sha256:fb4d09231b12b224881bfe3957d8cc5c604f77bef032e7c9f029bdca35d5b13d",
+      "memberIds": ["agent-astra", "agent-trigger", "agent-yixuan"],
+      "primaryAgentId": "agent-yixuan",
+      "opening": "耀嘉音特殊技起手，扳机快速支援后狙击攒决意，再由仪玄快速支援入场。",
+      "handoff": "耀嘉音先交扳机快速支援；扳机补决意后，再由仪玄快速支援接管。",
+      "loop": "仪玄使用强化特殊技和特殊普攻；扳机补决意维持协同，耀嘉音保持演奏与快速支援。",
+      "burst": "术法达到120点时释放对应终结技，随后衔接强化普攻；另一种终结技按喧响就绪释放。",
+      "evidence": {
+        "axisSha256": "f35ed565d0107d4072d5b8640852f0168eb0fdba264f3b9de4b78979b661f26b",
+        "policySha256": "33808c57be3090dc491a61f80eefafc8a6dfdccc63fce2784011badb139fe0e6",
+        "draftSha256": "7f472f9077d0a4314972f64b34b2bf7e12960ca2dbb3e6fe065baec14c51c770"
+      }
+    },
+    {
+      "playId": "sha256:3c06efb2840f66c687c9060403de84b0e9f8739a0de640f035c42782a7669a62",
+      "memberIds": ["agent-miyabi", "agent-yanagi", "agent-yuzuha"],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "柚叶冲刺攻击起手；雅已有6点落霜时先打三段蓄力斩，再由柚叶强化特殊技接柳入场。",
+      "handoff": "雅有满落霜便先打满蓄；柚叶接强化特殊技后，让柳入场接异常。",
+      "loop": "雅与柳交替积累异常；柳以强化特殊技触发极性紊乱，柚叶补甜度和增益。",
+      "burst": "雅攒满6点落霜后释放三段蓄力斩，再利用强化特殊技与终结技接续下一轮。",
+      "evidence": {
+        "axisSha256": "c0f60552512e3634649f2eadbfdf286cc66d177f8b405fcfbf42b2bbdcdd1d6a",
+        "policySha256": "defcf6b1b04fc78e2274054551035840746e90a660374c4a47bacb8d11e08741",
+        "draftSha256": "1fb1efacdbdb5b0cd1e0cba8d5d56d53f91be8c81d598857933737204843d83e"
+      }
+    },
+    {
+      "playId": "sha256:422d38430d4f201aaf2a47c3d861272fdf0698572b43e62330458904974f67fa",
+      "memberIds": ["agent-cissia", "agent-rina", "agent-seed"],
+      "primaryAgentId": "agent-cissia",
+      "opening": "席德冲刺接普攻三、四段，丽娜强化特殊技后快速支援希希芙。",
+      "handoff": "丽娜强化特殊技接希希芙快速支援；希希芙用完蛇吻再交席德快速支援。",
+      "loop": "希希芙发动蛇吻后快速支援席德，席德用普攻和强化炮击积攒钢心。",
+      "burst": "钢心足够时接两段下坠，喧响足够时释放终结技。",
+      "evidence": {
+        "axisSha256": "6089c44a13f7c2418c72f71176394656f8590129ce888cc8ade792115a7cddde",
+        "policySha256": "4cddd15e6324237012d2818d0f38fa4904aaa1e037cb25c23ee624e21da15acd",
+        "draftSha256": "06131f007ae4b0c442cfd8eec87c884e4a19d61ae1ae05ceb0417f2484fdaf79"
+      }
+    },
+    {
+      "playId": "sha256:9f09d63026543cd3a9c4f37983615c50e5222a1b5c21f9f4c4fd7e6ef2010ec1",
+      "memberIds": ["agent-astra", "agent-cissia", "agent-seed"],
+      "primaryAgentId": "agent-seed",
+      "opening": "席德冲刺接普攻三、四段，耀嘉音特殊技命中后快速支援希希芙。",
+      "handoff": "耀嘉音特殊技命中后交希希芙快速支援，蛇吻打出后切回席德。",
+      "loop": "演奏期间观察快速支援提示，希希芙发动蛇吻后切回席德。",
+      "burst": "席德能量达到60后开强化炮击；耀嘉音终结技后留意连携提示。",
+      "evidence": {
+        "axisSha256": "cbf4caecbad528c44ee60272476f930f7ee38355b2654eb2a2d2b9026531d5b0",
+        "policySha256": "4cddd15e6324237012d2818d0f38fa4904aaa1e037cb25c23ee624e21da15acd",
+        "draftSha256": "78b89e653f5ef4901fb48fb6eb06fb1252e66e791bb0eb8840639fba36ecf745"
+      }
+    },
+    {
+      "playId": "sha256:51891cb577913653a72480e0c8a863e609382097dda39b410a972789ebbeb337",
+      "memberIds": ["agent-astra", "agent-miyabi", "agent-nangong"],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音以特殊技起手，雅打完一轮普攻，再切南宫羽接普攻与强化特殊技。",
+      "handoff": "耀嘉音起手后交雅打完普攻，再转南宫羽准备失衡。留好雅的落霜等窗口。",
+      "loop": "南宫羽在击破前打出三段蓄力。雅留好落霜，等敌人失衡再接蓄力。",
+      "burst": "把雅的霜月集中在失衡期间，窗口将结束时优先打完已备好的蓄力。",
+      "evidence": {
+        "axisSha256": "6fc22fda88ec466d9bdbe6a1f95e2bde98dc5b085c0993ced65e480d5cd4b7ea",
+        "policySha256": "de28ec92520daa987cd2a08cf0d33604e829355f0b9db2a5e81947adf92e5943",
+        "productionReportSha256": "f759bc32bb1580b550799d3a2f082e17e5416a1e4e9d821064cd4f58ea17b254"
+      }
+    },
+    {
+      "playId": "sha256:62bbc8d4373db14757dcedc6d8d2022c0229b7bf3f2aa3b912a537160ce44372",
+      "memberIds": ["agent-astra", "agent-miyabi", "agent-nangong"],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音以特殊技起手，雅用普攻积累霜异常，接南宫羽的普攻与强化特殊技。",
+      "handoff": "耀嘉音演奏的快速支援交南宫羽。南宫羽接紊乱把落霜交给雅，雅打完霜月再切回。",
+      "loop": "耀嘉音维持咏叹华彩，快速支援交给南宫羽。南宫羽用精准入场和强化特殊技衔接极性紊乱。",
+      "burst": "失衡时由南宫羽接续极性紊乱，落霜攒满就切雅打霜月，再交回南宫羽。",
+      "evidence": {
+        "axisSha256": "5d3bc5ad7476133ecd4bd6057dd7cc64c78a5e65560a3fec7d00e877d98f3265",
+        "policySha256": "a1410621f6440932bdc636deef998ad56d5df152c51433cef43bfd57bf1ae9ba",
+        "productionReportSha256": "0df0a17df364fc8a747e0c168a279593f872f3fc30ea7dc3e08e7458114e89d1"
+      }
+    },
+    {
+      "playId": "sha256:0386c43939612f693ffe7d5aa0dbbaaeaf16725e73aefa8810546f46ccbad1bf",
+      "memberIds": ["agent-miyabi", "agent-nangong", "agent-sunna"],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽普攻起手，切千夏打完普攻，再由南宫羽接强化特殊技。",
+      "handoff": "南宫羽先交千夏普攻，收回接强化特殊技；失衡接力完成后交雅释放霜月。",
+      "loop": "南宫羽在击破前完成三段蓄力，雅用普攻攒好落霜，给下一次失衡留出霜月。",
+      "burst": "南宫羽完成击破接力后切雅，让满蓄霜月在失衡结束前命中。",
+      "evidence": {
+        "axisSha256": "cb39ee39acfbce9bd421b131b24a7c3f73477547469a947bce1f2fe1416098f1",
+        "policySha256": "fda5ba2c52ec482c90722ba30e4da93233fd88b9bee4ba7ac8bb0a02aaba7f2d",
+        "productionReportSha256": "a3891126f80ff64f6710c22dd1e84fae1ac2f5e946cb01bfb4098dcffe533062"
+      }
+    },
+    {
+      "playId": "sha256:63c2692fa046230cfc69ef64923c0c94b050b59acb2ac6fea84c7dd4cb2bb7f2",
+      "memberIds": ["agent-miyabi", "agent-nangong", "agent-sunna"],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽强化特殊技起手，切雅打一轮普攻，再切千夏释放强化特殊技。",
+      "handoff": "南宫羽强化特殊技后切雅，再切千夏补增益；失衡内靠极性紊乱接力把落霜交回雅。",
+      "loop": "雅与南宫羽交替积累异常，利用极性紊乱为雅补落霜，千夏在两轮之间接续增益。",
+      "burst": "失衡期间先接极性紊乱，落霜攒满就切雅释放霜月；第二轮积够后再打一次满蓄。",
+      "evidence": {
+        "axisSha256": "57b777f5124979d83ddd4317f480edef9a977828a8aa8425e89540c7dbf9c581",
+        "policySha256": "7839c3a9a0ab51e47e088b6b9a93cc02dffc595b242ceaad9c1b523d281eb45b",
+        "productionReportSha256": "3a6fafba9b876498f46d6f1477ea7e3a94953a1e809ad27e1a8110a3c85ba45c"
+      }
+    },
+    {
+      "playId": "sha256:dedea02f0fa12f4bdfae311a7f4f394999eaa1d1fe90cf97839c9875b433ab8a",
+      "memberIds": ["agent-orphie-magus", "agent-soldier-0-anby", "agent-trigger"],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "扳机先起手，接零号·安比的一轮普攻。扳机开好协同后，让安比持续站场。",
+      "handoff": "奥菲丝用强化特殊技补队伍增益，结束后交回零号·安比。只有看到奥菲丝终结技给出的快速支援提示，才按快援切入。",
+      "loop": "由安比持续触发追加攻击，借扳机和奥菲丝的后台追击接续白雷；资源就绪后穿插安比强化特殊技。",
+      "burst": "进失衡时让安比打完这轮白雷与强化特殊技；喧响就绪再接安比终结技。奥菲丝有终结技时，可用她的快援续上安比站场。",
+      "evidence": {
+        "axisSha256": "887e0730f3dd297149c87f0c9785530a399cdbb50808f165f6e7026fe77f3eff",
+        "policySha256": "a00a917d474a1c5a5375ad201aa34375eee9260f80f8395a20280a85bd2e54e4",
+        "reportSha256": "c215ac5db67c8899f3d691d92db70ea0d26911d2ec30d07dff2f71f9c3c68868",
+        "sourceUrl": "https://www.taptap.cn/moment/719883584994807363"
+      }
+    },
+    {
+      "playId": "sha256:8c5538ac6a336f157a93b7eff17955167e50256db9140f8e88b1b2b0e2ac6b1b",
+      "memberIds": ["agent-astra", "agent-evelyn", "agent-lighter"],
+      "primaryAgentId": "agent-evelyn",
+      "opening": "耀嘉音用特殊技进入歌唱，切伊芙琳先打一轮普攻，莱特留到需要推进失衡时接手。",
+      "handoff": "先让耀嘉音挂好增益，快援提示给到伊芙琳时再接入；接近失衡时切莱特，并把失衡窗口交回伊芙琳。",
+      "loop": "在失衡前让伊芙琳攒缭火值和缭索点，穿插莱特推进失衡，耀嘉音补增益。进失衡前尽量留足三点缭索。",
+      "burst": "莱特打进失衡后切伊芙琳打连携；缭索与喧响充足时，分别接自触发连携和终结技。",
+      "evidence": {
+        "axisSha256": "0ba0fecb14824b5f79c3937f6a7f0ebf48dcb0e5c1a0c3e84e4319e4904951b6",
+        "policySha256": "a663d6218867b087f685d1162eadb40d64400c80675179d5bedaaafa59a1d18a",
+        "reportSha256": "aa37ce04dc109c67e1a326f2cd9a2130c7219e0894419883f332f07bd26f8575",
+        "sourceUrl": "https://www.taptap.cn/moment/631128635817853663"
+      }
+    },
+    {
+      "playId": "sha256:1b6af04145bef94ef77cfd0b237a60f4748c808d1dac376671efa10b6d05646a",
+      "memberIds": ["agent-dialyn", "agent-lucia", "agent-starlight-billy"],
+      "primaryAgentId": "agent-starlight-billy",
+      "opening": "先由琉音打普攻，再切卢西娅接普攻；有卢西娅的快援提示时再交给星徽比利。",
+      "handoff": "站位让卢西娅接到星徽比利。由卢西娅触发快援交给比利；琉音留客诉点到接近失衡时。",
+      "loop": "失衡前让比利留决意、闪能和喧响，琉音先打完石头剪刀布。卢西娅补完支援再交回比利。",
+      "burst": "敌人即将失衡或已经失衡时，由琉音消耗客诉点，让比利的连携变为终结技；比利用积攒的决意继续输出。",
+      "evidence": {
+        "axisSha256": "8311b9bcdf9bdfea1d883e7508cd655cef0fb5c9fe67e28f754bd76314b08417",
+        "policySha256": "47f16a6862820e8442e8f015a3981300c5df6e81f4c01031744ae9e344983b87",
+        "reportSha256": "74a03a4fd38e406c240a9b8f1073e279c598928128f41cf6fc163bfcdf850e2e",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/75633121"
+      }
+    },
+    {
+      "playId": "sha256:0fe212a8ff524dd02a30047da3393539f6e3e41f9471d58b96a534c4dd63ce3d",
+      "memberIds": ["agent-promeia", "agent-velina", "agent-yuzuha"],
+      "primaryAgentId": "agent-promeia",
+      "opening": "这套参考轴由维琳娜普攻进场，再切柚叶。柚叶未染色时，也可让普罗米娅先积资源，等柚叶弹刀接强化特殊技后切回普罗米娅染冰。",
+      "handoff": "维琳娜触发快援后交给普罗米娅；队伍配置让柚叶接在普罗米娅之后，以便染冰。",
+      "loop": "柚叶补染色和增益，维琳娜补风化与失衡，普罗米娅攒霜刑点。染色维持时，柚叶补完增益就把站场交回普罗米娅。",
+      "burst": "柚叶或维琳娜进失衡，切普罗米娅接连携；失衡窗口允许再次触发连携时再补一次，随后用普罗米娅长按特殊技打异放。",
+      "evidence": {
+        "axisSha256": "15662066876815a9037ae6db64bab7763f61a13f5ed38aac9256e0f27c401484",
+        "policySha256": "52a6771a07bd8dc64414bb2297b7faea3b798895bd762750115aaf69a72e60c3",
+        "reportSha256": "13fe6fba2633b9ef4f912dcdf58f249e14c25a4cced2e26dbf80bd96e828206a",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/76055360"
+      }
+    },
+    {
+      "playId": "sha256:06517fec84f12aa9e336bbcd511f5926a66c821a28fa0cfff95284b7bc1b8727",
+      "memberIds": ["agent-anby", "agent-nicole", "agent-zhu-yuan"],
+      "primaryAgentId": "agent-zhu-yuan",
+      "opening": "妮可有能量时先用强化特殊技挂减防，切安比打失衡。朱鸢可短登场积攒强化霰弹。",
+      "handoff": "安比进失衡后，让妮可打出能量场，再由朱鸢连携。若目标仍有减防，可先让朱鸢连携，妮可补减防后再看快援提示接回朱鸢。",
+      "loop": "安比在目标恢复后继续积攒失衡。朱鸢用可用的强化特殊技、支援或连携补装，妮可把能量场留给朱鸢的输出段。",
+      "burst": "减防与失衡重叠时，朱鸢长按普攻消耗强化霰弹。喧响或能量足够时，用终结技或强化特殊技补装再打，连携顺序按敌人允许的次数调整。",
+      "evidence": {
+        "axisSha256": "707bb426e44511e3e5a007ad1b334460938413e89bd8f649477b23f546561ee1",
+        "policySha256": "b7c3b44f5d7661de46f2c817dfaf6d0b2b2fef63b5484263a2ca8eea11185fba",
+        "reportSha256": "27ae890747f5d1fbf479c5867815be60a12bb8bf2ad496fae374c50a59253432",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/55577682"
+      }
+    },
+    {
+      "playId": "sha256:1bcc45b650ddf7be2f995be4082c433f9d984f158a55a325d1f4b9a32e01603d",
+      "memberIds": ["agent-aria", "agent-dialyn", "agent-yuzuha"],
+      "primaryAgentId": "agent-aria",
+      "opening": "参考开场由琉音普攻起手，随后切柚叶。柚叶有能量后用强化特殊技准备染色。",
+      "handoff": "柚叶排在爱芮之前，强化特殊技触发快援再下切爱芮，使柚叶的染色落在以太。接近失衡时让琉音接手。",
+      "loop": "爱芮站场积攒应援能量，柚叶增益到期前续上，琉音用招架与强化特殊技推进失衡。",
+      "burst": "有客诉点时让琉音把爱芮连携升为终结技。爱芮进入妄想时刻后，用强化蓄力在失衡期打异放。",
+      "evidence": {
+        "axisSha256": "387d91b1f641208acffbd33016d4cb2c28124b3243a1d50e347ddfc277ca1dfd",
+        "policySha256": "d2a274fff9601ebaf15b4569f2a802be93faa67ee0f024257ed44951e2ae8f45",
+        "reportSha256": "770a8bc916b78ae470eec130153d3e97f6497e490673134483d6dadf2d7bbdb9",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/73717575"
+      }
+    },
+    {
+      "playId": "sha256:c5266109c0b8753ef9fa2e982d148dade6e34e7a5d54d90970e52a9f0d20f628",
+      "memberIds": ["agent-aria", "agent-dialyn", "agent-sunna"],
+      "primaryAgentId": "agent-aria",
+      "opening": "参考开场先让琉音普攻，随后千夏入场准备增益。千夏有能量则用强化特殊技启动。",
+      "handoff": "千夏强化特殊技触发快速支援后交爱芮。敌人黄光可切琉音招架，让爱芮回到前场后继续攒资源。",
+      "loop": "主要由爱芮积攒应援能量，琉音推进失衡。千夏重开以太帷幕前先看爱芮的应援能量，尽量避开溢出。",
+      "burst": "琉音有客诉点时可把爱芮连携升为终结技。让爱芮在失衡期间进入妄想时刻，集中打强化蓄力与异放。",
+      "evidence": {
+        "axisSha256": "21b8c47d5e28ba5c8a7578f8bef32ef27d3cfacb0ec0f0f3d0b875f173d28e35",
+        "policySha256": "81f6386149da38e4f93b0d88126cd1393beb079a0fa160dd5162f868c7fdb681",
+        "reportSha256": "fa707bd3cead3eba3a56620ca028d9e11db827a71bec7d1378c1bc8787e924ea",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/73717575"
+      }
+    },
+    {
+      "playId": "sha256:fe69d8ba1a4427fc93271a2776e2ac67ce475ad4cd4d27e5371aba93abb0b6bb",
+      "memberIds": ["agent-astra", "agent-dialyn", "agent-evelyn"],
+      "primaryAgentId": "agent-evelyn",
+      "opening": "耀嘉音用特殊技进入歌唱，切伊芙琳普攻起步，随后让琉音推进失衡。",
+      "handoff": "可将站位排成琉音、耀嘉音、伊芙琳。嘉音的快速支援提示指向伊芙琳时再接入。预留琉音的客诉点给失衡交接。",
+      "loop": "伊芙琳在失衡前积攒燎火并转成燎索点。琉音推进失衡并留好升终结技的资源，嘉音负责续增益。",
+      "burst": "敌人接近或进入失衡时，琉音可用客诉点把伊芙琳的连携升为终结技。伊芙琳按剩余燎索点接自触发连携。",
+      "evidence": {
+        "axisSha256": "0fa859714a7e43f916bf3bf7d3dd6d779846299222a8975cca6263392cf00b60",
+        "policySha256": "80aca349c6bd4d13391f266c61ce8a9f111eb756e39566755a360e78fcb58cf8",
+        "reportSha256": "87fe59bb1cbb1bc7beedba811ef99fa790cbe28cda9a481d4ed1b315d7338ff4",
+        "sourceUrl": "https://www.taptap.cn/moment/742698844717844780"
+      }
+    },
+    {
+      "playId": "sha256:16a55a4f5d066e4a443a93c6728ed8c2c69119282f52eabfb18fedc8052e03f3",
+      "memberIds": ["agent-astra", "agent-evelyn", "agent-koleda"],
+      "primaryAgentId": "agent-evelyn",
+      "opening": "耀嘉音用特殊技进入歌唱，伊芙琳普攻积攒燎火，珂蕾妲随后参与击破。",
+      "handoff": "嘉音的快速支援提示指向伊芙琳时再接入。敌人接近失衡时，由珂蕾妲的击破回合引出伊芙琳连携。",
+      "loop": "伊芙琳在失衡前积攒燎火、转为燎索点。利用珂蕾妲的短回合推进失衡，让伊芙琳带资源进入下一轮。",
+      "burst": "珂蕾妲进失衡后，让伊芙琳接连携。燎索点足够时接自触发连携，有喧响再打终结技。",
+      "evidence": {
+        "axisSha256": "678a36480011b2fc54f269d7fedff7ec1dfd351df73a264836b4e463f0cd7072",
+        "policySha256": "c212c78609670446727d3414ff5b4215cf11bd9b05a5df9ac536e31dfeac75be",
+        "reportSha256": "e45ff4755d58f3278ee1e99e5cdafcb2e8c91065b00c023b476d62689d5e5bdf",
+        "sourceUrl": "https://www.taptap.cn/moment/639180782929186646"
+      }
+    },
+    {
+      "playId": "sha256:b17c882f531e1dd8fb179fba4f04fd69ccb74a0e73e3b95ffc69064308fb8834",
+      "memberIds": ["agent-astra", "agent-evelyn", "agent-qingyi"],
+      "primaryAgentId": "agent-evelyn",
+      "opening": "耀嘉音用特殊技开歌唱，伊芙琳先用普攻启动燎火，随后接青衣的普攻击破回合。",
+      "handoff": "失衡前让伊芙琳先拿足资源，再给青衣集中的站场时间。嘉音续增益的快援指向伊芙琳时可以接入。",
+      "loop": "让伊芙琳通过攻击攒燎火并转成燎索点。青衣推进失衡时控制换人次数，把伊芙琳留在后续连携出口。",
+      "burst": "青衣打入失衡后交伊芙琳连携。伊芙琳视燎索点接自触发连携，喧响充足再放终结技。",
+      "evidence": {
+        "axisSha256": "9581eff0c7365870c054ac9ef2fcba115e1562bb41805f9ec2487bd67181794c",
+        "policySha256": "7a66d648a6b630c0ab995e81c7ab9e97001d857b5efbf89fe1a967667b45d178",
+        "reportSha256": "eb9768b1f3760d0750156decb2beb11bc7863bea094e3f151eb823819c748802",
+        "sourceUrl": "https://www.taptap.cn/moment/639180782929186646"
+      }
+    },
+    {
+      "playId": "sha256:ead64ea1e9a65585c64ef24eec716956df18b25acf9b143ba786b9298f9d5b0b",
+      "memberIds": ["agent-astra", "agent-evelyn", "agent-norma"],
+      "primaryAgentId": "agent-evelyn",
+      "opening": "耀嘉音用特殊技进入歌唱，伊芙琳接普攻积攒燎火，随后切诺姆推进失衡并积累膛温。",
+      "handoff": "诺姆膛温足够并触发升级快援窗口时，交伊芙琳以连携进场。嘉音的快援按屏幕提示确认目标。",
+      "loop": "伊芙琳失衡前攒燎火、转成燎索点。诺姆准备膛温并用自己的击破回合推进失衡，让当前输出回合交还伊芙琳。",
+      "burst": "失衡窗口里让伊芙琳接诺姆转出的连携，再按燎索点和喧响接自触发连携或终结技。",
+      "evidence": {
+        "axisSha256": "88d0745ed7c904ec99ef6f86ab2b60a2e7bd189a05f7c1a92d4b63e88b9b14d9",
+        "policySha256": "78d23a05aa40afa774bb2e602784ff9746dae26810a1fa538e2b60fce27dbd86",
+        "reportSha256": "3b05ef8c3795bd01c3f571157f96b9e6d3db7a0e3a77623ce57b4067497b7388",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/76528334"
+      }
+    },
+    {
+      "playId": "sha256:16e648b41c14096c1ce540226ccb1b275db2939bb4994aded30bee7add16dd43",
+      "memberIds": ["agent-astra", "agent-dialyn", "agent-pyrois"],
+      "primaryAgentId": "agent-pyrois",
+      "opening": "耀嘉音先进入歌唱，佩洛伊斯接普攻积攒日珥，琉音准备击破回合。有喧响后再按需要用下分支终结技补增益。",
+      "handoff": "失衡将至，先让琉音推进至窗口。有客诉点并出现连携升级条件时，再交佩洛伊斯用终结技接入。",
+      "loop": "佩洛伊斯在失衡前攒日珥、能量和喧响值，琉音打击破，嘉音续增益。嘉音开终结技后按提示接连携补循环。",
+      "burst": "进入失衡后可用上分支终结技衔接强化普攻。喧响和窗口都允许时，用右分支终结技收尾。",
+      "evidence": {
+        "axisSha256": "598c97835150546f159393c82a7e153d0cb188f60240566a2a7ae389182423f1",
+        "policySha256": "1b92ca147b7a8faf4fcd50a138c54fff81cc8eb910716803921c2b7cff09dfeb",
+        "reportSha256": "f703e8a27e8a30ad2081e11c1984f213dd70b8cc35a51e5a6a6867ea55e78ebb",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/76055342"
+      }
+    },
+    {
+      "playId": "sha256:5395cda4d683892f1292e4602a87fea5641f5315bc016c645b4ed130d1a5d2bd",
+      "memberIds": ["agent-astra", "agent-norma", "agent-pyrois"],
+      "primaryAgentId": "agent-pyrois",
+      "opening": "耀嘉音先进入歌唱，切佩洛伊斯用普攻攒日珥。诺姆随后进场推进失衡与积膛温。",
+      "handoff": "诺姆膛温就绪后用可升级的快速支援把场上交给佩洛伊斯。佩洛伊斯连携后可再接第3段普攻。",
+      "loop": "佩洛伊斯在失衡前积日珥和喧响，诺姆提供快援转连携来补循环。嘉音负责续增益，开终结技后可根据提示补连携。",
+      "burst": "在失衡期用上分支终结技接强化普攻。若喧响还允许，在失衡结束前接右分支终结技。",
+      "evidence": {
+        "axisSha256": "c7fd9e03db8f90ca9402301cca1bf1fe42e65dbcea1feb1f0d6360de97e12e32",
+        "policySha256": "4008ec9f15d535a19e8100ed08afa8adb07248cceab33c682830284e9df63d60",
+        "reportSha256": "ce03d60cdfebe38275d85ef819682632370643609f3bac21e701ebe985e99223",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/76528334"
+      }
+    },
+    {
+      "playId": "sha256:99ca01cf4adca2ae60bb53fac1edd03fa6a6b61520d1c6e9feff994c61eec722",
+      "memberIds": ["agent-astra", "agent-cissia", "agent-norma"],
+      "primaryAgentId": "agent-cissia",
+      "opening": "耀嘉音用特殊技进入歌唱，切希希芙普攻起步。敌人给出招架机会时，让诺姆参与击破。",
+      "handoff": "诺姆在膛温就绪、目标快进入失衡时用长按普攻触发交接。看见希希芙的升级快援提示再进场打连携。",
+      "loop": "希希芙站场准备能量和毒素，诺姆借招架与炮塔压失衡，嘉音续增益。诺姆给出的连携可让希希芙补毒素。",
+      "burst": "让希希芙接升级连携，后续连携可取消以留场。能量足够时接长按强化特殊技与普攻，再用长按普攻消耗毒素。",
+      "evidence": {
+        "axisSha256": "da5a6f33c7875fe1a0454972b18adf62b52e22ea33a102223308fcc5246fa6a4",
+        "policySha256": "b7989162c8c9761581b677237fb68de6d916b5cceb2aef754b11a74df76313c9",
+        "reportSha256": "80bfdb0157d4ded4e95900139960a3dad5537fa83f68191f8021fac93f581a10",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/76528334"
+      }
+    },
+    {
+      "playId": "sha256:24c6731694bf5df29ebe04c938a8b2e23bdb2eb8c7475b64f726e42dc11a3d5c",
+      "memberIds": ["agent-lucia", "agent-norma", "agent-starlight-billy"],
+      "primaryAgentId": "agent-starlight-billy",
+      "opening": "参考开场先由卢西娅普攻准备梦境，再切诺姆普攻推进击破；比利留出自己的攒决意和输出回合。",
+      "handoff": "卢西娅触发快速支援时，按站位交星徽比利。诺姆膛温就绪后，可利用快援升连携让比利入场回决意。",
+      "loop": "卢西娅续命破增益，诺姆准备膛温和失衡，比利借连携补决意，用长按普攻消耗再进入下一轮。",
+      "burst": "目标接近失衡时，诺姆准备升级快援并让比利用连携接入。比利在失衡内用攒下的决意打强化输出，有喧响再接终结技。",
+      "evidence": {
+        "axisSha256": "1a63a2c170e7ea7b5e556278271bf8b42044676fbbf30ec025d3d6a443cb2d98",
+        "policySha256": "b350473c909a69a1047afab39c450aeb86ffd4cdcc1bdf061bd66681d0e292c5",
+        "reportSha256": "c97e2e1426b683a9eea0f6ec5c88daaf73e846f716016e4cc70c7b47d45edc42",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/76528334"
+      }
+    },
+    {
+      "playId": "sha256:6168bfbafbacf9cf2d60bc8d506ba46a59b6a785a190db11096cbc937f5d19da",
+      "memberIds": ["agent-astra", "agent-dialyn", "agent-soldier-0-anby"],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "参考开场由耀嘉音开启歌唱，零号·安比普攻建立追击资源，然后切琉音推进击破。",
+      "handoff": "嘉音续增益时，看快速支援提示是否指向零号·安比。接近失衡时让琉音接手，把客诉点留给安比的升级连携。",
+      "loop": "零号·安比在失衡前积攒白雷与能量，琉音打击破并准备客诉点。嘉音补完增益后尽早交回安比。",
+      "burst": "失衡期让琉音将零号·安比连携升为终结技，随即利用标记和白雷打出追加攻击。按实际层数续打，不依赖固定追击次数。",
+      "evidence": {
+        "axisSha256": "5b4782be9d53470224a4452036a2f65d8f369a20543031c385c2207f63e6c36b",
+        "policySha256": "f3c667c9d7a6d5dfef59159ac4931cd33a0371505d783644b3114cf1a6efdef2",
+        "reportSha256": "f7fd4e605ac232efe56df2d9b4401f47d401f99827170f234c95bc5d86a4faba",
+        "sourceUrl": "https://www.miyoushe.com/zzz/article/70915554"
+      }
+    },
+    {
+      "playId": "sha256:7f59aa140702124de3293fba284c18f0eeb6f954ac11e8bb40532abd10011b06",
+      "memberIds": ["agent-claret", "agent-rina", "agent-roxy"],
+      "primaryAgentId": "agent-claret",
+      "opening": "参考开场由丽娜普攻起手，洛克茜随后接普攻，再给克拉蕾输出回合。洛克茜有能量时安排长按强化特殊技。",
+      "handoff": "洛克茜前台蓄力准备失衡，丽娜在克拉蕾输出前续增益。敌人进入可反制状态时，可由克拉蕾接反制支援。",
+      "loop": "克拉蕾以普攻和强化特殊技准备毁伤。洛克茜在队友回合之间蓄力、推进失衡，丽娜按增益持续时间补强化特殊技。",
+      "burst": "进失衡前确认丽娜增益。克拉蕾在窗口中用长按强化特殊技引爆，按连携提示接入，有喧响再用终结技续毁伤。",
+      "evidence": {
+        "axisSha256": "84a156f275e1643ba26a10b3f15a00f7f06ad12ab6a483d2863b175cea30bd81",
+        "policySha256": "a9f8bfb5aa49111c5785d620e331f8e2da1c083b070a6489c2260a39f6c0d7f7",
+        "reportSha256": "82c09a88ac85a54067df42a100545502c556e293f3f2a6bd12c358bb6fbb021b",
+        "sourceUrl": "https://ol.3dmgame.com/gl/355108.html"
+      }
+    }
+  ]
+}

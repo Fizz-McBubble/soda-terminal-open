@@ -1,15 +1,21 @@
-import { useRef, useState, type MutableRefObject } from 'react'
+import { useContext, useLayoutEffect, useRef, useState, type MutableRefObject } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { beginUsageOperation } from '../../usageStatistics/client'
-import type {
-  useAccountDecisionWorld,
-  useTargetTeamWarehouseFitCalculation,
+import { playerErrorMessage } from '../../application/playerErrorMessage'
+import {
+  CalculationQueryClientContext,
+  type useAccountDecisionWorld,
+  type useTargetTeamWarehouseFitCalculation,
 } from '../../application/accountDecisionWorldHooks'
-import type { TargetTeamWarehouseFitQueryResult } from '../../application/calculationQueryContract'
+import {
+  calculationQueryContractVersion,
+  type TargetTeamWarehouseFitQueryResult,
+} from '../../application/calculationQueryContract'
 import type { useF5AccountSummary } from '../../components/f5AccountSummaryContext'
 import { SavedOverviewDeleteDialog } from '../SavedOverviewDeleteDialog'
 import { TeamConstraintResetPanel } from '../TeamLoadoutOverviewParts'
 import { TeamLoadoutOverview } from '../TeamLoadoutOverview'
+import { useBoxOverviewSelection } from './useBoxOverviewSelection'
 import type { TeamLoadoutOverviewItem } from '../teamLoadoutOverviewTypes'
 import type { useTeamPickerQueries } from './useTeamPickerQueries'
 import {
@@ -20,9 +26,11 @@ import {
   type TeamAnalysisState,
 } from '../teamAnalysisSession'
 import {
+  loadCurrentTeamOverviewFromQuery,
   restoreCurrentTeamAnalysisSession,
   retainTeamAnalysisAfterSavedPlanDeletion,
 } from '../teamAnalysisRecovery'
+import { standardReferenceContinuation32 } from '../standardReferenceContinuation32'
 
 export function TeamAnalysisOverviewView({
   analysis,
@@ -48,7 +56,7 @@ export function TeamAnalysisOverviewView({
   setAnalysis,
   setLastCompleteAnalysis,
 }: {
-  analysis: { kind: 'complete' | 'stale'; result: TeamAnalysisResult }
+  analysis: LastCompleteAnalysis
   decisionWorld: ReturnType<typeof useAccountDecisionWorld>
   accountSummary: ReturnType<typeof useF5AccountSummary>
   hardConstraintPanel: React.ReactNode
@@ -69,27 +77,51 @@ export function TeamAnalysisOverviewView({
     result: TeamAnalysisResult,
     fits: Record<string, TargetTeamWarehouseFitQueryResult>,
   ) => void
-  startAnalysis: () => void
+  startAnalysis: (options?: { forceRefresh?: boolean }) => void
   startRemainingBoxAnalysis: () => void
   setAnalysis: React.Dispatch<React.SetStateAction<TeamAnalysisState>>
   setLastCompleteAnalysis: React.Dispatch<React.SetStateAction<LastCompleteAnalysis | null>>
 }) {
   const navigate = useNavigate()
+  const calculationClient = useContext(CalculationQueryClientContext)
   const [pendingDelete, setPendingDelete] = useState<TeamLoadoutOverviewItem | null>(null)
   const preparingRef = useRef<number | null>(null)
   const { result } = analysis
+  const recommendationBlock =
+    result.decisionSnapshot.decisionAuthority.status === 'blocked'
+      ? { reasons: result.decisionSnapshot.decisionAuthority.blockers }
+      : undefined
+  const reanalyze = result.reservations
+    ? startRemainingBoxAnalysis
+    : () => startAnalysis({ forceRefresh: true })
+  const runLost = decisionWorld.analysisIssue?.kind === 'run_lost'
+  const runLostRef = useRef(runLost)
+  const accountRef = useRef(accountSummary)
+  const liveAccountIdRef = useRef(decisionWorld.liveInput?.warehouse.accountId)
+  useLayoutEffect(() => {
+    runLostRef.current = runLost
+    if (accountSummary && !accountSummary.hydrating) accountRef.current = accountSummary
+    liveAccountIdRef.current = decisionWorld.liveInput?.warehouse.accountId
+  }, [runLost, accountSummary, decisionWorld.liveInput])
 
   const fitsAreCurrent =
     analysis.kind === 'complete' &&
+    !runLost &&
     decisionWorld.status === 'current' &&
     decisionWorld.run.input.warehouse.accountId === result.warehouse.accountId &&
     decisionWorld.liveFingerprint === result.inputFingerprint &&
     (result.sourceRunId
       ? decisionWorld.run.runId === result.sourceRunId
-      : result.decisionSnapshot.fingerprint.inputHash === result.inputFingerprint)
+      : decisionWorld.run.runId === result.analysisRunId &&
+        result.decisionSnapshot.fingerprint.inputHash === result.inputFingerprint)
 
+  const { selectedModel, setOverviewSelection } = useBoxOverviewSelection(
+    calculationClient,
+    result,
+    fitsAreCurrent,
+  )
   const visibleOverviewModel = fitsAreCurrent
-    ? (result.fitOverviewModel ?? result.overviewModel)
+    ? (selectedModel ?? result.fitOverviewModel ?? result.overviewModel)
     : result.overviewModel
   const visibleGroups = visibleOverviewModel.groups
   const availableIds = new Set(visibleGroups.flatMap((group) => group.items.map((item) => item.id)))
@@ -120,13 +152,22 @@ export function TeamAnalysisOverviewView({
         scopeActions={
           <div className="f5v-remaining-box-toolbar">
             {remainingBoxSelector}
+            {runLost && !recommendationBlock && analysis.kind !== 'stale' ? (
+              <button
+                className="f5v-box-analysis-entry__secondary-action"
+                type="button"
+                onClick={reanalyze}
+              >
+                重新分析
+              </button>
+            ) : null}
             {result.reservations ? (
               <div className="f5v-remaining-box__status" role="status">
-                <span>已保留 {result.reservations.length} 队 · 使用未选中的角色</span>
+                <span>已排除 {result.reservations.length} 个方案的成员与驱动盘</span>
                 <button
                   className="f5v-box-analysis-entry__secondary-action"
                   type="button"
-                  onClick={startAnalysis}
+                  onClick={() => startAnalysis()}
                 >
                   使用全部角色
                 </button>
@@ -137,6 +178,10 @@ export function TeamAnalysisOverviewView({
         key={`${result.appSessionId}:${result.warehouse.accountId}:${result.analysisRunId}:${result.capturedAt.getTime()}`}
         initialUiState={result.overviewUiState}
         onUiStateChange={(overviewUiState) => {
+          setOverviewSelection(
+            overviewUiState.recommendedQuery,
+            overviewUiState.includeReferenceDirections ?? false,
+          )
           const session = currentTeamAnalysisSession
           if (
             session?.result.appSessionId !== result.appSessionId ||
@@ -151,6 +196,7 @@ export function TeamAnalysisOverviewView({
           })
         }}
         answer={result.overviewModel.answer}
+        recommendationBlock={recommendationBlock}
         coverage={result.overviewModel.coverage}
         groups={visibleGroups}
         favoriteAgentIds={
@@ -158,12 +204,26 @@ export function TeamAnalysisOverviewView({
             ? decisionWorld.liveInput.developmentPriorityAgentIds
             : undefined
         }
+        bangbooStarsById={Object.fromEntries(
+          result.warehouse.roster.bangboos.flatMap((bangboo) =>
+            bangboo.owned && bangboo.stars && bangboo.stars >= 1 && bangboo.stars <= 5
+              ? [[bangboo.bangbooId, bangboo.stars as 1 | 2 | 3 | 4 | 5]]
+              : [],
+          ),
+        )}
         selectedId={selectedId}
         preparingItemId={preparingItemId}
         preparationError={
           preparationError?.runId === result.analysisRunId ? preparationError : null
         }
-        contextNote={overviewFeedback ?? result.overviewModel.contextNote}
+        contextNote={
+          (analysis.kind === 'stale' && !analysis.reason
+            ? result.overviewModel.contextNote
+            : null) ??
+          decisionWorld.analysisIssue?.message ??
+          overviewFeedback ??
+          result.overviewModel.contextNote
+        }
         onSelect={(id) => {
           prepareRequestRef.current += 1
           preparingRef.current = null
@@ -171,11 +231,29 @@ export function TeamAnalysisOverviewView({
           setPreparationError(null)
           setRequestedSelectedId(id)
         }}
-        onPrimaryAction={(item) => {
-          if (preparingRef.current !== null) return
+        onPreviewSelectionChange={() => {
+          prepareRequestRef.current += 1
+          preparingRef.current = null
+          setPreparingItemId(null)
+          setPreparationError(null)
+        }}
+        onPrimaryAction={(item, bangboo) => {
+          if (
+            preparingRef.current !== null ||
+            accountRef.current?.accountId !== result.warehouse.accountId ||
+            accountRef.current?.appSessionId !== result.appSessionId ||
+            (liveAccountIdRef.current && liveAccountIdRef.current !== result.warehouse.accountId)
+          )
+            return
           setPreparationError(null)
           if (!item.detailCandidateId && item.kind !== 'saved') {
             setOverviewFeedback('该记录没有可打开的队伍详情。')
+            return
+          }
+          if (runLost && item.kind !== 'saved') {
+            setOverviewFeedback(
+              decisionWorld.analysisIssue?.message ?? '当前分析暂不可用，请重新分析。',
+            )
             return
           }
           if (item.kind === 'saved' || !fitsAreCurrent) {
@@ -183,6 +261,12 @@ export function TeamAnalysisOverviewView({
             return
           }
           const request = ++prepareRequestRef.current
+          const isCurrentPreparation = () =>
+            request === prepareRequestRef.current &&
+            !accountRef.current?.hydrating &&
+            accountRef.current?.accountId === result.warehouse.accountId &&
+            accountRef.current?.appSessionId === result.appSessionId &&
+            (!liveAccountIdRef.current || liveAccountIdRef.current === result.warehouse.accountId)
           preparingRef.current = request
           const finishUsage = beginUsageOperation('team_loadout')
           setPreparingItemId(item.id)
@@ -190,8 +274,13 @@ export function TeamAnalysisOverviewView({
           setOverviewFeedback(null)
           void queryTeamRoute(result, item.detailCandidateId!)
             .then(async (entry) => {
-              if (request !== prepareRequestRef.current) {
+              if (!isCurrentPreparation()) {
                 finishUsage('cancelled')
+                return
+              }
+              if (runLostRef.current) {
+                finishUsage('cancelled')
+                setOverviewFeedback('当前分析暂不可用，请重新分析。')
                 return
               }
               if (!entry.team || !entry.targetCandidateId) {
@@ -199,21 +288,83 @@ export function TeamAnalysisOverviewView({
                 return
               }
               const team = entry.team
-              if (!entry.discOnlyCandidate && !team.bangbooId && !entry.automaticBangboo) {
+              if (
+                !entry.discOnlyCandidate &&
+                !team.bangbooId &&
+                !entry.automaticBangboo &&
+                !bangboo
+              ) {
                 navigate(item.destination)
                 return
               }
               const cached = result.targetTeamFits[team.id]
-              if (cached?.candidateId === entry.targetCandidateId) {
+              if (
+                cached?.candidateId === entry.targetCandidateId &&
+                (!bangboo ||
+                  (cached.effectiveEquipmentParameters?.bangbooId === bangboo.bangbooId &&
+                    cached.effectiveEquipmentParameters?.bangbooStars === bangboo.stars))
+              ) {
                 navigate(item.destination)
                 return
               }
-              const fit = await calculateTargetTeamWarehouseFit(
-                result.analysisRunId,
-                entry.targetCandidateId,
-              )
-              if (request !== prepareRequestRef.current) {
+              let fit: TargetTeamWarehouseFitQueryResult
+              if (bangboo && !team.bangbooId && !entry.discOnlyCandidate) {
+                if (!calculationClient) throw new Error('当前分析服务不可用，请重试。')
+                fit = await calculationClient.calculateTargetTeamWarehouseFit({
+                  contractVersion: calculationQueryContractVersion,
+                  kind: 'target_team_warehouse_fit',
+                  runId: result.analysisRunId,
+                  candidateId: entry.targetCandidateId,
+                  playerBangbooSelection: {
+                    teamKey: team.id,
+                    bangbooId: bangboo.bangbooId,
+                    bangbooStars: bangboo.stars,
+                  },
+                })
+              } else {
+                const initialFit =
+                  cached?.candidateId === entry.targetCandidateId
+                    ? cached
+                    : await calculateTargetTeamWarehouseFit(
+                        result.analysisRunId,
+                        entry.targetCandidateId,
+                      )
+                if (!isCurrentPreparation()) {
+                  finishUsage('cancelled')
+                  return
+                }
+                if (
+                  bangboo &&
+                  (initialFit.effectiveEquipmentParameters?.bangbooId !== bangboo.bangbooId ||
+                    initialFit.effectiveEquipmentParameters?.bangbooStars !== bangboo.stars)
+                ) {
+                  if (!initialFit.effectiveEquipmentParameters)
+                    throw new Error('当前配装缺少可确认的邦布参数，请在配装页选择。')
+                  const nextEquipmentParameters = {
+                    ...initialFit.effectiveEquipmentParameters,
+                    bangbooId: bangboo.bangbooId,
+                    bangbooStars: bangboo.stars,
+                  }
+                  fit = await calculateTargetTeamWarehouseFit(
+                    result.analysisRunId,
+                    entry.targetCandidateId,
+                    nextEquipmentParameters,
+                    initialFit.scenarioSelection,
+                    initialFit.eventConditionDeclarationsByAgentId,
+                    undefined,
+                    standardReferenceContinuation32(initialFit, entry.targetCandidateId, {
+                      equipmentParameters: nextEquipmentParameters,
+                    }),
+                  )
+                } else fit = initialFit
+              }
+              if (!isCurrentPreparation()) {
                 finishUsage('cancelled')
+                return
+              }
+              if (runLostRef.current) {
+                finishUsage('cancelled')
+                setOverviewFeedback('当前分析暂不可用，请重新分析。')
                 return
               }
               const session = currentTeamAnalysisSession
@@ -225,7 +376,7 @@ export function TeamAnalysisOverviewView({
                 session.result.inputFingerprint !== result.inputFingerprint
               ) {
                 finishUsage('cancelled')
-                setOverviewFeedback('账户资料已更新，请重新分析后再配装。')
+                setOverviewFeedback('队伍建议已变化，请重新选择这支队伍。')
                 return
               }
               finishUsage(fit.status === 'ready' ? 'success' : 'incomplete')
@@ -241,13 +392,16 @@ export function TeamAnalysisOverviewView({
               navigate(item.destination)
               queueFitOverview(session.result, nextFits)
             })
-            .catch(() => {
-              finishUsage(request === prepareRequestRef.current ? 'failure' : 'cancelled')
-              if (request === prepareRequestRef.current)
+            .catch((error: unknown) => {
+              const cancelled = error instanceof Error && error.name === 'AbortError'
+              finishUsage(isCurrentPreparation() && !cancelled ? 'failure' : 'cancelled')
+              if (isCurrentPreparation())
                 setPreparationError({
                   runId: result.analysisRunId,
                   itemId: item.id,
-                  message: '本次配装生成失败，请重试；账户资产没有改变。',
+                  message: cancelled
+                    ? '本次配装已取消。'
+                    : playerErrorMessage(error, '本次配装生成失败，请重试。'),
                 })
             })
             .finally(() => {
@@ -256,9 +410,13 @@ export function TeamAnalysisOverviewView({
             })
         }}
         onDeleteSaved={setPendingDelete}
-        onEmptyAction={() => navigate('/assets/agents')}
+        onEmptyAction={
+          result.warehouse.roster.agents.filter((agent) => agent.owned).length < 3
+            ? () => navigate('/assets/agents')
+            : undefined
+        }
         analysisStale={analysis.kind === 'stale'}
-        onReanalyze={result.reservations ? startRemainingBoxAnalysis : startAnalysis}
+        onReanalyze={reanalyze}
         restrictedByHardConstraints={restrictedByHardConstraints}
       />
       {pendingDelete ? (
@@ -279,6 +437,10 @@ export function TeamAnalysisOverviewView({
               const refreshed = await decisionWorld.refresh()
               if (!refreshed || !accountSummary) throw new Error('refresh unavailable')
               if (previous.result.reservations) return
+              const overviewModel = await loadCurrentTeamOverviewFromQuery(
+                refreshed,
+                calculationClient,
+              )
               const next = restoreCurrentTeamAnalysisSession(
                 accountSummary,
                 {
@@ -287,6 +449,7 @@ export function TeamAnalysisOverviewView({
                   liveFingerprint: refreshed.snapshot.fingerprint.inputHash,
                 },
                 null,
+                overviewModel,
               )
               if (!next || refreshRequest !== analysisRequestRef.current) return
               next.result.overviewUiState =
@@ -296,7 +459,7 @@ export function TeamAnalysisOverviewView({
               setAnalysis(next)
               setLastCompleteAnalysis(next)
             } catch {
-              setOverviewFeedback(`已删除“${title}”；队伍建议暂未更新，可稍后重新分析。`)
+              setOverviewFeedback(`已删除“${title}”；队伍建议暂未更新。`)
             }
           }}
         />

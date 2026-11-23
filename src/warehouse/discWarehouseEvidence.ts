@@ -26,6 +26,8 @@ export type WarehouseAbsoluteRetentionEvidence = {
   bestUseScore: number | null
   ownedUseAgentIds: string[]
   unownedUseAgentIds: string[]
+  /** Compatible agents whose applicable branch still has unresolved material facts. */
+  unresolvedFitAgentIds?: string[]
   reasonKind?: AbsoluteRetentionDecision['reasonKind']
   nextAction?: AbsoluteRetentionDecision['nextAction']
   blockedBy?: AbsoluteRetentionDecision['blockedBy']
@@ -38,6 +40,7 @@ export type WarehouseAbsoluteRetentionEvidence = {
       | 'agentId'
       | 'mainFit'
       | 'setFit'
+      | 'recommendationSetFit'
       | 'twoPieceFit'
       | 'fourPieceFit'
       | 'currentScore'
@@ -45,6 +48,7 @@ export type WarehouseAbsoluteRetentionEvidence = {
       | 'functionalMain'
       | 'cutoffs'
       | 'sourceIds'
+      | 'branchSetPlan'
     > &
       Partial<
         Pick<
@@ -56,7 +60,12 @@ export type WarehouseAbsoluteRetentionEvidence = {
           | 'weightEvidence'
           | 'blockers'
         >
-      > & { guidance?: WarehouseRetentionGuidance }
+      > & { guidance?: WarehouseRetentionGuidance } & {
+        /** Player-facing semantic label derived from source conditions or named sets. */
+        profileLabel?: string | null
+        /** Readable distinguishing dimensions when no safe standalone label exists. */
+        profileDimensions?: string[]
+      }
   >
 }
 
@@ -85,6 +94,7 @@ export type WarehouseDiscDecision = {
   reviewDirection?: 'no_current_fit'
   reasons: string[]
   fitAgentIds: string[]
+  unresolvedFitAgentIds?: string[]
   planIds: string[]
   activePlanIds: string[]
   alternatives: string[]
@@ -253,7 +263,7 @@ export function isPremiumReserve(disc: DriveDisc) {
 function readableSet(disc: DriveDisc) {
   const currentSet = getCurrentScopeEntry(disc.setId)
   if (currentSet?.domain === 'drive_disc_set') return currentSet.displayName
-  return setName.get(disc.setId) ?? '资料待补齐套装'
+  return setName.get(disc.setId) ?? '未知套装'
 }
 
 /**
@@ -278,7 +288,7 @@ export function hasAdoptedCurrentSetIdentity(setId: string) {
 }
 
 function statLabel(stat: StatKey) {
-  return evaluationRules.stats[stat]?.label ?? '资料待补齐词条'
+  return evaluationRules.stats[stat]?.label ?? '未知词条'
 }
 
 export function hasIdenticalStats(left: DriveDisc, right: DriveDisc) {

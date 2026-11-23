@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart05 = [
     agentId: 'agent-banyue',
     playerName: '般岳',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.4',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F6',
     objectiveTopology: 'O3',
     configHash: 'a2de6c908b6a747eb53fc813449d19ac0c8b0dff4b761ba8f1c718b989f7e3ac',
-    inputHash: 'c149a9d6eb4a93ab1bb5aa3954d45525200f7378c935e02b70492dc55658a7d5',
+    inputHash: '07552579f577d07d790b537f3409c3147673ec9d7fe884038cb539fc83910b59',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-banyue-core-levels:core.levels:batch-agents-2.4-r3f',
@@ -117,7 +117,7 @@ export const graduationCandidateProfilesPart05 = [
       deterministic: true,
       configHash: 'd1e4dc29425416d56feb7b2d278a62fc626c4def30cd318d555059ec47d50c7a',
     },
-    profileHash: '69d38ba7309aed2e3c8db4fd4c3211fff79348d6a3bb2c69e21a8c9794eef046',
+    profileHash: 'd6b13d975bdd348c8f0cd6a51e5bc35006acc8b9ff35d08a96f50e9b987acfbc',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -128,14 +128,14 @@ export const graduationCandidateProfilesPart05 = [
     agentId: 'agent-dialyn',
     playerName: '琉音',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.4',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F3',
     objectiveTopology: 'O4',
     configHash: '57b288130855bcd7552e47ef46ed94cccc0b6ee2eca39c5e064a453d1aa0e936',
-    inputHash: '8d7cdc5cf2fc154ee2d4582435f6aef8444660a92efd792d9137af8460e7c3b1',
+    inputHash: 'd007cead93fb34cca81dffefbd2ae0b42a21e565b1cd81efea98ee304c5102a1',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-dialyn-core-levels:core.levels:batch-agents-2.4-r3f',
@@ -236,7 +236,7 @@ export const graduationCandidateProfilesPart05 = [
       deterministic: true,
       configHash: '8bcb6a4479aceaabe037d78012f131e7a2d70840027a1e530ec0eaa48c5dda5b',
     },
-    profileHash: '278db041d8764673ddc14a219b47b1f3f55ee5e5afd2bd27f8be391565498a48',
+    profileHash: 'e080cfb2c2449d72eb57423b1f845d2daac55cd4696ee6d823f15feccc6f6334',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -247,14 +247,14 @@ export const graduationCandidateProfilesPart05 = [
     agentId: 'agent-yidhari',
     playerName: '伊德海莉',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.3',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F6',
     objectiveTopology: 'O3',
     configHash: 'd24ea6e0232c55afc4f4ebcbc1f4876fd252de8f37eb85a83796b15641f77932',
-    inputHash: 'd2e98294a0f4c3dabc8be2b133a0c051167e7bf8713151af01e0869958963f46',
+    inputHash: '338baa9f167a5635021a3339ef99a07e39a1001081b2105d237d0e28edde1184',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-yidhari-core-levels:core.levels:batch-agents-2.3-r3g',
@@ -355,6 +355,6 @@ export const graduationCandidateProfilesPart05 = [
       deterministic: true,
       configHash: 'ce9e4e6574d440101c4cbff1d37acedb26b751ba104c7b7756330dd06f493a46',
     },
-    profileHash: 'd3de4ee0289184dd73a202bdb51835d6b305f288ac3ecd983311629d78c71d06',
+    profileHash: 'a734e22619ec6e413ab92494973c60253b3bab1b96bd4e448f2ae64baf4615b2',
   },
 ] as const

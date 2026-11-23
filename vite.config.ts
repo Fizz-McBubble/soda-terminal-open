@@ -1,9 +1,13 @@
 import reviewed32MediaUrls from './src/assets/reviewed32-media-urls.json'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import type { Connect, Plugin } from 'vite'
 import { catalogCodeSplitting } from './build/catalogCodeSplitting'
+import { boxStartupIndexAliases } from './build/boxStartupIndexAliases'
+import { communityConsumerPolicySourceHashes } from './build/communityConsumerPolicySourceHashes.mjs'
+import { scannerReleaseManifests } from './build/scannerReleaseManifests.mjs'
 import { publicBoundaryAliases } from './build/publicBoundaryBinding'
 import { projectCommunitySourceText } from './build/communitySourceProjection.mjs'
 import { resolveBuildStorage } from './scripts/derived-build-storage.mjs'
@@ -89,6 +93,20 @@ function publicEntryPlugin(): Plugin {
 }
 
 function officialCatalogCachePlugin(): Plugin {
+  const localManifestPath = new URL('./src/data/visual-assets.v1.json', import.meta.url)
+  const internalBuild =
+    process.env.VITE_SODA_PUBLIC_BUILD !== 'true' &&
+    process.env.VITE_SODA_COMMUNITY_BUILD !== 'true'
+  const localOnlySources = new Set<string>()
+  if (internalBuild && existsSync(localManifestPath)) {
+    const { assets } = JSON.parse(readFileSync(localManifestPath, 'utf8')) as {
+      assets: { distribution?: string; remoteUrl: string | null }[]
+    }
+    for (const asset of assets) {
+      if (asset.distribution === 'local-only' && asset.remoteUrl)
+        localOnlySources.add(asset.remoteUrl)
+    }
+  }
   const middleware: Connect.NextHandleFunction = async (request, response, next) => {
     const requestUrl = new URL(request.url ?? '/', 'http://localhost')
     if (requestUrl.pathname !== '/official-catalog-cache') {
@@ -109,7 +127,10 @@ function officialCatalogCachePlugin(): Plugin {
       response.end('官方图鉴素材地址无效')
       return
     }
-    const reviewedCommunity = Object.values(reviewed32MediaUrls).includes(source)
+    const localOnly =
+      ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(request.socket.remoteAddress ?? '') &&
+      localOnlySources.has(source)
+    const reviewedCommunity = localOnly || Object.values(reviewed32MediaUrls).includes(source)
     if (
       remote.protocol !== 'https:' ||
       (!reviewedCommunity &&
@@ -129,7 +150,9 @@ function officialCatalogCachePlugin(): Plugin {
         // The manifest hash is recorded from the origin's default byte stream.
         // Do not negotiate a WebP/AVIF variant here, or cache verification will
         // correctly reject a different representation of the same image.
-        const upstream = await fetch(remote, { redirect: reviewedCommunity ? 'manual' : 'follow' })
+        const upstream = await fetch(remote, {
+          redirect: reviewedCommunity ? 'manual' : 'follow',
+        })
         lastStatus = upstream.status
         if (upstream.ok) {
           const body = Buffer.from(await upstream.arrayBuffer())
@@ -199,14 +222,38 @@ export default defineConfig({
         codeSplitting: {
           maxSize: 400_000,
           groups: [
+            ...(process.env.VITE_SODA_COMMUNITY_BUILD === 'true'
+              ? [
+                  {
+                    name: 'ui-team-intrinsic-index',
+                    test: /[/\\]gameDataPacks[/\\]generated[/\\]current31-team-intrinsic-index\.v1\.json$/u,
+                    priority: 30,
+                  },
+                  {
+                    name: 'ui-generic-team-ranking',
+                    test: /[/\\]gameDataPacks[/\\]generated[/\\]generic-team-ranking\.v1\.json$/u,
+                    priority: 30,
+                  },
+                ]
+              : []),
             {
               name: 'catalog',
               test: /soda-catalog:|gameDataPacks[/\\](data|generated)[/\\]/,
               priority: 20,
               entriesAware: true,
             },
-            { name: 'vendor', test: /node_modules/, priority: 10, entriesAware: true },
-            { name: 'application', test: /[/\\]src[/\\]/, priority: 0, entriesAware: true },
+            {
+              name: 'vendor',
+              test: /node_modules/,
+              priority: 10,
+              entriesAware: true,
+            },
+            {
+              name: 'application',
+              test: /[/\\]src[/\\]/,
+              priority: 0,
+              entriesAware: true,
+            },
           ],
         },
       },
@@ -218,18 +265,87 @@ export default defineConfig({
     format: process.env.VITE_SODA_PUBLIC_BUILD === 'true' ? 'iife' : 'es',
     // Vite builds worker modules with a separate plugin container. Apply the same source
     // projection there or large guide catalogs can bypass the public locator scrub.
-    plugins: () =>
+    plugins: () => [
+      communityConsumerPolicySourceHashes(),
+      ...(process.env.VITE_SODA_COMMUNITY_BUILD === 'true'
+        ? [
+            boxStartupIndexAliases(),
+            {
+              name: 'soda-community-worker-local-team-view',
+              enforce: 'pre' as const,
+              resolveId(source: string) {
+                if (
+                  source === './teamLoadoutDecisionViewModel' ||
+                  source === '../teamLoadoutDecisionViewModel'
+                ) {
+                  // This Worker already owns the local team projection. A top-level
+                  // dynamic import of its own grouped dependencies would deadlock.
+                  return fileURLToPath(
+                    new URL('./src/pages/teamLoadoutDecisionViewModelLocal.ts', import.meta.url),
+                  )
+                }
+                return null
+              },
+            },
+            communitySourceProjectionPlugin(),
+            catalogCodeSplitting(projectCommunitySourceText),
+          ]
+        : []),
+    ],
+    rolldownOptions:
       process.env.VITE_SODA_COMMUNITY_BUILD === 'true'
-        ? [communitySourceProjectionPlugin(), catalogCodeSplitting(projectCommunitySourceText)]
-        : [],
+        ? {
+            output: {
+              codeSplitting: {
+                // Keep the calculation closure in one static chunk. Splitting its cyclic
+                // dependencies again can create cross-chunk initialization cycles.
+                includeDependenciesRecursively: true,
+                groups: [
+                  // These two JSON leaf modules together exceed the static asset limit.
+                  // Give each a static chunk before grouping the calculation dependencies.
+                  {
+                    name: 'worker-team-intrinsic-index',
+                    test: /[/\\]gameDataPacks[/\\]generated[/\\]current31-team-intrinsic-index\.v1\.json$/u,
+                    priority: 30,
+                  },
+                  {
+                    name: 'worker-generic-team-ranking',
+                    test: /[/\\]gameDataPacks[/\\]generated[/\\]generic-team-ranking\.v1\.json$/u,
+                    priority: 30,
+                  },
+                  {
+                    // Keep the Worker readiness handshake separate from the account graph.
+                    name: 'worker-query-contract',
+                    test: /[/\\]src[/\\]application[/\\](?:calculationQueryContract|publicVersionIdentity)\.ts$/u,
+                    priority: 35,
+                  },
+                  // Keep the first account query's shared dependency closure together.
+                  // Full ranking indexes and personal facts retain their own entry points.
+                  {
+                    name: 'worker-account-query',
+                    test: /[/\\]src[/\\](?:application[/\\](?:localCalculationQueryClientCore|calculationQueryDispatch|publicCalculationTransport)|decision[/\\]accountDecisionService)\.ts$/u,
+                    priority: 25,
+                  },
+                  {
+                    name: 'worker-calculation',
+                    test: /[/\\]src[/\\]calculation[/\\]/,
+                    priority: 20,
+                  },
+                ],
+              },
+            },
+          }
+        : undefined,
   },
   plugins: [
+    scannerReleaseManifests(),
     {
       name: 'soda-asset-quick-read-download',
       configureServer(server) {
         server.middlewares.use(assetQuickReadInstallerMiddleware())
       },
     },
+    communityConsumerPolicySourceHashes(),
     communitySourceProjectionPlugin(),
     react(),
     publicEntryPlugin(),

@@ -37,6 +37,24 @@ export type PotentialApplicationMember = {
   potential?: number | null
   initialStats: PotentialBindingInitialStats
   provenance: PotentialInitialStatsProvenance
+  /** Explicitly distinguishes a menu panel from a combat observation. */
+  rinaPenetrationBasis?: 'out_of_combat' | 'includes_potential'
+}
+
+/** Potential only; Core Passive and other combat buffs are separate states. */
+export function resolveRinaPotentialPenetration(input: {
+  potential: number
+  penetrationRatio: number
+  basis: 'out_of_combat' | 'includes_potential'
+}): number {
+  if (!Number.isInteger(input.potential) || input.potential < 0 || input.potential > 6 ||
+      !Number.isFinite(input.penetrationRatio) || input.penetrationRatio < 0 ||
+      !['out_of_combat', 'includes_potential'].includes(input.basis))
+    throw new Error('invalid_rina_potential_penetration_input')
+  const definition = getReviewedPotentialDefinition('agent-rina')
+  const effect = definition?.effects.find(row => row.effectId === 'potential_penetration')
+  if (!effect) throw new Error('missing_reviewed_rina_potential_penetration')
+  return input.penetrationRatio + (input.basis === 'out_of_combat' ? effect.valueByLevel[input.potential]! : 0)
 }
 
 /**
@@ -214,6 +232,9 @@ export function bindReviewedPotentialApplications(
         ...common,
         reason: 'Potential image is level 0; this source effect is disabled.',
       })
+    if (input.member.agentId === 'agent-rina' && effect.effectId === 'potential_penetration' &&
+        input.member.rinaPenetrationBasis === 'includes_potential')
+      return excluded({ ...common, reason: 'Observed penetration already includes this potential.' })
     if (unreviewedPotentialConsumerEffectKeys32.has(common.effectKey))
       return excluded({
         ...common,
@@ -303,7 +324,18 @@ export function bindReviewedPotentialApplications(
         })
     }
 
-    const value = valueForEffect({ potential, effect, initialStats: input.member.initialStats })
+    let conversionStats = input.member.initialStats
+    if (input.member.agentId === 'agent-rina' && effect.conversion?.inputStat === 'penetration_ratio_fraction') {
+      if (!input.member.rinaPenetrationBasis)
+        return excluded({ ...common, reason: 'Rina penetration conversion requires an explicit panel basis.' })
+      try {
+        conversionStats = { ...conversionStats, pen_: resolveRinaPotentialPenetration({ potential,
+          penetrationRatio: conversionStats.pen_, basis: input.member.rinaPenetrationBasis }) }
+      } catch {
+        return excluded({ ...common, reason: 'Invalid Rina penetration input domain.' })
+      }
+    }
+    const value = valueForEffect({ potential, effect, initialStats: conversionStats })
     if (value === null || !Number.isFinite(value))
       return excluded({
         ...common,

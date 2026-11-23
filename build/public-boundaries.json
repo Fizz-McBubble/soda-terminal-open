@@ -1,5 +1,5 @@
 {
-  "comment": "Browser-graph boundaries bound at build time. Paths are relative to this directory. Shared by vite.config.ts / vite.server.config.ts (aliases) and deploy/prepare-public-shell.mjs (source audit).",
+  "comment": "Browser-graph boundaries bound at build time. Paths are relative to this directory. Shared by vite.config.ts / vite.server.config.ts (aliases) and deploy/prepare-public-shell.mjs (source audit). Ordinary player algorithms stay in the public browser/Worker graph; browserRuntimeExclusions names only non-public data, local-only adapters, offline calibration/research implementations and producer scripts.",
   "boundaries": [
     {
       "specifier": "@soda/visual-asset-manifest",
@@ -30,6 +30,74 @@
       "specifier": "@soda/legacy-recovery-fixture",
       "local": "../src/testing/loadLegacyRecoveryFixture.ts",
       "public": "../src/testing/emptyLegacyRecoveryFixture.ts"
+    },
+    {
+      "specifier": "@soda/team-execution-blocker-presentation",
+      "local": "../src/pages/teamExecutionPresentation.ts",
+      "public": "../src/pages/teamExecutionPortfolioPresentation.ts"
+    },
+    {
+      "specifier": "@soda/team-guide-preference",
+      "local": "../src/pages/TeamGuidePreference.tsx",
+      "public": "../src/pages/TeamGuidePreferencePublic.tsx"
+    }
+  ],
+  "browserRuntimeExclusions": [
+    {
+      "path": "../scripts",
+      "kind": "directory"
+    },
+    {
+      "path": "../src/upstream",
+      "kind": "directory"
+    },
+    {
+      "path": "../src/application/localCalculationQueryClient.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/application/browserAccountDecisionWorker.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/application/localDecisionPortfolioQuery.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/referenceNumericCalibration.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/referenceTeamRatingMethod.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/referenceEvidenceIndependence.mjs",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/referenceRatingVerification.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/referenceTeamRating.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/teamGenericRanking.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/teamGenericRankingReader.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/teamGenericRankingMethod.ts",
+      "kind": "file"
+    },
+    {
+      "path": "../src/decision/teamGenericRankingCandidate.ts",
+      "kind": "file"
     }
   ]
 }

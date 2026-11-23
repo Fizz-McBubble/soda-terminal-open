@@ -1,4 +1,5 @@
 import type { UpstreamExpressionIR } from './currentUpstreamExpressionIR'
+import type { CurrentAgentPlanningEffectBlueprint } from './currentAgentPlanningEffectBlueprint'
 
 const cache = new WeakMap<UpstreamExpressionIR, readonly string[]>()
 export function requiredReferences(node: UpstreamExpressionIR): readonly string[] {
@@ -101,5 +102,30 @@ export function effectReceiverMetadata(expression: UpstreamExpressionIR) {
 export function effectAttributeForReceiver(receiverPath: string | null) {
   return (
     receiverPath?.match(/\.combat\.[^.]+\.(physical|fire|ice|electric|ether|wind)$/)?.[1] ?? null
+  )
+}
+
+/** Shared subtrees and an element-equal targetKinds array prove identical content;
+ * matching key or hash alone does not. */
+export function planningEffectBlueprintShallowEqual32(
+  entry: CurrentAgentPlanningEffectBlueprint,
+  expected: CurrentAgentPlanningEffectBlueprint,
+) {
+  const keys = Object.keys(expected)
+  return (
+    Object.keys(entry).length === keys.length &&
+    keys.every((key) => {
+      if (!Object.hasOwn(entry, key)) return false
+      if (key === 'targetKinds')
+        return (
+          Array.isArray(entry.targetKinds) &&
+          entry.targetKinds.length === expected.targetKinds.length &&
+          expected.targetKinds.every(
+            (target, index) => typeof target === 'string' && entry.targetKinds[index] === target,
+          )
+        )
+      const field = key as keyof CurrentAgentPlanningEffectBlueprint
+      return entry[field] === expected[field]
+    })
   )
 }

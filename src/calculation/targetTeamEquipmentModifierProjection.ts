@@ -8,25 +8,27 @@ import { stableContentHash } from '../gameDataPacks/types'
 import { applyReviewedWEngineReceiverSemantics32 } from './reviewedWEngineReceiverSemantics32'
 import { applyReviewedSpringEmbraceReceivers32 } from './reviewedSpringEmbraceReceivers32'
 import type { TargetTeamEquipmentParameterSelection } from '../decision/targetTeamAccountBoundBenchmark'
-import type { SourceBackedEquipmentModifierBucket } from './currentPlanningTeamDpsRuntime'
 import { evaluateCurrentBangbooPlanningParameter } from './currentBangbooPlanningAdapter'
 import { resolveCurrentWEnginePassive } from './currentWEnginePassiveAdapters'
 import { resolveCurrentFormulaWEngineContract } from './currentFormulaMechanicContracts'
 import {
+  CAGE_OF_CONFINED_SIN_RUNTIME_INPUT_KEYS,
+  CAGE_OF_CONFINED_SIN_STABLE_ID,
+  TRICK_OF_CANDLEGLOW_RUNTIME_INPUT_KEYS,
+  TRICK_OF_CANDLEGLOW_STABLE_ID,
+  resolveCageOfConfinedSinPassive,
+  resolveTrickOfCandleglowPassive,
+  FIRST_PLUMAGE_STABLE_ID,
+  resolveFirstPlumagePassive,
+} from './reviewedWEngine33'
+import {
   bindCurrentWEngineFormulaRuntime,
+  FIRST_PLUMAGE_WINDOW_FLAG,
   type CurrentWEngineFormulaRuntime,
 } from './currentWEnginePersonalPlanningEffects'
 import type { PlanningEffectRuntimeMember } from './currentPlanningEffectRuntime'
-import {
-  planningWEngineActions as directActionBySource,
-  retainPlanningWEngineDependencies32,
-} from './currentPlanningWEngineDependencies32'
-import { currentCombatPlanningModifierTargets } from './currentCombatPlanningModifierTargets'
-import {
-  functionalEffectMetadata32,
-  hasReviewedShieldConsumer32,
-  sourceEquipmentEffectMetadata32,
-} from './reviewedFunctionalEquipmentDependencies32'
+import { retainPlanningWEngineDependencies32 } from './currentPlanningWEngineDependencies32'
+import { compileTargetTeamDirectEquipmentBuckets } from './targetTeamDirectEquipmentBuckets'
 
 const agentSpecialtyById = new Map(
   currentAgentDirectory.map((agent) => [agent.id, agent.specialty] as const),
@@ -34,178 +36,6 @@ const agentSpecialtyById = new Map(
 
 function unique(values: readonly string[]) {
   return [...new Set(values)]
-}
-
-const directApplicationByStat: Readonly<
-  Record<string, SourceBackedEquipmentModifierBucket['application']>
-> = {
-  attack_percent: 'attack_percent',
-  crit_rate: 'crit_rate',
-  crit_damage: 'crit_damage',
-  damage_bonus: 'damage_bonus',
-  ...currentCombatPlanningModifierTargets,
-}
-const explicitlyExcludedDirectStats = new Set([
-  'combat.anomBuildup_',
-  'combat.anomProf',
-  'combat.dazeInc_',
-])
-
-function compileDirectRuntimeBuckets(input: {
-  memberIds: readonly [string, string, string]
-  wEngines: Array<{
-    agentId: string
-    engineId: string
-    passiveStatus: 'supported' | 'unsupported'
-    effects: unknown[]
-    blockers: string[]
-    exclusions: Array<Record<string, unknown>>
-    sourceRefs: string[]
-    runtime?: CurrentWEngineFormulaRuntime
-  }>
-}) {
-  const blockers = input.wEngines.flatMap((item) => item.blockers)
-  const exclusions: Array<Record<string, unknown>> = input.wEngines.flatMap((item) =>
-    item.exclusions.map((exclusion) => ({
-      ...sourceEquipmentEffectMetadata32(
-        'wengine',
-        item.engineId,
-        exclusion.effectIndex,
-        item.agentId,
-        input.memberIds,
-        typeof exclusion.recipientAgentId === 'string' ? exclusion.recipientAgentId : undefined,
-      ),
-      engineId: item.engineId,
-      agentId: item.agentId,
-      reason: 'unobserved_conditional_effect',
-      ...exclusion,
-    })),
-  )
-  const buckets: SourceBackedEquipmentModifierBucket[] = []
-  for (const item of input.wEngines) {
-    if (item.passiveStatus === 'unsupported') continue
-    item.effects.forEach((rawEffect, index) => {
-      if (!rawEffect || typeof rawEffect !== 'object') {
-        blockers.push(`${item.engineId} 返回了不可识别的被动效果。`)
-        return
-      }
-      const effect = rawEffect as Record<string, unknown>
-      if (effect.kind !== 'modifier') {
-        blockers.push(
-          `${item.engineId} 的 ${String(effect.kind)} 尚未进入固定事件直接伤害 runtime。`,
-        )
-        return
-      }
-      const stat = String(effect.stat)
-      const channel =
-        /^combat\.(dmg_|common_dmg_|crit_dmg_|laceration_dmg_|sharp_dmg_|sheer_dmg_|direct_dmg_|buff_|defIgn_|resIgn_)\.(physical|fire|ice|electric|ether|wind)$/.exec(
-          stat,
-        )
-      const application = channel
-        ? directApplicationByStat[`combat.${channel[1]}` as keyof typeof directApplicationByStat]
-        : directApplicationByStat[stat as keyof typeof directApplicationByStat]
-      const metadata = functionalEffectMetadata32(
-        typeof effect.target === 'string' ? `${effect.target}.${stat}` : null,
-        item.agentId,
-        input.memberIds,
-      )
-      if (!application) {
-        if (explicitlyExcludedDirectStats.has(String(effect.stat))) {
-          exclusions.push({
-            ...metadata,
-            engineId: item.engineId,
-            agentId: item.agentId,
-            effectIndex: index,
-            reason: 'outside_fixed_event_direct_damage_domain',
-            stat: effect.stat,
-            action: effect.action ?? null,
-          })
-          return
-        }
-        blockers.push(
-          `${item.engineId} 的 modifier ${String(effect.stat)} 不属于当前直接伤害公式域。`,
-        )
-        return
-      }
-      if (effect.target !== 'own' && effect.target !== 'team') {
-        blockers.push(`${item.engineId} 的 modifier target ${String(effect.target)} 尚未适配。`)
-        return
-      }
-      if (typeof effect.value !== 'number' || !Number.isFinite(effect.value)) {
-        blockers.push(`${item.engineId} 的 modifier 数值无效。`)
-        return
-      }
-      const action = effect.action == null ? null : directActionBySource[String(effect.action)]
-      if (effect.action != null && !action) {
-        exclusions.push({
-          ...metadata,
-          engineId: item.engineId,
-          agentId: item.agentId,
-          effectIndex: index,
-          reason: 'outside_fixed_event_action_set',
-          action: effect.action,
-        })
-        return
-      }
-      const recipientAgentIds = Array.isArray(effect.recipientAgentIds)
-        ? effect.recipientAgentIds.filter(
-            (id): id is string => typeof id === 'string' && input.memberIds.includes(id),
-          )
-        : effect.target === 'team'
-          ? [...input.memberIds]
-          : [item.agentId]
-      if (application === 'shield_percent') {
-        for (const recipient of recipientAgentIds.filter((id) => !hasReviewedShieldConsumer32(id)))
-          exclusions.push({
-            ...metadata,
-            recipientAgentIds: [recipient],
-            engineId: item.engineId,
-            agentId: item.agentId,
-            effectIndex: index,
-            reason: 'shield_consumer_unmodeled',
-            stat,
-          })
-      }
-      const modeledRecipients =
-        application === 'shield_percent'
-          ? recipientAgentIds.filter(hasReviewedShieldConsumer32)
-          : recipientAgentIds
-      if (!modeledRecipients.length) return
-      buckets.push({
-        bucketId: `wengine:${item.agentId}:${item.engineId}:${index}`,
-        effectKey: ['wengine', item.engineId, 'P', index].join(':'),
-        providerAgentId: item.agentId,
-        recipientAgentIds: modeledRecipients,
-        receiverPath: null,
-        damageType: null,
-        action: action ?? null,
-        attribute: channel?.[2] ?? (typeof effect.attribute === 'string' ? effect.attribute : null),
-        value: effect.value,
-        application,
-        sourceRefs: item.sourceRefs,
-        ...(item.engineId === 'wengine-13011' && application === 'energy_regen_percent'
-          ? {
-              sourceReceiverObservation: {
-                engineId: item.engineId,
-                memberIds: [...input.memberIds],
-                recipientAgentId: item.runtime?.recipients?.['SpringEmbrace:recipientAgentId'],
-                activeProviderAgentId:
-                  item.runtime?.recipients?.['SpringEmbrace:activeProviderAgentId'],
-              },
-            }
-          : {}),
-      })
-    })
-  }
-  const core = {
-    status: blockers.length ? ('unsupported' as const) : ('supported' as const),
-    buckets,
-    exclusions,
-    blockers: unique(blockers),
-    boundary:
-      '静态音擎事实照常进入角色面板；仅可映射的直接伤害 modifier 进入固定事件 runtime。未观测条件效果及异常/失衡等非直接伤害域效果显式排除并留痕，不补零、不伪造触发。',
-  }
-  return { ...core, fingerprint: stableContentHash(core) }
 }
 
 /**
@@ -227,8 +57,23 @@ export function projectTargetTeamWEngineModifiers(input: {
     const specialtyMatches = Boolean(
       staticData && agentSpecialty && staticData.specialty === agentSpecialty,
     )
+    const hasRuntime = Boolean(input.members || input.runtimeByAgentId)
+    const usesReviewedCandleglowRuntime =
+      hasRuntime && selection.engineId === TRICK_OF_CANDLEGLOW_STABLE_ID
+    const usesReviewedFirstPlumage = selection.engineId === FIRST_PLUMAGE_STABLE_ID
+    const usesReviewedCageOfConfinedSin = selection.engineId === CAGE_OF_CONFINED_SIN_STABLE_ID
+    const localBoundRuntime =
+      usesReviewedCandleglowRuntime || usesReviewedFirstPlumage || usesReviewedCageOfConfinedSin
+        ? bindCurrentWEngineFormulaRuntime({
+            agentId: selection.agentId,
+            engineId: selection.engineId,
+            member: input.members?.find((row) => row.agentId === selection.agentId),
+            targetAgentId: selection.agentId,
+            runtime: input.runtimeByAgentId?.[selection.agentId],
+          })
+        : null
     const recipientResults =
-      input.members || input.runtimeByAgentId
+      hasRuntime && !localBoundRuntime
         ? input.memberIds.map((recipientAgentId) => {
             const bound = bindCurrentWEngineFormulaRuntime({
               agentId: selection.agentId,
@@ -247,38 +92,92 @@ export function projectTargetTeamWEngineModifiers(input: {
             return { recipientAgentId, bound, result }
           })
         : null
-    const resolved = recipientResults
-      ? {
-          status: 'supported' as const,
-          active: recipientResults.some(
-            (row) => row.result.status === 'supported' && row.result.active,
-          ),
-          effects: recipientResults.flatMap(({ recipientAgentId, result }) =>
-            result.status !== 'supported'
-              ? []
-              : result.effects
-                  .filter(
-                    (effect) => effect.target === 'team' || recipientAgentId === selection.agentId,
-                  )
-                  .map((effect) => ({ ...effect, recipientAgentIds: [recipientAgentId] })),
-          ),
-          exclusions: recipientResults.flatMap(({ recipientAgentId, result }) =>
-            result.status !== 'supported'
-              ? []
-              : result.exclusions.map((row) => ({ ...row, recipientAgentId })),
-          ),
-        }
-      : resolveCurrentWEnginePassive(selection.engineId, {
-          refinement: selection.refinement,
-          specialtyMatches,
-          runtimePolicy: 'exclude_unobserved',
-        })
+    const localResult = localBoundRuntime
+      ? usesReviewedFirstPlumage
+        ? resolveFirstPlumagePassive({
+            refinement: selection.refinement,
+            specialtyMatches,
+            runtimePolicy: 'exclude_unobserved',
+            teamAnomalyCritWindowActive: localBoundRuntime.flags?.[FIRST_PLUMAGE_WINDOW_FLAG],
+          })
+        : usesReviewedCageOfConfinedSin
+          ? resolveCageOfConfinedSinPassive({
+              refinement: selection.refinement,
+              specialtyMatches,
+              runtimePolicy: 'exclude_unobserved',
+              basicAttackHitWindowActive:
+                localBoundRuntime.flags?.[
+                  CAGE_OF_CONFINED_SIN_RUNTIME_INPUT_KEYS.basicAttackHitWindowActive
+                ],
+            })
+          : resolveTrickOfCandleglowPassive({
+              stableId: TRICK_OF_CANDLEGLOW_STABLE_ID,
+              refinement: selection.refinement,
+              specialtyMatches,
+              runtimePolicy: 'exclude_unobserved',
+              exSpecialCritWindowActive:
+                localBoundRuntime.flags?.[
+                  TRICK_OF_CANDLEGLOW_RUNTIME_INPUT_KEYS.exSpecialCritWindowActive
+                ],
+              enemyHpPercent:
+                localBoundRuntime.numbers?.[TRICK_OF_CANDLEGLOW_RUNTIME_INPUT_KEYS.enemyHpPercent],
+            })
+      : null
+    const resolved = localResult
+      ? localResult.status === 'supported'
+        ? {
+            ...localResult,
+            // First Plumage's permanent AP is already in the initial panel.
+            effects: localResult.effects
+              .filter(
+                (effect) => !usesReviewedFirstPlumage || effect.stat !== 'anomaly_proficiency',
+              )
+              .map((effect) => ({
+                kind: 'modifier',
+                ...effect,
+                ...(usesReviewedFirstPlumage
+                  ? { stat: 'combat.dmg_.fire' }
+                  : usesReviewedCageOfConfinedSin && effect.stat === 'resistance_ignore'
+                    ? { stat: 'combat.resIgn_.wind' }
+                    : {}),
+                recipientAgentIds: [selection.agentId],
+              })),
+          }
+        : localResult
+      : recipientResults
+        ? {
+            status: 'supported' as const,
+            active: recipientResults.some(
+              (row) => row.result.status === 'supported' && row.result.active,
+            ),
+            effects: recipientResults.flatMap(({ recipientAgentId, result }) =>
+              result.status !== 'supported'
+                ? []
+                : result.effects
+                    .filter(
+                      (effect) =>
+                        effect.target === 'team' || recipientAgentId === selection.agentId,
+                    )
+                    .map((effect) => ({ ...effect, recipientAgentIds: [recipientAgentId] })),
+            ),
+            exclusions: recipientResults.flatMap(({ recipientAgentId, result }) =>
+              result.status !== 'supported'
+                ? []
+                : result.exclusions.map((row) => ({ ...row, recipientAgentId })),
+            ),
+          }
+        : resolveCurrentWEnginePassive(selection.engineId, {
+            refinement: selection.refinement,
+            specialtyMatches,
+            runtimePolicy: 'exclude_unobserved',
+          })
     const declaredLevel = input.wEngineLevelsByAgentId?.[selection.agentId]
     const blockers = [
       ...(declaredLevel !== undefined &&
       (!Number.isInteger(declaredLevel) || declaredLevel < 1 || declaredLevel > 60)
         ? ['音擎实际等级必须为1至60整数。']
         : []),
+      ...(localBoundRuntime?.blockers ?? []),
       ...(recipientResults?.flatMap(({ bound, result }) => [
         ...bound.blockers,
         ...(result.status === 'unsupported' ? result.blockers : []),
@@ -326,7 +225,10 @@ export function projectTargetTeamWEngineModifiers(input: {
     return { ...core, fingerprint: stableContentHash(core) }
   })
 
-  const initialDirectRuntime = compileDirectRuntimeBuckets({ memberIds: input.memberIds, wEngines })
+  const initialDirectRuntime = compileTargetTeamDirectEquipmentBuckets({
+    memberIds: input.memberIds,
+    wEngines,
+  })
   let dependencyBuckets = initialDirectRuntime.buckets
   for (const engine of wEngines) {
     if (!engine.specialtyMatches || engine.passiveStatus !== 'supported') continue
@@ -406,6 +308,7 @@ export function projectTargetTeamEquipmentModifiers(input: {
   members?: readonly PlanningEffectRuntimeMember[]
   runtimeByAgentId?: Readonly<Record<string, CurrentWEngineFormulaRuntime>>
   wEngineLevelsByAgentId?: Readonly<Record<string, number>>
+  selectionScope?: 'complete_team' | 'declared_subset'
   bangbooScope?: 'included' | 'excluded_from_member_model'
 }) {
   const engines = projectTargetTeamWEngineModifiers(input)

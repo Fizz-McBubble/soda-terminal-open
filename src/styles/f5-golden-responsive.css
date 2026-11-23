@@ -219,20 +219,29 @@
 }
 
 @media (max-width: 600px) {
-  .f5v-topbar {
+  .f5v-shell .f5v-topbar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 10px;
-    padding-inline: 16px;
+    gap: 6px;
+    padding-inline: var(--soda-space-3);
   }
 
   .f5v-location {
-    gap: 0;
+    gap: 4px;
   }
 
-  .f5v-location > span,
+  .f5v-location strong {
+    padding-inline: 6px 15px;
+    letter-spacing: normal;
+  }
+
   .f5v-account-strip > :not(b) {
     display: none;
+  }
+
+  .f5v-location__mark {
+    width: 24px;
+    height: 22px;
   }
 
   .f5v-account-strip {
@@ -244,13 +253,32 @@
   .f5v-account-strip > b {
     display: inline-flex;
     margin-left: 0;
+    padding-inline: 6px;
     white-space: nowrap;
+  }
+
+  .f5v-page-content {
+    padding: var(--soda-space-3) var(--soda-space-4);
   }
 
   .f5v-page-content,
   .f5v-page-frame {
     min-width: 0;
+    max-width: 100%;
     width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .f5v-topbar-tools {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .f5v-shell .release-notes > .explanation__trigger,
+  .f5v-account-strip > b {
+    min-height: 0;
+    padding-block: 2px;
   }
 }
 

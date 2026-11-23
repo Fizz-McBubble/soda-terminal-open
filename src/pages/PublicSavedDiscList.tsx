@@ -15,7 +15,7 @@ export function PublicSavedDiscList({
   discIds,
   warehouse,
   label,
-  missingNotice = '原记录已保留。',
+  missingNotice,
   statNotice,
 }: {
   discIds: readonly string[]
@@ -51,7 +51,7 @@ export function PublicSavedDiscList({
                   <li key={`${sub.stat}:${index}`}>
                     <span>{discSubStatLabel(sub.stat)}</span>
                     <em>{sub.upgrades > 0 ? `+${sub.upgrades}` : ''}</em>
-                    <b>{formatDiscStatValue(sub.stat, sub.value, '+')}</b>
+                    <b>{formatDiscStatValue(sub.stat, sub.value)}</b>
                   </li>
                 ))}
               </ul>
@@ -64,7 +64,8 @@ export function PublicSavedDiscList({
       ) : null}
       {present.length !== discIds.length ? (
         <p className="team-execution__disc-missing" role="status">
-          有 {discIds.length - present.length} 张已保存的驱动盘当前不在仓库；{missingNotice}
+          有 {discIds.length - present.length} 张已保存的驱动盘当前不在仓库。
+          {missingNotice ? ` ${missingNotice}` : null}
         </p>
       ) : null}
     </>

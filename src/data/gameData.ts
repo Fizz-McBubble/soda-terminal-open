@@ -1,7 +1,7 @@
 import rawGameData from './game-data.json'
 import rawDriveDiscData from './drive-disc-data.v1.json'
 import { driveDiscDataManifestSchema, gameDataManifestSchema } from '../domain/schemas'
-import { scannerDriveDiscCatalog31 } from '../gameDataPacks/gameData31CatalogIntake'
+import { scannerDriveDiscCatalog31 } from '../gameDataPacks/gameData31CatalogEntities'
 import type { DriveDiscImportSetIdentity } from '../domain/discImport'
 
 function stableHash(value: string) {

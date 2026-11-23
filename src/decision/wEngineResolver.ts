@@ -5,6 +5,7 @@ import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile
 import { resolveBuildIntentWEngineIds } from '../gameDataPacks/buildIntentWEngineIdentity'
 import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
+import { getReviewedCurrentWEngineRecommendation33 } from '../gameDataPacks/reviewedCurrentGuidance33'
 
 export const wEngineResolverContract = 'soda-w-engine-resolver/v1' as const
 
@@ -130,7 +131,14 @@ function defaultRecommendationIds(agentId: string) {
       .sort((left, right) => direction.indexOf(left.name) - direction.indexOf(right.name))
       .map((engine) => engine.id),
   )
-  return [...new Set([...adoptedIds, ...namedIds])]
+  const current = getReviewedCurrentWEngineRecommendation33(agentId)
+  return [
+    ...new Set([
+      ...(current ? [current.engineId, current.previousEngineId] : []),
+      ...adoptedIds,
+      ...namedIds,
+    ]),
+  ]
 }
 
 export function normalizeSpecialty(specialty: string | null | undefined): string | null {

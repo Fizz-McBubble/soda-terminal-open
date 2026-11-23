@@ -504,6 +504,16 @@
       "gameId": "14164",
       "name": "涅槃初翎",
       "id": "wengine-14164"
+    },
+    {
+      "gameId": "14163",
+      "name": "禁罪囚笼",
+      "id": "wengine-14163"
+    },
+    {
+      "gameId": "13022",
+      "name": "烛光诡计",
+      "id": "wengine-13022"
     }
   ],
   "discs": [
@@ -933,6 +943,11 @@
       "gameId": "1641",
       "id": "agent-phoenix",
       "name": "菲欧妮"
+    },
+    {
+      "gameId": "1631",
+      "id": "agent-severian",
+      "name": "赛维里安"
     }
   ]
 }

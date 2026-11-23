@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart16 = [
     agentId: 'agent-pan-yinhu',
     playerName: '潘引壶',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F8',
     objectiveTopology: 'O4',
     configHash: '4c8995a8804752384c0ddc9218a45c0d13520fc739b3177fe99d5e42f09e359a',
-    inputHash: '4311683a429db52a85c9b81e64dacf683e8b49031c04e7c9bd5cbbf1e50cc40d',
+    inputHash: '26047e97674690aeb970dd589548dc6c18b473d750ea8ad9091d04697baa7059',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-pan-yinhu-atk:stats.lv60.raw.atk:batch-agents-2.0-r3j',
@@ -122,7 +122,7 @@ export const graduationCandidateProfilesPart16 = [
       deterministic: true,
       configHash: '05b400a365320c547b62321f97c7224a58bed70055f2430931a32a74cc28a858',
     },
-    profileHash: '806270a8b2a9459a942a5c9efbeb6cee4b8cfe5d187e2a0570ae5fc7ec7a54d8',
+    profileHash: 'ee509cd7dd625cbc010761ac877fe6be995db1c33a161370bc0ef4a3a14a795b',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -133,14 +133,14 @@ export const graduationCandidateProfilesPart16 = [
     agentId: 'agent-pulchra',
     playerName: '波可娜',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.6',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F3',
     objectiveTopology: 'O4',
     configHash: '01ccb95442fad81ae20a17db7b5fe6ea996bdaf2c03c43b6d8bbfef8f478b542',
-    inputHash: '4dc1f21199e1c7cf639066d435d26b5d52ad32e3b8ad64cec6542c1323591611',
+    inputHash: 'a37c6a5363c231e542816c1d8845ded8089ab7b7caa93c223b76d4ed4e507aa5',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-pulchra-core-levels:core.levels:batch-agents-1.6-r3l',
@@ -241,7 +241,7 @@ export const graduationCandidateProfilesPart16 = [
       deterministic: true,
       configHash: '29a9ca9789da2bf5769c964cde0eedbc597b5edaadc14a13379505d2d8f1307a',
     },
-    profileHash: '9e0d1f89efb540d1f7c4b5244ac099eb7449455103058c9bbb8786a4b020b067',
+    profileHash: '8e2f9ef42fad11386774e3aec316a0b859b3125fbb37b1e8ccebe73a9125994b',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -252,14 +252,14 @@ export const graduationCandidateProfilesPart16 = [
     agentId: 'agent-seth',
     playerName: '赛斯',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.1',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F9',
     objectiveTopology: 'O5',
     configHash: 'e4d247fd7b3afff3e4bea49c27009d5e0f0c222ebb79c752857918d7cff0845d',
-    inputHash: '6bbd6310511dc5e2f186c96a7402d1d7ce0ae49da08515da67c6fd4b3e3f1857',
+    inputHash: 'e5de45acf821c0b53d22f2c56d61354c124d1b69fc1ac821078950cf6ca23763',
     inputReferences: [
       {
         record_id:
@@ -372,6 +372,6 @@ export const graduationCandidateProfilesPart16 = [
       deterministic: true,
       configHash: '32e5919ec6b78edad192515b718d6ecf57b6afcbf4159cc92ad97eb437ef7bd8',
     },
-    profileHash: '7d62a09ec0d10720ef457d297a7a313d64e3a57ff2d6a628bbf4d9f588ba79a5',
+    profileHash: '893e6475854d18b50eefd6bd24030595bb2b79dbaddc19ec2534bb681e36c495',
   },
 ] as const

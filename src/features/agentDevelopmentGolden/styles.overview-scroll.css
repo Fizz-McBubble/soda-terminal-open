@@ -169,6 +169,77 @@
 }
 .f5v-shell .overview .next-panel {
   position: relative;
+  top: auto;
+  max-height: 100%;
+  overflow-y: auto;
+}
+.f5v-shell .overview .next-agent .featured-avatar {
+  border-radius: 50%;
+  background: transparent;
+}
+.f5v-shell .overview .next-agent .featured-avatar > .visual-asset-fallback {
+  opacity: 0;
+}
+.f5v-shell .overview .agent-tile-link[aria-current='true'] {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #8a75c3;
+}
+.f5v-shell .overview .agent-tile-link[aria-current='true']:focus-visible {
+  outline: 2px solid #493278;
+  outline-offset: -5px;
+}
+.f5v-shell .next-cinema :is(p, small) {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.f5v-shell .next-progress strong {
+  font-size: 0.76rem;
+}
+.f5v-shell .next-progress dl {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.f5v-shell .next-progress dl > div {
+  display: grid;
+  grid-template-columns: 4em minmax(0, 1fr);
+  gap: 8px;
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+}
+.f5v-shell .next-progress dt {
+  color: var(--muted);
+}
+.f5v-shell .next-progress dd {
+  margin: 0;
+  color: var(--ink);
+}
+.f5v-shell .overview .agent-favorite {
+  width: 36px;
+  height: 36px;
+  right: 4px;
+  bottom: 4px;
+}
+.f5v-shell .overview .agent-favorite::before {
+  inset: -4px;
+}
+.f5v-shell .next-cinema {
+  margin: 8px 0 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+}
+.f5v-shell .next-cinema strong {
+  font-size: 0.76rem;
+}
+.f5v-shell .next-cinema p {
+  margin: 6px 0 2px;
+  font-size: var(--soda-font-body);
+}
+.f5v-shell .next-cinema small {
+  color: var(--muted);
 }
 .f5v-shell .overview .delete-agent-plan {
   position: absolute;

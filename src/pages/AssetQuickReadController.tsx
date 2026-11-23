@@ -1,3 +1,5 @@
+import { useAssetQuickReadPolling } from './useAssetQuickReadPolling'
+import { downloadAssetQuickReadSnapshot } from './assetQuickReadSnapshotDownload'
 import {
   assetFailureDiagnostic,
   assetQuickReadStatusDiagnostic,
@@ -27,7 +29,12 @@ import { previewOf, type Reviewed } from './assetQuickReadControllerPreview'
 import { AssetQuickReadImportError } from '../assetQuickRead/importErrors'
 import { AssetQuickReadRecovery } from './AssetQuickReadRecovery'
 import { AssetQuickReadPendingResult } from './AssetQuickReadPendingResult'
-import { savePendingAssetResult, clearPendingAssetResult } from '../assetQuickRead/pendingResult'
+import { usePendingAssetResult } from './usePendingAssetResult'
+import {
+  savePendingAssetResult,
+  clearPendingAssetResult,
+  readPendingAssetResult,
+} from '../assetQuickRead/pendingResult'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadDownloadAvailable } from '../assetQuickRead/distribution'
 import { setPublicScannerActiveAccount } from '../accounts/publicScannerAccountCreation'
@@ -98,7 +105,6 @@ function AccountBoundQuickRead({
   }
   const [completion, setCompletion] = useState('')
   const [pendingSaveNotice, setPendingSaveNotice] = useState('')
-  const [pendingAvailable, setPendingAvailable] = useState(false)
   const [recoveryKey, setRecoveryKey] = useState('')
   const [recoveryNotice, setRecoveryNotice] = useState('')
   const [recoveryAvailable, setRecoveryAvailable] = useState(false)
@@ -112,6 +118,8 @@ function AccountBoundQuickRead({
   const operationRef = useRef<string | null>(null)
   const operationId = useRef(0)
   const accountReady = Boolean(targetAccountId && targetAccountId === activeAccountId)
+  const pending = usePendingAssetResult(targetAccountId, accountReady)
+  const pendingBlocksReplacement = Boolean(targetAccountId) && pending.state.status !== 'none'
   const recoveryBusy = state === 'starting' || state === 'capturing' || active(job)
   const generation = useRef(0)
   const ownedJob = useRef<AssetBridgeJob | null>(null)
@@ -133,8 +141,8 @@ function AccountBoundQuickRead({
     setReview(null)
     setState('idle')
     setError('')
+    setPendingSaveNotice('')
     setCompletion('')
-    setPendingAvailable(false)
     setRecoveryKey('')
     setRecoveryAvailable(false)
     setRecoveryNotice('')
@@ -226,73 +234,29 @@ function AccountBoundQuickRead({
     setState('received')
     if (targetAccountId) {
       try {
-        await savePendingAssetResult(targetAccountId, raw, sha256)
-        if (generation.current === scope) setPendingSaveNotice('')
+        const saved = await savePendingAssetResult(targetAccountId, raw, sha256)
+        if (generation.current === scope)
+          setPendingSaveNotice(
+            saved ? '' : '结果未能自动保存在本机，请先导出；刷新后可能需要重新读取。',
+          )
       } catch {
         if (generation.current === scope)
           setPendingSaveNotice('结果未能自动保存在本机，请先导出；刷新后可能需要重新读取。')
       }
     }
   }
-  useEffect(() => {
-    if (!job || !active(job)) return
-    let cancelled = false
-    const scope = generation.current
-    const currentJob = job
-    let failureStage: 'startup' | 'waiting' | 'result' =
-      currentJob.state === 'capturing' ? 'waiting' : 'startup'
-    const valid = () => !cancelled && generation.current === scope
-    const timer = setTimeout(() => {
-      void (async () => {
-        try {
-          const latest = await client.status(currentJob.jobId)
-          if (!valid()) return
-          if (latest.jobId !== currentJob.jobId || latest.targetAccountId !== targetAccountId)
-            throw new Error('资产快读任务与当前接收账户不一致，未采用结果。')
-          ownedJob.current = latest
-          if (latest.state === 'received') {
-            failureStage = 'result'
-            const result = await client.result(latest.jobId)
-            if (!valid()) return
-            if (result.jobId !== latest.jobId || result.targetAccountId !== targetAccountId)
-              throw new Error('读取结果的账户或任务不一致，未采用结果。')
-            await inspect(result.snapshot, result.sha256, scope)
-            if (valid()) setJob(latest)
-          } else {
-            setJob(latest)
-            setState(latest.state)
-            if (latest.state === 'error' || latest.state === 'timed_out')
-              recordFailure(
-                latest.state === 'timed_out' || latest.readyAt ? 'waiting' : 'startup',
-                undefined,
-                latest,
-                'start',
-              )
-            if (latest.state === 'error')
-              setError(
-                assetCompatibilityMessage(latest.code) ??
-                  assetFailureGuidance(latest.code, latest.diagnostics)?.problem ??
-                  '资产快读未完成本次读取，请核对游戏目录、管理员授权与准备状态后再试。',
-              )
-          }
-        } catch (failure) {
-          if (valid()) {
-            recordFailure(failureStage, failure, ownedJob.current ?? currentJob, 'start')
-            setError(message(failure))
-            setState('error')
-            if (active(ownedJob.current))
-              void client.cancel(currentJob.jobId).catch(() => undefined)
-          }
-        }
-      })()
-    }, 1000)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-    // The binding generation invalidates results when the selected account changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, job, targetAccountId])
+  useAssetQuickReadPolling({
+    client,
+    job,
+    targetAccountId,
+    generation,
+    ownedJob,
+    inspect,
+    recordFailure,
+    setJob,
+    setState,
+    setError,
+  })
   async function performConnect(launchIfMissing = true) {
     const scope = generation.current
     const controller = new AbortController()
@@ -317,6 +281,7 @@ function AccountBoundQuickRead({
     }
   }
   async function performStart() {
+    if (pendingBlocksReplacement) return
     if (!targetAccountId || !directory.trim()) throw new Error('请先选择账户并填写游戏安装目录。')
     const scope = ++generation.current
     onTaskStart?.()
@@ -383,6 +348,7 @@ function AccountBoundQuickRead({
     }
   }
   async function performInspectFile(file: File) {
+    if (pending.state.status === 'error') return
     const scope = ++generation.current
     onTaskStart?.()
     setError('')
@@ -393,6 +359,27 @@ function AccountBoundQuickRead({
     setRestoreArmed(false)
     setCompletion('')
     try {
+      // The shared file picker may hand off while the live query is loading.
+      // Check storage in this operation rather than dropping a file through an
+      // earlier render's pending state; never replace a saved result implicitly.
+      if (!targetAccountId || !accountReady) throw new Error('请先选择当前接收账户。')
+      let saved
+      try {
+        saved = await readPendingAssetResult(targetAccountId)
+      } catch {
+        if (generation.current !== scope) return
+        pending.retry()
+        setError('暂时无法恢复上次结果，原记录保留。请重试核对后再打开文件。')
+        setState('idle')
+        return
+      }
+      if (generation.current !== scope) return
+      if (saved) {
+        pending.retry()
+        setError('上次读取结果仍保留，请先继续检查并导入、导出或放弃，再打开其他文件。')
+        setState('idle')
+        return
+      }
       if (file.size > assetSnapshotMaxBytes) throw new Error('候选文件超过 16 MiB，未读取。')
       const bytes = await file.arrayBuffer()
       if (generation.current !== scope) return
@@ -418,13 +405,14 @@ function AccountBoundQuickRead({
         accountId: targetAccountId,
         snapshotSha256: review.candidate.snapshotSha256,
         sameGameAccountAndCounts: true,
+        observedDiscCount: review.candidate.counts.discs,
       })
       if (scope !== generation.current) return
       setRecoveryKey(receipt.recoveryKey)
       setRecoveryAvailable(true)
       setRecoveryNotice('本次导入前的恢复副本已保存在本机，重新进入本页仍可查看。')
       setCompletion(
-        `已处理 ${receipt.observedAgents} 位代理人和 ${receipt.observedDiscs} 张 S 盘。账户盘库共 ${receipt.totalDiscs} 张；本次导入前的恢复副本已保存在本机。`,
+        `已处理 ${receipt.observedAgents} 位代理人和 ${receipt.observedDiscs} 张驱动盘。账户盘库共 ${receipt.totalDiscs} 张；本次导入前的恢复副本已保存在本机。`,
       )
       setState('completed')
       void clearPendingAssetResult(targetAccountId, review.candidate.snapshotSha256).catch(
@@ -440,20 +428,7 @@ function AccountBoundQuickRead({
       throw failure
     }
   }
-  function exportResult() {
-    if (!safeExport) return
-    const safe = safeExport.snapshot
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json' }),
-    )
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = safeExport.pendingUpdate
-      ? 'soda-asset-quick-read-pending-update.json'
-      : 'soda-asset-quick-read.json'
-    anchor.click()
-    setTimeout(() => URL.revokeObjectURL(url), 0)
-  }
+  const exportResult = () => downloadAssetQuickReadSnapshot(safeExport)
   async function performRestore() {
     const scope = generation.current
     if (
@@ -537,14 +512,18 @@ function AccountBoundQuickRead({
   const discardResult = () =>
     runOperation('discard', async () => {
       if (state !== 'received') return
+      const scope = generation.current
       if (targetAccountId && review)
         await clearPendingAssetResult(targetAccountId, review.candidate.snapshotSha256)
+      if (scope !== generation.current) return
       generation.current++
       ownedJob.current = null
       setJob(null)
       setReview(null)
       setError('')
       setCompletion('')
+      setPendingSaveNotice('')
+      pending.retry()
       setState('idle')
     })
   const prepareAgain = () =>
@@ -557,6 +536,7 @@ function AccountBoundQuickRead({
       setError('')
       setCompletion('')
       setRestoreArmed(false)
+      pending.retry()
       setState('idle')
     })
   async function stop() {
@@ -667,7 +647,8 @@ function AccountBoundQuickRead({
     <AssetQuickReadEntry
       targetRequired
       preparationCondensed={preparationCondensed}
-      resumeAvailable={pendingAvailable}
+      resumeAvailable={pending.state.status === 'available'}
+      pendingResultStatus={targetAccountId ? pending.state.status : 'none'}
       onViewAssets={onViewAssets}
       downloadAvailable={assetQuickReadDownloadAvailable()}
       diagnosticAction={workbench ? diagnosticFeedback : undefined}
@@ -699,7 +680,11 @@ function AccountBoundQuickRead({
       onConnect={active(job) ? undefined : connect}
       targetAccountId={targetAccountId}
       targetAccountName={targetAccountName}
-      onStart={accountReady && directory.trim() && !active(job) ? start : undefined}
+      onStart={
+        accountReady && !pendingBlocksReplacement && directory.trim() && !active(job)
+          ? start
+          : undefined
+      }
       onStop={stop}
       onInspectFile={() => fileInput.current?.click()}
       preview={review ? previewOf(review) : undefined}
@@ -714,10 +699,8 @@ function AccountBoundQuickRead({
           : undefined
       }
       remainingSeconds={job?.readyAt ? (job.remainingSeconds ?? undefined) : undefined}
-      transactionNotice={
-        pendingSaveNotice ||
-        '导入会更新本次读到的代理人养成与驱动盘，之后仍可自行修改。导入前自动保存恢复副本；未读取的资产与盘标签保留。'
-      }
+      resultSaveNotice={pendingSaveNotice}
+      transactionNotice="导入会更新本次读到的代理人养成与驱动盘，之后仍可自行修改。导入前自动保存恢复副本；未读取的资产与盘标签保留。"
       errorMessage={
         (workbench ? assetQuickReadConnectionStatus(error, diagnostic) : error) ||
         (connected && !targetAccountId
@@ -729,16 +712,20 @@ function AccountBoundQuickRead({
       completionMessage={completion}
       completionActions={workbench && state === 'completed' ? recovery : undefined}
       preparationRecovery={
-        workbench && state === 'idle' && accountReady && targetAccountId ? (
+        state === 'idle' && accountReady && targetAccountId ? (
           <AssetQuickReadPendingResult
             key={targetAccountId}
-            accountId={targetAccountId}
-            onAvailableChange={setPendingAvailable}
+            state={pending.state}
+            onRetry={pending.retry}
             disabled={blocked || busy}
             onContinue={(saved) => {
+              const scope = generation.current
               void runOperation('continue', async () => {
                 onTaskStart?.()
-                await inspect(saved.snapshot, saved.snapshotSha256, generation.current)
+                await inspect(saved.snapshot, saved.snapshotSha256, scope)
+              }).catch(() => {
+                if (scope === generation.current)
+                  setError('上次结果暂时无法检查，原记录保留，请重试。')
               })
             }}
           />

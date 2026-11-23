@@ -1,6 +1,7 @@
 import type { GoldenWorkbenchData } from '../features/agentDevelopmentGolden'
 import { getAgentName } from '../application/publicRosterNames'
 import { getAgentSpecialtyLabel } from '../assault/catalog'
+import { playerDiscRecipeCondition } from '../application/playerDecisionPresentation'
 import type { CandidateSetPlan } from '../gameDataPacks/candidateSetPlans'
 import {
   candidateSetPlanPriority,
@@ -15,16 +16,16 @@ import {
 
 function recommendationConditionHint(plan: CandidateSetPlan): string | undefined {
   const rule = plan.condition?.rule
-  if (!rule) return undefined
+  if (!rule) return playerDiscRecipeCondition(plan.sourceText)
   if (rule.kind === 'electric_team') return '电队适用'
   if (rule.kind === 'teammate') return `与${getAgentName(rule.agentId)}同队时`
-  if (rule.kind === 'wearer_action') return '自身连段前强化特殊技；效果窗口另行核验'
+  if (rule.kind === 'wearer_action') return '自身使用强化特殊技后衔接连段'
   if (rule.kind === 'teammate_specialty_and_action') {
     const roles = rule.specialties
       .map((specialty) => getAgentSpecialtyLabel(specialty === 'attack' ? 'damage' : specialty))
       .join(' / ')
     const action = rule.action === 'wearer_ex_special' ? '自身强化特殊技' : '队伍快速支援'
-    return `${roles}队友与${action}条件；效果窗口另行核验`
+    return `与${roles}队友同队，并通过${action}触发`
   }
   const setName = discSetRecommendation(rule.setId).name
   return rule.kind === 'teammate_four_piece' ? `队友已穿${setName}4件时` : `队友未穿${setName}4件时`

@@ -44,7 +44,7 @@ export function AgentPlanDetails({
           onSelect={setCandidatePlanIndex}
         />
       ) : null}
-      {generated && kind === 'agent' ? <FormalDamageGateNotice /> : null}
+      {generated && kind === 'agent' && !candidate ? <FormalDamageGateNotice /> : null}
       {kind !== 'team' && activeProfiles[0]!.status === 'missing' ? (
         <MissingDirection profile={activeProfiles[0]!} />
       ) : kind !== 'team' ? (
@@ -58,25 +58,21 @@ export function AgentPlanDetails({
           <summary>{candidate ? '查看建议依据' : '查看适用条件'}</summary>
           <p>
             {candidate
-              ? '可比较实际仓库方案方向，不代表精确伤害、最高或自动配装。'
+              ? '按当前仓库比较配装方向；不同方案可能共用驱动盘。'
               : '资料与计算条件齐全时才显示伤害比较。'}
           </p>
-          <p>这是单人配装建议，可能与其他方案共用驱动盘；保存不会自动更换装备。</p>
         </details>
       ) : null}
       {kind === 'agent' && activeProfiles[0]?.agentId === 'agent-billy' ? (
         <section className="panel" aria-label="比利满级理论估算">
           <h2>比利·奇德 · 满级理论参考</h2>
-          <p>只用于相同版本和条件下的方向比较，不代表游戏内实测或最高伤害。</p>
+          <p>同版本、同条件的单次伤害参考。</p>
         </section>
       ) : null}
       {kind !== 'team' ? (
         <details className="panel" aria-label="方案条件与调整">
           <summary>方案条件与调整</summary>
-          <p>
-            4/5/6
-            号位、目标词条、固定或排除盘等条件可记录在本方案；以下调整仅更新草稿，不会修改角色、音擎、驱动盘或游戏数据。
-          </p>
+          <p>记录4/5/6号位、目标词条及固定或排除盘等方案偏好。</p>
           <label>
             方案名称
             <input

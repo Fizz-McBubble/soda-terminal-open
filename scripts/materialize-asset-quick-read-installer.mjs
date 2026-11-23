@@ -53,7 +53,13 @@ export async function materializeAssetQuickReadInstaller({
   try {
     const current = await readFile(output)
     verify(current)
-    return { state: 'verified', path: output, size: current.length, sha256: manifest.sha256 }
+    return {
+      state: 'verified',
+      path: output,
+      fileName: manifest.fileName,
+      size: current.length,
+      sha256: manifest.sha256,
+    }
   } catch (error) {
     if (error.code !== 'ENOENT') throw error
   }
@@ -89,7 +95,13 @@ export async function materializeAssetQuickReadInstaller({
         }
       } else throw error
     }
-    return { state: 'materialized', path: output, size: manifest.size, sha256: manifest.sha256 }
+    return {
+      state: 'materialized',
+      path: output,
+      fileName: manifest.fileName,
+      size: manifest.size,
+      sha256: manifest.sha256,
+    }
   }
   if (sourcePath) {
     // A local release is reusable only after the same byte checks as a download.
@@ -166,7 +178,7 @@ export function assetQuickReadInstallerMiddleware(options = {}) {
       response.writeHead(200, {
         'content-type': 'application/octet-stream',
         'content-length': String(current.size),
-        'content-disposition': 'attachment; filename="Soda-Asset-Quick-Read-Setup-1.0.0.exe"',
+        'content-disposition': `attachment; filename="${current.fileName}"`,
         'cache-control': 'no-store',
         'x-content-type-options': 'nosniff',
       })

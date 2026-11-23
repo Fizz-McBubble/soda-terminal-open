@@ -22,6 +22,7 @@ describe('equipment growth in the player panel', () => {
         level: 30,
         ascension: 2,
         refinement: 1,
+        manualProgression: { engineId: 'wengine-14158', level: 30, ascension: 2, refinement: 1 },
       },
       skillLevels: { ...baseAgent.skillLevels, core: 7 },
     }

@@ -1,8 +1,10 @@
+import { savedAgentCandidateWarehouse } from './savedAgentCandidateWarehouse'
 import {
   normalizeReviewedEventConditionDeclarations32,
   reviewedEventConditionDeclarationsIdentity32,
 } from '../calculation/reviewedEventConditionDeclarations32'
-import type { readDevelopmentCandidateSnapshot } from './agentDevelopmentCandidateSession'
+import type { DevelopmentComparisonData } from './developmentComparisonSnapshot'
+import type { DevelopmentComparisonPanels } from '../application/publicDevelopmentComparisonPanels'
 import { saveCurrentAgentBuild } from '../accounts/planningDrafts'
 import { getAgentName } from '../application/publicRosterNames'
 import { valueBenchmarkSaveLabel } from '../application/valueBenchmarkSaveLabel'
@@ -12,13 +14,12 @@ import { publicVersionIdentity } from '../application/publicVersionIdentity'
 
 import { resolveSavedPlanScenarioSelection } from './savedPlanIdentity'
 
-type Snapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
-
 /** Maps a captured candidate into the player-owned proposal without writing any account facts. */
 export function createComparisonSavedBuild(
   agentId: string,
   rank: number,
-  candidateSnapshot: Snapshot,
+  candidateSnapshot: DevelopmentComparisonData,
+  saveKnowledge?: DevelopmentComparisonPanels['saveKnowledge'],
 ): Parameters<typeof saveCurrentAgentBuild>[1] {
   const declarations = normalizeReviewedEventConditionDeclarations32(
     candidateSnapshot.eventConditionDeclarationsByAgentId,
@@ -27,8 +28,8 @@ export function createComparisonSavedBuild(
   const declarationIdentity = reviewedEventConditionDeclarationsIdentity32(declarations)
   if (declarationIdentity !== candidateSnapshot.eventConditionDeclarationsIdentity)
     throw new Error('技能事件计算身份缺失或变化，请重新比较。')
-  const candidatePlan = candidateSnapshot.candidates[rank - 1]!
-  const candidate = candidatePlan.loadouts[0]!
+  const candidatePlan = candidateSnapshot.candidates[rank - 1]
+  const candidate = candidatePlan?.loadouts[0]
   const candidatePresentation = candidateSnapshot.presentation!
   const valueBenchmark = candidateSnapshot.valueBenchmarks?.[rank - 1]
   const mechanismGrants = valueBenchmark?.candidate.sourceResourceProduction32?.mechanismGrants32
@@ -39,7 +40,9 @@ export function createComparisonSavedBuild(
   )
     throw new Error('资源到账输入未持久化，请重新比较后再保存。')
   const benchmarkDisposition = valueBenchmarkSaveLabel(valueBenchmark)
-  const knowledge = candidateSnapshot.panelPresentation!.saveKnowledge
+  const knowledge = saveKnowledge ?? candidateSnapshot.panelPresentation?.saveKnowledge
+  if (!candidatePlan || !candidate || !candidatePresentation || !knowledge)
+    throw new Error('当前搭配或来源信息不完整，尚未保存。')
   const explicitParameters = candidateSnapshot.candidateParametersByRank?.[rank]
   const discIds = candidate.discs.map((item) => item.disc.id)
   const validatedScenario =
@@ -82,7 +85,8 @@ export function createComparisonSavedBuild(
       inputFingerprint: contentHash([
         candidateSnapshot.inputFingerprint,
         candidateSnapshot.buildIntent.fingerprint,
-        candidateSnapshot.comparisonFingerprint,
+        candidateSnapshot.comparisonFingerprint ??
+          ('generationIdentity' in candidateSnapshot ? candidateSnapshot.generationIdentity : null),
         explicitParameters,
       ]),
       solverMethod: candidatePlan.solver?.method ?? 'bounded_heuristic',
@@ -109,22 +113,7 @@ export function createComparisonSavedBuild(
         ? { scenarioIdentity: candidateSnapshot.scenarioIdentity }
         : {}),
     },
-    candidateWarehouse: {
-      ...(candidatePlan.inventoryTransition ? { inventoryTransition: true as const } : {}),
-      scope: 'agent',
-      totalScore: candidatePlan.totalScore,
-      loadouts: [
-        {
-          agentId,
-          totalScore: candidate.totalScore,
-          discIds: candidate.discs.map((item) => item.disc.id),
-          effectiveRolls: candidate.discs.reduce((total, item) => total + item.effectiveRolls, 0),
-          setPattern: candidate.setPattern,
-          degraded: candidate.degraded,
-        },
-      ],
-      boundary: candidatePlan.boundary,
-    },
+    candidateWarehouse: savedAgentCandidateWarehouse(agentId, candidatePlan, candidate),
     comparisonCapability: explicitParameters
       ? 'direction'
       : knowledge.status === 'formal'

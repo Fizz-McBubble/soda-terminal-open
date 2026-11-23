@@ -1,0 +1,56 @@
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-terminal-wave i {
+    animation: soda-terminal-beat calc(3 * var(--soda-beat-unit)) ease-in-out var(--beat-offset)
+      infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+
+  .f5v-rail:not([inert])::after {
+    animation: soda-rail-seam-glide var(--soda-tempo) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+
+  .f5v-location__mark {
+    animation: soda-route-tag-in var(--soda-motion-route) var(--soda-ease-out);
+    animation-play-state: var(--signal-play-state, running);
+  }
+}
+
+@keyframes soda-terminal-beat {
+  0%,
+  100% {
+    transform: scaleY(0.48);
+    opacity: 0.36;
+  }
+  28% {
+    transform: scaleY(1.16);
+    opacity: 0.82;
+  }
+  62% {
+    transform: scaleY(0.72);
+    opacity: 0.54;
+  }
+}
+
+@keyframes soda-rail-seam-glide {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translate3d(0, -4%, 0) scaleY(0.92);
+  }
+  50% {
+    opacity: 0.62;
+    transform: translate3d(0, 4%, 0) scaleY(1.02);
+  }
+}
+
+@keyframes soda-route-tag-in {
+  from {
+    opacity: 0.65;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

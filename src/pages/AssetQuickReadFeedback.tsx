@@ -65,14 +65,24 @@ export function AssetQuickReadFeedback({
     }
   }
   function download() {
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json' }),
-    )
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `soda-asset-diagnostic-${safe!.reportId}.json`
-    anchor.click()
-    setTimeout(() => URL.revokeObjectURL(url), 0)
+    let url: string | undefined
+    try {
+      url = URL.createObjectURL(
+        new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json' }),
+      )
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `soda-asset-diagnostic-${safe!.reportId}.json`
+      anchor.click()
+    } catch {
+      if (current.current === key)
+        setState({ key, message: '下载未完成，可重试或复制诊断。', receivedAt })
+    } finally {
+      if (url) {
+        const objectUrl = url
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 0)
+      }
+    }
   }
   const guidance: Record<string, { problem: string; nextAction: string }> = {
     connection: {

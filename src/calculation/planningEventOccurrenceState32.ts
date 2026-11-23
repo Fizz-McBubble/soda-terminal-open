@@ -2,6 +2,7 @@ import type { CommonAnomalyEventObservation32 } from './currentCommonAnomalyEffe
 import type { PlanningEventUsage } from './planningCalculationContextCompiler'
 import type { SourceBackedEquipmentModifierBucket } from './currentPlanningDamageModifiers'
 import type { PotentialApplicationEvent } from './potentialApplicationBinding'
+import type { ReviewedTargetEffectState32 } from './reviewedAnomalyPartyState32'
 import { isDamageFormula32Version } from './sharpDamageCore'
 import { isSourceRateEvent32, resolveSourceEventQuantity32 } from './sourceEventQuantity32'
 import { compilePlanningAnomalyLifecycle32 } from './currentPlanningAnomalyLifecycle32'
@@ -25,6 +26,7 @@ export type PlanningEventOccurrenceState32 = {
   equipmentModifierBuckets?: readonly SourceBackedEquipmentModifierBucket[]
   sourceRefs: readonly string[]
   anomalyLifecycleByAgentId?: Readonly<Record<string, PublicPlanningAnomalyLifecycle32>>
+  targetEffectStatesByAgentId32?: Readonly<Record<string, ReviewedTargetEffectState32>>
 }
 
 export type PlanningEventSchedule32 = {

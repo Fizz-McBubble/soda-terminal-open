@@ -40,9 +40,9 @@ export type AccountDecisionRun = {
   warehouseActions?: import('./warehouseActionContract').WarehouseActionProjection
   /** Server-produced display decisions; absent on older stored fixtures. */
   developmentDirectory?: import('./publicDevelopmentDirectoryContract').DevelopmentDirectoryProjection
-  /** Private producer's captured equipment directions for the development workbench. */
+  /** Legacy/injected all-agent projection. Current runs fetch equipment in the narrow workbench route. */
   developmentWorkbenchPresentation?: import('./publicDevelopmentWorkbenchPresentation').DevelopmentWorkbenchPresentation
-  /** Private producer's current BOX view; absent on older Query responses. */
+  /** Legacy/injected BOX projection. Current consumers query only when the BOX surface opens. */
   teamPresentation?: import('../pages/teamLoadoutPresentationDto').TeamOverviewPresentationDto
 }
 
@@ -85,6 +85,15 @@ export type TargetTeamWarehouseFitQuery = {
   runId: string
   candidateId: string
   equipmentParameters?: TargetTeamEquipmentParameterSelection
+  /** Re-evaluate the captured saved assignment; never search for replacement discs. */
+  savedPlanReplay?: {
+    planId: string
+    planHash: string
+    accountId: string
+    inputFingerprint: string
+    /** Read-only recalculation with current sources and the saved conditions/discs. */
+    sourcePolicy?: 'current_sources'
+  }
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   scenarioSelection?: CurrentPlanningScenarioSelection32
   /** Reuse conditions issued for this run's exact eighteen-disc comparison. */
@@ -115,6 +124,8 @@ export type TeamOverviewPresentationQuery = {
   kind: 'team_overview_presentation'
   runId: string
   context: { agentId: string | null; planId: string | null; discId: string | null }
+  /** Existing player search and reference filter can request named non-default rows. */
+  selection?: { text: string; includeReference: boolean }
   /** A detached remaining-BOX run is bound to its still-live source run and reservations. */
   sourceRunId?: string
   reservedPlanIds?: string[]
@@ -146,6 +157,8 @@ export type SavedTeamSolutionComponentsQuery = {
 
 export type TargetTeamWarehouseFitQueryResult =
   import('../decision/targetTeamWarehouseFit').TargetTeamWarehouseFit & {
+    /** Issued only after validating and scoring the captured saved assignment. */
+    savedPlanReplay?: TargetTeamWarehouseFitQuery['savedPlanReplay']
     formedTeamReference?: import('./publicFormedTeamReference').FormedTeamReference
     /** Finite declared events; never substituted for the legacy normalized benchmark. */
     declaredEventBenchmark32?: import('./publicPlanningBenchmark32').PlanningBenchmarkResult32
@@ -201,6 +214,21 @@ export type DevelopmentWorkbenchRouteQuery = {
   currentRecord?: import('./publicDevelopmentWorkbenchRoute').DevelopmentCurrentRecord
 }
 
+export type DevelopmentWorkbenchFactsQuery =
+  import('./publicDevelopmentWorkbenchFacts').DevelopmentWorkbenchFactsRequest & {
+    contractVersion: typeof calculationQueryContractVersion
+    kind: 'development_workbench_facts'
+    /** Transport ownership only; this is not an Account Decision run. */
+    operationId: string
+  }
+
+export type DevelopmentDirectoryFactsQuery =
+  import('./publicDevelopmentDirectoryFacts').DevelopmentDirectoryFactsRequest & {
+    contractVersion: typeof calculationQueryContractVersion
+    kind: 'development_directory_facts'
+    operationId: string
+  }
+
 export type DevelopmentCandidateAlternativesQueryResult = {
   wEngineComparison?: import('./publicDevelopmentWEngineComparison').DevelopmentWEngineComparisonDto
   resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
@@ -249,6 +277,12 @@ export type DevelopmentCandidateAlternativesQueryResult = {
   panelPresentation?: import('./publicDevelopmentComparisonPanels').DevelopmentComparisonPanels
 }
 
+export type WarehouseActionsQuery = {
+  contractVersion: typeof calculationQueryContractVersion
+  kind: 'warehouse_actions'
+  runId: string
+}
+
 export type WarehouseDiscTransitionUsesQuery = {
   contractVersion: typeof calculationQueryContractVersion
   kind: 'warehouse_disc_transition_uses'
@@ -271,6 +305,28 @@ export type WarehouseDiscTransitionUsesResult = {
  * changing page components or moving browser/storage concerns into Core.
  */
 export interface CalculationQueryClient {
+  openPersonalDevelopmentSession?(
+    query: import('./publicPersonalDevelopment').OpenPersonalDevelopmentQuery,
+    options?: { signal?: AbortSignal },
+  ): Promise<import('./publicPersonalDevelopment').PersonalDevelopmentSession>
+  queryPersonalDevelopmentCandidates?(
+    query: import('./publicPersonalDevelopment').PersonalDevelopmentCandidatesQuery,
+    options?: { signal?: AbortSignal },
+  ): Promise<import('./publicPersonalDevelopment').PersonalDevelopmentCandidatesResult>
+  queryPersonalDevelopmentRoute?(
+    query: import('./publicPersonalDevelopment').PersonalDevelopmentRouteQuery,
+    options?: { signal?: AbortSignal },
+  ): Promise<import('./publicPersonalDevelopment').PersonalDevelopmentRoute>
+  releasePersonalDevelopmentSession?(sessionId: string): void
+  hasPersonalDevelopmentSession?(sessionId: string): boolean
+  queryDevelopmentDirectoryFacts?(
+    query: DevelopmentDirectoryFactsQuery,
+    options?: { signal?: AbortSignal },
+  ): Promise<import('./publicDevelopmentDirectoryFacts').DevelopmentDirectoryFacts>
+  queryDevelopmentWorkbenchFacts?(
+    query: DevelopmentWorkbenchFactsQuery,
+    options?: { signal?: AbortSignal },
+  ): Promise<import('./publicDevelopmentWorkbenchFacts').DevelopmentWorkbenchFactsPresentation>
   queryCommonAnomalySettlement32?(
     query: CommonAnomalySettlement32Query,
   ): Promise<import('./publicCommonAnomalySettlementQuery32').CommonAnomalySettlementQueryResult32>
@@ -294,6 +350,7 @@ export interface CalculationQueryClient {
   queryDecisionPortfolio(query: DecisionPortfolioQuery): Promise<DecisionPortfolioQueryResult>
   calculateTargetTeamWarehouseFit(
     query: TargetTeamWarehouseFitQuery,
+    options?: { signal?: AbortSignal },
   ): Promise<TargetTeamWarehouseFitQueryResult>
   queryTeamOverviewPresentation(
     query: TeamOverviewPresentationQuery,
@@ -302,6 +359,7 @@ export interface CalculationQueryClient {
   ): Promise<import('../pages/teamLoadoutPresentationDto').TeamOverviewPresentationDto>
   queryTeamRoutePresentation(
     query: TeamRoutePresentationQuery,
+    options?: { signal?: AbortSignal },
   ): Promise<import('../pages/publicTeamRoutePresentation').TeamRoutePresentation>
   querySavedTeamPlanReplay(
     query: SavedTeamPlanReplayQuery,
@@ -311,6 +369,7 @@ export interface CalculationQueryClient {
   ): Promise<import('./publicSavedTeamSolutionComponents').SavedTeamSolutionComponents>
   queryDevelopmentCandidateAlternatives(
     query: DevelopmentCandidateAlternativesQuery,
+    options?: { signal?: AbortSignal },
   ): Promise<DevelopmentCandidateAlternativesQueryResult>
   queryDevelopmentWorkbenchRoute(
     query: DevelopmentWorkbenchRouteQuery,
@@ -319,6 +378,10 @@ export interface CalculationQueryClient {
     query: WarehouseDiscTransitionUsesQuery,
     options?: { signal?: AbortSignal },
   ): Promise<WarehouseDiscTransitionUsesResult>
+  queryWarehouseActions?(
+    query: WarehouseActionsQuery,
+    options?: { signal?: AbortSignal },
+  ): Promise<import('./warehouseActionContract').WarehouseActionProjection>
 }
 
 export type ReviewedIncrementalEvent32Query = {

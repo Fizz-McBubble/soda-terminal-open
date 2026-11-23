@@ -1,5 +1,6 @@
 import { EffectDescription } from '../components/EffectDescription'
 import { ExplanationPopover } from '../components/ExplanationPopover'
+import { playerConditionLines } from '../application/playerDecisionPresentation'
 import type { TeamExecutionAttributePanel } from './teamExecutionAttributePanel'
 
 /** Keep sourced targets and skill conditions intact, outside the numeric comparison. */
@@ -20,7 +21,7 @@ export function TeamExecutionGraduationReference({
       className="team-execution__graduation-reference"
     >
       <p>
-        <EffectDescription text={panel.copy.target} />
+        <EffectDescription text={playerConditionLines([panel.copy.target])[0]?.text ?? ''} />
       </p>
       {targets.length ? (
         <dl className="team-execution__graduation-targets">

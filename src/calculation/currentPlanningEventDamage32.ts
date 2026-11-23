@@ -1,3 +1,4 @@
+import type { CurrentPlanningEventDamageInput32 } from './currentPlanningEventDamage32.types'
 import { bindCurrentPlanningHarumasaWindow32 } from './currentPlanningHarumasaEventWindow32'
 import {
   getPlanningDamageEventSemantics,
@@ -7,20 +8,14 @@ import {
   type SourceBackedPlanningEffectBucket,
 } from './currentPlanningDamageModifiers'
 import { resolveCurrentPlanningEventEffects32 } from './currentPlanningEventEffectResolution32'
-import type { CommonAnomalyEventObservation32 } from './currentCommonAnomalyEffects32'
-import type { PlanningEventUsage } from './planningCalculationContextCompiler'
-import {
-  evaluateCurrentPlanningInitialCritConversion32,
-  type PlanningEffectRuntimeMember,
-} from './currentPlanningEffectRuntime'
+import { evaluateCurrentPlanningInitialCritConversion32 } from './currentPlanningEffectRuntime'
 import {
   getCurrentAgentEventContract,
   resolveCurrentAgentEvent,
 } from './currentAgentMechanicContracts'
-import type { PlanningBaseline } from './planningDpsContract'
 import { calculateDamageFormula } from './damageFormulaDispatch'
 import { isDamageFormula32Version } from './sharpDamageCore'
-import { reviewedRinaCleanupDispatchGap32 } from './reviewedRinaCleanupDispatch32'
+import { rinaCleanupStages32 } from './reviewedRinaCleanupDispatch32'
 import { resolveSourceEventQuantity32 } from './sourceEventQuantity32'
 import { resolvePlanningEventSheerForce32 } from './currentSourceBoundSheerForce32'
 import { bindReviewedRinaPotentialTeamStats32 } from './reviewedRinaPotentialTeamStats32'
@@ -30,70 +25,17 @@ import {
 } from './currentPotentialEventActions32'
 import { bindReviewedPotentialTeamAction32 } from './reviewedPotentialTeamAction32'
 import { requiredReferences } from './currentPlanningEffectExpressions'
-import {
-  bindReviewedPotentialApplications,
-  type PotentialApplicationBinding,
-  type PotentialApplicationEvent,
-} from './potentialApplicationBinding'
+import { bindReviewedPotentialApplications } from './potentialApplicationBinding'
 import { bindReviewedSupportEventDamage32 } from './reviewedSupportEventDamage32'
-
-type DirectPotentialApplication32 =
-  | 'penetration_ratio'
-  | 'attack_percent'
-  | 'damage_bonus'
-  | 'crit_damage'
-  | 'resistance_ignore'
-
-function potentialModifierBucket32(
-  effect: PotentialApplicationBinding,
-  eventId: string,
-  application: DirectPotentialApplication32,
-): SourceBackedPlanningEffectBucket {
-  const receiver = {
-    penetration_ratio: 'pen_',
-    attack_percent: 'atk_',
-    damage_bonus: 'dmg_',
-    crit_damage: 'crit_dmg_',
-    resistance_ignore: 'resIgn_',
-  }[application]
-  return {
-    bucketId: `${effect.effectKey}:event:${eventId}`,
-    effectKey: effect.effectKey,
-    effectId: effect.effectId,
-    providerAgentId: effect.providerAgentId,
-    recipientAgentIds: [effect.providerAgentId],
-    receiverPath: `ownBuff.combat.${receiver}`,
-    applicationScope: 'generic',
-    action: null,
-    attribute: null,
-    damageType: null,
-    application,
-    value: effect.value,
-    sourceRefs: [...effect.sourceRefs],
-  }
-}
+import { resolveSourceBoundYuzuhaFlavorMatchAttribute32 } from './sourceBoundYuzuhaFlavorMatch32'
+import {
+  potentialModifierBucket32,
+  type DirectPotentialApplication32,
+} from './currentPlanningPotentialModifierBucket32'
+import { bindReviewedYeShunguangEventEffects32 } from './reviewedYeShunguangEventEffects32'
 
 /** One source-bound event formula path for team and personal Planning callers. */
-export function calculateCurrentPlanningEventDamage32(input: {
-  member: PlanningEffectRuntimeMember
-  buckets: readonly SourceBackedPlanningEffectBucket[]
-  eventUsages: readonly PlanningEventUsage[]
-  baseline: PlanningBaseline
-  diagnosticBlockers?: string[]
-  potentialEvents?: Readonly<Record<string, PotentialApplicationEvent>>
-  potentialApplications?: PotentialApplicationBinding[]
-  eventEffectContext?: {
-    memberIds: readonly string[]
-    members: readonly PlanningEffectRuntimeMember[]
-    entries: Parameters<typeof resolveCurrentPlanningEventEffects32>[0]['entries']
-    baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
-    commonAnomalyEvents?: Readonly<Record<string, readonly CommonAnomalyEventObservation32[]>>
-    consumedBuckets: SourceBackedPlanningEffectBucket[]
-    exclusions: Array<{ effectKey: string; reason: string; fields: string[]; sourceRefs: string[] }>
-    disabledSupportProviderIds?: readonly string[]
-    equipmentEffectExclusions?: readonly unknown[]
-  }
-}) {
+export function calculateCurrentPlanningEventDamage32(input: CurrentPlanningEventDamageInput32) {
   const initialCritConversion = isDamageFormula32Version(input.baseline.gameVersion)
     ? evaluateCurrentPlanningInitialCritConversion32(input.member)
     : { status: 'supported' as const, critRate: 0, sourceRefs: [] }
@@ -117,11 +59,27 @@ export function calculateCurrentPlanningEventDamage32(input: {
       )
       return Number.NaN
     }
-    const dispatchGap = isDamageFormula32Version(input.baseline.gameVersion)
-      ? reviewedRinaCleanupDispatchGap32(usage.ownerAgentId, usage.eventId)
-      : null
-    if (dispatchGap) {
-      input.diagnosticBlockers?.push(dispatchGap)
+    const cleanupStage =
+      usage.ownerAgentId === 'agent-rina'
+        ? rinaCleanupStages32.find((stage) => stage.eventId === usage.eventId)
+        : undefined
+    const contact = usage.cleanupContact
+    const split = contact && cleanupStage ? cleanupStage.splits[contact.index] : undefined
+    if (
+      (contact &&
+        (!cleanupStage ||
+          contact.animation !== cleanupStage.animation ||
+          !Number.isInteger(contact.index) ||
+          split === undefined ||
+          usage.occurrenceCount !== 1)) ||
+      (cleanupStage &&
+        (input.member.agentId !== 'agent-rina' ||
+          !Number.isInteger(input.member.potential) ||
+          Number(input.member.potential) < 1 ||
+          Number(input.member.potential) > 6 ||
+          (cleanupStage.animation !== 44 && !contact)))
+    ) {
+      input.diagnosticBlockers?.push('丽娜清扫需要已开启潜能，并绑定对应攻击的实际命中段。')
       return Number.NaN
     }
     const quantity = resolveSourceEventQuantity32(usage)
@@ -141,7 +99,21 @@ export function calculateCurrentPlanningEventDamage32(input: {
       event as { formulaFamily?: string; scalingAttribute?: string },
     )
     if (!semantics) return Number.NaN
-    const eventAttribute = event.attribute ?? identity.attribute
+    const baseEventAttribute = event.attribute ?? identity.attribute
+    const eventAttribute = resolveSourceBoundYuzuhaFlavorMatchAttribute32({
+      declaration:
+        input.eventEffectContext?.baselineReferencesByAgentId?.['agent-yuzuha']
+          ?.yuzuhaFlavorMatch32,
+      baseAttribute: baseEventAttribute,
+      usage,
+      eventUsages: input.eventUsages,
+      member: input.member,
+      memberIds: input.eventEffectContext?.memberIds ?? [input.member.agentId],
+      members: input.eventEffectContext?.members ?? [input.member],
+      targetId: input.baseline.enemy.id,
+      diagnosticBlockers: input.diagnosticBlockers,
+    })
+    if (eventAttribute === null) return Number.NaN
     if (
       isDamageFormula32Version(input.baseline.gameVersion) &&
       eventAttribute !== identity.attribute &&
@@ -171,6 +143,8 @@ export function calculateCurrentPlanningEventDamage32(input: {
     })
     const scopedEvent = {
       ...event,
+      skillLevel: usage.skillLevel,
+      attribute: eventAttribute,
       targetId: input.baseline.enemy.id,
       damageTypes: [event.damageType, ...(aftershock === true ? ['aftershock'] : [])],
     }
@@ -349,6 +323,26 @@ export function calculateCurrentPlanningEventDamage32(input: {
     )
     if (timedWindow.status === 'unsupported') return Number.NaN
     const { eventInputBuckets, baselineReferencesByAgentId } = timedWindow
+    // Context-free callers cannot silently omit reviewed conditional effects.
+    // Production personal/team callers supply the same event effect context.
+    const standaloneReviewed = input.eventEffectContext
+      ? null
+      : bindReviewedYeShunguangEventEffects32({
+          ownerAgentId: input.member.agentId,
+          members: [input.member],
+          event: scopedEvent,
+        })
+    if (
+      standaloneReviewed?.status === 'unsupported' ||
+      (standaloneReviewed?.status === 'supported' && standaloneReviewed.exclusions.length)
+    ) {
+      input.diagnosticBlockers?.push(
+        ...(standaloneReviewed.status === 'unsupported'
+          ? standaloneReviewed.blockers
+          : ['reviewed_ye_event_conditions_require_context32']),
+      )
+      return Number.NaN
+    }
     const supportDamage = input.eventEffectContext
       ? bindReviewedSupportEventDamage32({
           members: input.eventEffectContext.members,
@@ -363,6 +357,7 @@ export function calculateCurrentPlanningEventDamage32(input: {
     const eventEffects = input.eventEffectContext
       ? resolveCurrentPlanningEventEffects32({
           ...input.eventEffectContext,
+          settlementAtSeconds: input.settlementAtSeconds,
           baselineReferencesByAgentId,
           ownerAgentId: input.member.agentId,
           event: scopedEvent,
@@ -386,7 +381,18 @@ export function calculateCurrentPlanningEventDamage32(input: {
       return Number.NaN
     }
     const eventBuckets =
-      eventEffects?.status === 'supported' ? eventEffects.buckets : eventInputBuckets
+      eventEffects?.status === 'supported'
+        ? eventEffects.buckets
+        : [
+            ...eventInputBuckets,
+            ...(standaloneReviewed?.status === 'supported' ? standaloneReviewed.buckets : []),
+          ]
+    const verdict =
+      eventEffects?.status === 'supported'
+        ? eventEffects.reviewedYeVerdict32
+        : standaloneReviewed?.status === 'supported'
+          ? standaloneReviewed.verdict
+          : null
     if (eventEffects?.status === 'supported') {
       input.eventEffectContext!.consumedBuckets.push(...eventEffects.buckets)
       input.eventEffectContext!.exclusions.push(...eventEffects.exclusions)
@@ -400,6 +406,7 @@ export function calculateCurrentPlanningEventDamage32(input: {
       .forEach((bucket) => addModifier(modifiers, bucket))
     const source32 = isDamageFormula32Version(input.baseline.gameVersion)
     if (
+      !verdict &&
       input.baseline.enemy.stunMultiplier <= 1 &&
       !Number.isFinite(modifiers.nonStunnedStunDamageBonus)
     ) {
@@ -461,13 +468,17 @@ export function calculateCurrentPlanningEventDamage32(input: {
           buffBonus: (stats.buffBonus ?? 0) + modifiers.buffBonus,
           multiplier:
             resolved.damageMultiplier *
+            (split ?? 1) *
             (modifiers.motionValueMultiplier || 1) *
             (quantity.unit === 'seconds' ? quantity.value : 1),
           hitCount: quantity.unit === 'seconds' ? 1 : quantity.value,
           critRate: stats.crit_ + modifiers.critRate + initialCritConversion.critRate,
           critDamage: stats.crit_dmg_ + modifiers.critDamage,
           damageBonus: staticDamageBonus + actionDamageBonus + modifiers.damageBonus,
-          vulnerability: input.baseline.enemy.vulnerability + modifiers.vulnerability,
+          vulnerability:
+            input.baseline.enemy.vulnerability +
+            modifiers.vulnerability +
+            (verdict?.vulnerability ?? 0),
           defenseReduction: modifiers.defenseReduction,
           defenseIgnore: isDamageFormula32Version(input.baseline.gameVersion)
             ? modifiers.defenseIgnore
@@ -487,14 +498,16 @@ export function calculateCurrentPlanningEventDamage32(input: {
           resistanceIgnore: isDamageFormula32Version(input.baseline.gameVersion)
             ? modifiers.resistanceIgnore
             : 0,
-          // Preserve the declared stun state. A source that explicitly applies
+          // Verdict replaces the enemy multiplier, including provider bonuses.
+          // Otherwise preserve the declared stun state. A source that explicitly applies
           // outside stun contributes to this same additive multiplier; this
           // does not create a stun window or open other providers' conditions.
-          stunMultiplier:
-            input.baseline.enemy.stunMultiplier +
-            (input.baseline.enemy.stunMultiplier > 1
-              ? modifiers.stunDamageBonus
-              : modifiers.nonStunnedStunDamageBonus),
+          stunMultiplier: verdict
+            ? 1
+            : input.baseline.enemy.stunMultiplier +
+              (input.baseline.enemy.stunMultiplier > 1
+                ? modifiers.stunDamageBonus
+                : modifiers.nonStunnedStunDamageBonus),
         }).expectedDamage
       )
     } catch {

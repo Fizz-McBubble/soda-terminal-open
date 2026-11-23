@@ -19,11 +19,15 @@ export function Shell({
   onTab: (tab: AssetTab) => void
   children: ReactNode
 }) {
+  const hasAccount = props.accountId !== 'no-account'
+  const ownedAgents = props.roster.agents.filter((agent) => agent.owned)
+  // Count catalog identities in use, not catalog entries as owned copies.
+  const usedEngines = new Set(ownedAgents.map((agent) => agent.wEngineDetails?.id).filter(Boolean))
   const counts = {
-    agents: props.catalog.agents.length,
-    wengines: props.catalog.wengines.length,
-    bangboos: props.catalog.bangboos.length,
-    discs: props.discs.length,
+    agents: `${hasAccount ? `已拥有 ${ownedAgents.length} / ` : ''}图鉴 ${props.catalog.agents.length}`,
+    wengines: `${hasAccount ? `已使用 ${usedEngines.size} 种 / ` : ''}图鉴 ${props.catalog.wengines.length}`,
+    bangboos: `图鉴 ${props.catalog.bangboos.length}`,
+    discs: hasAccount ? `已记录 ${props.discCount ?? props.discs.length}` : '未选择账户',
   }
   return (
     <div className="r6-golden r6-golden--content-only">

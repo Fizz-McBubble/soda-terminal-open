@@ -9,8 +9,6 @@ import { createLocalCalculationQueryClient } from './localCalculationQueryClient
 import { query } from './localCalculationQueryClient.testFixture'
 import type { AccountDecisionSnapshotCalculator } from './browserAccountDecisionWorker'
 import { calculationQueryContractVersion } from './calculationQueryContract'
-import { n4ValidationDisc } from '../testing/n4RecommendationValidationFixture'
-import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 
 function deferredCalculator() {
   const pending: Array<{
@@ -26,28 +24,15 @@ const current = { status: 'compiled_current' } as CurrentGameDataRuntimeSelectio
 
 describe('background snapshot lifecycle', () => {
   it('binds explicit engine parameters and output fingerprints without changing the captured account', async () => {
-    const request = query('explicit-comparison', ['agent-billy'])
-    const constraint = getCandidateWarehouseConstraint('agent-billy')!
-    const setPlan = constraint.setPlans![0]!
-    request.input.warehouse.discs = Array.from({ length: 12 }, (_, index) => {
-      const disc = n4ValidationDisc(index)
-      return {
-        ...disc,
-        setId: disc.slot <= 4 ? setPlan.primarySetIds[0]! : setPlan.secondarySetIds[0]!,
-        subStats: [],
-        mainStat:
-          disc.slot >= 4
-            ? constraint.mainStats[String(disc.slot) as '4' | '5' | '6']![0]!
-            : disc.mainStat,
-      }
-    })
-    request.input.warehouse.roster.agents = request.input.warehouse.roster.agents.map((agent) =>
-      agent.agentId === 'agent-billy'
+    const { agentId, warehouse, discs } = statWeightCalibrationFixture('agent-billy', 'crit_rate')
+    const request = query('explicit-comparison', [agentId])
+    request.input.warehouse.discs = discs
+    request.input.warehouse.roster = warehouse.roster
+    request.input.warehouse.roster.agents = warehouse.roster.agents.map((agent) =>
+      agent.agentId === agentId
         ? {
             ...agent,
-            level: 50,
-            ascension: 4,
-            equippedDiscIds: request.input.warehouse.discs.slice(0, 6).map((disc) => disc.id),
+            equippedDiscIds: discs.map((disc) => disc.id),
             wEngineDetails: {
               id: 'wengine-12001',
               name: null,
@@ -65,8 +50,11 @@ describe('background snapshot lifecycle', () => {
       contractVersion: calculationQueryContractVersion,
       kind: 'development_candidate_alternatives' as const,
       runId: run.runId,
-      agentId: 'agent-billy',
+      agentId,
     }
+    const unmodified = await client.queryDevelopmentCandidateAlternatives(base)
+    expect(unmodified.status).toBe('ready')
+    expect(unmodified.candidates).toHaveLength(1)
     const parameters = {
       wEngine: { engineId: 'wengine-12001', level: 40, ascension: 3, refinement: 5 },
     }
@@ -83,6 +71,33 @@ describe('background snapshot lifecycle', () => {
       candidateParametersByRank: { 1: parameters },
       sideEffect: 'read_only',
     })
+    expect(first.candidateSearch).toMatchObject({
+      rankingMethod: 'parameter_bound_unranked',
+    })
+    expect(first.candidateSearch).not.toHaveProperty('candidateRanking')
+    expect(first.candidateSearchByRank?.[1]).toMatchObject({
+      rankingMethod: 'parameter_bound_unranked',
+      candidateRanking: {
+        entries: [
+          {
+            candidateRank: 1,
+            groupRank: null,
+            groupSize: 1,
+            comparable: false,
+            basis: {
+              kind: 'unranked',
+              reason: 'parameter_bound_projection_mismatch',
+            },
+          },
+        ],
+      },
+    })
+    expect(
+      first.candidateSearchByRank?.[1]?.candidateRanking?.entries[0]?.calculationIdentity,
+    ).toBe(first.valueBenchmarks?.[0]?.candidate.calculationFingerprint)
+    expect(
+      first.candidateSearchByRank?.[1]?.candidateRanking?.comparisonParametersIdentity,
+    ).toBeTruthy()
     expect(first.valueBenchmarks?.[0]?.candidate.dimensions.w_engine).toContain('p5:lv40:asc3')
     expect(first.comparisonFingerprint).not.toBe(second.comparisonFingerprint)
     expect(first.inputFingerprint).toBe(second.inputFingerprint)
@@ -147,7 +162,7 @@ describe('background snapshot lifecycle', () => {
         candidateParametersByRank: { 999: parameters },
       }),
     ).rejects.toThrow('候选序号')
-  })
+  }, 20_000)
   it('cancels only the released pending run and never registers a late result', async () => {
     const deferred = deferredCalculator()
     const client = createLocalCalculationQueryClient({

@@ -6,6 +6,7 @@ export const accountDecisionSnapshotWorkerProtocolVersion =
 
 export type AccountDecisionSnapshotCalculationInput = AccountDecisionQueryInput & {
   capturedAt: string
+  deferWarehouseAnalysis?: boolean
 }
 
 export type AccountDecisionSnapshotWorkerRequest = {

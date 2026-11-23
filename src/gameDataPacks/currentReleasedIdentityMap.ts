@@ -1,9 +1,10 @@
 import {
   gameData33CatalogCheckedAt,
   gameData33OfficialPhaseOneUrl,
+  gameData33OfficialPhaseTwoUrl,
   gameData33OfficialUpdateUrl,
   gameData33SourceIdentities,
-} from './gameData33CatalogEntities.ts'
+} from '../domain/releasedIdentitySource33.ts'
 
 export const currentReleasedIdentitySourceRegistry = {
   schema: 'soda-released-identity-source-registry/v1',
@@ -29,6 +30,17 @@ export const currentReleasedIdentitySourceRegistry = {
       contentHash: null,
       stableIds: ['agent-phoenix', 'wengine-14164'],
       boundary: '上半菲欧妮与涅槃初翎已开放；不据发行身份推导数值、账户拥有、Formal或媒体许可。',
+    },
+    {
+      id: 'official-3.3-phase-ii-2026-11-11',
+      url: gameData33OfficialPhaseTwoUrl,
+      sourceVersion: '3.3',
+      publishedAt: '2026-11-11',
+      checkedAt: '2026-11-11T04:00:00.000Z',
+      contentHash: null,
+      stableIds: ['agent-severian', 'wengine-14163'],
+      boundary:
+        '下半赛维里安与禁罪囚笼已开放（2026-11-11 12:00至12-01 14:59服务器时间，同期复刻诺姆与首席跟班）；不据发行身份推导数值、账户拥有、Formal或媒体许可。',
     },
     {
       id: 'official-3.2-update-2026-09-09',
@@ -83,7 +95,7 @@ export const currentReleasedIdentitySourceRegistry = {
 export const currentReleasedIdentityMap = {
   schema: 'soda-released-identity-map/v1',
   gameVersion: '3.3' as string,
-  cutoff: '2026-10-21',
+  cutoff: '2026-11-11',
   entries: [
     ...gameData33SourceIdentities.map((identity) => ({
       stableId: identity.stableId,
@@ -95,7 +107,11 @@ export const currentReleasedIdentityMap = {
       releaseAt: identity.releaseAt,
       sourceRefs: [
         identity.releaseState === 'released'
-          ? 'official-3.3-phase-i-2026-10-21'
+          ? identity.stableId === 'wengine-13022'
+            ? 'official-3.3-update-2026-10-21'
+            : identity.stableId === 'agent-severian' || identity.stableId === 'wengine-14163'
+              ? 'official-3.3-phase-ii-2026-11-11'
+              : 'official-3.3-phase-i-2026-10-21'
           : 'official-3.3-update-2026-10-21',
       ],
       boundary:

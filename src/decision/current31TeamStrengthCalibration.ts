@@ -4,8 +4,6 @@ import {
   resolveCurrent31MainstreamRecognition,
   type Current31MainstreamRecognition,
 } from './current31TeamMainstreamRecognition'
-export { resolveCurrent31MainstreamRecognition } from './current31TeamMainstreamRecognition'
-export type { Current31MainstreamRecognition } from './current31TeamMainstreamRecognition'
 import type { CurrentMetaStrengthBand } from '../teamEngine/contracts'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import {
@@ -14,7 +12,6 @@ import {
 } from '../teamEngine/currentMetaStrengthR1'
 import type {
   BenchmarkEvidence,
-  DecisionConfidenceBand,
   TeamFeatureVector,
   TeamRatingBand,
   TeamRatingResult,
@@ -51,14 +48,22 @@ import {
   resolveReviewedCurrentTeamAnalysis,
   resolveReviewedTeamAnalysis,
   hasReviewedCurrentTeamSourceBinding,
-  type ReviewedTeamAnalysis,
 } from './reviewedTeamAnalysis'
 import { teamRecommendationScore, teamRecommendationScorePolicy } from './teamRecommendationScore'
-import {
-  inferredStrengthCalibration,
-  teamStrengthModelPolicy,
-  type TeamStrengthInference,
-} from './teamStrengthModel'
+import { inferredStrengthCalibration, teamStrengthModelPolicy } from './teamStrengthModel'
+import type {
+  Current31MechanicValidity,
+  Current31MetaCalibration,
+  Current31RealityCheck,
+  TeamStrengthEvidenceMode,
+} from './current31TeamStrengthCalibrationTypes'
+export type { Current31MechanicValidity } from './current31TeamStrengthCalibrationTypes'
+export type { Current31MetaCalibration } from './current31TeamStrengthCalibrationTypes'
+export type { Current31RealityCheck } from './current31TeamStrengthCalibrationTypes'
+export type { TeamStrengthEvidenceMode } from './current31TeamStrengthCalibrationTypes'
+
+export { resolveCurrent31MainstreamRecognition } from './current31TeamMainstreamRecognition'
+export type { Current31MainstreamRecognition } from './current31TeamMainstreamRecognition'
 
 export const current31TeamStrengthCalibrationContractId =
   'soda-current-3.1-team-strength-calibration/v1' as const
@@ -89,61 +94,10 @@ const legacyDiagnosticByFormationKey = new Map(
   }),
 )
 
-export type Current31MechanicValidity = 'invalid' | 'partial' | 'valid' | 'excellent'
-
 export function resolveCurrent31LegacyCalibrationDiagnostic(
   memberIds: readonly [string, string, string],
 ) {
   return legacyDiagnosticByFormationKey.get(formationKey(memberIds)) ?? null
-}
-
-export type Current31MetaCalibration = {
-  referenceContinuity?:
-    | typeof reviewedReferenceSupportContinuity32
-    | typeof reviewedGenericReferenceContinuity33
-  contract: typeof current31TeamStrengthCalibrationContractId
-  status: 'aligned' | 'calibration_violation' | 'insufficient'
-  authority:
-    | 'strength_gold'
-    | 'variant_reality_profile'
-    | 'single_publisher_tier'
-    | 'local_editorial_estimate'
-    | 'model_inference'
-    | 'recovered_preliminary'
-    | 'none'
-  confidenceCeiling?: 'medium' | 'low'
-  analysis?: ReviewedTeamAnalysis
-  /** Candidate discovery diagnostics; never tier or recommendation authority. */
-  inference?: TeamStrengthInference
-  /** Shared coarse-tier reference score; confidence never changes its value. */
-  recommendationScore?: number
-  evidenceStatus?: 'supported' | 'unknown' | 'conflict'
-  kernelId: string | null
-  familyId: string | null
-  versionPosition: CurrentMetaStrengthBand | null
-  projectedStrengthBand: TeamRatingBand | null
-  /** Seven-dimensional mechanism grades are not version-strength predictions.
-   * Preserve their difference for diagnostics, not as an independent fit score. */
-  mechanicBandComparison?: {
-    mechanicBand: TeamRatingBand | null
-    sourceStrengthBand: TeamRatingBand
-    relation: 'same' | 'different' | 'unrated'
-    use: 'diagnostic_only'
-  }
-  evidenceRefs: string[]
-  explanation: string
-}
-
-export type Current31RealityCheck = {
-  status:
-    | 'mechanic_rejected'
-    | 'calibrated_band_supported'
-    | 'mainstream_confirmed_band_unknown'
-    | 'unconfirmed'
-  strengthBand: TeamRatingBand | null
-  confidenceCeiling: DecisionConfidenceBand
-  referencePerformanceRequiredForCurrentGate: false
-  explanation: string
 }
 
 export function deriveCurrent31MechanicValidity(
@@ -171,8 +125,6 @@ const continuitySourceHashes = [
   ['publishedStrength', stableContentHash(reviewedTeamPublishedStrength)],
   ['editorialAnalysis', stableContentHash(reviewedTeamAnalysis)],
 ] as const
-
-export type TeamStrengthEvidenceMode = 'source_reference' | 'independent_evaluation'
 
 export function resolveCurrent31MetaCalibration(input: {
   memberIds: readonly [string, string, string]

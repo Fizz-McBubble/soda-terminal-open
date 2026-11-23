@@ -3,6 +3,7 @@ import type { DriveDisc } from '../domain/schemas'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 import { dynamicLegalInventory } from '../optimizer/teamDynamicDomain'
 import { compileAgentBuildIntent } from './buildIntent'
+import { searchPreparedAnomalyCandidates } from './developmentPreparedAnomalySearch'
 import { projectDevelopmentCandidateAlternatives } from './developmentCandidateAlternatives'
 import { searchDevelopmentDynamicCandidates } from './developmentDynamicSearch'
 import { projectNormalizedAccountFinalStatsDetailed } from './normalizedAccountFinalStats'
@@ -109,6 +110,132 @@ function independentSettlement(f: Fixture, discs: DriveDisc[]) {
 }
 
 describe('prepared anomaly ranking through actual development candidates', () => {
+  it('orders comparable settlement output after both candidates preserve the baseline panel target', () => {
+    const f = fixture()
+    const first = plan(f.discs)
+    const second = plan(replace(f.discs, f.physical))
+    const target = { attackDeficit: 0, anomalyProficiency: 100 }
+    first.loadouts[0]!.panelObjective = target
+    second.loadouts[0]!.panelObjective = { ...target, anomalyProficiency: 150 }
+    const baseline = side(f, f.discs)
+    const lower = {
+      ...structuredClone(baseline),
+      totalDamage: baseline.totalDamage! - 100,
+      calculationFingerprint: 'synthetic-lower',
+    }
+    const result = searchPreparedAnomalyCandidates({
+      candidates: [second, first],
+      initial: f.discs,
+      pools: [1, 2, 3, 4, 5, 6].map((slot) => f.discs.filter((disc) => disc.slot === slot)),
+      compile: (discs) => {
+        const value = plan(discs)
+        value.loadouts[0]!.panelObjective = target
+        return value
+      },
+      side: (discs) => (discs.some((disc) => disc.id === f.physical.id) ? lower : baseline),
+      equippedIds: f.discs.map((disc) => disc.id),
+      evaluationBudget: 8,
+    })
+    expect(result.candidates).toEqual([first, second])
+    expect(result.preparedCandidateRanking?.entries).toHaveLength(2)
+  })
+
+  it('compares AP output operands after both candidates preserve the baseline function floor', () => {
+    const f = fixture()
+    const first = plan(f.discs)
+    const second = plan(replace(f.discs, f.physical))
+    const baseline = side(f, f.discs)
+    const improved = {
+      ...structuredClone(baseline),
+      totalDamage: baseline.totalDamage! + 100,
+      functionalStats32: {
+        ...baseline.functionalStats32!,
+        anomProf: baseline.functionalStats32!.anomProf + 1,
+      },
+      calculationFingerprint: 'synthetic-improved',
+    }
+    const result = searchPreparedAnomalyCandidates({
+      candidates: [first, second],
+      initial: f.discs,
+      pools: [1, 2, 3, 4, 5, 6].map((slot) => f.discs.filter((disc) => disc.slot === slot)),
+      compile: (discs) => plan(discs),
+      side: (discs) => (discs.some((disc) => disc.id === f.physical.id) ? improved : baseline),
+      equippedIds: f.discs.map((disc) => disc.id),
+      evaluationBudget: 8,
+    })
+    expect(result.candidates).toEqual([second, first])
+    expect(result.preparedCandidateRanking?.entries).toHaveLength(2)
+  })
+
+  it('does not reuse eligibility across different panel targets for the same physical six discs', () => {
+    const f = fixture()
+    const target = { attackDeficit: 0, anomalyProficiency: 100 }
+    const eligiblePlan = plan(f.discs)
+    eligiblePlan.loadouts[0]!.panelObjective = target
+    const ineligiblePlan = plan(f.discs)
+    ineligiblePlan.loadouts[0]!.panelObjective = { ...target, attackDeficit: 1 }
+    const compile = (discs: DriveDisc[]) => {
+      const value = plan(discs)
+      value.loadouts[0]!.panelObjective = target
+      return value
+    }
+    const result = searchPreparedAnomalyCandidates({
+      candidates: [ineligiblePlan, eligiblePlan],
+      initial: f.discs,
+      pools: [1, 2, 3, 4, 5, 6].map((slot) => f.discs.filter((disc) => disc.slot === slot)),
+      compile,
+      side: (discs) => side(f, discs),
+      equippedIds: f.discs.map((disc) => disc.id),
+      evaluationBudget: 8,
+    })
+
+    expect(result.rankingApplied).toBe(false)
+    expect(result.candidates).toHaveLength(2)
+  })
+
+  it('ranks a legal Piper +9 AP swap in the real settlement without relaxing the baseline floor', () => {
+    const f = fixture()
+    const first = f.discs[0]!
+    first.subStats = first.subStats.map((row) =>
+      row.stat === 'anomaly_proficiency'
+        ? { stat: 'hp_percent' as const, value: 3, upgrades: 0 }
+        : row,
+    )
+    const improved: DriveDisc = {
+      ...structuredClone(first),
+      id: 'prepared-piper-plus-nine-ap',
+      subStats: first.subStats.map((row) =>
+        row.stat === 'hp_percent'
+          ? { stat: 'anomaly_proficiency' as const, value: 9, upgrades: 0 }
+          : row,
+      ),
+    }
+    const improvedDiscs = replace(f.discs, improved)
+    f.warehouse.discs = [...f.discs, improved]
+    expect(dynamicLegalInventory(f.warehouse.discs)).toHaveLength(f.warehouse.discs.length)
+    const a = side(f, f.discs),
+      b = side(f, improvedDiscs)
+    expect(b.functionalStats32!.anomProf - a.functionalStats32!.anomProf).toBe(9)
+    expect(b.totalDamage!).toBeGreaterThan(a.totalDamage!)
+    expect(b.totalDamage! / a.totalDamage!).toBeCloseTo(
+      (a.functionalStats32!.anomProf + 9) / a.functionalStats32!.anomProf,
+      10,
+    )
+    const firstPlan = plan(f.discs),
+      betterPlan = plan(improvedDiscs)
+    const result = searchPreparedAnomalyCandidates({
+      candidates: [firstPlan, betterPlan],
+      initial: f.discs,
+      pools: [1, 2, 3, 4, 5, 6].map((slot) => f.discs.filter((disc) => disc.slot === slot)),
+      compile: plan,
+      side: (discs) => side(f, discs),
+      equippedIds: f.discs.map((disc) => disc.id),
+      evaluationBudget: 8,
+    })
+    expect(result.candidates).toEqual([betterPlan, firstPlan])
+    expect(result.preparedCandidateRanking?.entries).toHaveLength(2)
+  })
+
   it('reports an exhausted observation budget without inventing an exact or global optimum', () => {
     const f = fixture()
     const source = plan(f.discs)
@@ -118,7 +245,7 @@ describe('prepared anomaly ranking through actual development candidates', () =>
       candidates: [source],
       evaluationBudget: 1,
     })
-    expect(result.candidates).toEqual([source])
+    expect(result.candidates.map(records)).toEqual([records(source)])
     expect('preparedAnomalySearch' in result && result.preparedAnomalySearch).toMatchObject({
       status: 'budget_exhausted',
       evaluations: 1,
@@ -145,6 +272,32 @@ describe('prepared anomaly ranking through actual development candidates', () =>
     expect(fifthIds).toContain(f.attack.id)
     expect(fifthIds).toContain(f.physical.id)
     expect(fifthIds.indexOf(f.physical.id)).toBeLessThan(fifthIds.indexOf(f.attack.id))
+    const ranking = result.candidateSearch?.candidateRanking
+    expect(ranking).toMatchObject({
+      contract: 'soda-development-candidate-ranking/v1',
+      source: 'prepared_anomaly_settlement',
+      candidateRarityScope: 'S',
+    })
+    const rankedEntries = ranking?.entries.filter((entry) => entry.comparable) ?? []
+    expect(rankedEntries.length).toBeGreaterThanOrEqual(2)
+    expect(new Set(rankedEntries.map((entry) => entry.candidateIdentity)).size).toBe(
+      rankedEntries.length,
+    )
+    for (const entry of rankedEntries) {
+      expect(entry).toMatchObject({
+        basis: {
+          kind: 'prepared_anomaly_output',
+          domain: 'prepared_anomaly_settlement',
+          metric: 'total_damage',
+          tieBreakers: ['loadout_score', 'fewer_swaps', 'incoming_order'],
+        },
+      })
+      expect(entry.calculationIdentity).toBe(
+        side(f, records(result.candidates[entry.candidateRank - 1]!)).calculationFingerprint,
+      )
+      expect(entry.groupRank).toBeGreaterThanOrEqual(1)
+      expect(entry.groupRank).toBeLessThanOrEqual(entry.groupSize)
+    }
     const comparisons = projectDevelopmentValueBenchmarks({
       ...f,
       baseline: f.discs,
@@ -256,12 +409,14 @@ describe('prepared anomaly ranking through actual development candidates', () =>
       }[protectedStat] as 'anomMas' | 'enerRegen' | 'anomProf'
       expect(tempting.functionalStats32![field]).toBeLessThan(baseline.functionalStats32![field])
       const originalPlan = plan(f.discs)
+      const incompleteCoverage = side(f, f.discs)
+      expect(incompleteCoverage.coverage?.excludedEffects.length).toBeGreaterThan(0)
       const result = searchDevelopmentDynamicCandidates({
         ...f,
         buildIntent: compileAgentBuildIntent({ agentId: f.agentId }),
         candidates: [originalPlan],
       })
-      expect(result.candidates).toEqual([originalPlan])
+      expect(result.candidates.map(records)).toEqual([records(originalPlan)])
       expect(JSON.stringify(f.warehouse)).toBe(before)
     },
   )
@@ -295,7 +450,7 @@ describe('prepared anomaly ranking through actual development candidates', () =>
         candidates: source,
       })
       expect(result.rankingApplied).toBe(false)
-      expect(result.candidates).toEqual(source)
+      expect(result.candidates.map(records)).toEqual(source.map(records))
       const actual = projectDevelopmentCandidateAlternatives(
         { warehouse: f.warehouse, developmentPriorityAgentIds: [] },
         f.agentId,

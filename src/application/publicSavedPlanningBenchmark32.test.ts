@@ -89,7 +89,7 @@ describe('saved declared benchmark32', () => {
     try {
       const account = await createAccount('synthetic32', source)
       await setActiveAccount(account.id, source)
-      const disc = sampleDiscs.treasureCandidate
+      const disc = { ...sampleDiscs.treasureCandidate, rarity: 'S' as const }
       await source.accountDriveDiscs.put(
         scopeLegacyEntity(account.id, disc, '2026-10-01T00:00:00.000Z'),
       )

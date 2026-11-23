@@ -4,12 +4,52 @@ import { defaultTeamPortfolioPreference } from '../accounts/teamPortfolioPrefere
 import { createEmptyRoster } from '../assault/catalog'
 import type { DriveDisc } from '../domain/schemas'
 import type { WarehouseDiscCategory } from '../warehouse/discWarehouseAnalysis'
-import { createAccountDecisionRun } from '../application/accountDecisionWorldLocal'
+import { createAccountDecisionRun as captureAccountDecisionRun } from '../application/accountDecisionWorldLocal'
+import { createLocalCalculationQueryClientCore } from '../application/localCalculationQueryClientCore'
+import { readCurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
+import { buildAccountDecisionSnapshot } from './accountDecisionService'
+import {
+  calculationQueryContractVersion,
+  type AccountDecisionRun,
+} from '../application/calculationQueryContract'
 import type {
   AccountDecisionWorld,
   AccountDecisionWorldInput,
 } from '../application/accountDecisionWorld'
 import { projectWarehouseActions } from '../application/warehouseActionProjection'
+
+type WarehouseReadyRun = AccountDecisionRun & {
+  snapshot: AccountDecisionRun['snapshot'] & {
+    warehouse: NonNullable<AccountDecisionRun['snapshot']['warehouse']>
+  }
+}
+
+// Projection fixtures use the production in-process query with the already
+// imported solver. Worker startup is covered independently of these assertions.
+const fixtureClient = createLocalCalculationQueryClientCore({
+  readRuntimeSelection: readCurrentGameDataRuntimeSelection,
+  calculateSnapshot: async (input, options) => {
+    options?.signal?.throwIfAborted()
+    return buildAccountDecisionSnapshot(input)
+  },
+})
+
+/** These fixtures exercise completed warehouse projections through the production demand query. */
+async function createAccountDecisionRun(
+  input: Parameters<typeof captureAccountDecisionRun>[0],
+  options: Parameters<typeof captureAccountDecisionRun>[1] = {},
+): Promise<WarehouseReadyRun> {
+  const client = options.client ?? fixtureClient
+  const run = await captureAccountDecisionRun(input, { ...options, client })
+  await client.queryWarehouseActions!({
+    contractVersion: calculationQueryContractVersion,
+    kind: 'warehouse_actions',
+    runId: run.runId,
+  })
+  const warehouse = run.snapshot.warehouse
+  if (!warehouse) throw new Error('Expected a completed warehouse snapshot after its demand query')
+  return { ...run, snapshot: { ...run.snapshot, warehouse } }
+}
 
 function disc(id: string): DriveDisc {
   return {
@@ -87,7 +127,7 @@ function input(): AccountDecisionWorldInput {
 async function world(
   status: 'current' | 'stale',
   category: WarehouseDiscCategory,
-): Promise<Extract<AccountDecisionWorld, { run: object }>> {
+): Promise<Extract<AccountDecisionWorld, { run: object }> & { run: WarehouseReadyRun }> {
   const run = await createAccountDecisionRun(input(), {
     runId: 'n3-projection-run',
     capturedAt: '2026-08-29T00:00:00.000Z',

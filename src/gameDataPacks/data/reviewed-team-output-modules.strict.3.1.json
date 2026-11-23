@@ -7,11 +7,7 @@
   "entries": [
     {
       "claimId": "reviewed-nested-8250802fd830d78406537696",
-      "memberIds": [
-        "agent-alice",
-        "agent-burnice",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-alice", "agent-burnice", "agent-astra"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -28,26 +24,14 @@
       "module": {
         "id": "module-strict-8250802fd830d78406537696",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-fe073141b3a9632389323ac5",
-      "memberIds": [
-        "agent-alice",
-        "agent-jane",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-alice", "agent-jane", "agent-astra"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -65,21 +49,13 @@
         "id": "module-strict-fe073141b3a9632389323ac5",
         "primaryOutputKind": "attribute_anomaly",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-16eca9e96c253b723935f2b0",
-      "memberIds": [
-        "agent-alice",
-        "agent-vivian",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-alice", "agent-vivian", "agent-astra"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -96,26 +72,14 @@
       "module": {
         "id": "module-strict-16eca9e96c253b723935f2b0",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-b86cc6e34805f215841593ac",
-      "memberIds": [
-        "agent-alice",
-        "agent-yanagi",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-alice", "agent-yanagi", "agent-astra"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -132,25 +96,14 @@
       "module": {
         "id": "module-strict-b86cc6e34805f215841593ac",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "polarity"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-1fd61ef5ad4da344e383aaff",
-      "memberIds": [
-        "agent-alice",
-        "agent-yuzuha",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-alice", "agent-yuzuha", "agent-astra"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -167,22 +120,14 @@
       "module": {
         "id": "module-strict-1fd61ef5ad4da344e383aaff",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
+        "reactionMechanisms": ["disorder"],
         "executionChannels": [],
-        "teamFunctions": [
-          "support"
-        ]
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-3956977e898135789bbb54f5",
-      "memberIds": [
-        "agent-alice",
-        "agent-burnice",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-alice", "agent-burnice", "agent-lucy"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -199,26 +144,14 @@
       "module": {
         "id": "module-strict-3956977e898135789bbb54f5",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-2321779856d222a55727b765",
-      "memberIds": [
-        "agent-alice",
-        "agent-burnice",
-        "agent-yuzuha"
-      ],
+      "memberIds": ["agent-alice", "agent-burnice", "agent-yuzuha"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -235,26 +168,14 @@
       "module": {
         "id": "module-strict-2321779856d222a55727b765",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-355385a6092720179f87e9f7",
-      "memberIds": [
-        "agent-alice",
-        "agent-jane",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-alice", "agent-jane", "agent-lucy"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -272,21 +193,13 @@
         "id": "module-strict-355385a6092720179f87e9f7",
         "primaryOutputKind": "attribute_anomaly",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-32c94976c21b889592399f63",
-      "memberIds": [
-        "agent-alice",
-        "agent-jane",
-        "agent-yuzuha"
-      ],
+      "memberIds": ["agent-alice", "agent-jane", "agent-yuzuha"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -304,21 +217,13 @@
         "id": "module-strict-32c94976c21b889592399f63",
         "primaryOutputKind": "attribute_anomaly",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-2330c27c803d014b6576d0ef",
-      "memberIds": [
-        "agent-alice",
-        "agent-vivian",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-alice", "agent-vivian", "agent-lucy"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -335,26 +240,14 @@
       "module": {
         "id": "module-strict-2330c27c803d014b6576d0ef",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-96ea56a090e4e3877ff86776",
-      "memberIds": [
-        "agent-alice",
-        "agent-yanagi",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-alice", "agent-yanagi", "agent-lucy"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -371,25 +264,14 @@
       "module": {
         "id": "module-strict-96ea56a090e4e3877ff86776",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "polarity"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-92cf1641435dbee21d4abc57",
-      "memberIds": [
-        "agent-alice",
-        "agent-vivian",
-        "agent-yuzuha"
-      ],
+      "memberIds": ["agent-alice", "agent-vivian", "agent-yuzuha"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -406,26 +288,14 @@
       "module": {
         "id": "module-strict-92cf1641435dbee21d4abc57",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-ade3e599c6eb1ad6a9a7fcc5",
-      "memberIds": [
-        "agent-alice",
-        "agent-yanagi",
-        "agent-yuzuha"
-      ],
+      "memberIds": ["agent-alice", "agent-yanagi", "agent-yuzuha"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/67197387",
       "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
@@ -442,25 +312,14 @@
       "module": {
         "id": "module-strict-ade3e599c6eb1ad6a9a7fcc5",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "polarity"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-fcfd16452f8f032331136391",
-      "memberIds": [
-        "agent-grace",
-        "agent-vivian",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-grace", "agent-vivian", "agent-astra"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -477,26 +336,14 @@
       "module": {
         "id": "module-strict-fcfd16452f8f032331136391",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-44978d4d419fc72b16d09eae",
-      "memberIds": [
-        "agent-pyrois",
-        "agent-norma",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-pyrois", "agent-norma", "agent-astra"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -514,26 +361,13 @@
         "id": "module-strict-44978d4d419fc72b16d09eae",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support",
-          "resource_supply"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-2f9d6d3006fd127f9962cbf9",
-      "memberIds": [
-        "agent-soldier-0-anby",
-        "agent-pulchra",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-soldier-0-anby", "agent-pulchra", "agent-astra"],
       "sourceVersion": "1.6",
       "url": "https://www.miyoushe.com/zzz/article/62601775",
       "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
@@ -551,25 +385,13 @@
         "id": "module-strict-2f9d6d3006fd127f9962cbf9",
         "primaryOutputKind": "aftershock",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-20f927440022fb126a2b9272",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-vivian",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-yanagi", "agent-vivian", "agent-astra"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -586,27 +408,14 @@
       "module": {
         "id": "module-strict-20f927440022fb126a2b9272",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom",
-          "polarity"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-e2db87c97bde67e4983b8c72",
-      "memberIds": [
-        "agent-grace",
-        "agent-vivian",
-        "agent-caesar"
-      ],
+      "memberIds": ["agent-grace", "agent-vivian", "agent-caesar"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -623,26 +432,14 @@
       "module": {
         "id": "module-strict-e2db87c97bde67e4983b8c72",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-8e58cb7dfdd1c176324d080a",
-      "memberIds": [
-        "agent-jane",
-        "agent-vivian",
-        "agent-caesar"
-      ],
+      "memberIds": ["agent-jane", "agent-vivian", "agent-caesar"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -659,25 +456,14 @@
       "module": {
         "id": "module-strict-8e58cb7dfdd1c176324d080a",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-1a4614d3b81f4078011f8c76",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-vivian",
-        "agent-caesar"
-      ],
+      "memberIds": ["agent-yanagi", "agent-vivian", "agent-caesar"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -694,27 +480,14 @@
       "module": {
         "id": "module-strict-1a4614d3b81f4078011f8c76",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom",
-          "polarity"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-116d94200afdc32ab6acd688",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-norma",
-        "agent-ju-fufu"
-      ],
+      "memberIds": ["agent-evelyn", "agent-norma", "agent-ju-fufu"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -732,24 +505,13 @@
         "id": "module-strict-116d94200afdc32ab6acd688",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-6c0bda37a88a875f588ff0a8",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-norma",
-        "agent-lighter"
-      ],
+      "memberIds": ["agent-evelyn", "agent-norma", "agent-lighter"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -767,24 +529,13 @@
         "id": "module-strict-6c0bda37a88a875f588ff0a8",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-f5a809a2de881b527cfb507e",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-norma",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-evelyn", "agent-norma", "agent-lucy"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -802,24 +553,13 @@
         "id": "module-strict-f5a809a2de881b527cfb507e",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-aed6aba7658a2f6a91f9a09d",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-norma",
-        "agent-nicole"
-      ],
+      "memberIds": ["agent-evelyn", "agent-norma", "agent-nicole"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -837,24 +577,13 @@
         "id": "module-strict-aed6aba7658a2f6a91f9a09d",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-1f81d8d7f48991da5936f6af",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-norma",
-        "agent-sunna"
-      ],
+      "memberIds": ["agent-evelyn", "agent-norma", "agent-sunna"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -872,24 +601,13 @@
         "id": "module-strict-1f81d8d7f48991da5936f6af",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-1f7baad6299e1eca4bcbe454",
-      "memberIds": [
-        "agent-grace",
-        "agent-vivian",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-grace", "agent-vivian", "agent-lucy"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -906,26 +624,14 @@
       "module": {
         "id": "module-strict-1f7baad6299e1eca4bcbe454",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-a6b9d5c059c53ba55ddedd4d",
-      "memberIds": [
-        "agent-grace",
-        "agent-vivian",
-        "agent-nicole"
-      ],
+      "memberIds": ["agent-grace", "agent-vivian", "agent-nicole"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -942,26 +648,14 @@
       "module": {
         "id": "module-strict-a6b9d5c059c53ba55ddedd4d",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-a0c2f4b77f9eefb085b139a7",
-      "memberIds": [
-        "agent-jane",
-        "agent-vivian",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-jane", "agent-vivian", "agent-lucy"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -978,25 +672,14 @@
       "module": {
         "id": "module-strict-a0c2f4b77f9eefb085b139a7",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-3e01f9319fb9e00d6063f7be",
-      "memberIds": [
-        "agent-jane",
-        "agent-vivian",
-        "agent-nicole"
-      ],
+      "memberIds": ["agent-jane", "agent-vivian", "agent-nicole"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -1013,25 +696,14 @@
       "module": {
         "id": "module-strict-3e01f9319fb9e00d6063f7be",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-b199dac3a4faec0cab3b51b1",
-      "memberIds": [
-        "agent-jane",
-        "agent-vivian",
-        "agent-seth"
-      ],
+      "memberIds": ["agent-jane", "agent-vivian", "agent-seth"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -1048,25 +720,14 @@
       "module": {
         "id": "module-strict-b199dac3a4faec0cab3b51b1",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-5ff284263a9c72cfcf731e85",
-      "memberIds": [
-        "agent-soldier-0-anby",
-        "agent-koleda",
-        "agent-rina"
-      ],
+      "memberIds": ["agent-soldier-0-anby", "agent-koleda", "agent-rina"],
       "sourceVersion": "1.6",
       "url": "https://www.miyoushe.com/zzz/article/62601775",
       "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
@@ -1084,25 +745,13 @@
         "id": "module-strict-5ff284263a9c72cfcf731e85",
         "primaryOutputKind": "aftershock",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-ebf017cd85337edd80432514",
-      "memberIds": [
-        "agent-miyabi",
-        "agent-vivian",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-miyabi", "agent-vivian", "agent-lucy"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -1119,25 +768,14 @@
       "module": {
         "id": "module-strict-ebf017cd85337edd80432514",
         "primaryOutputKind": "direct_damage",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-bec3463ccc1ddfa0f04fe27b",
-      "memberIds": [
-        "agent-starlight-billy",
-        "agent-norma",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-starlight-billy", "agent-norma", "agent-lucy"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -1155,26 +793,13 @@
         "id": "module-strict-bec3463ccc1ddfa0f04fe27b",
         "primaryOutputKind": "rupture",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support",
-          "resource_supply"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-556ef426dfc61e26d623ea47",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-vivian",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-yanagi", "agent-vivian", "agent-lucy"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -1191,27 +816,14 @@
       "module": {
         "id": "module-strict-556ef426dfc61e26d623ea47",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom",
-          "polarity"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-35cc992e8f254f14ea8ba3a1",
-      "memberIds": [
-        "agent-miyabi",
-        "agent-vivian",
-        "agent-nicole"
-      ],
+      "memberIds": ["agent-miyabi", "agent-vivian", "agent-nicole"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -1228,25 +840,14 @@
       "module": {
         "id": "module-strict-35cc992e8f254f14ea8ba3a1",
         "primaryOutputKind": "direct_damage",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-c3910593f7ccaffcf0fbd1de",
-      "memberIds": [
-        "agent-miyabi",
-        "agent-vivian",
-        "agent-soukaku"
-      ],
+      "memberIds": ["agent-miyabi", "agent-vivian", "agent-soukaku"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -1263,25 +864,14 @@
       "module": {
         "id": "module-strict-c3910593f7ccaffcf0fbd1de",
         "primaryOutputKind": "direct_damage",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-8538dd16656919030fde9db7",
-      "memberIds": [
-        "agent-pyrois",
-        "agent-norma",
-        "agent-nicole"
-      ],
+      "memberIds": ["agent-pyrois", "agent-norma", "agent-nicole"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -1299,26 +889,13 @@
         "id": "module-strict-8538dd16656919030fde9db7",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support",
-          "resource_supply"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-7d7b6bca14eeeee1e92d3645",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-vivian",
-        "agent-nicole"
-      ],
+      "memberIds": ["agent-yanagi", "agent-vivian", "agent-nicole"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -1335,27 +912,14 @@
       "module": {
         "id": "module-strict-7d7b6bca14eeeee1e92d3645",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom",
-          "polarity"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-5b66eb6a3915ff69b9532a1a",
-      "memberIds": [
-        "agent-starlight-billy",
-        "agent-norma",
-        "agent-pan-yinhu"
-      ],
+      "memberIds": ["agent-starlight-billy", "agent-norma", "agent-pan-yinhu"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -1373,26 +937,13 @@
         "id": "module-strict-5b66eb6a3915ff69b9532a1a",
         "primaryOutputKind": "rupture",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support",
-          "resource_supply"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-5401673dc6fc4f31ee53b4a3",
-      "memberIds": [
-        "agent-pyrois",
-        "agent-norma",
-        "agent-sunna"
-      ],
+      "memberIds": ["agent-pyrois", "agent-norma", "agent-sunna"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -1410,26 +961,13 @@
         "id": "module-strict-5401673dc6fc4f31ee53b4a3",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support",
-          "resource_supply"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-a6115ac0b6cea7f62b075981",
-      "memberIds": [
-        "agent-starlight-billy",
-        "agent-norma",
-        "agent-soukaku"
-      ],
+      "memberIds": ["agent-starlight-billy", "agent-norma", "agent-soukaku"],
       "sourceVersion": "3.0",
       "url": "https://www.miyoushe.com/zzz/article/76528334",
       "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
@@ -1447,26 +985,13 @@
         "id": "module-strict-a6115ac0b6cea7f62b075981",
         "primaryOutputKind": "rupture",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support",
-          "resource_supply"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-be74282eceffd835fca8f0e2",
-      "memberIds": [
-        "agent-soldier-0-anby",
-        "agent-pulchra",
-        "agent-rina"
-      ],
+      "memberIds": ["agent-soldier-0-anby", "agent-pulchra", "agent-rina"],
       "sourceVersion": "1.6",
       "url": "https://www.miyoushe.com/zzz/article/62601775",
       "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
@@ -1484,25 +1009,13 @@
         "id": "module-strict-be74282eceffd835fca8f0e2",
         "primaryOutputKind": "aftershock",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-9b4cf960ab97f7785a15a8ab",
-      "memberIds": [
-        "agent-soldier-0-anby",
-        "agent-trigger",
-        "agent-rina"
-      ],
+      "memberIds": ["agent-soldier-0-anby", "agent-trigger", "agent-rina"],
       "sourceVersion": "1.6",
       "url": "https://www.miyoushe.com/zzz/article/62601775",
       "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
@@ -1520,25 +1033,13 @@
         "id": "module-strict-9b4cf960ab97f7785a15a8ab",
         "primaryOutputKind": "aftershock",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "ultimate",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-79ce36caa363159ea63d8eac",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-vivian",
-        "agent-seth"
-      ],
+      "memberIds": ["agent-yanagi", "agent-vivian", "agent-seth"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63809342",
       "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
@@ -1555,18 +1056,9 @@
       "module": {
         "id": "module-strict-79ce36caa363159ea63d8eac",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder",
-          "abloom",
-          "polarity"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder", "abloom", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     }
   ]

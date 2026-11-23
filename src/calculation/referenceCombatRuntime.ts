@@ -1,9 +1,14 @@
 import { stableContentHash } from '../gameDataPacks/types'
+import { isStunnedOnContact } from './contactStun'
 import { directDamageCoreVersion } from './directDamageCore'
-import { anomalyDamageCoreVersion } from './anomalyDamageCore'
+import { anomalyDamageCoreVersion, calculateAnomalyDamageCore, standardAnomalyBaseMultiplier } from './anomalyDamageCore'
+import { aggregateOrdinaryAnomalySnapshots, ordinaryAggregationIdentity } from './dynamic/ordinaryAnomalyAggregation'
+import { sourceVortexMultiplier } from './sourceVortexMultiplier'
 import { sheerDamageCoreVersion } from './sheerDamageCore'
 import { calculateDamageFormula, commonAnomalySettlementHash32 } from './damageFormulaDispatch'
-import { damageFormula32Identity, isDamageFormula32Version } from './sharpDamageCore'
+import { damageFormula32Identity } from './sharpDamageCore'
+import { calculateResolvedCombatSettlement, resolvedCombatSettlementVersion } from './resolvedCombatSettlement'
+import calculationIdentity from '../decision/teamRatingCalculationIdentity.json'
 import {
   referenceCombatInputSchema,
   referenceModifierKeys,
@@ -12,15 +17,22 @@ import {
   type ReferenceCombatResult,
   type ReferenceModifierKey,
 } from './referenceCombatContract'
-import { validateReferenceCombat } from './referenceCombatValidation'
+import {
+  claretSharpSource33,
+  referenceEventUsesTypedFormula,
+  validateReferenceCombat,
+} from './referenceCombatValidation'
 
-export const referenceCombatRuntimeVersion = 'soda-reference-combat-runtime/v1'
+export const referenceCombatRuntimeVersion = calculationIdentity.runtimeVersion
 const formulaVersions = {
   directDamageCoreVersion,
   anomalyDamageCoreVersion,
   sheerDamageCoreVersion,
   damageFormula32Identity,
   commonAnomalySettlementHash32,
+  claretSharpSource33,
+  ordinaryAggregationIdentity,
+  resolvedCombatSettlementVersion,
 }
 export const referenceCombatCalculationHash = stableContentHash({
   runtime: referenceCombatRuntimeVersion,
@@ -89,12 +101,61 @@ function eventModifiers(input: ReferenceCombatInput, event: ReferenceCombatEvent
   return { values, appliedEffectIds: [...new Set(appliedEffectIds)].sort(), sourceRefs }
 }
 
-function calculateEvent(input: ReferenceCombatInput, event: ReferenceCombatEvent) {
+function calculateEvent(
+  input: ReferenceCombatInput,
+  event: ReferenceCombatEvent,
+  contactOrders: Map<string, number | undefined>,
+) {
   const member = input.members.find((row) => row.agentId === event.ownerAgentId)!
+  if (event.settlement) {
+    return {
+      eventId: event.id, ownerAgentId: event.ownerAgentId, at: event.at,
+      expectedDamage: calculateResolvedCombatSettlement(event.settlement),
+      appliedEffectIds: [], stunMultiplier: event.settlement.family === 'anomaly-weighted-snapshot'
+        ? event.settlement.stunFactor : event.settlement.stunMultiplier,
+      sourceRefs: [...new Set([...event.sourceRefs, ...member.sourceRefs,
+        ...input.actions.find(action => action.id === event.actionId)!.sourceRefs])].sort(),
+    }
+  }
   const { stats } = member
   const { values: mod, appliedEffectIds, sourceRefs } = eventModifiers(input, event)
-  const stun = input.stunWindows.find((row) => event.at >= row.start && event.at < row.end)
+  const stun = input.stunWindows.find((row) => isStunnedOnContact(event, row, contactOrders))
   const stunMultiplier = stun?.multiplier ?? 1
+  if (event.anomalyContributions) {
+    // Snapshots already contain attacker-side modifiers; applying an additional
+    // per-trigger attacker effect to a mixed bar would silently change owners.
+    if (referenceModifierKeys.some(key => !targetModifiers.has(key) && key !== 'buffBonus' && mod[key] !== 0))
+      throw new Error(`unbound_anomaly_snapshot_modifier:${event.id}`)
+    const contributions = event.anomalyContributions
+    const total = contributions.reduce((sum, row) => sum + row.buildup, 0)
+    const first = contributions[0]!.snapshot
+    const homogeneous = contributions.every(row => JSON.stringify(row.snapshot) === JSON.stringify(first))
+    const snapshot = homogeneous ? first : aggregateOrdinaryAnomalySnapshots({
+      rows: contributions.map(row => ({ id: row.id, buildup: row.buildup, stats: row.snapshot })),
+      effectiveAgentBuildup: total,
+    }).virtualSnapshot
+    const domain=event.anomalyDomain
+    if(domain?.kind==='wind' && (snapshot.anomalyCritRate!==0 || snapshot.anomalyCritDamage!==0))
+      throw new Error(`wind_existing_anomaly_crit_unreviewed:${event.id}`)
+    const baseMultiplier=domain?.kind==='wind'?domain.baseMultiplier:domain?.kind==='vortex'
+      ?sourceVortexMultiplier(domain.baseMultiplier)
+      :standardAnomalyBaseMultiplier(event.attribute!) * event.multiplier
+    const result = calculateAnomalyDamageCore({ ...snapshot,
+      enemyDefense: input.scenario.enemyDefense, resistance: input.scenario.enemyResistance,
+      defenseReduction: mod.defenseReduction, resistanceReduction: mod.resistanceReduction+(domain?.resistanceReduction??0),
+      vulnerability: mod.vulnerability, stunMultiplier,
+      baseMultiplier,
+      buffBonus: snapshot.buffBonus + mod.buffBonus+(domain?.anomalyBonus??0),
+      ...(domain?{anomalyCritRate:domain.anomalyCritRate,anomalyCritDamage:domain.anomalyCritDamage}:{}),
+    })
+    const owners = [...new Set(contributions.map(row => row.ownerAgentId))]
+    return { eventId:event.id, ownerAgentId:event.ownerAgentId, at:event.at,
+      expectedDamage:result.expectedDamage*(domain?.kind==='vortex'?domain.refringeMultiplier:1), appliedEffectIds, stunMultiplier,
+      ...(owners.length===1 ? { damageOwnerAgentId: owners[0] } : { unattributed: true as const }),
+      sourceRefs:[...new Set([...sourceRefs,...contributions.flatMap(row=>row.sourceRefs),
+        ...input.actions.find(action=>action.id===event.actionId)!.sourceRefs,
+        ...(stun?.sourceRefs??[])])].sort() }
+  }
   const attackDelta = (stats.baseAttack ?? 0) * mod.attackPercent + mod.attackFlat
   const common = {
     multiplier: event.multiplier,
@@ -110,7 +171,7 @@ function calculateEvent(input: ReferenceCombatInput, event: ReferenceCombatEvent
   const expectedDamage = calculateDamageFormula({
     ...common,
     family: event.kind,
-    formulaVersion: isDamageFormula32Version(input.gameVersion) ? '3.2' : 'legacy',
+    formulaVersion: referenceEventUsesTypedFormula(input, event) ? '3.2' : 'legacy',
     scalingAttribute: event.scalingAttribute ?? (event.kind === 'sheer' ? 'sheerForce' : 'attack'),
     attackerLevel: member.level,
     attack: stats.attack + attackDelta,
@@ -173,7 +234,8 @@ function canonicalInput(input: ReferenceCombatInput) {
     members: [...input.members].sort((a, b) => a.agentId.localeCompare(b.agentId)),
     sources: sorted(input.sources),
     actions: sorted(input.actions),
-    events: sorted(input.events),
+    events: sorted(input.events).map(event => event.anomalyContributions
+      ? { ...event, anomalyContributions: sorted(event.anomalyContributions) } : event),
     effects: sorted(input.effects),
     resources: sorted(input.resources),
     resourceChanges: sorted(input.resourceChanges),
@@ -224,20 +286,30 @@ export function evaluateReferenceCombat(raw: unknown): ReferenceCombatResult {
     .map((source) => source.ref)
   if (blockers.length) return { ...empty, ...identity, blockers, assumptions }
   try {
+    const contactOrders = new Map(input.events.map((event) => [event.id, event.contactOrder]))
     const trace = [...input.events]
-      .sort((a, b) => a.at - b.at || a.id.localeCompare(b.id))
-      .map((event) => calculateEvent(input, event))
+      .sort(
+        (a, b) =>
+          a.at - b.at ||
+          (a.contactOrder ?? -1) - (b.contactOrder ?? -1) ||
+          a.id.localeCompare(b.id),
+      )
+      .map((event) => calculateEvent(input, event, contactOrders))
     const memberDamage = input.members.map((member) => ({
       agentId: member.agentId,
       damage: trace
-        .filter((event) => event.ownerAgentId === member.agentId)
+        .filter((event) => !('unattributed' in event) &&
+          ('damageOwnerAgentId' in event ? event.damageOwnerAgentId : event.ownerAgentId) === member.agentId)
         .reduce((sum, event) => sum + event.expectedDamage, 0),
     }))
+    const unattributedDamage = trace.filter(event => 'unattributed' in event)
+      .reduce((sum,event)=>sum+event.expectedDamage,0)
     return {
       ...empty,
       ...identity,
       status: 'computed',
-      totalDamage: memberDamage.reduce((sum, member) => sum + member.damage, 0),
+      totalDamage: memberDamage.reduce((sum, member) => sum + member.damage, 0) + unattributedDamage,
+      ...(unattributedDamage > 0 ? { unattributedDamage } : {}),
       evidenceStatus: input.sources.some((source) => source.kind === 'semantic_fixture')
         ? 'unverified_inputs'
         : 'declared_inputs',

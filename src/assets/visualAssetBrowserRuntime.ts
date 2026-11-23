@@ -29,6 +29,8 @@ export type VisualAssetInstallProgress = {
 export type VisualAssetInstallOptions = {
   reuseCached?: boolean
   responseForAsset?: (asset: VisualAsset & { remoteUrl: string }) => Promise<Response>
+  signal?: AbortSignal
+  packTimeoutMs?: number
 }
 
 export type VisualAssetCacheRuntime = {

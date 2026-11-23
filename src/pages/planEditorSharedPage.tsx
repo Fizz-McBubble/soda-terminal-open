@@ -1,3 +1,4 @@
+import { PlanEditorSavedStateNotices } from './PlanEditorSavedStateNotices'
 import type { RefObject } from 'react'
 import type { NavigateFunction } from 'react-router-dom'
 import { PlanEditorFooter } from './PlanEditorFooter'
@@ -87,12 +88,71 @@ type FooterState = Pick<
   | 'generated'
   | 'saved'
   | 'save'
+  | 'saving'
+  | 'savingRef'
+  | 'scopeIdentity'
   | 'message'
   | 'confirmLeave'
   | 'setConfirmLeave'
+  | 'discard'
   | 'backButton'
   | 'navigate'
 >
+
+export function PlanEditorRoleHeader({
+  backButton,
+  heading,
+  onBack,
+  inlineMinHeight,
+}: {
+  backButton: RefObject<HTMLButtonElement | null>
+  heading: RefObject<HTMLHeadingElement | null>
+  onBack: () => void
+  inlineMinHeight?: boolean
+}) {
+  return (
+    <>
+      <button
+        ref={backButton}
+        className="link-button optimizer-plan__back-link"
+        type="button"
+        style={
+          inlineMinHeight
+            ? { alignItems: 'center', display: 'inline-flex', minHeight: 24 }
+            : undefined
+        }
+        onClick={onBack}
+      >
+        返回选择角色
+      </button>
+      <h1 ref={heading} tabIndex={-1}>
+        角色方案
+      </h1>
+    </>
+  )
+}
+
+export function PlanEditorTransitionNotice({
+  notice,
+  onCancel,
+  cancelLabel,
+}: {
+  notice?: string | null
+  onCancel?: () => void
+  cancelLabel?: string
+}) {
+  if (!notice) return null
+  return (
+    <div className="optimizer-plan__transition-notice" role="status">
+      <span>{notice}</span>
+      {onCancel ? (
+        <button className="button button--quiet" type="button" onClick={onCancel}>
+          {cancelLabel ?? '取消'}
+        </button>
+      ) : null}
+    </div>
+  )
+}
 
 export function PlanEditorSharedFooter({
   props,
@@ -108,6 +168,43 @@ export function PlanEditorSharedFooter({
       kind={props.kind}
       readOnly={props.readOnly ?? false}
       back={props.back}
+    />
+  )
+}
+
+export function PlanEditorSharedNotices({
+  props,
+  reanalyze,
+}: {
+  props: PlanEditorProps
+  reanalyze: () => void
+}) {
+  const {
+    targetTeamFit,
+    restored,
+    luminizeSettlement32,
+    kind,
+    readOnly = false,
+    restoredTargetFitState,
+    staleNotice,
+  } = props
+  return (
+    <PlanEditorSavedStateNotices
+      formedTeamReference={
+        targetTeamFit?.formedTeamReference
+          ? undefined
+          : restored?.solutionContext?.formedTeamReference
+      }
+      luminizeSettlement32={luminizeSettlement32}
+      objectiveNote={restored?.candidateWarehouse?.panelObjectiveNote}
+      needsTeamRecovery={
+        kind === 'team' &&
+        readOnly &&
+        (Boolean(targetTeamFit) || restoredTargetFitState === undefined)
+      }
+      currentSavedDiscScore={Boolean(restored && targetTeamFit)}
+      staleNotice={staleNotice}
+      reanalyze={reanalyze}
     />
   )
 }

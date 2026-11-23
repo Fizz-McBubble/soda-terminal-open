@@ -88,6 +88,16 @@ function sortedRecord(input: Readonly<Record<string, unknown>>) {
   )
 }
 
+function hashBundledDecisionInputs() {
+  return {
+    dataAuthorityHash: contentHash(currentDataAuthorityProjection),
+    teamEnginePackHash: contentHash(current31TeamEngineD1Pack),
+    decisionModelHash: accountDecisionModelHashForEvidencePolicy(valueBenchmarkEvidencePolicy),
+  }
+}
+
+let bundledDecisionHashes: ReturnType<typeof hashBundledDecisionInputs> | undefined
+
 export function resolveDecisionProfiles(
   warehouse: CoreWarehouse,
   suppliedProfiles: AgentDiscProfile[] | undefined,
@@ -118,8 +128,9 @@ export function buildAccountDecisionInputFingerprint({
 }: BuildAccountDecisionInput): AccountDecisionFingerprint {
   if (!warehouse.accountId) throw new Error('决策指纹只接受具名活动账户，不能回退到旧表。')
   const { profiles } = resolveDecisionProfiles(warehouse, suppliedProfiles)
+  const bundled = (bundledDecisionHashes ??= hashBundledDecisionInputs())
   const components = {
-    dataAuthorityHash: contentHash(currentDataAuthorityProjection),
+    dataAuthorityHash: bundled.dataAuthorityHash,
     accountHash: contentHash({ accountId: warehouse.accountId }),
     warehouseHash: contentHash(
       [...warehouse.discs].sort((left, right) => left.id.localeCompare(right.id)),
@@ -146,10 +157,10 @@ export function buildAccountDecisionInputFingerprint({
       [...profiles].sort((left, right) => left.agentId.localeCompare(right.agentId)),
     ),
     optimizerOptionsHash: accountOptimizerInputHash(profiles, optimizerOptions),
-    teamEnginePackHash: contentHash(current31TeamEngineD1Pack),
+    teamEnginePackHash: bundled.teamEnginePackHash,
     planningEvaluationHash: contentHash(planningDpsEvaluations),
     planningAuthorityHash: contentHash(sortedRecord(planningCandidateAuthorities)),
-    decisionModelHash: accountDecisionModelHashForEvidencePolicy(valueBenchmarkEvidencePolicy),
+    decisionModelHash: bundled.decisionModelHash,
   }
   return {
     contract: accountDecisionFingerprintContract,

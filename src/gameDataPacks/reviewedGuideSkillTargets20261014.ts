@@ -22,12 +22,12 @@ export const reviewedGuideSkillTargets20261014: Array<{
   },
   {
     agentId: 'agent-ju-fufu',
-    directions: ['普攻 11+', '闪避 7+', '支援技 9+', '特殊技 11+', '终结技 11+', '核心技 F'],
+    directions: ['普攻 11+', '闪避 9+', '支援技 11+', '特殊技 11+', '终结技 11+', '核心技 F'],
     source: {
       id: 'miyoushe-65745091-skills-image-241459429-reviewed-20261014',
       url: 'https://www.miyoushe.com/zzz/article/65745091',
       sourceVersion: null,
-      checkedAt: '2026-10-14T00:00:00.000Z',
+      checkedAt: '2026-10-28T00:00:00.000Z',
       contentHash: '22f07c56091fe07461e578c8225df3b6a140060d43f03898a49e83a4f89434a5',
       verified: true,
       licenseBoundary:

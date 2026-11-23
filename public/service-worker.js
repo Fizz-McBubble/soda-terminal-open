@@ -25,9 +25,32 @@ function allowedAsset(pathname) {
 
 async function checkedManifest() {
   if (!validRelease(releaseId)) throw new Error('invalid_release')
-  const response = await fetch('/offline-shell-manifest.json', { cache: 'no-store' })
-  if (!response.ok) throw new Error('manifest_unavailable')
-  const manifest = await response.clone().json()
+  const controller = new AbortController()
+  let timer
+  let checked
+  try {
+    // Cover headers and body with the existing critical download budget. The
+    // race also settles when a transport does not respond to abort promptly.
+    checked = await Promise.race([
+      (async () => {
+        const response = await fetch('/offline-shell-manifest.json', {
+          cache: 'no-store',
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error('manifest_unavailable')
+        return { response, manifest: await response.clone().json() }
+      })(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          controller.abort()
+          reject(new Error('manifest_download_timeout'))
+        }, criticalDownloadTimeoutMs)
+      }),
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
+  const { manifest, response } = checked
   if (
     manifest.releaseId !== releaseId ||
     !Array.isArray(manifest.assets) ||
@@ -337,8 +360,10 @@ self.addEventListener('fetch', (event) => {
       }
       const network = await fetch(request)
       if (network.ok) {
-        if (manifest?.criticalAssetSha256?.[url.pathname])
-          await verifyAsset(network, manifest.criticalAssetSha256[url.pathname])
+        const expected =
+          manifest?.criticalAssetSha256?.[url.pathname] ??
+          manifest?.onDemandAssetSha256?.[url.pathname]
+        if (expected) await verifyAsset(network, expected)
         if (cache && manifest?.assets.includes(url.pathname))
           event.waitUntil(cache.put(request, network.clone()).catch(() => {}))
       }

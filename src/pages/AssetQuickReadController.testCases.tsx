@@ -58,7 +58,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(screen.getByTestId('recovery')).toBeEmptyDOMElement()
     expect(screen.getByRole('button', { name: '确认撤销导入' })).toBeEnabled()
     expect(refresh).toHaveBeenCalledTimes(1)
-    fireEvent.click(screen.getByRole('button', { name: '取消撤销' }))
+    fireEvent.click(within(confirmation).getByRole('button', { name: '取消' }))
     expect(screen.queryByText(reason)).not.toBeInTheDocument()
     expect(persistence.restore).toHaveBeenCalledTimes(1)
     fireEvent.click(screen.getByRole('button', { name: '撤销本次导入' }))
@@ -134,7 +134,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(persistence.restore).not.toHaveBeenCalled()
   })
 
-  it('keeps historical recovery inside preparation and disables it during connection without making it a task', async () => {
+  it('keeps historical recovery in import history and disables it during connection without making it a task', async () => {
     const harness = workbenchHarness()
     const client = bridge()
     let finish!: () => void
@@ -168,10 +168,11 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(restore).toBeEnabled()
     expect(restore).toHaveAttribute('title', expect.stringMatching(/已保存 .*资产快读导入恢复副本/))
     fireEvent.click(restore)
-    expect(screen.getByRole('dialog', { name: '撤销这次资产快读导入？' })).toBeVisible()
-    expect(screen.getByRole('dialog').textContent).toMatch(/已保存 .*资产快读导入恢复副本/)
+    const dialog = screen.getByRole('dialog', { name: '撤销这次资产快读导入？' })
+    expect(dialog).toBeVisible()
+    expect(dialog.textContent).toMatch(/已保存 .*资产快读导入恢复副本/)
     expect(persistence.restore).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: '取消撤销' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: '取消' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(persistence.restore).not.toHaveBeenCalled()
     expect(harness.read().hasTask).toBe(false)
@@ -274,6 +275,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
         onTaskStart,
       }
       const rendered = render(<AssetQuickReadController {...props} />)
+      await act(async () => vi.advanceTimersByTimeAsync(0))
       let pending!: Promise<void>
       act(() => {
         pending = harness.read().inspectFile(file)
@@ -462,6 +464,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
     fireEvent.click(secondStart)
     expect(client.start).toHaveBeenCalledOnce()
     converted.candidate = { ...converted.candidate, snapshotSha256: 'b'.repeat(64) }
+    await act(async () => vi.advanceTimersByTimeAsync(0))
     client.result.mockResolvedValue({
       jobId,
       targetAccountId,

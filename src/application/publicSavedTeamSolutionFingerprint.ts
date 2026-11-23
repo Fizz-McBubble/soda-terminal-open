@@ -88,6 +88,7 @@ export function materialCompetingPlan(plan: AccountPlanningDraft) {
           members: plan.teamExecutionSnapshot.members
             .map((member) => ({
               agentId: member.agentId,
+              ...(member.cultivation ? { cultivation: member.cultivation } : {}),
               discIds: [...member.suggested.discIds].sort(),
               wEngine: member.suggested.wEngine
                 ? {

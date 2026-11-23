@@ -81,6 +81,23 @@
 .r6-golden .wengine-reference__heading > :last-child {
   width: 104px;
 }
+.r6-golden .bangboo-reference__heading,
+.r6-golden .bangboo-reference__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--soda-space-2);
+}
+.r6-golden .bangboo-reference__heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.r6-golden .bangboo-reference__heading h3 {
+  margin: 0;
+}
+.r6-golden .bangboo-reference__controls > * {
+  width: 144px;
+  max-width: 100%;
+}
 .r6-golden .wengine-reference__effect {
   color: var(--soda-text-3);
   line-height: 1.6;
@@ -173,7 +190,7 @@
 
 .f5v-wengine-assignment .wengine-assignment-field__levels {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -379,123 +396,55 @@
   background: #f4f1f9;
 }
 
-@container soda-viewport (max-width: 1390px) {
-  .r6-golden .filterbar {
-    grid-template-columns: minmax(145px, 200px) repeat(3, minmax(96px, max-content));
-  }
-  .r6-golden .filterbar--discs {
-    grid-template-columns: minmax(145px, 200px) repeat(2, minmax(96px, max-content));
-  }
+.r6-golden .asset-editor-context {
+  position: sticky;
+  z-index: 2;
+  top: -16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin: -16px -17px 14px;
+  padding: 10px 17px 9px;
+  border-bottom: 1px solid rgba(103, 90, 144, 0.12);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
 }
 
-/* A split catalog on a small laptop cannot fit four legible filters. */
-@container soda-viewport (min-width: 961px) and (max-width: 1200px) {
-  .r6-golden .filterbar,
-  .r6-golden .filterbar--discs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* This file is imported after adapter-core. Keep its desktop compression rule
-   from restoring four fixed controls inside the narrow two-column catalog. */
-@container soda-viewport (max-width: 960px) {
-  .f5v-wengine-assignment .wengine-assignment-field__selector > small {
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .r6-golden .filterbar,
-  .r6-golden .filterbar--discs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .r6-golden .filterbar > * {
-    min-width: 0;
-  }
-}
-
-/* Player-facing facts must stay readable at the normal desktop text size. */
-.f5v-shell .r6-golden .catalog-reference__facts dd,
-.f5v-shell .r6-golden .catalog-reference__boundary,
-.f5v-shell .r6-golden .editor-section > p,
-.f5v-shell .r6-golden .catalog > header p {
-  font-size: var(--soda-font-body);
-  line-height: 1.6;
-  white-space: normal;
-}
-
-.f5v-shell .r6-golden .catalog-reference__facts dt,
-.f5v-shell .r6-golden .editor label,
-.f5v-shell .r6-golden .editor .field > span,
-.f5v-shell .r6-golden .editor .field > label,
-.f5v-shell .r6-golden .editor small,
-.f5v-shell .r6-golden .editor > footer,
-.f5v-shell .r6-golden .identity p,
-.f5v-shell .f5v-wengine-assignment .wengine-assignment-field__selector > small {
+.r6-golden .asset-editor-context span {
+  align-self: center;
+  flex: none;
+  color: #706287;
   font-size: var(--soda-font-caption);
-  line-height: 1.5;
-  white-space: normal;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
-.f5v-select-menu .filter-select__visual,
-.f5v-select-menu-popover .filter-select__visual {
-  background: transparent;
-}
-.f5v-select-menu .filter-select__visual > .visual-entity-image,
-.f5v-select-menu-popover .filter-select__visual > .visual-entity-image {
-  box-sizing: border-box;
-  padding: 4px;
-}
-
-.r6-golden .engine-user-avatar {
-  display: inline-flex;
-  width: 52px;
-  height: 52px;
+.r6-golden .asset-editor-context strong {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
-  border-radius: 8px;
-}
-.r6-golden .engine-user-avatar > * {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.f5v-shell .r6-golden .catalog-reference__facts dd {
-  white-space: pre-line;
+  color: #34294f;
+  font-size: var(--soda-font-body);
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* The drive-disc browse grid stays below its filters within the visible workspace. */
-.r6-golden--content-only .split--disc-browse .catalog {
-  height: var(--disc-browse-height, 70dvh);
-  grid-template-rows: auto auto minmax(120px, 1fr) auto;
+.r6-golden .asset-editor-context small {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: #746987;
+  font-size: var(--soda-font-caption);
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.r6-golden--content-only .split--disc-browse .object-grid.discs {
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  scrollbar-width: thin;
-  scrollbar-gutter: stable;
-  scroll-padding: 8px;
-}
-.r6-golden--content-only .split--disc-browse .object-grid.discs::-webkit-scrollbar {
-  width: 8px;
-}
-.r6-golden--content-only .split--disc-browse .editor {
-  max-height: var(--disc-browse-height, 70dvh);
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-@container soda-viewport (max-width: 960px) {
-  .r6-golden--content-only .split--disc-browse {
-    height: auto;
-    align-items: start;
-  }
-  .r6-golden--content-only .split--disc-browse .catalog {
-    height: max(420px, var(--disc-browse-height, 70dvh));
-    max-height: none;
-  }
-  .r6-golden--content-only .split--disc-browse .editor {
-    height: auto;
-    max-height: none;
-    overflow: visible;
-  }
+
+.r6-golden .asset-editor-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
 }

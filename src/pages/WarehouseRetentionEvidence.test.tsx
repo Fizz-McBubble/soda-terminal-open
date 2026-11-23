@@ -1,10 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { evidence, use } from './WarehouseRetentionEvidence.testFixture'
+import { evidence, retentionUse } from './WarehouseRetentionEvidence.testFixture'
 import { WarehouseRetentionEvidence } from './WarehouseRetentionEvidence'
+import { absoluteDiscRetentionCatalog } from '../warehouse/absoluteDiscRetentionCatalog'
+import { warehouseTestDisc } from '../warehouse/discWarehouseAnalysis.testFixtures'
+import { reviewedWarehouseCondition } from './warehouseReviewedConditions'
 import { RetentionScoreDetails } from './WarehouseRetentionDetails'
 import { registerWarehouseRetentionEvidenceCases } from './WarehouseRetentionEvidence.testCases'
+
+async function openAgent(name?: RegExp) {
+  const trigger = name
+    ? screen.getByRole('button', { name })
+    : screen.getAllByRole('button', { name: /查看.*词条匹配/ })[0]!
+  await userEvent.click(trigger)
+  return screen.getByRole('dialog', { name: name ?? /词条匹配/ })
+}
 
 describe('absolute retention evidence', () => {
   it('shows the saved finite Luminize use without presenting a complete team-damage claim', () => {
@@ -55,8 +66,8 @@ describe('absolute retention evidence', () => {
       ownedUseAgentIds: [],
       unownedUseAgentIds: [],
       leadingUses: [
-        { ...use('reserve', 25, 20), agentId: 'agent-lycaon' },
-        { ...use('owned-low-value', 15, 10), agentId: 'agent-nicole' },
+        { ...retentionUse('reserve', 25, 20), agentId: 'agent-lycaon' },
+        { ...retentionUse('owned-low-value', 15, 10), agentId: 'agent-nicole' },
       ],
     })
     const before = structuredClone(source)
@@ -67,19 +78,120 @@ describe('absolute retention evidence', () => {
         discLevel={15}
       />,
     )
-    const rows = within(screen.getByRole('list', { name: '参考角色用途' })).getAllByRole('listitem')
-    expect(rows[0]).toHaveTextContent('妮可已拥有')
+    const rows = within(screen.getByRole('list', { name: '适用角色' })).getAllByRole('listitem')
+    expect(rows[0]).toHaveTextContent('妮可')
+    expect(rows[0]).toHaveTextContent('已拥有')
     expect(within(rows[0]!).queryByTitle('未拥有，可作储备用途')).not.toBeInTheDocument()
-    expect(rows[1]).toHaveTextContent('莱卡恩储备')
-    expect(screen.getByText('参考角色')).toBeInTheDocument()
-    expect(screen.queryByText('适用角色')).not.toBeInTheDocument()
+    expect(rows[1]).toHaveTextContent('莱卡恩')
+    expect(rows[1]).toHaveTextContent('未拥有')
+    expect(screen.getByRole('heading', { name: '适用角色' })).toBeVisible()
     expect(source).toEqual(before)
+  })
+
+  it('groups multiple branches under one role without merging distinct set conditions', async () => {
+    const first = {
+      ...retentionUse('agent-anby:base-0', 80, 62),
+      fourPieceFit: 'valid' as const,
+      branchSetPlan: {
+        pattern: '4+2' as const,
+        primarySetIds: ['set-a'],
+        secondarySetIds: ['set-b'],
+      },
+      guidance: {
+        ...retentionUse('agent-anby:base-0', 80, 62).guidance!,
+        branchSetPlan: {
+          pattern: '4+2' as const,
+          primarySets: [{ id: 'set-a', name: '套装甲' }],
+          secondarySets: [{ id: 'set-b', name: '套装乙' }],
+          conditionDetails: [],
+        },
+      },
+    }
+    const second = {
+      ...retentionUse('agent-anby:condition-team', 78, 60),
+      useState: 'conditional' as const,
+      fourPieceFit: 'valid' as const,
+      branchSetPlan: {
+        pattern: '4+2' as const,
+        primarySetIds: ['set-a'],
+        secondarySetIds: ['set-b'],
+      },
+      guidance: {
+        ...retentionUse('agent-anby:condition-team', 78, 60).guidance!,
+        branchSetPlan: {
+          pattern: '4+2' as const,
+          primarySets: [{ id: 'set-a', name: '套装甲' }],
+          secondarySets: [{ id: 'set-b', name: '套装乙' }],
+          conditionDetails: ['需要队伍持续触发异常。'],
+        },
+      },
+    }
+    render(
+      <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-nicole'])}
+        disc={warehouseTestDisc('synthetic-main-set', { setId: 'set-a', slot: 3 })}
+        discLevel={0}
+        evidence={evidence({
+          witnessProfileIds: [first.profileId],
+          leadingUses: [
+            first,
+            second,
+            {
+              ...retentionUse('agent-nicole:base-0', 70, 55),
+              agentId: 'agent-nicole',
+              fourPieceFit: 'valid' as const,
+              branchSetPlan: {
+                pattern: '4+2' as const,
+                primarySetIds: ['set-a'],
+                secondarySetIds: ['set-b'],
+              },
+              guidance: {
+                ...retentionUse('agent-nicole:base-0', 70, 55).guidance!,
+                currentSet: { id: 'set-a', name: '套装甲' },
+                branchSetPlan: {
+                  pattern: '4+2' as const,
+                  primarySets: [{ id: 'set-a', name: '套装甲' }],
+                  secondarySets: [{ id: 'set-b', name: '套装乙' }],
+                  conditionDetails: [],
+                },
+              },
+            },
+          ],
+        })}
+      />,
+    )
+    const roles = screen.getByRole('list', { name: '适用角色' })
+    expect(within(roles).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(roles).getAllByRole('button', { name: /安比/ })).toHaveLength(1)
+    expect(within(roles).getByRole('button', { name: /妮可/ })).toHaveTextContent('已拥有')
+    await userEvent.click(within(roles).getByRole('button', { name: /安比/ }))
+    const dialog = screen.getByRole('dialog', { name: /安比/ })
+    await userEvent.selectOptions(within(dialog).getByLabelText('推荐用途'), second.profileId)
+    expect(
+      within(within(dialog).getByRole('group', { name: '词条匹配' })).getByText('60.0 分'),
+    ).toBeVisible()
+    expect(within(dialog).getByText(/套装甲/)).toBeVisible()
+    expect(within(dialog).getByText(/套装乙/)).toBeVisible()
+    expect(within(dialog).getByText('需要队伍持续触发异常。')).toBeVisible()
+  })
+
+  it('explains when no recommended role is confirmed', () => {
+    render(
+      <WarehouseRetentionEvidence
+        ownedAgentIds={new Set()}
+        discLevel={0}
+        evidence={evidence({ leadingUses: [] })}
+      />,
+    )
+    expect(screen.getByRole('heading', { name: '适用角色' })).toBeVisible()
+    expect(screen.getByText('暂无适用角色')).toBeVisible()
+    expect(screen.queryByRole('list', { name: '适用角色' })).not.toBeInTheDocument()
   })
 
   it.each([false, true])(
     'only calls an empty substat direction functional when functionalMain=%s',
-    (functionalMain) => {
-      const row = use('empty-direction', 25, 20)
+    async (functionalMain) => {
+      const row = retentionUse('empty-direction', 25, 20)
       render(
         <WarehouseRetentionEvidence
           ownedAgentIds={new Set()}
@@ -89,16 +201,16 @@ describe('absolute retention evidence', () => {
           })}
         />,
       )
-      expect(
-        screen.getByText(functionalMain ? '以主词条功能为主。' : '当前用途未列出重点副词条。'),
-      ).toBeVisible()
-      expect(
-        screen.queryByText(functionalMain ? '当前用途未列出重点副词条。' : '以主词条功能为主。'),
-      ).not.toBeInTheDocument()
+      await openAgent()
+      const requirements = screen.getByText('词条要求').nextElementSibling!
+      expect(requirements).toHaveTextContent('防御力。')
+      expect(requirements.querySelectorAll('p')).toHaveLength(functionalMain ? 2 : 1)
+      if (functionalMain) expect(requirements).toHaveTextContent('以主词条功能为主。')
+      else expect(requirements).not.toHaveTextContent(/以主词条功能为主|暴击率|暴击伤害/)
     },
   )
 
-  it('translates collection locators and merges equal visible conditions without changing evidence', () => {
+  it('translates collection locators and merges equal visible conditions without changing evidence', async () => {
     const blocker = {
       kind: 'conditional_use' as const,
       field: 'mainStats.4.crit_rate',
@@ -109,14 +221,13 @@ describe('absolute retention evidence', () => {
       sourceIds: ['synthetic-source'],
     }
     const source = evidence({
+      leadingUses: [{ ...retentionUse('agent-dialyn:base-0', 70), agentId: 'agent-dialyn' }],
       blockedBy: [
         blocker,
-        { ...blocker, profileId: 'agent-dialyn:base-1', predicateId: 'another-branch' },
+        { ...blocker, predicateId: 'another-branch' },
         { ...blocker, predicateId: 'different-threshold', detail: '整套配装需达到60%暴击率。' },
         {
           ...blocker,
-          profileId: 'agent-lycaon:reviewed-miyoushe-73045858-lycaon-potential-illustrated-teams',
-          agentId: 'agent-lycaon',
           detail:
             '73045858-1.png：激发潜能ON；驱动盘推荐分区6冲击力/能量恢复；下方莱卡恩+苍角+雅、莱卡恩+雨果+莱特。',
         },
@@ -136,13 +247,11 @@ describe('absolute retention evidence', () => {
         discLevel={2}
       />,
     )
-    const conditions = screen.getByRole('group', { name: '全部待确认事项' })
+    await openAgent()
+    await userEvent.click(screen.getByText('查看本用途条件'))
+    const conditions = screen.getByRole('group', { name: '具体使用条件' })
     expect(within(conditions).getAllByRole('listitem')).toHaveLength(4)
-    expect(
-      within(conditions).getAllByText(
-        '琉音（常规构筑） · 4 号位·暴击率：整套配装需达到50%暴击率。',
-      ),
-    ).toHaveLength(1)
+    expect(within(conditions).getAllByText(/整套配装需达到50%暴击率。/)).toHaveLength(1)
     expect(conditions).toHaveTextContent('整套配装需达到60%暴击率。')
     expect(conditions).toHaveTextContent('需核对莱卡恩激发潜能是否达到6/6')
     expect(conditions).toHaveTextContent('用途是否适用于莱卡恩+苍角+雅或莱卡恩+雨果+莱特队伍')
@@ -154,6 +263,155 @@ describe('absolute retention evidence', () => {
     expect(conditions.textContent).not.toMatch(
       /\.png|\.jpg|73045858|009-build|推荐分区|下方|潜能ON/,
     )
+    expect(source).toEqual(before)
+  })
+
+  it.each([
+    [
+      'agent-miyabi:reviewed-miyoushe-77017654-miyabi-remielle-anomaly',
+      '星见雅',
+      '0至1影',
+      '6号位异常掌控',
+      '副词条可选暴击率、暴击伤害',
+    ],
+    [
+      'agent-yanagi:reviewed-miyoushe-77017654-yanagi-remielle-velina-disorder',
+      '柳',
+      '维琳娜',
+      '5号位穿透率或电属性伤害',
+      '6号位异常掌控或能量自动回复',
+    ],
+  ])(
+    'projects reviewed conditions for %s without exposing collection coordinates',
+    async (profileId, role, condition, main, extra) => {
+      const profile = absoluteDiscRetentionCatalog.profiles.find((entry) => entry.id === profileId)!
+      const detail = profile.conditionEvidence![0]!.detail
+      expect(detail).toContain('spanSha256')
+      const sample = retentionUse(profile.id, 60)
+      const currentSetId = `synthetic-current-set:${profile.agentId}`
+      const branchSetPlan = {
+        pattern: '4+2' as const,
+        primarySetIds: [currentSetId, `${currentSetId}:alternative`],
+        secondarySetIds: [`${currentSetId}:secondary`],
+      }
+      const source = evidence({
+        leadingUses: [
+          {
+            ...sample,
+            agentId: profile.agentId,
+            fourPieceFit: 'valid' as const,
+            branchSetPlan,
+            guidance: {
+              ...sample.guidance!,
+              branchSetPlan: {
+                pattern: branchSetPlan.pattern,
+                primarySets: [
+                  { id: currentSetId, name: '自由蓝调' },
+                  { id: `${currentSetId}:alternative`, name: '自由蓝调替代套装' },
+                ],
+                secondarySets: [{ id: `${currentSetId}:secondary`, name: '法厄同之歌' }],
+                conditionDetails: [detail],
+              },
+            },
+          },
+        ],
+        blockedBy: [
+          {
+            kind: 'conditional_use',
+            field: 'conditionEvidence',
+            profileId,
+            agentId: profile.agentId,
+            predicateId: 'test',
+            detail,
+            sourceIds: ['synthetic-source'],
+          },
+        ],
+      })
+      const before = structuredClone(source)
+      const { container } = render(
+        <WarehouseRetentionEvidence
+          evidence={source}
+          disc={warehouseTestDisc(`reviewed-${profile.agentId}`, {
+            setId: currentSetId,
+            slot: 3,
+          })}
+          discLevel={15}
+          ownedAgentIds={new Set()}
+        />,
+      )
+      await openAgent(new RegExp(role))
+      await userEvent.click(screen.getByText('查看本用途条件'))
+      const projected = screen.getByRole('group', { name: '具体使用条件' })
+      expect(projected).toHaveTextContent(role)
+      expect(projected).toHaveTextContent(condition)
+      expect(projected).toHaveTextContent(main)
+      expect(projected).toHaveTextContent(extra)
+      expect(projected).toHaveTextContent('自由蓝调四件、法厄同之歌两件')
+      const selectedConditions = screen.getByText('使用条件').parentElement!
+      expect(selectedConditions).toHaveTextContent(main)
+      expect(selectedConditions).toHaveTextContent(extra)
+      expect(container.textContent).not.toMatch(
+        /77017654|UTF.?16|spanSha256|text:016|BD78B6|016[789]|0170/i,
+      )
+      expect(source).toEqual(before)
+    },
+  )
+
+  it('keeps the reviewed branch boundaries and rejects mismatched evidence', () => {
+    const profile = absoluteDiscRetentionCatalog.profiles.find((entry) =>
+      entry.id.endsWith('miyabi-remielle-anomaly-m2plus'),
+    )!
+    const detail = profile.conditionEvidence![0]!.detail
+    expect(reviewedWarehouseCondition(profile.id, detail)).toContain('2影及以上')
+    expect(reviewedWarehouseCondition(profile.id, detail)).toContain('原套装方向仍可保留')
+    expect(reviewedWarehouseCondition(profile.id, `${detail} changed`)).toBeNull()
+    expect(reviewedWarehouseCondition('agent-other:reviewed-unknown', detail)).toBeNull()
+    const experimental = absoluteDiscRetentionCatalog.profiles.find((entry) =>
+      entry.id.endsWith('miyabi-remielle-yanagi-experimental'),
+    )!
+    expect(
+      reviewedWarehouseCondition(experimental.id, experimental.conditionEvidence![0]!.detail),
+    ).toContain('需主动选择的实验方向，高配条件尚未明确')
+  })
+
+  it('shows specific alternative conditions and omits internal or unresolved facts', async () => {
+    const base = {
+      kind: 'conditional_use' as const,
+      field: 'mainStats.1.hp_flat',
+      profileId: 'agent-soukaku:main-alt-0',
+      agentId: 'agent-soukaku',
+      predicateId: 'test',
+      sourceIds: ['synthetic'],
+    }
+    const source = evidence({
+      leadingUses: [
+        {
+          ...retentionUse('agent-soukaku:main-alt-0', 70),
+          agentId: 'agent-soukaku',
+          blockers: [
+            { ...base, detail: '来源编号 123456 hash=abcdef1234567890；HP scaling unresolved' },
+            {
+              ...base,
+              predicateId: 'missing',
+              kind: 'missing_fact',
+              detail: '该用途资料尚未确认。',
+            },
+            { ...base, predicateId: 'team', detail: '需要队友装备静听嘉音四件套。' },
+          ],
+        },
+      ],
+    })
+    const before = structuredClone(source)
+    render(
+      <WarehouseRetentionEvidence evidence={source} discLevel={15} ownedAgentIds={new Set()} />,
+    )
+    await openAgent()
+    await userEvent.click(screen.getByText('查看本用途条件'))
+    const conditions = screen.getByRole('group', { name: '具体使用条件' })
+    expect(conditions).toHaveTextContent('需要队友装备静听嘉音四件套')
+    expect(conditions).not.toHaveTextContent('1 号位')
+    expect(conditions).not.toHaveTextContent('hash')
+    expect(within(conditions).getAllByRole('listitem')).toHaveLength(1)
     expect(source).toEqual(before)
   })
 
@@ -195,10 +453,10 @@ describe('absolute retention evidence', () => {
       />,
     )
     expect(screen.getByRole('status')).toHaveTextContent('下一步：保留')
-    expect(screen.getByText('当前正在装备。')).toBeVisible()
+    expect(screen.getByText('这张盘正在装备。')).toBeVisible()
     expect(screen.queryByText(/不需要继续强化/)).not.toBeInTheDocument()
   })
-  it('shows the trial and reference scores directly with the scoring method in a popover', async () => {
+  it('shows the trial and purpose score directly after selecting an applicable agent', async () => {
     render(
       <WarehouseRetentionEvidence
         ownedAgentIds={new Set(['agent-anby'])}
@@ -211,25 +469,31 @@ describe('absolute retention evidence', () => {
             detail: '仅建议试到 +3，记录后重新分析。',
             stopWhen: '阶段结构不达标时停止。',
           },
-          leadingUses: [use('trial', 79.4, 21)],
+          leadingUses: [retentionUse('trial', 79.4, 21)],
         })}
       />,
     )
+    const dialog = await openAgent()
     expect(screen.getByRole('status')).toHaveTextContent('下一步：先强化到 +3')
     expect(screen.getByText('强化后重新分析，不再推荐就停手。')).toBeVisible()
-    expect(screen.getByText('21.0 分')).toBeVisible()
-    expect(screen.getByText('21.0–79.4 分')).toBeVisible()
-    expect(screen.getByText('副词条评分')).toBeVisible()
-    expect(screen.getByText('保留参考线')).toBeVisible()
-    await userEvent.click(screen.getByRole('button', { name: '评分说明' }))
-    const explanation = screen.getByLabelText('评分说明', { selector: '[role="dialog"]' })
-    expect(explanation).toHaveTextContent('满分为 100 分，不是伤害收益')
-    expect(explanation).toHaveTextContent('保留门槛，不是满分')
-    expect(explanation).toHaveTextContent('低于参考线也不等于可清理')
+    expect(within(dialog).getByText('21.0 分')).toBeVisible()
+    expect(within(dialog).getByText('21.0–79.4 分')).toBeVisible()
+    expect(within(dialog).getByText('词条匹配')).toBeVisible()
+    expect(screen.queryByText('保留参考')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /安比/ })).toHaveAttribute('aria-expanded', 'true')
+    expect(within(dialog).getByText('这盘与用途')).toBeVisible()
+    expect(within(dialog).getByText('暴击率符合用途')).toBeVisible()
+    expect(
+      within(within(dialog).getByRole('group', { name: '词条匹配' })).queryByText('所选用途'),
+    ).not.toBeInTheDocument()
+    expect(
+      within(dialog).queryByText('按该角色用途所需副词条及强化次数计算。'),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '参考说明' })).not.toBeInTheDocument()
   })
 
   it('explains a maxed disc without suggesting more enhancement or a redundant range', () => {
-    const base = use('maxed', 57.777, 57.777)
+    const base = retentionUse('maxed', 57.777, 57.777)
     const maxed = {
       ...base,
       investment: { ...base.investment!, remainingNodes: 0, nextLevel: null },
@@ -237,21 +501,22 @@ describe('absolute retention evidence', () => {
     const before = structuredClone(maxed)
     render(<RetentionScoreDetails evidence={evidence()} use={maxed} />)
     expect(screen.getByText('57.8 分')).toBeVisible()
-    expect(screen.getByText('60.0 分')).toBeVisible()
+    expect(screen.queryByText('60.0 分')).not.toBeInTheDocument()
     expect(screen.getByText('已满级')).toBeVisible()
-    expect(screen.queryByText('满级后评分范围')).not.toBeInTheDocument()
-    expect(screen.queryByText('剩余强化')).not.toBeInTheDocument()
+    expect(screen.queryByText('强化后可能范围')).not.toBeInTheDocument()
+    expect(screen.queryByText('还可强化')).not.toBeInTheDocument()
     expect(screen.queryByText('查看参考评分')).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('group', { name: '副词条参考评分' }).querySelector('details'),
-    ).toBeNull()
+    expect(screen.getByRole('group', { name: '词条匹配' }).querySelector('details')).toBeNull()
     expect(maxed).toEqual(before)
   })
 
-  it('keeps missing and non-finite scores as pending instead of displaying fabricated numbers', () => {
-    const pending = { ...use('pending', Infinity, NaN), cutoffs: null }
+  it('omits non-finite score rows and preserves the known remaining upgrades', () => {
+    const pending = { ...retentionUse('pending', Infinity, NaN), cutoffs: null }
     render(<RetentionScoreDetails evidence={evidence()} use={pending} />)
-    expect(screen.getAllByText('待确认')).toHaveLength(3)
+    const scores = screen.getByRole('group', { name: '词条匹配' })
+    expect(scores).toHaveTextContent('还可强化3 次')
+    expect(scores).not.toHaveTextContent(/当前|强化后可能范围|分/)
+    expect(screen.queryByText('保留参考')).not.toBeInTheDocument()
     expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument()
     expect(screen.queryByText(/最不利和最有利/)).not.toBeInTheDocument()
   })
@@ -268,95 +533,74 @@ describe('absolute retention evidence', () => {
         discLevel={0}
         evidence={evidence({
           ownedUseAgentIds: ['agent-nicole'],
-          leadingUses: [use('reserve', 80), { ...use('owned', 75), agentId: 'agent-nicole' }],
-        })}
-      />,
-    )
-    const references = screen.getByRole('list', { name: '参考角色用途' })
-    const rows = within(references).getAllByRole('listitem')
-    expect(rows[0]).toHaveTextContent('妮可')
-    expect(rows[0]).toHaveTextContent('已拥有')
-    expect(rows[1]).toHaveTextContent('储备')
-    expect(within(rows[1]!).getByTitle('未拥有，可作储备用途')).toBeVisible()
-    expect(references).not.toHaveTextContent('正在使用')
-  })
-
-  it('does not ask the player to supply unpublished action facts or clear uncalibrated rarities', () => {
-    const { rerender } = render(
-      <WarehouseRetentionEvidence
-        ownedAgentIds={new Set(['agent-anby'])}
-        discLevel={0}
-        evidence={evidence({
-          reasonKind: 'missing_fact',
-          nextAction: {
-            kind: 'complete_data',
-            targetLevel: null,
-            detail: '按字段补齐资料。',
-            stopWhen: '暂停投入和清理。',
-          },
-        })}
-      />,
-    )
-    expect(screen.getByRole('status')).toHaveTextContent('暂留，等待资料确认')
-    expect(screen.getByText(/暂不建议继续投入或清理/)).toBeVisible()
-    rerender(
-      <WarehouseRetentionEvidence
-        ownedAgentIds={new Set(['agent-anby'])}
-        discLevel={0}
-        evidence={evidence({
-          reasonKind: 'missing_fact',
-          blockedBy: [
-            {
-              kind: 'policy',
-              field: 'calibration',
-              predicateId: 'rarity-A',
-              detail: 'A级尚未校准',
-              sourceIds: [],
-            },
+          leadingUses: [
+            retentionUse('reserve', 80),
+            { ...retentionUse('owned', 75), agentId: 'agent-nicole' },
           ],
         })}
       />,
     )
-    expect(screen.getByText(/这一类盘的清理标准尚未校准/)).toBeVisible()
+    const references = screen.getByRole('list', { name: '适用角色' })
+    const rows = within(references).getAllByRole('listitem')
+    expect(rows[0]).toHaveTextContent('妮可')
+    expect(rows[0]).toHaveTextContent('已拥有')
+    expect(rows[1]).toHaveTextContent('未拥有')
+    expect(references).not.toHaveTextContent('正在使用')
   })
 
-  it('preserves expandable alternative blockers outside the first three score rows', async () => {
+  it('keeps conditions scoped to the selected use outside the first three roles', async () => {
+    const selectedBlockers = [
+      {
+        kind: 'conditional_use' as const,
+        profileId: 'p1',
+        agentId: 'agent-anby',
+        field: 'fourPieceUses',
+        predicateId: 'selected-context',
+        detail: '需要当前角色达到二影。',
+        sourceIds: ['synthetic-source'],
+      },
+    ]
+    const otherBlockers = [
+      {
+        kind: 'conditional_use' as const,
+        profileId: 'p4',
+        agentId: 'agent-nicole',
+        field: 'fourPieceUses',
+        predicateId: 'other-context',
+        detail: '需要队友装备静听嘉音四件套。',
+        sourceIds: ['synthetic-source'],
+      },
+    ]
     render(
       <WarehouseRetentionEvidence
         ownedAgentIds={new Set(['agent-anby'])}
         discLevel={6}
         evidence={evidence({
           leadingUses: [
-            use('p1', 80),
-            use('p2', 78),
-            use('p3', 70),
+            { ...retentionUse('p1', 80), blockers: selectedBlockers },
+            retentionUse('p2', 78),
+            retentionUse('p3', 70),
             {
-              ...use('p4', 65),
-              blockers: [
-                {
-                  kind: 'conditional_use',
-                  profileId: 'p4',
-                  agentId: 'agent-anby',
-                  field: 'fourPieceUses',
-                  predicateId: 'four-piece-context',
-                  detail: '需要核对四件套队伍条件',
-                  sourceIds: ['synthetic-source'],
-                },
-              ],
+              ...retentionUse('p4', 65),
+              agentId: 'agent-nicole',
+              blockers: otherBlockers,
             },
           ],
         })}
       />,
     )
-    expect(screen.getByText(/需要核对四件套队伍条件/)).not.toBeVisible()
-    await userEvent.click(screen.getByText('其他用途待确认事项'))
-    expect(screen.getByText(/需要核对四件套队伍条件/)).toBeVisible()
+    await openAgent()
+    expect(screen.queryByText(/需要队友装备静听嘉音四件套/)).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '词条匹配' })).toBeVisible()
+    await userEvent.click(screen.getByText('查看本用途条件'))
+    expect(screen.getByText(/需要当前角色达到二影/)).toBeVisible()
+    expect(screen.queryByText(/需要队友装备静听嘉音四件套/)).not.toBeInTheDocument()
     expect(screen.queryByText(/查看来源/)).not.toBeInTheDocument()
     expect(screen.getAllByText('3 次')).toHaveLength(1)
-    expect(screen.getByRole('group', { name: '副词条参考评分' })).toBeVisible()
+    expect(screen.getByRole('group', { name: '词条匹配' })).toBeVisible()
   })
 
-  it('keeps completed function separate from substat quality at mature level', () => {
+  it('keeps completed function separate from substat quality at mature level', async () => {
     render(
       <WarehouseRetentionEvidence
         ownedAgentIds={new Set(['agent-anby'])}
@@ -373,7 +617,7 @@ describe('absolute retention evidence', () => {
           },
           leadingUses: [
             {
-              ...use('function', 28, 28),
+              ...retentionUse('function', 28, 28),
               functionalMain: true,
               functionalState: 'ready',
               functionDetail: '能量回复主词条已生效',
@@ -382,13 +626,14 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
+    await openAgent()
     expect(screen.getByText(/主词条已能发挥所需功能/)).toBeInTheDocument()
     expect(screen.getAllByText('28.0 分').length).toBeGreaterThan(0)
     expect(screen.queryByText(/试强化/)).not.toBeInTheDocument()
   })
 
-  it('distinguishes low investment with large remaining upside from a strict low ceiling', () => {
-    const shared = use('p1', 95)
+  it('distinguishes low investment with large remaining upside from a strict low ceiling', async () => {
+    const shared = retentionUse('p1', 95)
     const { rerender } = render(
       <WarehouseRetentionEvidence
         ownedAgentIds={new Set(['agent-anby'])}
@@ -399,6 +644,7 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
+    await openAgent()
     expect(screen.getByText(/当前词条不满足继续强化标准/)).toBeInTheDocument()
     expect(screen.getByText('42.0–95.0 分')).toBeInTheDocument()
     rerender(
@@ -407,11 +653,11 @@ describe('absolute retention evidence', () => {
         discLevel={15}
         evidence={evidence({
           reasonKind: 'proven_low_ceiling',
-          leadingUses: [use('p1', 50, 42)],
+          leadingUses: [retentionUse('p1', 50, 42)],
         })}
       />,
     )
-    expect(screen.getByText(/即使后续强化全部往有利方向发展/)).toBeInTheDocument()
+    expect(screen.getByText(/后续强化潜力不足/)).toBeInTheDocument()
     expect(screen.getByText('42.0–50.0 分')).toBeInTheDocument()
     expect(screen.queryByText(/理论上界，也不自动证明/)).not.toBeInTheDocument()
   })
@@ -423,7 +669,7 @@ describe('absolute retention evidence', () => {
         discLevel={6}
         evidence={evidence({
           reasonKind: 'proven_low_ceiling',
-          leadingUses: [use('p1', 50)],
+          leadingUses: [retentionUse('p1', 50)],
           nextAction: {
             kind: 'manual_cleanup',
             targetLevel: null,
@@ -452,7 +698,7 @@ describe('absolute retention evidence', () => {
         evidence={evidence({
           leadingUses: [
             {
-              ...use(profileId, 70),
+              ...retentionUse(profileId, 70),
               functionalState: 'ready',
               functionDetail: 'energy_regen、impact、anomaly_mastery 已满足',
               sourceIds: ['synthetic-source'],
@@ -470,20 +716,19 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
-    const text = screen.getByRole('region', { name: '绝对品质与成长证据' }).textContent ?? ''
-    expect(text).toContain('常规构筑')
-    expect(text).toContain('功能目标')
-    expect(text).toContain('品质标尺')
-    expect(text).toContain('6 号位·能量自动回复')
-    expect(text).toContain('四件套条件')
+    const dialog = await openAgent()
+    const text = dialog.textContent ?? ''
+    expect(text).not.toContain('功能目标')
+    expect(text).not.toContain('品质标尺')
     expect(text).toContain('冲击力')
     expect(text).toContain('异常掌控')
     expect(screen.queryByText(/查看来源/)).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'BWIKI 构筑资料' })).not.toBeInTheDocument()
     expect(text).not.toMatch(/原资料未标注游戏版本|旧攻略沿用|这份分析未附/)
-    expect(screen.getByRole('group', { name: '全部待确认事项' })).toBeVisible()
+    expect(screen.queryByText('查看本用途条件')).not.toBeInTheDocument()
     expect(text).not.toMatch(/test-policy|synthetic-source|fnv1a|synthetic-investment/)
-    const mainCopy = [...screen.getByRole('region', { name: '绝对品质与成长证据' }).children]
+    const region = screen.getByRole('region', { name: '适用角色' })
+    const mainCopy = [...region.children]
       .filter((element) => element.tagName !== 'DETAILS')
       .map((element) => element.textContent)
       .join(' ')

@@ -1,6 +1,16 @@
+import {
+  flatStatMap,
+  percentStatMap,
+  knownNonPanelTwoPieceStats,
+  twoPiecePercentPanelKey,
+  twoPiecePostFlatPanelKey,
+  emptyValues,
+  initialValues,
+  unsupported,
+  add,
+} from './outOfCombatPanelValues'
 import { resolveDriveDiscMainStatValue, hasLegalSixDriveDiscs } from './outOfCombatDiscStats'
 export { resolveDriveDiscMainStatValue, hasLegalSixDriveDiscs } from './outOfCombatDiscStats'
-import type { StatKey } from '../domain/schemas'
 import {
   getCurrentDriveDiscFormulaData,
   resolveCurrentDriveDiscTwoPieceModifiers,
@@ -9,6 +19,7 @@ import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStat
 import { FIRST_PLUMAGE_STABLE_ID, resolveFirstPlumageInitialStats } from './reviewedWEngine33'
 import {
   currentPanelData,
+  getCurrentPanelGrowthAgent,
   resolveCurrentAgentCoreGrowth,
 } from '../gameDataPacks/panel/currentPanelData'
 import {
@@ -23,6 +34,7 @@ import {
   getCurrentAgentNumericContract,
   resolveCurrentAgentInitialNumericPassive,
 } from './currentAgentNumericContracts'
+import { validateOutOfCombatGrowth } from './outOfCombatGrowthValidation'
 import { projectOutOfCombatInitialModifiers } from './outOfCombatInitialModifiers'
 import { evaluateSourceBoundSheerForce32 } from './currentSourceBoundSheerForce32'
 import { attributePanelKeys, type ExtendedPanelKey } from '../domain/characterPanelStats'
@@ -32,12 +44,15 @@ import {
 } from '../gameDataPacks/panel/reviewedMenuBaseStats'
 import {
   outOfCombatKeys,
-  type OutOfCombatKey,
   type PanelInput,
   type PanelResult,
   type PanelTrace,
 } from './outOfCombatPanelSupport'
-import { reviewedAgentPanelBaseline32 } from '../gameDataPacks/reviewedAgentPanelBaseline32'
+import {
+  getReviewedRuptureAdrenalineRegen,
+  getReviewedRuptureResourceBaseline,
+  reviewedAgentPanelBaseline32,
+} from '../gameDataPacks/reviewedAgentPanelBaseline32'
 import { projectReviewedClaretResourcePanel32 } from './reviewedClaretResourceEvents32'
 export { outOfCombatKeys, projectPanelEngineSupport } from './outOfCombatPanelSupport'
 export type {
@@ -48,89 +63,6 @@ export type {
   PanelEngineSupport,
 } from './outOfCombatPanelSupport'
 
-type PanelValues = Record<OutOfCombatKey, number>
-
-const defaultCritRate = currentFormulaBaseStats.critRate * 100
-const defaultCritDamage = currentFormulaBaseStats.critDamage * 100
-const flatStatMap: Partial<Record<StatKey, OutOfCombatKey>> = {
-  hp_flat: 'hp',
-  atk_flat: 'atk',
-  def_flat: 'def',
-  crit_rate: 'critRate',
-  crit_dmg: 'critDamage',
-  anomaly_proficiency: 'anomalyProficiency',
-  pen: 'pen',
-  pen_ratio: 'penRatio',
-}
-const percentStatMap: Partial<Record<StatKey, OutOfCombatKey>> = {
-  hp_percent: 'hp',
-  atk_percent: 'atk',
-  def_percent: 'def',
-  anomaly_mastery: 'anomalyMastery',
-  impact: 'impact',
-  energy_regen: 'energyRegen',
-}
-const knownNonPanelTwoPieceStats = new Set([
-  'physical_dmg_',
-  'fire_dmg_',
-  'ice_dmg_',
-  'electric_dmg_',
-  'wind_dmg_',
-  'ether_dmg_',
-  'action_dmg_',
-  'shield_',
-  'dazeInc_',
-])
-const twoPiecePercentPanelKey: Partial<Record<string, OutOfCombatKey>> = {
-  hp_: 'hp',
-  atk_: 'atk',
-  def_: 'def',
-  impact_: 'impact',
-  anomMas_: 'anomalyMastery',
-  enerRegen_: 'energyRegen',
-}
-const twoPiecePostFlatPanelKey: Partial<Record<string, OutOfCombatKey>> = {
-  crit_: 'critRate',
-  crit_dmg_: 'critDamage',
-  anomProf: 'anomalyProficiency',
-  pen_: 'penRatio',
-}
-
-function emptyValues(): PanelValues {
-  return Object.fromEntries(outOfCombatKeys.map((key) => [key, 0])) as PanelValues
-}
-
-function initialValues(): PanelValues {
-  return {
-    ...emptyValues(),
-    critRate: defaultCritRate,
-    critDamage: defaultCritDamage,
-    lacerationDamage: currentFormulaBaseStats.lacerationDamage * 100,
-  }
-}
-
-function unsupported(reason: string): PanelResult {
-  return {
-    status: 'unsupported',
-    values: emptyValues(),
-    trace: [],
-    menuRounding: 'menu_rule_missing',
-    reason,
-  }
-}
-
-function add(
-  target: PanelValues,
-  trace: PanelTrace[],
-  key: OutOfCombatKey,
-  value: number,
-  source: string,
-  operation: PanelTrace['operation'],
-) {
-  target[key] += value
-  trace.push({ key, source, operation, value })
-}
-
 /** Menu consumers share the arithmetic while normalizing only source white bases. */
 export function projectOutOfCombatMenuPanel(input: PanelInput): PanelResult {
   return projectOutOfCombatPanel(input, 'menu_white_base')
@@ -140,35 +72,18 @@ export function projectOutOfCombatPanel(
   input: PanelInput,
   basis: 'source_precision' | 'menu_white_base' = 'source_precision',
 ): PanelResult {
-  const agent = currentPanelData.agents[input.agentId]
+  const reviewed = currentPanelData.agents[input.agentId]
+  const agent =
+    reviewed?.kind === 'menu_observed' &&
+    (input.level !== reviewed.level ||
+      input.ascension !== reviewed.ascension ||
+      input.core !== reviewed.core)
+      ? getCurrentPanelGrowthAgent(input.agentId)
+      : reviewed
   const engine = currentPanelData.wEngines[input.wEngine.id]
   if (!agent || !engine) return unsupported('未知 agentId 或 engineId。')
-  if (
-    agent.kind === 'menu_observed' &&
-    (input.level !== agent.level || input.ascension !== agent.ascension)
-  ) {
-    return unsupported('观测锚点仅登记了 60级/5突破的菜单观测值。')
-  }
-  if (!Number.isInteger(input.level) || input.level < 1 || input.level > 60) {
-    return unsupported('代理人等级必须在 1 到 60 之间。')
-  }
-  if (!Number.isInteger(input.ascension) || input.ascension < 0 || input.ascension > 5) {
-    return unsupported('代理人突破阶段必须在 0 到 5 之间。')
-  }
-  if (
-    !Number.isInteger(input.wEngine.level) ||
-    input.wEngine.level < 0 ||
-    input.wEngine.level > 60
-  ) {
-    return unsupported('音擎等级必须在 0 到 60 之间。')
-  }
-  if (
-    !Number.isInteger(input.wEngine.ascension) ||
-    input.wEngine.ascension < 0 ||
-    input.wEngine.ascension > 5
-  ) {
-    return unsupported('音擎突破阶段必须在 0 到 5 之间。')
-  }
+  const growthError = validateOutOfCombatGrowth(input)
+  if (growthError) return unsupported(growthError)
   if (
     !Number.isInteger(input.core) ||
     input.core < -1 ||
@@ -504,7 +419,39 @@ export function projectOutOfCombatPanel(
   })
 
   const extended: Partial<Record<ExtendedPanelKey, number>> = { ...damageBonuses }
+  const adrenalineRegen = getReviewedRuptureAdrenalineRegen(input.agentId)
+  if (adrenalineRegen !== undefined) {
+    extended.adrenalineRegen = adrenalineRegen
+    trace.push({
+      key: 'adrenalineRegen',
+      source: `character:${input.agentId}:reviewed-rupture-adrenaline-base-3.2-to-3.3`,
+      operation: 'base',
+      value: adrenalineRegen,
+    })
+  }
   const sharpnessPanel = projectReviewedClaretResourcePanel32(input.agentId)
+  const resourceBaseline = getReviewedRuptureResourceBaseline(input.agentId)
+  if (resourceBaseline) {
+    extended.maxAdrenaline = resourceBaseline.base.maxAdrenaline
+    trace.push({
+      key: 'maxAdrenaline',
+      operation: 'base',
+      value: extended.maxAdrenaline,
+      source: `${resourceBaseline.source.url}#${resourceBaseline.source.locator};sha256=${resourceBaseline.source.sha256}`,
+    })
+    if (
+      'adrenalineGenerationRate' in resourceBaseline.base &&
+      typeof resourceBaseline.base.adrenalineGenerationRate === 'number'
+    ) {
+      extended.adrenalineGenerationRate = resourceBaseline.base.adrenalineGenerationRate
+      trace.push({
+        key: 'adrenalineGenerationRate',
+        operation: 'base',
+        value: extended.adrenalineGenerationRate,
+        source: 'miyoushe:73100348:image017:out-of-combat-base-reference',
+      })
+    }
+  }
   if (sharpnessPanel)
     for (const key of ['sharpEnergyRegen', 'maxSharpEnergy'] as const) {
       extended[key] = sharpnessPanel[key]

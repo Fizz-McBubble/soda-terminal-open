@@ -16,16 +16,16 @@ export function retentionCondition(
   const rule = condition.rule
   const name =
     rule.kind === 'teammate'
-      ? (agentCatalog.find((row) => row[0] === rule.agentId)?.[1] ?? rule.agentId)
+      ? (agentCatalog.find((row) => row[0] === rule.agentId)?.[1] ?? '指定代理人')
       : ''
   const setName =
     'setId' in rule
       ? (currentDriveDiscRecommendationCatalog.find((row) => row.id === rule.setId)?.name ??
-        rule.setId)
+        '指定套装')
       : ''
   const detail =
     rule.kind === 'teammate'
-      ? `需要队友 ${name}；未确认队伍时只作为潜在构筑方向。`
+      ? `需要队友 ${name}。`
       : rule.kind === 'teammate_four_piece'
         ? `需要队友装备 ${setName} 四件套。`
         : rule.kind === 'teammate_not_four_piece'

@@ -1,102 +1,11 @@
 import type { StatKey } from '../domain/schemas'
-import type { AgentProfileField, AgentProfileSourceRef } from './agentProfileFieldProjection'
+import type { AgentProfileField } from './agentProfileFieldProjection'
 import type { CandidateSetPlan } from './candidateSetPlans'
 import type { CandidateWarehouseConstraint } from './candidateWarehouseConstraints'
-import type { TargetPanelMetricSemantic } from './targetPanelSemantics'
 
-const checkedAt = '2026-09-30T12:29:09.2100756Z'
-const provenanceBoundary =
-  '最小事实提取与来源定位，不复制攻略正文或媒体；来源推荐不是全局强度或 Formal 数值。Gachabase 与锁定上游同根；Prydwen 的 contentHash 标记事实提取 JSON，未冒充原始网页响应哈希。'
-type VerifiedBuildSource32 = AgentProfileSourceRef & {
-  sourceVersion: '3.2'
-  checkedAt: string
-  contentHash: string
-}
-
-export const gameData32BuildSources: Readonly<Record<string, VerifiedBuildSource32>> =
-  Object.freeze({
-    claretRelease: {
-      id: 'gachabase-release-claret',
-      url: 'https://zzz.gachabase.net/agents/1611/claret/release/3.2.0/18761130?lang=en',
-      sourceVersion: '3.2',
-      checkedAt,
-      contentHash: '824763D09A86467208AC596A8AB3446E8941F7D3B3D831FBC9E157147603DF0B',
-      licenseBoundary: provenanceBoundary,
-    },
-    roxyRelease: {
-      id: 'gachabase-release-roxy',
-      url: 'https://zzz.gachabase.net/agents/1621/roxy/release/3.2.0/18761130?lang=en',
-      sourceVersion: '3.2',
-      checkedAt,
-      contentHash: 'F98A6B5FFBF36BE6C2399499E73EE2408E1E91AC0F32B2317227E7707396BDE9',
-      licenseBoundary: provenanceBoundary,
-    },
-    claretGuide: {
-      id: 'prydwen-original-claret32',
-      url: 'https://www.prydwen.gg/zenless/characters/claret',
-      sourceVersion: '3.2',
-      authorReviewedVersion: '3.2',
-      checkedAt,
-      contentHash: '028F278DA96D0EB8073767A8790FAF55F8D64F018B91296E3CC098876ECF069A',
-      licenseBoundary: provenanceBoundary,
-    },
-    koledaGuide: {
-      id: 'prydwen-original-koleda32',
-      url: 'https://www.prydwen.gg/zenless/characters/koleda',
-      sourceVersion: '3.2',
-      authorReviewedVersion: '3.2',
-      checkedAt,
-      contentHash: 'F40C8569D4AC9586A7AD4826ED3D64715C09FFDECA32043258C28CF4C742975C',
-      licenseBoundary: provenanceBoundary,
-    },
-    koledaLiveBuild32: {
-      id: 'hoyobuild-koleda-current-build-20261020',
-      url: 'https://hoyobuild.com/en/zzz/characters/koleda',
-      sourceVersion: '3.2',
-      authorReviewedVersion: null,
-      checkedAt: '2026-10-20T07:02:17.826Z',
-      contentHash: 'ADB655BE1C8766DD98C63A2B0DB65797217472EFF605B070FD060A30970CE75B',
-      licenseBoundary:
-        '当次HTTP 200正文UTF-8字节SHA256；采用明确套装、词条和技能方向。页面3.2标签与作者复审版本分开；页面引用Game8/IcyVeins不另计独立来源，不复制正文或媒体。',
-    },
-    sigridLiveBuild32: {
-      id: 'hoyobuild-sigrid-current-conditions-20261020',
-      url: 'https://hoyobuild.com/en/zzz/characters/sigrid',
-      sourceVersion: '3.2',
-      authorReviewedVersion: null,
-      checkedAt: '2026-10-20T07:02:19.116Z',
-      contentHash: '2EE31BE1F976A554FFE26BB33C68705066D33BEB1579802349B4070C2A28F14D',
-      licenseBoundary:
-        '当次HTTP 200正文UTF-8字节SHA256；只补充河豚四件的琉音推荐场景及拂晓连段前EX条件，页面引用Prydwen/Game8不另计独立来源，不采用其33.8%为数学满暴上限。',
-    },
-    roxyGuide: {
-      id: 'prydwen-original-roxy32',
-      url: 'https://www.prydwen.gg/zenless/characters/roxy',
-      sourceVersion: '3.2',
-      authorReviewedVersion: '3.2',
-      checkedAt: '2026-09-30',
-      contentHash: '4781646B6DEB1A7148619A41846AA5AE7B908B5CBC222C279651F638C2596D0D',
-      licenseBoundary: provenanceBoundary,
-    },
-    roxyAlternativesReviewed: {
-      id: 'prydwen-roxy32-alternatives-20261011',
-      url: 'https://www.prydwen.gg/zenless/characters/roxy',
-      sourceVersion: '3.2',
-      checkedAt: '2026-10-11',
-      contentHash: '363575F9C1FD017C3C85A92051C9E9AD856B4638E9B0BCB777105B43F7F0CF43',
-      licenseBoundary:
-        '最小事实JSON提取hash，非HTTP原始字节。原攻略Best W-Engines的精炼、队伍及能量条件；不采用伤害/失衡百分比。',
-    },
-    claretRoxyBangbooReviewed: {
-      id: 'zzzgg-roxy32-bangboo-20261011',
-      url: 'https://zzz.gg/zh-hans/characters/洛克茜',
-      sourceVersion: '3.2',
-      checkedAt: '2026-10-11',
-      contentHash: '363575F9C1FD017C3C85A92051C9E9AD856B4638E9B0BCB777105B43F7F0CF43',
-      licenseBoundary:
-        '最小事实JSON提取hash，非HTTP原始字节。原页最佳邦布与队伍搭配的三人成员和可选邦布；不复制正文/媒体，不设默认或精确强度。',
-    },
-  })
+import { checkedAt, gameData32BuildSources } from './gameData32BuildSources'
+export { gameData32BuildSources } from './gameData32BuildSources'
+import { reviewedEndgamePanel32 } from './gameData32EndgamePanels'
 
 export type GameData32BuildGuidance = {
   readonly agentId: string
@@ -286,12 +195,12 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
       ],
       unresolvedSetDirections: [],
       mainStats: {
-        '4': ['crit_rate', 'def_percent'],
+        '4': ['crit_rate'],
         '5': ['pen_ratio', 'electric_dmg', 'def_percent'],
         '6': ['def_percent'],
       },
       mainStatLines: [
-        '4号位：暴击率优先，防御力百分比为来源备选',
+        '4号位：暴击率',
         '5号位：穿透率优先，电属性伤害、防御力百分比为备选',
         '6号位：防御力百分比',
       ],
@@ -417,104 +326,6 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
 
 export function getGameData32BuildGuidance(agentId: string): GameData32BuildGuidance | null {
   return gameData32BuildGuidance[agentId] ?? null
-}
-
-// Reviewed numeric facts from the original Level 60 endgame sections. These
-// guide references do not establish unconditional account deficit thresholds.
-const referenceMetric: TargetPanelMetricSemantic = {
-  requirement: 'required',
-  boundary: 'minimum',
-  observation: 'reference',
-}
-const secondaryMetric: TargetPanelMetricSemantic = {
-  ...referenceMetric,
-  requirement: 'optional',
-}
-const reviewedEndgamePanels32 = {
-  'agent-claret': {
-    sourceKey: 'claretGuide',
-    evidenceTextSha256: '914674314ABCCF87D9E87A7ED844C1795AC7D0E1CA82E757D555057335E3D677',
-    value: {
-      def: { min: 2300, max: 2600, upperOpen: true },
-      hp: { min: 9500 },
-      targetSemantics: { def: referenceMetric, hp: secondaryMetric },
-      displayVariants: ['暴击率 128.9%（专武参考）'],
-      conditionalReferences: { signatureCritRate: 128.9, combatCritRateApproximate: 200 },
-    },
-    conditions: [
-      '60级养成参考；防御力2300–2600+，生命值9500+。',
-      '128.9%暴击率以「猩红渴望」为前提，不能套用于其他音擎；计入核心、音擎和队友加成后，局内暴击率尽量接近200%。',
-      '生命值列为基础参考，不需要为达标专门堆生命词条。',
-    ],
-  },
-  'agent-roxy': {
-    sourceKey: 'roxyGuide',
-    evidenceTextSha256: '346839BC1F97292F9438BD668A55736E3FD4A5B767872573E3CA5FC50DE9FD3E',
-    value: {
-      atk: { min: 2200, max: 2500, upperOpen: true },
-      critRate: { min: 74.6, max: 100 },
-      critDamage: { min: 70, max: 100, upperOpen: true },
-      energyRegen: { min: 2.88 },
-      hp: { min: 9500 },
-      def: { min: 750 },
-      targetSemantics: {
-        atk: referenceMetric,
-        critRate: referenceMetric,
-        critDamage: referenceMetric,
-        energyRegen: referenceMetric,
-        hp: secondaryMetric,
-        def: secondaryMetric,
-      },
-      conditionalReferences: { signatureCritRate: 76, dualEnergySetRegen: 3.12 },
-    },
-    conditions: [
-      '60级养成参考；回能6号位方向，能量自动回复2.88+。',
-      '暴击率74.6%–100%随音擎与配置变化；使用「绯月银棺」时，初始76%可在音擎加成后达到100%。',
-      '满核心时回能转换的冲击加成在3.12达到上限；攻略以两个回能2件套达到该数值，常规4+2搭配不必强求。',
-      '生命值9500+、防御力750+列为基础参考，不需要为此专门堆词条。',
-    ],
-  },
-} as const
-
-function reviewedEndgamePanel32(agentId: string): AgentProfileField[] {
-  const entry = reviewedEndgamePanels32[agentId as keyof typeof reviewedEndgamePanels32]
-  if (!entry) return []
-  const source = gameData32BuildSources[entry.sourceKey]!
-  return [
-    {
-      group: 'build_guidance',
-      path: 'build.target_panel',
-      status: 'candidate',
-      gameVersion: '3.2',
-      originalSourceVersion: '3.2',
-      lastChangeVersion: '3.2',
-      currentApplicability: 'continuous',
-      verifiedAt: '2026-10-11',
-      conflict: null,
-      value: {
-        ...entry.value,
-        sourceMetadata: {
-          section: 'Best Endgame Stats (Level 60)',
-          checkedAt: '2026-10-11',
-          evidenceTextSha256: entry.evidenceTextSha256,
-          hashScope:
-            'Selected original numeric section text with normalized whitespace; not HTTP response bytes.',
-        },
-      },
-      conditions: [...entry.conditions],
-      sourceRefs: [
-        {
-          ...source,
-          id: `${source.id}-endgame-20261011`,
-          checkedAt: '2026-10-11',
-          contentHash: entry.evidenceTextSha256,
-          licenseBoundary:
-            'Citation-only numeric facts; hash covers selected normalized source text, not HTTP bytes. No copied prose or media.',
-        },
-      ],
-      reason: '复核原攻略60级数值参考并保留配置条件；不作为无条件差距阈值或Formal输入。',
-    },
-  ]
 }
 
 /** The guide and inventory solver share the same typed set roles. */

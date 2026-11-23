@@ -53,6 +53,8 @@ export type DiscEnhancementPotential = {
   undominatedAgentIds: string[]
   /** Strict optimistic improvement over the best present same-class score, by role. */
   improvableAgentIds?: string[]
+  /** A strict improvement for a branch that supports the selected investment trial. */
+  investmentContextCanImprove?: boolean
   candidateAlternativeIds: string[]
   coverageAlternativeIds: string[]
   /** Finished-disc coverage also preserves useful stat tradeoffs in tied roles. */
@@ -137,6 +139,7 @@ export function evaluateDiscEnhancementPotential(input: {
   history: SubStatHistory
   agents: readonly EnhancementPotentialAgent[]
   profileCoverageComplete: boolean
+  investmentContextIds?: ReadonlySet<string>
 }): DiscEnhancementPotential {
   if (!input.profileCoverageComplete) return unevaluated(input.history, 'missing_profile')
   if (input.history.status !== 'known') return unevaluated(input.history, 'missing_history')
@@ -438,6 +441,19 @@ export function evaluateDiscEnhancementPotential(input: {
     hasMeaningfulDemand: compatibleAgents.length > 0,
   })
 
+  const improvable = ceilings.filter(
+    ({ dimension, optimistic, realized }) =>
+      dimension.agentId !== null &&
+      optimistic >
+        Math.max(
+          realized,
+          ...alternatives.map((alternative) =>
+            realizedScore(alternative, dimension.weights, 'alternative'),
+          ),
+        ),
+  )
+  const investmentContextIds = input.investmentContextIds
+
   return {
     investmentStopReason,
     investmentAlternativeIds: investmentAlternatives.map((alternative) => alternative.id),
@@ -458,22 +474,14 @@ export function evaluateDiscEnhancementPotential(input: {
         : maxOptimisticEffectiveRolls >= communityMinimumEffectiveRolls,
     relevantAgentIds: [...new Set(compatibleAgents.map(({ agentId }) => agentId))],
     undominatedAgentIds: [...new Set(undominatedAgentIds)],
-    improvableAgentIds: [
-      ...new Set(
-        ceilings.flatMap((ceiling) =>
-          ceiling.dimension.agentId &&
-          ceiling.optimistic >
-            Math.max(
-              ceiling.realized,
-              ...alternatives.map((alternative) =>
-                realizedScore(alternative, ceiling.dimension.weights, 'alternative'),
-              ),
-            )
-            ? [ceiling.dimension.agentId]
-            : [],
-        ),
-      ),
-    ],
+    improvableAgentIds: [...new Set(improvable.map(({ dimension }) => dimension.agentId!))],
+    ...(investmentContextIds
+      ? {
+          investmentContextCanImprove: improvable.some(({ dimension }) =>
+            investmentContextIds.has(dimension.id),
+          ),
+        }
+      : {}),
     candidateAlternativeIds: candidateAlternatives.map((alternative) => alternative.id),
     coverageAlternativeIds: coverageAlternatives.map((alternative) => alternative.id),
     completedCoverageAlternativeIds: completedCoverageAlternatives.map(

@@ -2,6 +2,7 @@
 @import './team-loadout-overview.part2.css';
 @import './team-loadout-overview.variants.css';
 @import './team-loadout-overview.actions.css';
+@import './team-loadout-reference-badges.css';
 .f5v-box-team-dps {
   color: var(--f5v-ink-soft, #625d6a);
   font-size: 0.72rem;

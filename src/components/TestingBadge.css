@@ -1,15 +1,35 @@
-.f5v-shell .testing-badge > .explanation__trigger {
-  min-height: 0;
+.f5v-shell .explanation.testing-badge > .explanation__trigger:not(.button) {
+  min-height: 28px;
   padding: 2px 5px;
-  border-radius: 4px;
-  background: #e9e3f5;
-  color: #55427c;
-  font-size: 0.625rem;
-  font-weight: 800;
-  line-height: 1.5;
+  border: 1px solid var(--soda-line-strong);
+  border-radius: var(--soda-radius-tag);
+  background: var(--soda-surface-raised);
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  font-weight: 700;
+  line-height: 1.4;
   letter-spacing: 0;
   white-space: nowrap;
   --explanation-underline: none;
+}
+
+.f5v-shell .explanation.testing-badge > .explanation__trigger:not(.button):hover,
+.f5v-shell .explanation.testing-badge > .explanation__trigger:not(.button)[aria-expanded='true'] {
+  border-color: var(--soda-accent);
+  background: var(--soda-surface);
+  color: var(--soda-accent-ink);
+}
+
+.f5v-shell .explanation.testing-badge > .explanation__trigger:not(.button):focus-visible {
+  outline: 2px solid var(--soda-accent-ink);
+  outline-offset: 2px;
+}
+
+.f5v-shell .explanation.testing-badge--test > .explanation__trigger:not(.button) {
+  border-color: #e5cf98;
+  background: #fff4d8;
+  color: var(--soda-amber);
+  font-weight: 800;
 }
 
 .f5v-shell .testing-badge {
@@ -24,12 +44,71 @@
 }
 
 .f5v-navigation .f5v-navigation__testing-row > a {
-  padding-right: 52px;
+  padding-right: 38px;
 }
 
 .f5v-navigation__testing-row > .testing-badge {
   position: absolute;
-  right: 12px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
+}
+
+@media (min-width: 961px) and (max-width: 1279px) {
+  .f5v-shell .f5v-navigation {
+    margin-inline: -6px;
+  }
+}
+
+.f5v-shell
+  .f5v-navigation__testing-row
+  > .explanation.testing-badge
+  > .explanation__trigger:not(.button) {
+  min-width: 28px;
+  padding: 0 3px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.f5v-shell
+  .f5v-navigation__testing-row
+  > .explanation.testing-badge
+  > .explanation__trigger:not(.button):is(:hover, [aria-expanded='true']) {
+  background: color-mix(in srgb, var(--soda-accent) 9%, var(--soda-surface));
+}
+
+@media (pointer: coarse) {
+  .f5v-shell
+    .f5v-navigation__testing-row
+    > .explanation.testing-badge
+    > .explanation__trigger:not(.button) {
+    min-height: 32px;
+  }
+}
+
+/* Keep the quiet disclosure legible on the active navigation pill. */
+.f5v-shell
+  .f5v-navigation__testing-row:has(> a.is-current)
+  > .explanation.testing-badge
+  > .explanation__trigger:not(.button) {
+  color: var(--soda-surface);
+}
+
+.f5v-shell
+  .f5v-navigation__testing-row:has(> a.is-current)
+  > .explanation.testing-badge
+  > .explanation__trigger:not(.button):is(:hover, [aria-expanded='true']) {
+  border-color: color-mix(in srgb, var(--soda-surface) 68%, transparent);
+  background: color-mix(in srgb, var(--soda-surface) 24%, var(--soda-accent-ink));
+  color: var(--soda-surface);
+}
+
+.f5v-shell
+  .f5v-navigation__testing-row:has(> a.is-current)
+  > .explanation.testing-badge
+  > .explanation__trigger:not(.button):focus-visible {
+  outline: 2px solid var(--soda-surface);
+  outline-offset: 2px;
 }

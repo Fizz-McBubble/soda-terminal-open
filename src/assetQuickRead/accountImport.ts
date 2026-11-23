@@ -17,7 +17,6 @@ import {
   factHash,
   readFacts,
   readPlanningDiscIds,
-  recoveryUnavailableReason,
   validRecovery,
 } from './accountImportRecoverySupport'
 import { mergeAssetQuickReadRoster } from './accountRosterMerge'
@@ -118,10 +117,13 @@ function createPlan(
       'import_data_unavailable',
       '当前驱动盘规则不可用，请先完成数据加载。',
     )
-  if (candidate.discs.discs.some((disc) => disc.rarity !== 'S'))
+  if (
+    candidate.discs.discs.length !== candidate.counts.discs ||
+    candidate.discs.discs.filter((disc) => disc.rarity === 'S').length !== candidate.counts.sDiscs
+  )
     throw new AssetQuickReadImportError(
       'import_preflight_failed',
-      '资产快读仅支持 S 级盘导入，未写入账户。',
+      '驱动盘数量或 S 级数量与快照不一致，未写入账户。',
     )
   const parsed = candidate.discs.discs.length
     ? preflightDriveDiscImport(candidate.discs, {
@@ -137,11 +139,11 @@ function createPlan(
   if (
     parsed.summary.failed ||
     parsed.summary.skipped ||
-    parsed.readyDiscs.length !== candidate.counts.sDiscs
+    parsed.readyDiscs.length !== candidate.counts.discs
   )
     throw new AssetQuickReadImportError(
       'import_preflight_failed',
-      '本次 S 盘预检未全部通过，未写入账户。',
+      '本次驱动盘预检未全部通过，未写入账户。',
     )
   const sources = parsed.readyDiscs.map((disc) => disc.importSource?.sourceId)
   if (sources.some((source) => !source) || new Set(sources).size !== sources.length)
@@ -150,6 +152,16 @@ function createPlan(
       '物理盘实例编号缺失或重复，未写入账户。',
     )
   const incomingSources = new Set(sources)
+  for (const incoming of parsed.readyDiscs) {
+    const matches = before.discs.filter(
+      (disc) => disc.importSource?.sourceId === incoming.importSource?.sourceId,
+    )
+    if (matches.length > 1 || matches.some((disc) => disc.rarity !== incoming.rarity))
+      throw new AssetQuickReadImportError(
+        'import_identity_conflict',
+        '已有盘的实例编号重复或品级冲突，未写入账户。',
+      )
+  }
   const eligible = before.discs.filter(
     (disc) =>
       !disc.importSource?.sourceId?.startsWith('asset-quick-read:') ||
@@ -350,6 +362,7 @@ export function confirmAssetQuickReadImport(
     accountId: string
     snapshotSha256: string
     sameGameAccountAndCounts: true
+    observedDiscCount?: number
   },
   db: SodaDatabase = database,
   beforeCommit?: () => void,
@@ -374,6 +387,14 @@ export function confirmAssetQuickReadImport(
         throw new AssetQuickReadImportError(
           'import_scope_changed',
           '目标账户或快照已变化，请重新核对并确认。',
+        )
+      if (
+        candidate.counts.discs !== candidate.counts.sDiscs &&
+        confirmation.observedDiscCount !== candidate.counts.discs
+      )
+        throw new AssetQuickReadImportError(
+          'import_scope_changed',
+          '包含 A/B 盘的读取结果需要核对全部驱动盘数量；请更新预览后重新确认，未写入账户。',
         )
       await assertScope(plan.accountId, db)
       const before = await readFacts(plan.accountId, db)
@@ -429,63 +450,6 @@ export function confirmAssetQuickReadImport(
   )
 }
 
-export function restoreAssetQuickReadImport(
-  accountId: string,
-  recoveryKey: string,
-  confirmation: 'restore_asset_quick_read',
-  db: SodaDatabase = database,
-) {
-  return db.transaction(
-    'rw',
-    [
-      db.accounts,
-      db.settings,
-      db.accountDriveDiscs,
-      db.accountRosters,
-      db.accountPreferences,
-      db.accountPlanningDrafts,
-    ],
-    async () => {
-      if (confirmation !== 'restore_asset_quick_read')
-        throw new AssetQuickReadImportError('import_restore_conflict', '需要明确确认恢复本次导入。')
-      await assertScope(accountId, db)
-      const stored = await db.accountPreferences.get(getScopedId(accountId, recoveryKey))
-      const recovery = stored?.value
-      if (stored?.accountId !== accountId || !validRecovery(recovery, accountId))
-        throw new AssetQuickReadImportError(
-          'import_restore_unavailable',
-          '本次导入的恢复副本不可用，未修改账户。',
-        )
-      const current = await readFacts(accountId, db)
-      const unavailableReason = await recoveryUnavailableReason(accountId, recovery, current, db)
-      if (unavailableReason)
-        throw new AssetQuickReadImportError('import_restore_conflict', unavailableReason)
-      for (const disc of recovery.before.discs) {
-        driveDiscSchema.parse(disc)
-        if (disc.accountId !== accountId || disc.scopedId !== getScopedId(accountId, disc.id))
-          throw new AssetQuickReadImportError('import_restore_conflict', '恢复副本账户范围不一致。')
-      }
-      const previousIds = new Set(recovery.before.discs.map((disc) => disc.id))
-      await db.accountDriveDiscs.bulkDelete(
-        current.discs.filter((disc) => !previousIds.has(disc.id)).map((disc) => disc.scopedId),
-      )
-      await db.accountDriveDiscs.bulkPut(recovery.before.discs)
-      if (recovery.before.roster) await db.accountRosters.put(recovery.before.roster)
-      else await db.accountRosters.delete(accountId)
-      if (factHash(await readFacts(accountId, db)) !== recovery.beforeHash)
-        throw new AssetQuickReadImportError(
-          'import_restore_conservation_failed',
-          '恢复守恒校验失败，事务已回滚。',
-        )
-      await db.accountPreferences.put({
-        ...stored!,
-        value: { ...recovery, restoredAt: new Date().toISOString() },
-      })
-      return { accountId, restoredDiscs: recovery.before.discs.length }
-    },
-  )
-}
-
 export async function removeSavedAssetQuickReadRecovery(
   accountId: string,
   recoveryKey: string,
@@ -507,3 +471,5 @@ export async function removeSavedAssetQuickReadRecovery(
     await db.accountPreferences.delete(key)
   })
 }
+
+export { restoreAssetQuickReadImport } from './accountImportRestore'

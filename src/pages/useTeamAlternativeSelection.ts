@@ -17,6 +17,7 @@ export function useTeamAlternativeSelection({
   readOnly,
   switchingAlternativeId,
   targetFitRequestGeneration,
+  alternativeAbortRef,
   capturePageScope,
   setSwitchingAlternativeId,
   setAlternativeError,
@@ -30,6 +31,7 @@ export function useTeamAlternativeSelection({
   readOnly: boolean
   switchingAlternativeId: string | null
   targetFitRequestGeneration: MutableRefObject<number>
+  alternativeAbortRef: MutableRefObject<AbortController | null>
   capturePageScope: () => () => boolean
   setSwitchingAlternativeId: Dispatch<SetStateAction<string | null>>
   setAlternativeError: Dispatch<SetStateAction<string | null>>
@@ -37,30 +39,55 @@ export function useTeamAlternativeSelection({
   navigate: NavigateFunction
 }) {
   return async (candidateId: string) => {
-    if (!decision || !analysisRunId || !calculationClient || readOnly || switchingAlternativeId)
+    if (
+      !decision ||
+      !analysisRunId ||
+      !calculationClient ||
+      readOnly ||
+      switchingAlternativeId === candidateId
+    )
       return
+    alternativeAbortRef.current?.abort()
+    const controller = new AbortController()
+    alternativeAbortRef.current = controller
     const generation = ++targetFitRequestGeneration.current
     const isCurrentPage = capturePageScope()
     const isCurrentRequest = () =>
-      isCurrentPage() && generation === targetFitRequestGeneration.current
+      !controller.signal.aborted &&
+      isCurrentPage() &&
+      generation === targetFitRequestGeneration.current
+    let navigating = false
     setSwitchingAlternativeId(candidateId)
     setAlternativeError(null)
     try {
-      const projected = await calculationClient
-        .queryTeamRoutePresentation({
-          contractVersion: calculationQueryContractVersion,
-          kind: 'team_route_presentation',
-          runId: analysisRunId,
-          candidateId,
-        })
-        .catch(() => null)
-      if (!isCurrentRequest()) return
-      const entry = acceptTeamRoutePresentation(projected, {
+      const identity = {
         runId: analysisRunId,
         accountId: accountId ?? '',
         inputFingerprint: decision.fingerprint.inputHash,
         candidateId,
-      })
+      }
+      const previous = acceptTeamRoutePresentation(
+        currentTeamAnalysisSession?.result.teamRoutePresentations?.[candidateId],
+        identity,
+      )
+      const projected =
+        previous ??
+        (await calculationClient
+          .queryTeamRoutePresentation(
+            {
+              contractVersion: calculationQueryContractVersion,
+              kind: 'team_route_presentation',
+              runId: analysisRunId,
+              candidateId,
+            },
+            { signal: controller.signal },
+          )
+          .catch((error) => {
+            if (controller.signal.aborted) throw error
+            return null
+          }))
+      if (!isCurrentRequest()) return
+      const entry = acceptTeamRoutePresentation(projected, identity)
       if (entry && currentTeamAnalysisSession?.result.analysisRunId === analysisRunId)
         setCurrentTeamAnalysisSession({
           ...currentTeamAnalysisSession,
@@ -77,21 +104,41 @@ export function useTeamAlternativeSelection({
         return
       }
       const destination = `/loadouts/team/${encodeURIComponent(candidateId)}`
+      const openDestination = () => {
+        navigate(destination)
+        navigating = true
+      }
       if (!entry.discOnlyCandidate && !entry.team.bangbooId && !entry.automaticBangboo) {
-        navigate(destination)
+        openDestination()
         return
       }
-      const cached = currentTeamAnalysisSession?.result.targetTeamFits[entry.team.id]
+      const currentSession = currentTeamAnalysisSession
+      const sameInput =
+        currentSession?.result.analysisRunId === analysisRunId &&
+        currentSession.result.warehouse.accountId === accountId &&
+        currentSession.result.inputFingerprint === decision.fingerprint.inputHash
+      const cached = sameInput ? currentSession.result.targetTeamFits[entry.team.id] : undefined
       if (cached?.candidateId === entry.targetCandidateId) {
-        navigate(destination)
+        openDestination()
         return
       }
-      const fit = await calculateTargetTeamWarehouseFit(analysisRunId, entry.targetCandidateId)
+      const fit = await calculateTargetTeamWarehouseFit(
+        analysisRunId,
+        entry.targetCandidateId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        controller.signal,
+      )
       if (!isCurrentRequest()) return
       const session = currentTeamAnalysisSession
       if (
         session?.result.analysisRunId !== analysisRunId ||
         session.result.warehouse.accountId !== accountId ||
+        session.result.inputFingerprint !== decision.fingerprint.inputHash ||
         session.result.decisionSnapshot.fingerprint.inputHash !== decision.fingerprint.inputHash
       ) {
         setAlternativeError('账户资料已更新，请重新分析后再配装。')
@@ -104,11 +151,12 @@ export function useTeamAlternativeSelection({
           targetTeamFits: { ...session.result.targetTeamFits, [entry.team.id]: fit },
         },
       })
-      navigate(destination)
+      openDestination()
     } catch {
       if (isCurrentRequest()) setAlternativeError('替换队伍配装失败，请重试；账户资产没有改变。')
     } finally {
-      if (isCurrentRequest()) setSwitchingAlternativeId(null)
+      if (alternativeAbortRef.current === controller) alternativeAbortRef.current = null
+      if (!navigating && isCurrentRequest()) setSwitchingAlternativeId(null)
     }
   }
 }

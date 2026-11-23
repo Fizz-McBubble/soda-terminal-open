@@ -43,7 +43,15 @@ describe('exact source conditions beyond editorial labels', () => {
       expect(result.unhandledConditions.every((row) => row.numericalized === false)).toBe(true)
       expect(result.sourceAuthority).toBe(team.authority)
     }
-    expect(covered).toBe(47)
+    expect(covered).toBe(48)
+    // The adopted potential condition also binds the retained Astra alternative.
+    expect(
+      currentTeamStrengthReferenceConditions([
+        'agent-astra',
+        'agent-nekomata',
+        'agent-norma',
+      ]).unhandledConditions.map((row) => row.rawDescription),
+    ).toContain('猫又潜能至少1级')
   })
 
   it.each([

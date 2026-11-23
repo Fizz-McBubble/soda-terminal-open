@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { teamDynamicFixture, legalTeamDisc } from './teamDynamicIntegration.testFixture'
 import { sourceBranchDiscs } from './targetTeamWarehouseFit.testFixture'
@@ -92,7 +93,8 @@ describe('production dynamic team inventory integration', () => {
     expect(result.status).toBe('ready')
     expect(result.uniqueDiscCount).toBe(18)
     expect(result.warehousePlan.solver?.search?.domain).toBe('game_legal_inventory')
-    expect(evaluate(result.warehousePlan.loadouts)).toBeGreaterThan(baseline.totalDamage)
+    const selectedDamage = evaluate(result.warehousePlan.loadouts)
+    expect(selectedDamage).toBeGreaterThan(baseline.totalDamage)
     expect(result.warehousePlan.loadouts.some((row) => row.setPattern === 'scattered')).toBe(true)
     expect(
       result.warehousePlan.loadouts
@@ -114,7 +116,7 @@ describe('production dynamic team inventory integration', () => {
       }),
     )
     const expectedValue = Math.max(...allocations.map((rows) => evaluate(rows) ?? -Infinity))
-    expect(evaluate(result.warehousePlan.loadouts)).toBeCloseTo(expectedValue)
+    expect(selectedDamage).toBeCloseTo(expectedValue)
     const originalScore = input.fit.loadouts.reduce((sum, row) => {
       const profile = candidateConstraintToDiscProfile(
         input.buildIntent.recommendations.find((item) => item.agentId === row.agentId)!.constraint!,
@@ -140,7 +142,9 @@ describe('production dynamic team inventory integration', () => {
       teamAssignmentObjective: createTargetTeamAssignmentObjective(input),
     })
     expect(reordered.loadouts.flatMap((row) => row.discIds).sort()).toEqual(originalIds)
-  })
+    // Two real searches plus independent recipient checks took 4.323s locally;
+    // the CI runner exceeded 5s. Bound this integration case, not the suite.
+  }, 10_000)
   it('rejects inconsistent enhancement history and every repeated physical identity', () => {
     const input = teamDynamicFixture()
     const invalid = legalTeamDisc(18)

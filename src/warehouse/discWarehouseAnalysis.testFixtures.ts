@@ -2,7 +2,7 @@ import type { DriveDisc } from '../domain/schemas'
 import { sampleDiscs } from '../evaluation/fixtures'
 
 export function warehouseTestDisc(id: string, patch: Partial<DriveDisc> = {}): DriveDisc {
-  return { ...sampleDiscs.treasureCandidate, id, locked: false, level: 15, ...patch }
+  return { ...sampleDiscs.treasureCandidate, id, rarity: 'S', locked: false, level: 15, ...patch }
 }
 
 export function warehouseEnhancementCandidate(

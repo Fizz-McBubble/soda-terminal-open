@@ -1,21 +1,13 @@
-import { sourceStunAppliesOutsideStun32 } from './sourceBoundStunApplication32'
-import {
-  currentAgentPlanningEffectBlueprints,
-  type CurrentAgentPlanningEffectBlueprint,
-} from './currentAgentPlanningEffectBlueprint'
+import { projectCommonMemberEquipmentRows } from './commonMemberEquipmentProjection'
+import { currentAgentPlanningEffectBlueprints } from './currentAgentPlanningEffectBlueprint'
 import { evaluateCurrentPlanningEffectEntries32 } from './currentPlanningEffectRuntime'
 import type { PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
 import { planningRuntimeEffectBuckets32 } from './currentPlanningSelfEffects32'
 import { calculateCurrentPlanningEventDamage32 } from './currentPlanningEventDamage32'
-import {
-  applicationForReceiver,
-  getPlanningDamageEventSemantics,
-  matchesEventScope,
-  recipientIds,
-  type SourceBackedPlanningEffectBucket,
-} from './currentPlanningDamageModifiers'
+import type { SourceBackedPlanningEffectBucket } from './currentPlanningDamageModifiers'
 import { planningBaselineSchema, type PlanningBaseline } from './planningDpsContract'
 import type { PlanningEventUsage } from './planningCalculationContextCompiler'
+import type { PotentialApplicationEvent } from './potentialApplicationBinding'
 import {
   getCurrentAgentEventContract,
   resolveCurrentAgentEvent,
@@ -24,13 +16,12 @@ import { stableContentHash } from '../gameDataPacks/types'
 import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
 import { isReviewedTemplateMechanicEffect32 } from './reviewedTemplateMechanicEffects32'
 import { isDamageFormula32Version } from './sharpDamageCore'
+import { fixedEventPacketDependencies32 } from './fixedEventPacketDependencies32'
 import {
-  effectAttributeForReceiver,
-  effectReceiverMetadata,
-  requiredReferences,
-} from './currentPlanningEffectExpressions'
-import { functionalEquipmentGaps32 } from './reviewedFunctionalEquipmentDependencies32'
-import { knownInactivePlanningEffect32 } from './planningKnownInactiveEffects32'
+  bindReviewedAnomalyPartyState32,
+  reviewedTargetEffectSnapshotSchema32,
+  type ReviewedTargetEffectSnapshot32,
+} from './reviewedAnomalyPartyState32'
 
 export type FixedEventSupportInput32 = {
   memberIds: readonly [string, string, string]
@@ -38,7 +29,11 @@ export type FixedEventSupportInput32 = {
   subjectAgentId: string
   eventUsages: readonly PlanningEventUsage[]
   baseline: PlanningBaseline
+  /** Actual packet target/time, independently declared from provider preview metadata. */
+  eventObservation?: ReviewedTargetEffectSnapshot32
   baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  /** Per-recipient, per-event evidence; never inferred from another actor. */
+  potentialEvents?: Readonly<Record<string, PotentialApplicationEvent>>
   equipmentModifierBuckets: readonly SourceBackedPlanningEffectBucket[]
   equipmentEffectExclusions: readonly unknown[]
 }
@@ -69,122 +64,6 @@ function equipmentOwner(value: unknown) {
       : null
 }
 
-/** Only source effects that can reach this declared damage packet establish
- * dependencies. Unrelated recovery/daze/shield domains stay outside the slice. */
-function packetDependencies(input: FixedEventSupportInput32) {
-  const contract = getCurrentAgentEventContract(input.subjectAgentId)!
-  const events = input.eventUsages.map(
-    (usage) => contract.eventContract.events.find((row) => row.eventId === usage.eventId)!,
-  )
-  const applications = new Set<string>([
-    'flat_damage',
-    'direct_damage_bonus',
-    'buff_bonus',
-    'vulnerability',
-    'motion_value_multiplier',
-    'damage_bonus',
-    'defense_reduction',
-    'defense_ignore',
-    'resistance_reduction',
-    'resistance_ignore',
-    'penetration_ratio',
-  ])
-  if (input.baseline.enemy.stunMultiplier > 1) applications.add('stun_damage_bonus')
-  const subjectFields = new Set<string>(['initial.pen', 'final.pen'])
-  for (const event of events) {
-    const semantics = getPlanningDamageEventSemantics(event)
-    if (semantics?.scalingAttribute === 'attack') {
-      applications.add('attack_percent').add('attack_flat')
-      subjectFields.add('initial.atk').add('final.atk')
-    }
-    if (semantics?.scalingAttribute === 'defense') {
-      applications.add('defense_percent').add('defense_flat')
-      subjectFields.add('initial.def').add('final.def')
-    }
-    if (semantics?.family === 'direct') applications.add('crit_rate').add('crit_damage')
-    if (semantics?.family === 'sharp')
-      applications.add('sharp_damage_bonus').add('laceration_damage').add('crit_rate')
-    if (semantics?.family === 'sheer') {
-      applications.add('sheer_force').add('sheer_damage_bonus')
-      subjectFields.add('initial.sheerForce').add('final.sheerForce')
-    }
-  }
-  const affectsPacket = (entry: CurrentAgentPlanningEffectBlueprint) => {
-    const provider = input.members.find((row) => row.agentId === entry.providerAgentId)
-    if (
-      !provider ||
-      knownInactivePlanningEffect32(
-        entry,
-        provider,
-        input.baselineReferencesByAgentId?.[provider.agentId] ?? {},
-        input.memberIds,
-      )
-    )
-      return false
-    const metadata = effectReceiverMetadata(entry.numericExpression.expressionIr)
-    const application = applicationForReceiver(metadata.receiverPath)
-    return (
-      (applications.has(application) ||
-        (application === 'stun_damage_bonus' && sourceStunAppliesOutsideStun32(entry) !== false)) &&
-      recipientIds({
-        ...entry,
-        memberIds: input.memberIds,
-        receiverPath: metadata.receiverPath,
-      }).includes(input.subjectAgentId) &&
-      events.some((event) =>
-        matchesEventScope(
-          {
-            effectId: entry.effectId,
-            applicationScope: entry.applicationScope,
-            damageType: metadata.damageType,
-            action: null,
-            attribute: effectAttributeForReceiver(metadata.receiverPath),
-          },
-          event,
-          event.attribute ?? contract.identity.attribute,
-        ),
-      )
-    )
-  }
-  const fieldsByMember = new Map(input.memberIds.map((id) => [id, new Set<string>()]))
-  fieldsByMember.set(input.subjectAgentId, subjectFields)
-  for (const entry of currentAgentPlanningEffectBlueprints.filter(affectsPacket)) {
-    const fields = fieldsByMember.get(entry.providerAgentId)
-    for (const path of requiredReferences(entry.numericExpression.expressionIr))
-      if (/^own\.(initial|final)\./.test(path)) fields?.add(path.slice(4))
-  }
-  // This reviewed source component is not the upstream placeholder expression.
-  if (input.baselineReferencesByAgentId?.[input.subjectAgentId]?.inside_any_ether_veil !== false)
-    fieldsByMember.get('agent-zhao')?.add('initial.hp')
-  const equipmentExclusions = input.equipmentEffectExclusions.flatMap((exclusion) => {
-    const row = record(exclusion)
-    const fields = Array.isArray(row?.writeFields) ? row.writeFields : []
-    const directFields = fields.filter(
-      (field) =>
-        typeof field === 'string' && applications.has(applicationForReceiver(`ownBuff.${field}`)),
-    ) as string[]
-    const affectedAgentIds = input.memberIds.filter(
-      (id) =>
-        functionalEquipmentGaps32(
-          [exclusion],
-          id,
-          [...(fieldsByMember.get(id) ?? []), ...(id === input.subjectAgentId ? directFields : [])],
-          events,
-        ).length,
-    )
-    return affectedAgentIds.length
-      ? [
-          {
-            providerAgentId: equipmentOwner(exclusion),
-            affectedAgentIds,
-            exclusion,
-          },
-        ]
-      : []
-  })
-  return { affectsPacket, equipmentExclusions }
-}
-
 function invalid(input: FixedEventSupportInput32) {
   if (!Array.isArray(input.equipmentEffectExclusions)) return '固定事件需要明确装备来源的未消费项。'
   if (
@@ -200,6 +79,12 @@ function invalid(input: FixedEventSupportInput32) {
     !isDamageFormula32Version(input.baseline.gameVersion)
   )
     return '固定事件需要明确的当前目标与比较条件。'
+  if (input.eventObservation !== undefined) {
+    if (!reviewedTargetEffectSnapshotSchema32.safeParse(input.eventObservation).success)
+      return 'fixed_event_observation_invalid32'
+    if (input.eventObservation.targetId !== input.baseline.enemy.id)
+      return 'fixed_event_observation_target_mismatch32'
+  }
   if (
     !input.memberIds.every((id) =>
       currentAssetProjection.agents.some(
@@ -233,6 +118,20 @@ function invalid(input: FixedEventSupportInput32) {
   )
     return '固定事件缺少一致的来源动作、实际技能或明确次数。'
   if (
+    Object.entries(input.potentialEvents ?? {}).some(
+      ([key, observation]) =>
+        !input.eventUsages.some(
+          (usage) =>
+            key === `${usage.ownerAgentId}:${usage.eventId}` &&
+            observation.eventId === usage.eventId,
+        ) ||
+        !Array.isArray(observation.sourceRefs) ||
+        observation.sourceRefs.length === 0 ||
+        observation.sourceRefs.some((ref) => typeof ref !== 'string' || !ref.trim()),
+    )
+  )
+    return 'fixed_event_potential_observation_mismatch32'
+  if (
     input.members.some(
       (row) =>
         Object.values(row.initialStats).some(
@@ -264,8 +163,25 @@ function invalid(input: FixedEventSupportInput32) {
 export function projectFixedEventSupportContribution32(input: FixedEventSupportInput32) {
   const reason = invalid(input)
   if (reason) return { status: 'unsupported' as const, blockers: [reason] }
+  let baselineReferencesByAgentId = input.baselineReferencesByAgentId
+  if (input.eventObservation !== undefined) {
+    const references: Record<string, Readonly<Record<string, unknown>>> = {
+      ...baselineReferencesByAgentId,
+    }
+    for (const member of input.members) {
+      const bound = bindReviewedAnomalyPartyState32({
+        providerAgentId: member.agentId,
+        references: references[member.agentId],
+        snapshot: input.eventObservation,
+      })
+      if (bound.status !== 'supported') return bound
+      references[member.agentId] = bound.references
+    }
+    baselineReferencesByAgentId = references
+  }
   const subject = input.members.find((row) => row.agentId === input.subjectAgentId)!
-  const dependencies = packetDependencies(input)
+  const dependencies = fixedEventPacketDependencies32({ ...input, baselineReferencesByAgentId })
+  if (dependencies.status === 'unsupported') return dependencies
   const relevant = currentAgentPlanningEffectBlueprints.filter(
     (entry) =>
       input.memberIds.includes(entry.providerAgentId) &&
@@ -278,7 +194,7 @@ export function projectFixedEventSupportContribution32(input: FixedEventSupportI
       {
         memberIds: input.memberIds,
         members: input.members,
-        baselineReferencesByAgentId: input.baselineReferencesByAgentId,
+        baselineReferencesByAgentId,
       },
       entries,
     )
@@ -299,13 +215,15 @@ export function projectFixedEventSupportContribution32(input: FixedEventSupportI
       member: subject,
       buckets,
       eventUsages: input.eventUsages,
+      potentialEvents: input.potentialEvents,
       baseline: input.baseline,
+      settlementAtSeconds: input.eventObservation?.atSeconds,
       diagnosticBlockers: blockers,
       eventEffectContext: {
         memberIds: input.memberIds,
         members: input.members,
         entries,
-        baselineReferencesByAgentId: input.baselineReferencesByAgentId,
+        baselineReferencesByAgentId,
         consumedBuckets,
         exclusions,
         disabledSupportProviderIds: disabledProviderId ? [disabledProviderId] : [],
@@ -400,35 +318,28 @@ export function compareFixedEventSupportContribution32(
   const invariant = (input: FixedEventSupportInput32) => ({
     subject: input.subjectAgentId,
     events: input.eventUsages,
+    potentialEvents: input.potentialEvents ?? {},
     baseline: input.baseline,
+    eventObservation: input.eventObservation ?? null,
     members: input.members
       .filter((row) => common.includes(row.agentId))
       .sort((a, b) => a.agentId.localeCompare(b.agentId)),
     references: Object.fromEntries(
       common.sort().map((id) => [id, input.baselineReferencesByAgentId?.[id] ?? {}]),
     ),
-    equipment: input.equipmentModifierBuckets
-      .filter((row) => common.includes(row.providerAgentId))
-      .map((row) => ({
-        ...row,
-        recipientAgentIds: row.recipientAgentIds.filter((id) => common.includes(id)),
-      })),
-    equipmentExclusions: input.equipmentEffectExclusions
-      .filter((row) => {
+    equipment: projectCommonMemberEquipmentRows(
+      input.equipmentModifierBuckets.filter((row) => common.includes(row.providerAgentId)),
+      input.memberIds,
+      common,
+    ),
+    equipmentExclusions: projectCommonMemberEquipmentRows(
+      input.equipmentEffectExclusions.filter((row) => {
         const owner = equipmentOwner(row)
         return !owner || common.includes(owner)
-      })
-      .map((row) => {
-        const metadata = record(row)
-        return metadata && Array.isArray(metadata.recipientAgentIds)
-          ? {
-              ...metadata,
-              recipientAgentIds: metadata.recipientAgentIds.filter((id) =>
-                common.includes(String(id)),
-              ),
-            }
-          : row
       }),
+      input.memberIds,
+      common,
+    ),
   })
   if (
     common.length !== 2 ||

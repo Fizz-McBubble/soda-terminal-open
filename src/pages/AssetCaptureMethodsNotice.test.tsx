@@ -30,8 +30,11 @@ it('compares only the scope, prerequisites and limits players need to choose a m
   expect(scan).toHaveTextContent('代理人养成与音擎沿用你在资产中填写的信息')
   expect(quick).toHaveTextContent('从当前装备出发，对比换装后的面板和近似输出')
   expect(quick).toHaveTextContent('未读到的潜能保留原值')
+  expect(quick).toHaveTextContent(
+    '当前公开安装包（1.2.0）仅支持国服 3.2，国服 3.3 读取需等待新版发布',
+  )
   expect(quick).not.toHaveTextContent('游戏面板校对')
-  expect(within(quick).getByRole('button', { name: '测试' })).toHaveAttribute('popovertarget')
+  expect(within(quick).queryByRole('button', { name: '测试版' })).not.toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: '能帮你做什么' })).not.toBeInTheDocument()
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
 })

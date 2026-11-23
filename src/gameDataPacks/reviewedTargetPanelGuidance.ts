@@ -172,6 +172,41 @@ const playerConditionsBySourceId: Readonly<Record<string, readonly string[]>> = 
   ],
 }
 
+export function reviewedTargetPanelConditionsForSource(sourceId: string): readonly string[] {
+  return playerConditionsBySourceId[sourceId] ?? []
+}
+
+/** Read already adopted supplementary source fields without changing score/target contracts. */
+export function reviewedSupplementaryPanelTargets(agentId: string, sourceIds: readonly string[]) {
+  const entry = reviewedTargetPanelGuidanceData.entries.find(
+    (item) => item.agentId === agentId && sourceIds.includes(item.id),
+  )
+  if (!entry) return []
+  return entry.s.flatMap((stat) => {
+    const code = sourceCode(stat)
+    if (code !== 'sf' && !(code === 'er' && stat.includes('%'))) return []
+    const value = targetValue(stat)
+    if (value === undefined || !isValidTargetValue(value)) return []
+    return [
+      {
+        key: code === 'sf' ? 'sheerForce' : 'energyRegenPercent',
+        name: code === 'sf' ? '贯穿力' : '能量回复加成',
+        value,
+        unit: code === 'sf' ? ('points' as const) : ('regen_bonus_percent' as const),
+        semantic: {
+          requirement: stat.includes(' optional') ? ('optional' as const) : ('required' as const),
+          boundary:
+            typeof value !== 'number' && !('min' in value)
+              ? ('cap' as const)
+              : ('minimum' as const),
+          // Percentage regen observations have no adopted menu-baseline equivalence.
+          observation: code === 'sf' ? ('out_of_combat' as const) : ('reference' as const),
+        },
+      },
+    ]
+  })
+}
+
 function isSourceCode(value: string): value is SourceCode {
   return Object.hasOwn(sourceLabelByCode, value)
 }
@@ -254,11 +289,136 @@ function validateReviewedData() {
 
 validateReviewedData()
 
+/** Local interpretation notes remain distinct from conditions that change a build. */
+export function reviewedTargetPanelClassificationNotes(agentId: string): string[] {
+  const entry = reviewedTargetPanelGuidanceData.entries.find((item) => item.agentId === agentId)
+  if (!entry) return []
+  const labels = [
+    ...new Set(
+      entry.s
+        .map(sourceCode)
+        .filter((code) => isOrdinarySurvivabilityReference(agentId, code))
+        .map((code) => sourceLabelByCode[code]),
+    ),
+  ]
+  return labels.length
+    ? [
+        `${labels.map((label) => playerLabelBySourceLabel[label]).join('、')} 数值保留为攻略生存参考；本地语义分类不将其作为通用养成要求，不参与局外差距比较，来源未明确标注为可选。`,
+      ]
+    : []
+}
+
 /**
  * Converts only reviewed, explicit Prydwen LEVEL 60 panel values to the
  * existing workbench target keys. `extraStats`/variants retain source facts
  * that have no consumer key or no unconditional lower-bound meaning.
  */
+/** Current, source-specific correction; historical reviewed values remain immutable. */
+export function applyReviewedTargetObservationCorrection(
+  agentId: string,
+  value: unknown,
+  sourceIds: readonly string[],
+) {
+  const corrections: Record<
+    string,
+    {
+      sourceId: string
+      metric: 'critRate' | 'anomalyProficiency' | 'anomalyMastery'
+      condition: string
+    }
+  > = {
+    // These are guide build observations, not a minimum shared by the legal
+    // AM / ATK / ER slot-six branches. Keep the frozen number visible without
+    // penalising a different main-stat choice as an unconditional deficit.
+    ...Object.fromEntries(
+      ['burnice', 'yanagi', 'grace', 'piper'].map((name) => [
+        `agent-${name}`,
+        {
+          sourceId: `prydwen-${name}-current-2026-08-05`,
+          metric: 'anomalyMastery' as const,
+          condition:
+            name === 'yanagi' || name === 'piper'
+              ? '异常掌控数值为掌控6号位配装参考；改用攻击6号位时，不按该数值判断未达标。'
+              : '异常掌控数值为掌控6号位配装参考；改用回能或攻击6号位时，不按该数值判断未达标。',
+        },
+      ]),
+    ),
+    'agent-orphie-magus': {
+      sourceId: 'prydwen-orphie-magus-current-2026-08-05',
+      metric: 'critRate',
+      condition: '暴击率包含角色和驱动盘被动，实际生效状态会影响比较。',
+    },
+    'agent-yixuan': {
+      sourceId: 'prydwen-yixuan-current-2026-08-05',
+      metric: 'critRate',
+      condition: '暴击率包含驱动盘效果，实际生效状态会影响比较。',
+    },
+    'agent-yidhari': {
+      sourceId: 'prydwen-yidhari-2.3-2026-08-05',
+      metric: 'critRate',
+      condition: '该暴击率参考使用云岿四件与一阶海妖摇篮。',
+    },
+    'agent-cissia': {
+      sourceId: 'prydwen-cissia-2.7-2026-06-14',
+      metric: 'critRate',
+      condition: '该暴击率参考使用专属音擎。',
+    },
+    'agent-promeia': {
+      sourceId: 'prydwen-promeia-2.8-2026-07-29',
+      metric: 'anomalyProficiency',
+      condition: '异常精通参考随音擎主词条变化。',
+    },
+    'agent-evelyn': {
+      sourceId: 'prydwen-evelyn-current-2026-08-05',
+      metric: 'critRate',
+      condition: '该暴击率参考包含核心被动。',
+    },
+    'agent-zhu-yuan': {
+      sourceId: 'prydwen-zhu-yuan-current-2026-08-05',
+      metric: 'critRate',
+      condition: '来源暴击率参考为60%–70%；妮可六影时上限为55%，需核对实际队友与影画。',
+    },
+    ...Object.fromEntries(
+      ['ju-fufu', 'qingyi', 'koleda', 'lycaon', 'anby', 'lighter'].map((name) => [
+        `agent-${name}`,
+        {
+          sourceId: `prydwen-${name}-current-2026-08-05`,
+          metric: 'critRate' as const,
+          condition: '该暴击率目标仅适用于山大王四件套。',
+        },
+      ]),
+    ),
+  }
+  const correction = corrections[agentId]
+  if (
+    !correction ||
+    !sourceIds.includes(correction.sourceId) ||
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value)
+  )
+    return null
+  const original = value as Record<string, unknown>
+  const semantics = original.targetSemantics as TargetPanelSemantics | undefined
+  const metric = semantics?.[correction.metric]
+  if (!metric || metric.observation !== 'out_of_combat') return null
+  return {
+    value: {
+      ...original,
+      targetSemantics: {
+        ...semantics,
+        [correction.metric]: { ...metric, observation: 'reference' as const },
+      },
+      observationCorrection: {
+        sourceId: correction.sourceId,
+        metric: correction.metric,
+        disposition: 'replaced_unconditional_observation' as const,
+      },
+    },
+    condition: correction.condition,
+  }
+}
+
 export function reviewedTargetPanelGuidance(agentId: string): AgentProfileField | undefined {
   const entry = reviewedTargetPanelGuidanceData.entries.find((item) => item.agentId === agentId)
   if (!entry) return undefined
@@ -267,13 +427,11 @@ export function reviewedTargetPanelGuidance(agentId: string): AgentProfileField 
   const targetSemantics: TargetPanelSemantics = {}
   const extraStats: Record<string, TargetValue | { value: TargetValue; unit: string }> = {}
   const optional = new Set<string>()
-  const survivabilityReferences = new Set<string>()
   for (const stat of entry.s) {
     const code = sourceCode(stat)
     const value = targetValue(stat)
     if (stat.includes(' optional')) optional.add(sourceLabelByCode[code])
     const survivabilityReference = isOrdinarySurvivabilityReference(entry.agentId, code)
-    if (survivabilityReference) survivabilityReferences.add(sourceLabelByCode[code])
     if (value === undefined)
       throw new Error(`Unparseable reviewed target value for ${entry.agentId}: ${stat}`)
     // Prydwen's percentage-form Energy Regen is not the workbench's
@@ -306,13 +464,10 @@ export function reviewedTargetPanelGuidance(agentId: string): AgentProfileField 
     ...(entry.c ?? []),
     ...[...optional].map((label) => `${label} is explicitly optional in the source.`),
   ]
+  const classificationNotes = reviewedTargetPanelClassificationNotes(agentId)
   const conditions = [
-    ...(playerConditionsBySourceId[entry.id] ?? []),
-    ...(survivabilityReferences.size
-      ? [
-          `${[...survivabilityReferences].map((label) => playerLabelBySourceLabel[label]).join('、')} 数值保留为攻略生存参考；本地语义分类不将其作为通用养成要求，不参与局外差距比较，来源未明确标注为可选。`,
-        ]
-      : []),
+    ...reviewedTargetPanelConditionsForSource(entry.id),
+    ...classificationNotes,
     ...[...optional].map(
       (label) =>
         `${playerLabelBySourceLabel[label] ?? label} 为来源明确标注的可选属性，不参与局外差距比较。`,

@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import { useState } from 'react'
 import { getActiveAccount, getAccountRoster } from '../accounts/repository'
 import { saveAgentWEngineAssignment } from '../accounts/wEngineAssignment'
@@ -27,6 +28,7 @@ export function AgentDevelopmentCurrentEditor({
 
   async function save(payload: TypedAssetSave): Promise<string | null> {
     if (payload.kind !== 'agents') return null
+    let committed = false
     try {
       const active = await getActiveAccount()
       if (active?.id !== accountId) throw new Error('当前账户已经切换，请刷新后重新确认。')
@@ -39,6 +41,7 @@ export function AgentDevelopmentCurrentEditor({
         wEngineLevel,
         wEngineLevelManuallySet,
         wEngineAscension,
+        wEngineAscensionManuallySet,
         wEngineRefinement,
         wEngineRefinementManuallySet,
         ...agentPatch
@@ -53,6 +56,7 @@ export function AgentDevelopmentCurrentEditor({
           wEngineLevel,
           wEngineLevelManuallySet,
           ...(wEngineAscension !== undefined ? { wEngineAscension } : {}),
+          wEngineAscensionManuallySet,
           wEngineRefinement,
           wEngineRefinementManuallySet,
         },
@@ -60,12 +64,21 @@ export function AgentDevelopmentCurrentEditor({
         agents: publicAssetCatalog.agents,
         wengines: publicAssetCatalog.wengines,
       })
+      committed = true
       const savedAgent = savedRoster.agents.find((agent) => agent.agentId === agentId)
       if (!savedAgent) throw new Error('代理人资料保存后未能重新读取。')
-      await onSaved(savedRoster)
+      try {
+        await onSaved(savedRoster)
+      } catch {
+        setMessage('资料已保存，但更新未完成，请稍后重试。')
+      }
       return JSON.stringify({ source: savedAgent })
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '保存失败。')
+      setMessage(
+        committed
+          ? '资料已保存，但更新未完成，请稍后重试。'
+          : playerErrorMessage(error, '保存失败。'),
+      )
       return null
     }
   }
@@ -85,12 +98,7 @@ export function AgentDevelopmentCurrentEditor({
       <div className="r6-golden r6-golden--content-only agent-development-current-editor">
         <div className="editor">
           {message && <p role="alert">{message}</p>}
-          <AgentEditor props={editorProps} item={item} />
-          <div className="agent-development-current-editor__actions">
-            <button className="button" type="button" onClick={onCancel}>
-              取消编辑
-            </button>
-          </div>
+          <AgentEditor props={editorProps} item={item} purpose="current" onCancel={onCancel} />
         </div>
       </div>
     </PlanningDialog>

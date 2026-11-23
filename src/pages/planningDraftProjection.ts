@@ -52,12 +52,20 @@ export function directionFor(profile: PlanningProfile) {
     : []
   return {
     wEngineDirection: recommendation
-      ? getCandidateWEngineLabels(recommendation.wEngines).join('、')
-      : '资料待补齐',
+      ? getCandidateWEngineLabels(recommendation.wEngines)
+          .filter((value) => !value.includes('资料待补齐'))
+          .join('、')
+      : '',
     discDirection: recommendation
-      ? `${setLabels.join('、')}；${formatCandidateMainStats(recommendation.mainStats)}`
-      : '资料待补齐',
-    progressionDirection: formatCandidateSkillDirections(recommendation?.skillPriority),
+      ? [setLabels.join('、'), formatCandidateMainStats(recommendation.mainStats)]
+          .flatMap((value) => value.split('；'))
+          .filter((value) => value && !value.includes('资料待补齐'))
+          .join('；')
+      : '',
+    progressionDirection: formatCandidateSkillDirections(recommendation?.skillPriority)
+      .split('；')
+      .filter((value) => value && !value.includes('资料待补齐'))
+      .join('；'),
   }
 }
 

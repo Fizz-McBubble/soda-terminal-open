@@ -160,3 +160,40 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* On desktop the candidate list and the selected plan are independent scroll areas. */
+@container soda-viewport (min-width: 901px) and (min-height: 600px) {
+  .f5v-shell .ad-golden:has(> .top10) {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .f5v-shell .ad-golden > .top10,
+  .f5v-shell .ad-golden > .top10:has(.comparison-stats) {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+
+  .f5v-shell .top10 .comparison-workbench,
+  .f5v-shell .top10:has(.comparison-stats) .comparison-workbench {
+    min-height: 0;
+    align-items: stretch;
+    padding-bottom: 0;
+  }
+
+  .f5v-shell .top10 :is(.comparison-candidates, .comparison-detail),
+  .f5v-shell .top10:has(.comparison-stats) :is(.comparison-candidates, .comparison-detail) {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .f5v-shell .top10 .comparison-candidates {
+    grid-auto-rows: max-content;
+    align-content: start;
+  }
+}

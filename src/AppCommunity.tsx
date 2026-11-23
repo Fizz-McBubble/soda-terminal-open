@@ -14,6 +14,7 @@ export default function AppCommunity() {
       mode: 'local',
       queryClient: createBrowserCalculationQueryClient({
         readRuntimeSelection: readCurrentGameDataRuntimeSelection,
+        resultProjection: 'public-development',
       }),
       runtimeSelectionReader: readCurrentGameDataRuntimeSelection,
       repairRuntimeSelection: repairBundledCurrentGameData,

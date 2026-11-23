@@ -56,7 +56,7 @@ export type AccountDecisionSnapshot = {
     authorityId: typeof currentDataAuthorityProjection.authorityId
   }
   fingerprint: AccountDecisionFingerprint
-  warehouse: WarehouseAnalysisSnapshot
+  warehouse?: WarehouseAnalysisSnapshot
   allocation: AccountBuildResult
   teamEngine: TeamEngineResult
   teamEngineCoverage: TeamEngineCoverageDiagnostics
@@ -98,6 +98,8 @@ export type AccountDecisionSnapshot = {
     boundary: string
   }
   decisionAuthority: ReturnType<typeof projectAccountDecisionAuthority>
+  /** This run defers non-default team projection until a named player query. */
+  boxAdmissionScoped?: true
   hardConstraints: {
     active: ReturnType<typeof enumerateActiveTeamHardConstraints>
     canRestoreDefault: boolean
@@ -136,8 +138,12 @@ export type AccountDecisionSnapshot = {
 }
 
 export type BuildAccountDecisionInput = {
+  /** Interactive runs start from the bound admission list. Diagnostic and legacy callers stay exhaustive. */
+  preferBoxAdmission?: boolean
   /** Browser summaries defer model-only diagnostics until a concrete team is opened. */
   deferDiagnosticInference?: boolean
+  /** First-screen team recommendation defers heavy full-warehouse disc retention/cleanup analysis. */
+  deferWarehouseAnalysis?: boolean
   warehouse: CoreWarehouse
   profiles?: AgentDiscProfile[]
   drafts: AccountPlanningDraft[]

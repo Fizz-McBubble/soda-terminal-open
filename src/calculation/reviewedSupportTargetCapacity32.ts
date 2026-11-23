@@ -36,7 +36,7 @@ export function evaluateReviewedSupportTargetCapacity32(input: SupportTargetCapa
   if (!['agent-zhao', 'agent-lucia', 'agent-remielle'].includes(member.agentId))
     return { capacities, blockers }
   const source = getCurrentAgentDecisionMechanicContract(member.agentId)?.effectContract
-  const gaps = functionalEquipmentGaps32(input.equipmentExclusions, member.agentId, [
+  let gaps = functionalEquipmentGaps32(input.equipmentExclusions, member.agentId, [
     member.agentId === 'agent-remielle' ? 'initial.atk' : 'initial.hp',
   ])
   const hp = member.initialStats.hp
@@ -97,31 +97,53 @@ export function evaluateReviewedSupportTargetCapacity32(input: SupportTargetCapa
   } else if (member.agentId === 'agent-remielle') {
     key = 'entry_team_attack'
     included = ['入场追加能力的队伍攻击分量，异常人数含自身；非完整队伍伤害。']
-    const members = input.members
+    // This API's absent formation uses the same explicit single-actor scope as
+    // the independent Refringe capacity below; an explicitly malformed list
+    // must never be reinterpreted as that scope.
+    const members = input.members ?? [member]
     const entered = input.baselineReferencesByAgentId?.[member.agentId]?.battlefield_entered
-    const activation = members
+    const validEntered = entered == null || typeof entered === 'boolean'
+    const validMembers =
+      members.length >= 1 &&
+      members.length <= 3 &&
+      members.some((row) => row.agentId === member.agentId) &&
+      members.length === new Set(members.map((row) => row.agentId)).size &&
+      members.every((row) => Boolean(getCurrentAgentEventContract(row.agentId)))
+    const activation = validMembers
       ? evaluateCurrentAgentTeamActivation({
           stableId: member.agentId,
           memberIds: members.map((row) => row.agentId),
           agentState: { mindscape: member.mindscape, potentialImage: member.potential },
         })
       : null
-    const anomalyCount = members?.filter(
-      (row) => getCurrentAgentEventContract(row.agentId)?.identity.specialty === 'anomaly',
-    ).length
+    const anomalyCount = validMembers
+      ? members.filter(
+          (row) => getCurrentAgentEventContract(row.agentId)?.identity.specialty === 'anomaly',
+        ).length
+      : null
     const rate =
       anomalyCount === 1 ? 0.06 : anomalyCount === 2 ? 0.12 : anomalyCount === 3 ? 0.4 : null
+    // An explicitly closed trigger or a proved inactive ability makes this
+    // component zero without an attack operand, rate or equipment snapshot.
     if (
+      validMembers &&
+      validEntered &&
+      (entered === false || (activation?.status === 'supported' && !activation.active))
+    ) {
+      value = 0
+      gaps = []
+    } else if (
+      validMembers &&
+      validEntered &&
       activation?.status === 'supported' &&
-      typeof entered === 'boolean' &&
+      activation.active &&
+      entered === true &&
       rate !== null &&
       Number.isFinite(member.initialStats.atk) &&
       member.initialStats.atk >= 0 &&
-      !gaps.length &&
-      members?.some((row) => row.agentId === member.agentId) &&
-      members.length === new Set(members.map((row) => row.agentId)).size
+      !gaps.length
     ) {
-      value = activation.active && entered ? Math.min(1600, member.initialStats.atk * rate) : 0
+      value = Math.min(1600, member.initialStats.atk * rate)
     }
     context = {
       activation,

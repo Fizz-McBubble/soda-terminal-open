@@ -10,7 +10,9 @@ const ratingRank: Record<Exclude<TeamRatingBand, 'Experimental'>, number> = {
   S: 1,
   'A+': 2,
   A: 3,
+  'B+': 3.5,
   B: 4,
+  C: 4.5,
 }
 
 export function compareObservedStrengthBands(

@@ -2,6 +2,7 @@ import { agentCatalog } from '../assault/catalogData'
 import {
   currentAgentEventContracts,
   getCurrentAgentEventContract,
+  currentAgentMechanicIdentity,
   resolveOtherMemberActivationMinimum,
   type AgentTeamActivationPredicate,
 } from '../calculation/currentAgentMechanicContracts'
@@ -20,59 +21,68 @@ type Identity = {
   attribute: string
 }
 
-const identityByAgentId = new Map<string, Identity>(
-  agentCatalog.map(([agentId, name, specialty, , , attribute, faction]) => [
-    agentId,
-    { agentId, name, specialty, faction, attribute },
-  ]),
-)
+type CategoryKind = 'specialty' | 'faction' | 'attribute'
+type CategoryMaps = Record<CategoryKind, ReadonlyMap<string, string>>
 
-function resolveIdentity(agentId: string) {
-  const existing = identityByAgentId.get(agentId)
-  if (existing) return existing
-  const asset = currentAssetProjection.agents.find((entry) => entry.stableId === agentId)
-  const upstream = getCurrentAgentEventContract(agentId)
-  const factionPeer = upstream
-    ? currentAgentEventContracts.find(
-        (candidate) =>
-          candidate.identity.faction === upstream.identity.faction &&
-          identityByAgentId.has(candidate.stableId),
-      )
-    : null
-  const peerIdentity = factionPeer ? identityByAgentId.get(factionPeer.stableId) : null
-  if (!upstream || !asset?.specialty || !asset.attribute || !peerIdentity)
-    throw new Error(`current identity 无法从既有 authority 归一化：${agentId}`)
-  const resolved = {
-    agentId,
-    name: asset.playerName,
-    specialty: asset.specialty,
-    faction: peerIdentity.faction,
-    attribute: asset.attribute,
+function normalizedCategoryPredicate(
+  predicate: TeamPredicate,
+  identityByAgentId: ReadonlyMap<string, Identity>,
+  categoryMaps: CategoryMaps,
+): TeamPredicate {
+  const canonical = (kind: CategoryKind, value: string) => {
+    const mapped = categoryMaps[kind].get(value)
+    if (mapped) return mapped
+    const eventPeers = currentAgentEventContracts.filter(
+      (contract) => contract.identity[kind] === value,
+    )
+    const currentValues = new Set(
+      eventPeers
+        .map((contract) => identityByAgentId.get(contract.stableId)?.[kind])
+        .filter((entry): entry is string => Boolean(entry)),
+    )
+    if (currentValues.size === 1) return [...currentValues][0]!
+    if ([...identityByAgentId.values()].some((identity) => identity[kind] === value)) return value
+    throw new Error(`无法把队伍条件归一化到 current identity：${kind}:${value}`)
   }
-  identityByAgentId.set(agentId, resolved)
-  return resolved
-}
-
-function localCategoryValue(kind: 'specialty' | 'faction' | 'attribute', upstreamValue: string) {
-  const upstreamPeer = currentAgentEventContracts.find(
-    (contract) => contract.identity[kind] === upstreamValue,
-  )
-  const local = upstreamPeer ? identityByAgentId.get(upstreamPeer.stableId) : null
-  if (!local)
-    throw new Error(`无法把上游追加能力分类映射到 current identity：${kind}:${upstreamValue}`)
-  return local[kind]
+  switch (predicate.kind) {
+    case 'specialty_count':
+      return { ...predicate, specialty: canonical('specialty', predicate.specialty) }
+    case 'faction_count':
+      return { ...predicate, faction: canonical('faction', predicate.faction) }
+    case 'attribute_count':
+      return { ...predicate, attribute: canonical('attribute', predicate.attribute) }
+    case 'category_sum_minimum':
+      return {
+        ...predicate,
+        terms: predicate.terms.map((term) => ({
+          ...term,
+          value: canonical(term.kind, term.value),
+        })),
+      }
+    case 'all':
+    case 'any':
+      return {
+        ...predicate,
+        predicates: predicate.predicates.map((child) =>
+          normalizedCategoryPredicate(child, identityByAgentId, categoryMaps),
+        ),
+      }
+    default:
+      return predicate
+  }
 }
 
 function compileActivationPredicate(
   agentId: string,
   predicate: AgentTeamActivationPredicate,
+  canonicalCategoryValue: (kind: CategoryKind, value: string) => string,
 ): TeamPredicate {
   return {
     kind: 'category_sum_minimum',
     agentId,
     terms: reviewedTeammateActivationTerms(agentId, predicate.terms).map((term) => ({
       kind: term.kind,
-      value: localCategoryValue(term.kind, term.value),
+      value: canonicalCategoryValue(term.kind, term.value),
     })),
     minimum: resolveOtherMemberActivationMinimum(agentId, predicate),
     dynamicTerms: predicate.dynamicTerms,
@@ -110,13 +120,15 @@ function evidenceFor(input: {
   ]
 }
 
-function compileRule(contract: (typeof currentAgentDecisionMechanicContracts)[number]): AgentRule {
-  const identity = resolveIdentity(contract.agentId)
+function compileRule(
+  contract: (typeof currentAgentDecisionMechanicContracts)[number],
+  identity: Identity,
+  canonicalCategoryValue: (kind: CategoryKind, value: string) => string,
+): AgentRule {
   const eventContract = getCurrentAgentEventContract(contract.agentId)
   const fieldTime = contract.fieldTimeContract
   const activation = eventContract?.teamActivationContract
-  if (!identity || !eventContract || !fieldTime)
-    throw new Error(`AgentRule 编译输入不完整：${contract.agentId}`)
+  if (!eventContract || !fieldTime) throw new Error(`AgentRule 编译输入不完整：${contract.agentId}`)
   if (activation?.status !== 'compiled' || !activation.predicate)
     throw new Error(`AgentRule 追加能力合同未编译：${contract.agentId}`)
 
@@ -162,6 +174,7 @@ function compileRule(contract: (typeof currentAgentDecisionMechanicContracts)[nu
       predicate: compileActivationPredicate(
         contract.agentId,
         activation.predicate as AgentTeamActivationPredicate,
+        canonicalCategoryValue,
       ),
       description: '按 current 公式中的属性、特性、阵营与账户状态合同判断。',
     },
@@ -170,9 +183,11 @@ function compileRule(contract: (typeof currentAgentDecisionMechanicContracts)[nu
         fieldTimeSource: fieldTime.source,
         formulaSource: eventContract.source,
         formulaVersion:
-          eventContract.source.commit === '3456cd0f6f5bea10e168074502460dac2fcd6df4'
-            ? '3.2'
-            : '3.1',
+          eventContract.source.provider === 'nanoka'
+            ? currentAgentMechanicIdentity.gameVersion
+            : eventContract.source.commit === '3456cd0f6f5bea10e168074502460dac2fcd6df4'
+              ? '3.2'
+              : '3.1',
         activationLocator: activation.predicate.locator,
       }),
       ...(contract.agentId === 'agent-pulchra'
@@ -209,14 +224,73 @@ function compileRule(contract: (typeof currentAgentDecisionMechanicContracts)[nu
 }
 
 export function compileCurrent31AgentRules(existingRules: readonly AgentRule[]) {
+  const assetById = new Map(
+    currentAssetProjection.agents.map((asset) => [asset.stableId, asset] as const),
+  )
+  const existingById = new Map(existingRules.map((rule) => [rule.agentId, rule] as const))
+  const legacyFactionById = new Map<string, string>(
+    agentCatalog.map(([agentId, , , , , , faction]) => [agentId, faction] as const),
+  )
+  const factionByUpstream = new Map<string, string>()
+  for (const [agentId, faction] of [
+    ...legacyFactionById,
+    ...existingRules.map((rule) => [rule.agentId, rule.faction.trim()] as const),
+  ]) {
+    const upstreamFaction = getCurrentAgentEventContract(agentId)?.identity.faction
+    if (upstreamFaction && faction && !factionByUpstream.has(upstreamFaction))
+      factionByUpstream.set(upstreamFaction, faction)
+  }
+  const identityByAgentId = new Map<string, Identity>()
+  for (const [agentId, asset] of assetById) {
+    const event = getCurrentAgentEventContract(agentId)
+    const directFaction =
+      existingById.get(agentId)?.faction.trim() || legacyFactionById.get(agentId)
+    const faction = directFaction || (event && factionByUpstream.get(event.identity.faction))
+    if (!event || !faction) throw new Error(`全部代理人身份合同不完整：${agentId}`)
+    identityByAgentId.set(agentId, {
+      agentId,
+      name: asset.playerName,
+      specialty: asset.specialty ?? event.identity.specialty,
+      faction,
+      attribute: asset.attribute ?? event.identity.attribute,
+    })
+  }
+  if (identityByAgentId.size !== currentAssetProjection.agents.length)
+    throw new Error('current identity 存在重复或缺失 stable id')
+  const categoryMaps: CategoryMaps = {
+    specialty: new Map(
+      existingRules.map((rule) => [rule.specialty, identityByAgentId.get(rule.agentId)!.specialty]),
+    ),
+    faction: new Map(
+      existingRules.map((rule) => [rule.faction, identityByAgentId.get(rule.agentId)!.faction]),
+    ),
+    attribute: new Map(
+      existingRules.map((rule) => [rule.attribute, identityByAgentId.get(rule.agentId)!.attribute]),
+    ),
+  }
+  const canonicalCategoryValue = (kind: CategoryKind, value: string) => {
+    const mapped = categoryMaps[kind].get(value)
+    if (mapped) return mapped
+    const peers = currentAgentEventContracts
+      .filter((contract) => contract.identity[kind] === value)
+      .map((contract) => identityByAgentId.get(contract.stableId)?.[kind])
+      .filter((entry): entry is string => Boolean(entry))
+    const unique = new Set(peers)
+    if (unique.size === 1) return [...unique][0]!
+    if ([...identityByAgentId.values()].some((identity) => identity[kind] === value)) return value
+    throw new Error(`无法把上游追加能力分类映射到 current identity：${kind}:${value}`)
+  }
   const existingIds = new Set(existingRules.map((rule) => rule.agentId))
   const enrichedExisting = existingRules.map((rule) => ({
     ...rule,
+    ...identityByAgentId.get(rule.agentId)!,
     capabilities: capabilitiesFor(rule.agentId),
   }))
   const compiled = currentAgentDecisionMechanicContracts
     .filter((contract) => !existingIds.has(contract.agentId))
-    .map(compileRule)
+    .map((contract) =>
+      compileRule(contract, identityByAgentId.get(contract.agentId)!, canonicalCategoryValue),
+    )
     .sort((left, right) => left.agentId.localeCompare(right.agentId))
   const result = [...enrichedExisting, ...compiled].map((rule): AgentRule => {
     const delta = reviewedPotentialTeamActivation.find((entry) => entry.agentId === rule.agentId)
@@ -256,16 +330,33 @@ export function compileCurrent31AgentRules(existingRules: readonly AgentRule[]) 
       ],
     }
   })
-  if (new Set(result.map((rule) => rule.agentId)).size !== result.length)
+  const normalized = result
+    .map((rule) => ({
+      ...rule,
+      ...identityByAgentId.get(rule.agentId)!,
+      additionalAbility:
+        rule.additionalAbility.status === 'modeled'
+          ? {
+              ...rule.additionalAbility,
+              predicate: normalizedCategoryPredicate(
+                rule.additionalAbility.predicate,
+                identityByAgentId,
+                categoryMaps,
+              ),
+            }
+          : rule.additionalAbility,
+    }))
+    .sort((left, right) => left.agentId.localeCompare(right.agentId))
+  if (new Set(normalized.map((rule) => rule.agentId)).size !== normalized.length)
     throw new Error('AgentRule 编译结果存在重复 stable id')
-  return Object.freeze(result)
+  return Object.freeze(normalized)
 }
 
 export const current31CompiledAgentRuleContract = Object.freeze({
-  contract: 'soda-current-agent-rule-compiler/v1',
+  contract: 'soda-current-agent-rule-compiler/v2',
   sourceFactGap: 0,
   adapterCount: 0,
   operatorCount: 1,
   boundary:
-    '从 current identity、Decision Mechanic IR、事件合同和 field-time mode 编译；不按 specialty 默认站场，不把 observed synergy 当强度排序或协同全集。',
+    '以 current 61 人资产身份为唯一名称、特性与属性口径，把英文阵营和上游 attack/auric-ink 条件映射到本地队伍合同；不按 specialty 默认站场，不把 observed synergy 当强度排序或协同全集。',
 })

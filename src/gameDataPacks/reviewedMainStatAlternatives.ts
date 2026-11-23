@@ -1,6 +1,7 @@
 import type { StatKey } from '../domain/schemas'
 import type { PlayerBuildSource } from './playerBuildSources'
 import { stableContentHash } from './types'
+import { getReviewedDiscMainStatConditions33 } from './reviewedDiscMainStatConditions33'
 
 /** Reviewed choices for a different purpose, not unconditional solver eligibility. */
 export type ReviewedMainStatAlternative = {
@@ -122,7 +123,8 @@ const alternatives = entries.map(
 )
 
 export function getReviewedMainStatAlternatives(agentId: string): ReviewedMainStatAlternative[] {
-  return entries.flatMap((entry, index) =>
-    entry.agentId === agentId ? [alternatives[index]!] : [],
-  )
+  return [
+    ...entries.flatMap((entry, index) => (entry.agentId === agentId ? [alternatives[index]!] : [])),
+    ...getReviewedDiscMainStatConditions33(agentId),
+  ]
 }

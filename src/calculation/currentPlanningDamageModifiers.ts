@@ -6,6 +6,9 @@ export type SourceBackedPlanningEffectBucket = {
   effectKey: string
   effectId?: string
   applicationScope?: 'generic' | 'event_only'
+  /** A reviewed occurrence adapter can bind a bucket to one real source event
+   * without inventing an upstream eventModifierRefs entry. */
+  boundEventId?: string
   providerAgentId: string
   recipientAgentIds: string[]
   receiverPath: string | null
@@ -86,7 +89,8 @@ export type SourceBackedEquipmentModifierBucket = Omit<
   'effectKey' | 'receiverPath' | 'damageType'
 > & {
   effectKey: string
-  receiverPath: null
+  /** Preserve the source stage for combat-only conversions; null means unclassified. */
+  receiverPath: string | null
   damageType: null
 }
 
@@ -197,9 +201,26 @@ export function recipientIds(input: {
   effectKey?: string
   declaredRecipientAgentIds?: readonly string[]
 }) {
+  if (
+    ['agent-soukaku:core_atk', 'agent-seth:core_anomProf'].includes(input.effectKey ?? '') &&
+    input.declaredRecipientAgentIds !== undefined
+  ) {
+    const ids = input.declaredRecipientAgentIds
+    return ids.length === 1 && input.memberIds.includes(ids[0]!) ? [...ids] : []
+  }
   if (input.effectKey === panMeridianFlowEffectKey32) {
     const ids = input.declaredRecipientAgentIds
     return ids?.length === 1 && ids[0] !== input.providerAgentId && input.memberIds.includes(ids[0])
+      ? [...ids]
+      : []
+  }
+  if (input.effectKey === 'agent-astra:core_atk') {
+    const ids = input.declaredRecipientAgentIds
+    return ids &&
+      ids.length <= 2 &&
+      ids.includes(input.providerAgentId) &&
+      new Set(ids).size === ids.length &&
+      ids.every((id) => input.memberIds.includes(id))
       ? [...ids]
       : []
   }
@@ -216,6 +237,7 @@ export function recipientIds(input: {
 export function applicationForReceiver(receiverPath: string | null) {
   if (!receiverPath) return 'outside_direct_event_formula' as const
   if (receiverPath === 'enemyDebuff.common.stun_') return 'stun_damage_bonus' as const
+  if (receiverPath === 'ownBuff.combat.stun_') return 'stun_damage_bonus' as const
   if (receiverPath.includes('.initial.')) return 'outside_direct_event_formula' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.anomProf$/.test(receiverPath))
     return 'anomaly_proficiency_flat' as const
@@ -236,13 +258,21 @@ export function applicationForReceiver(receiverPath: string | null) {
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.direct_dmg_?$/.test(receiverPath))
     return 'direct_damage_bonus' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.buff_?$/.test(receiverPath)) return 'buff_bonus' as const
-  if (/enemyDebuff\..*\.dmgInc_?$/.test(receiverPath)) return 'vulnerability' as const
+  if (
+    /enemyDebuff\..*\.dmgInc_?(?:\.(?:physical|fire|ice|electric|ether|wind))?$/.test(receiverPath)
+  )
+    return 'vulnerability' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.mv_mult_?$/.test(receiverPath))
     return 'motion_value_multiplier' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.def_?$/.test(receiverPath))
     return receiverPath.endsWith('_') ? ('defense_percent' as const) : ('defense_flat' as const)
   if (/enemyDebuff\..*\.defRed_?$/.test(receiverPath)) return 'defense_reduction' as const
-  if (/ownBuff\..*\.defIgn_?$/.test(receiverPath)) return 'defense_ignore' as const
+  if (
+    /(ownBuff|notOwnBuff|teamBuff)\..*\.defIgn_?(?:\.(?:physical|fire|ice|electric|ether|wind))?$/.test(
+      receiverPath,
+    )
+  )
+    return 'defense_ignore' as const
   if (/enemyDebuff\..*\.resRed_?/.test(receiverPath)) return 'resistance_reduction' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.resIgn_?/.test(receiverPath))
     return 'resistance_ignore' as const
@@ -358,9 +388,10 @@ export function addModifier(
 export function matchesEventScope(
   bucket: Pick<
     SourceBackedPlanningEffectBucket,
-    'applicationScope' | 'effectId' | 'attribute' | 'damageType' | 'action'
+    'applicationScope' | 'effectId' | 'attribute' | 'damageType' | 'action' | 'boundEventId'
   >,
   event: {
+    eventId?: string
     actionId: string
     skill: string
     damageType?: string
@@ -369,6 +400,7 @@ export function matchesEventScope(
   },
   memberAttribute: string,
 ) {
+  if (bucket.boundEventId !== undefined && bucket.boundEventId !== event.eventId) return false
   if (
     bucket.applicationScope === 'event_only' &&
     (!bucket.effectId || !event.eventModifierRefs?.includes(bucket.effectId))
@@ -391,5 +423,7 @@ export function matchesEventScope(
   if (bucket.action === 'ex_special') return event.actionId.startsWith('EXSpecialAttack')
   if (bucket.action === 'chain') return event.actionId.startsWith('ChainAttack')
   if (bucket.action === 'ultimate') return event.actionId.startsWith('Ultimate')
+  if (bucket.action === 'aftershock')
+    return event.damageType === 'aftershock' || event.damageTypes?.includes('aftershock') === true
   return false
 }

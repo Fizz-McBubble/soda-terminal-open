@@ -15,7 +15,13 @@ export const incremental33RecoveryPolicy = Object.freeze({
     provider: 'nanoka',
     providerManifestSha256: gameData33ProviderManifestSha256,
     deltaSha256: gameData33SourceDeltaSha256,
-    adoptedStableIds: ['agent-phoenix', 'wengine-14164'],
+    adoptedStableIds: [
+      'agent-phoenix',
+      'agent-severian',
+      'wengine-14164',
+      'wengine-14163',
+      'wengine-13022',
+    ],
   },
   previousResults: 'requires_reanalysis',
 })
@@ -29,12 +35,20 @@ export function usesIncremental33Capabilities(input: {
   equipmentEffects?: readonly { effectKey: string; sourceFormula?: { engineId: string } }[]
 }) {
   return (
-    input.members.some((member) => member.agentId === 'agent-phoenix') ||
-    input.equipmentIds?.includes('wengine-14164') === true ||
+    input.members.some(
+      (member) => member.agentId === 'agent-phoenix' || member.agentId === 'agent-severian',
+    ) ||
+    ['wengine-14164', 'wengine-14163', 'wengine-13022'].some(
+      (stableId) => input.equipmentIds?.includes(stableId) === true,
+    ) ||
     input.equipmentEffects?.some(
       (effect) =>
-        effect.sourceFormula?.engineId === 'wengine-14164' ||
-        effect.effectKey.startsWith('wengine:wengine-14164:'),
+        ['wengine-14164', 'wengine-14163', 'wengine-13022'].includes(
+          effect.sourceFormula?.engineId ?? '',
+        ) ||
+        ['wengine-14164', 'wengine-14163', 'wengine-13022'].some((stableId) =>
+          effect.effectKey.startsWith(`wengine:${stableId}:`),
+        ),
     ) === true
   )
 }

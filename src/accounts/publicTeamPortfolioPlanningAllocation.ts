@@ -25,9 +25,29 @@ export function readTeamPortfolioPlanningAllocation(
   const candidateByAgent = new Map(
     candidateWarehouse.loadouts.map((loadout) => [loadout.agentId, loadout]),
   )
+  const candidateCounts = new Map<string, number>()
+  const choiceCounts = new Map<string, number>()
+  for (const loadout of candidateWarehouse.loadouts)
+    candidateCounts.set(loadout.agentId, (candidateCounts.get(loadout.agentId) ?? 0) + 1)
+  for (const loadout of discChoices.loadouts)
+    choiceCounts.set(loadout.agentId, (choiceCounts.get(loadout.agentId) ?? 0) + 1)
   const missingDiscIds: string[] = []
-  const allocation = discChoices.loadouts.map((frozenLoadout) => {
+  let missingEvidence = false
+  const allocation = discChoices.loadouts.flatMap((frozenLoadout) => {
     const storedLoadout = candidateByAgent.get(frozenLoadout.agentId)
+    const frozenIds = frozenLoadout.choices.map((choice) => choice.discId)
+    if (
+      !storedLoadout ||
+      candidateCounts.get(frozenLoadout.agentId) !== 1 ||
+      choiceCounts.get(frozenLoadout.agentId) !== 1 ||
+      new Set(frozenIds).size !== frozenIds.length ||
+      new Set(storedLoadout.discIds).size !== storedLoadout.discIds.length ||
+      storedLoadout.discIds.length !== frozenIds.length ||
+      frozenIds.some((id) => !storedLoadout.discIds.includes(id))
+    ) {
+      missingEvidence = true
+      return []
+    }
     const choices = frozenLoadout.choices.flatMap((frozenChoice) => {
       const disc = discsById.get(frozenChoice.discId)
       if (!disc) {
@@ -40,24 +60,26 @@ export function readTeamPortfolioPlanningAllocation(
       counts[choice.disc.setId] = (counts[choice.disc.setId] ?? 0) + 1
       return counts
     }, {})
-    return {
-      agentId: frozenLoadout.agentId,
-      discs: choices,
-      totalScore: storedLoadout?.totalScore ?? 0,
-      setCounts,
-      setPattern: storedLoadout?.setPattern ?? '2+2+2',
-      confidence: 'low' as const,
-      scenario: '已保存多队求解快照',
-      contextRationale: [],
-      teamAssumptions: [],
-      bangbooIds: [],
-      degraded: storedLoadout?.degraded ?? true,
-      degradeReasons: storedLoadout ? [] : ['候选仓库快照缺失。'],
-    }
+    return [
+      {
+        agentId: frozenLoadout.agentId,
+        discs: choices,
+        totalScore: storedLoadout.totalScore,
+        setCounts,
+        setPattern: storedLoadout.setPattern,
+        confidence: 'low' as const,
+        scenario: '已保存多队求解快照',
+        contextRationale: [],
+        teamAssumptions: [],
+        bangbooIds: [],
+        degraded: storedLoadout.degraded,
+        degradeReasons: [],
+      },
+    ]
   })
   return {
     allocation,
     missingDiscIds: [...new Set(missingDiscIds)],
-    status: missingDiscIds.length ? 'incomplete' : 'available',
+    status: missingDiscIds.length || missingEvidence ? 'incomplete' : 'available',
   }
 }

@@ -1,4 +1,11 @@
-import { z } from 'zod'
+import {
+  preparedYanagiPolaritySchema32,
+  type PreparedYanagiPolarity32,
+} from './reviewedPreparedPolarityDeclaration32'
+export {
+  preparedYanagiPolaritySchema32,
+  type PreparedYanagiPolarity32,
+} from './reviewedPreparedPolarityDeclaration32'
 import { stableContentHash } from '../gameDataPacks/types'
 import { publicAnomalySnapshotStatsSchema32 } from '../application/publicAnomalySnapshotStats32'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
@@ -29,29 +36,13 @@ import type { PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
 import type { SourceBackedPlanningEffectBucket } from './currentPlanningDamageModifiers'
 import type { PlanningBaseline } from './planningDpsContract'
 
-const time = z.number().finite().nonnegative()
-export const preparedYanagiPolaritySchema32 = z
-  .object({
-    kind: z.literal('yanagi_ex_single_polarity'),
-    acceptedSingleOwnerOriginalAnomaly: z.literal(true),
-    snapshotBasis: z.literal('current_declared_panels'),
-    originalOwnerAgentId: z.string().trim().min(1),
-    applicationAtSeconds: time,
-    activeUntilSeconds: time,
-    endedAtSeconds: time.nullable(),
-    triggerAtSeconds: time,
-    sourceRefs: z.array(z.string().trim().min(1)).min(1),
-  })
-  .strict()
-export type PreparedYanagiPolarity32 = z.infer<typeof preparedYanagiPolaritySchema32>
-
 const ownedKeys = [
   'agent-yanagi:exSpecial_anom_base_',
   'agent-yanagi:exSpecial_anom_flat_dmg',
   'agent-yanagi:core_addl_disorder_',
 ] as const
 export const reviewedPreparedPolarityObjectiveIdentity32 = Object.freeze({
-  version: 'prepared-single-owner-original-yanagi-ex-polarity/v1',
+  version: 'prepared-single-owner-original-yanagi-ex-polarity/v2',
   commit: commonAnomalySettlementIdentity32.commit,
   formulaSha256: '5FFF32C390B426C1CAFF95FDD0EE6C744EF8D2FDCBD3A7F24D378C2EDEB921A2',
   lifecycle: planningAnomalyLifecycleHash32,
@@ -116,8 +107,11 @@ export function evaluateReviewedPreparedPolarityObjective32(
   const actor = input.member
   if (
     actor.agentId !== 'agent-yanagi' ||
-    ids.length !== 3 ||
-    new Set(ids).size !== 3 ||
+    !(
+      ids.length === 3 ||
+      (ids.length === 1 && preparation.originalOwnerAgentId === actor.agentId)
+    ) ||
+    new Set(ids).size !== ids.length ||
     !ids.includes(actor.agentId) ||
     !owner
   )

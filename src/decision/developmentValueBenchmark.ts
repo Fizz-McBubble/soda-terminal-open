@@ -1,5 +1,10 @@
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { AccountPlanningDraft } from '../accounts/types'
+import {
+  comparePersonalCurrentReferences,
+  isPersonalCurrentReference,
+  resolvePersonalReferenceDiscs,
+} from '../accounts/personalCurrentReference'
 import type { DriveDisc } from '../domain/schemas'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 import { compareValueBenchmarkSides } from '../calculation/valueBenchmarkComparison'
@@ -180,26 +185,12 @@ export function projectDevelopmentValueBenchmarks(
     .filter(
       (plan) =>
         plan.accountId === input.warehouse.accountId &&
-        plan.kind === 'agent' &&
-        plan.state === 'saved' &&
-        plan.savedRole === 'current_reference' &&
-        plan.selection.agentIds.length === 1 &&
-        plan.selection.agentIds[0] === input.agentId &&
-        plan.solutionContext?.scope === 'agent_independent',
+        isPersonalCurrentReference(plan, input.agentId),
     )
-    .toSorted(
-      (left, right) =>
-        right.updatedAt.localeCompare(left.updatedAt) || right.revision - left.revision,
-    )[0]
-  const savedIds =
-    saved?.warehouseRefs.length === 6
-      ? saved.warehouseRefs
-      : (saved?.candidateWarehouse?.loadouts.find((item) => item.agentId === input.agentId)
-          ?.discIds ?? [])
-  const savedDiscs = savedIds.flatMap((id) => {
-    const disc = input.warehouse.discs.find((item) => item.id === id)
-    return disc ? [disc] : []
-  })
+    .toSorted(comparePersonalCurrentReferences)[0]
+  const savedDiscs = saved
+    ? (resolvePersonalReferenceDiscs(saved, input.warehouse.discs) ?? [])
+    : []
   const firstCandidateDiscs =
     input.candidates[0]?.loadouts
       .find((item) => item.agentId === input.agentId)

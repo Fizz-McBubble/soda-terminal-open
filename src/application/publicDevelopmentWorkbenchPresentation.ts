@@ -6,6 +6,8 @@ export type DevelopmentWorkbenchEquipmentDecision = {
   potential: number | null
   engine: GoldenWorkbenchData['engine']
   graduationEngines: GoldenWorkbenchData['graduation']['engines']
+  /** Exact source-scope notes, separately typed from gameplay prerequisites. */
+  panelSourceNotes?: readonly string[]
   targetPanel: Pick<
     NonNullable<
       ReturnType<typeof import('../gameDataPacks/currentBuildAuthority').getCurrentBuildTargetPanel>
@@ -74,6 +76,9 @@ export function findCurrentDevelopmentWorkbenchEquipment(
     typeof item.engine?.name !== 'string' ||
     !Array.isArray(item.engine.options) ||
     !Array.isArray(item.graduationEngines) ||
+    (item.panelSourceNotes !== undefined &&
+      (!Array.isArray(item.panelSourceNotes) ||
+        item.panelSourceNotes.some((note) => typeof note !== 'string'))) ||
     typeof item.hasMechanicsWithoutPriority !== 'boolean' ||
     !Array.isArray(item.historicalDiscReferences) ||
     !Array.isArray(item.discSetConditions) ||

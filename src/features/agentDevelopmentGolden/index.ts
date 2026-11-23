@@ -10,4 +10,5 @@ export type {
   GoldenTop10Data,
   JourneyScenario,
   JourneyView,
+  WarehouseAnalysisIntent,
 } from './types'

@@ -8,7 +8,11 @@ import { sampleDiscs } from '../evaluation/fixtures'
 import { localCalculationQueryClient } from './localCalculationQueryClient'
 import { AccountDecisionWorldProvider } from './accountDecisionWorldLocal'
 import { useAccountDecisionWorld } from './accountDecisionWorld'
+import { loadWorldInput } from './accountDecisionWorldModel'
 import type { AccountDecisionRun, CalculationQueryClient } from './calculationQueryContract'
+// Preload the real core outside the deferred requests that exercise account state.
+import '../decision/accountDecisionService'
+import './localCalculationQueryClientCore'
 
 function Probe() {
   const world = useAccountDecisionWorld()
@@ -19,6 +23,7 @@ function Probe() {
       data-account-id={world.run?.input.warehouse.accountId ?? ''}
       data-phase={world.calculation?.phase ?? ''}
       data-cancelled={world.calculationCancelled ?? false}
+      data-analysis-issue={world.analysisIssue?.kind ?? ''}
     >
       {world.status === 'error' ? world.message : world.status}
       <button onClick={world.cancelCalculation}>停止</button>
@@ -62,6 +67,20 @@ afterEach(async () => {
 })
 
 describe('account-owned loading lifecycle', () => {
+  it('reuses an already resolved account instead of looking up the active pointer again', async () => {
+    await database.open()
+    const account = await createAccount('已解析账户复用')
+    const settingsGet = vi.spyOn(database.settings, 'get')
+    try {
+      await expect(loadWorldInput(account)).resolves.toMatchObject({
+        warehouse: { accountId: account.id },
+      })
+      expect(settingsGet).not.toHaveBeenCalledWith('active-account-id')
+    } finally {
+      settingsGet.mockRestore()
+    }
+  })
+
   it('keeps the visible page mounted while switching accounts and rejects a late previous result', async () => {
     const { account: first, client, pending, release, stopDelaying } = await setup()
     const second = await createAccount('切换过渡合成账户')
@@ -105,7 +124,7 @@ describe('account-owned loading lifecycle', () => {
     expect(screen.getByRole('status')).not.toHaveAttribute('data-run', pending[0]!.run.runId)
   })
 
-  it('marks a lost Worker handle stale without parent input or route changes', async () => {
+  it('reports a lost Worker handle without changing the retained input or route', async () => {
     const { client, stopDelaying, calculate } = await setup()
     stopDelaying()
     let retained = true
@@ -127,12 +146,16 @@ describe('account-owned loading lifecycle', () => {
       expect(screen.getByRole('status')).toHaveAttribute('data-status', 'current'),
     )
     const runId = screen.getByRole('status').getAttribute('data-run')
+    expect(screen.getByRole('status')).toHaveAttribute('data-analysis-issue', '')
     expect(listeners.size).toBeGreaterThan(0)
     await act(async () => {
       retained = false
       for (const listener of listeners) listener()
     })
-    await waitFor(() => expect(screen.getByRole('status')).toHaveAttribute('data-status', 'stale'))
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveAttribute('data-analysis-issue', 'run_lost'),
+    )
+    expect(screen.getByRole('status')).toHaveAttribute('data-status', 'current')
     expect(screen.getByRole('status')).toHaveAttribute('data-run', runId)
     expect(calculate).toHaveBeenCalledTimes(1)
   })
@@ -175,6 +198,48 @@ describe('account-owned loading lifecycle', () => {
       </AccountDecisionWorldProvider>,
     )
     expect(calculate).toHaveBeenCalledTimes(1)
+  })
+
+  it('pauses account input observation without releasing the retained run', async () => {
+    const { client, pending, calculate, release, stopDelaying } = await setup()
+    stopDelaying()
+    const view = render(
+      <AccountDecisionWorldProvider queryClient={client} observeInput={false}>
+        <Probe />
+      </AccountDecisionWorldProvider>,
+    )
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(calculate).not.toHaveBeenCalled()
+
+    view.rerender(
+      <AccountDecisionWorldProvider queryClient={client} observeInput>
+        <Probe />
+      </AccountDecisionWorldProvider>,
+    )
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveAttribute('data-status', 'current'),
+    )
+    const runId = screen.getByRole('status').getAttribute('data-run')
+    expect(runId).toBeTruthy()
+
+    view.rerender(
+      <AccountDecisionWorldProvider queryClient={client} observeInput={false}>
+        <Probe />
+      </AccountDecisionWorldProvider>,
+    )
+    expect(screen.getByRole('status')).toHaveAttribute('data-status', 'loading')
+    expect(release).not.toHaveBeenCalled()
+
+    view.rerender(
+      <AccountDecisionWorldProvider queryClient={client} observeInput>
+        <Probe />
+      </AccountDecisionWorldProvider>,
+    )
+    await waitFor(() => expect(screen.getByRole('status')).toHaveAttribute('data-run', runId))
+    expect(calculate).toHaveBeenCalledTimes(1)
+    expect(pending).toHaveLength(0)
   })
 
   it('releases a cancelled request immediately, ignores its late result and supports retry', async () => {

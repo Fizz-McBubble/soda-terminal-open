@@ -1,0 +1,473 @@
+import {
+  createCalculationContext,
+  type CalculationContext,
+} from '../calculation/calculationContext'
+
+import { compileCurrentDriveDiscPlanningEffects } from '../calculation/currentDriveDiscPlanningEffects'
+import { compileReviewedDriveDiscEventEffects32 } from '../calculation/reviewedDriveDiscEventEffects32'
+import { reviewedDriveDiscSemanticsIdentity32 } from '../calculation/reviewedDriveDiscSemanticsIdentity32'
+import type { DriveDiscEventRuntimeBinding32 } from '../calculation/reviewedDriveDiscConditionDomains32'
+import { resolveCurrentPlanningConditionDeclarations32 } from '../calculation/currentPlanningConditionCatalog32'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
+import {
+  evaluateSourceBackedPlanningTeamDps,
+  type SourceBackedPlanningTeamDpsInput,
+} from '../calculation/currentPlanningTeamDpsRuntime'
+import type { PlanningEventSchedule32 } from '../calculation/planningEventOccurrenceState32'
+import { projectTargetTeamWEngineModifiers } from '../calculation/targetTeamEquipmentModifierProjection'
+import type { CurrentWEngineFormulaRuntime } from '../calculation/currentWEnginePersonalPlanningEffects'
+import { getCurrentFormulaContractRequirements } from '../calculation/currentFormulaMechanicContracts'
+import { stableContentHash } from '../gameDataPacks/types'
+import { qualifyReviewedPlanningEventSet32 } from '../gameDataPacks/reviewedPlanningEventSet32'
+import { reviewedPlanningEventSetIdentity32 } from '../gameDataPacks/reviewedPlanningEventSetIdentity32'
+import {
+  planningEventDeclarationsInputFingerprint32,
+  validatePlanningEventDeclarations32,
+  type PlanningEventDeclarationsInput32,
+  type PlanningEventDeclarationsValidation32,
+} from './publicPlanningEventDeclarations32'
+import {
+  planningBenchmark32Contract,
+  type PlanningBenchmarkResult32,
+} from './publicPlanningBenchmark32'
+import {
+  planningBenchmarkBaseline32 as baseline,
+  planningBenchmarkContextPolicy32,
+  preparePlanningBenchmark32,
+  type PlanningBenchmarkBinding32,
+} from './privatePlanningBenchmarkBinding32'
+
+export const eventKey = (row: { ownerAgentId: string; eventId: string }) =>
+  JSON.stringify([row.ownerAgentId, row.eventId])
+
+/** Trusted private producer. Only the public vocabulary is transported; all
+ * source IR, account facts and equipment operands are rebuilt from the run. */
+export function analyzePreparedPlanningBenchmark32Candidate(
+  input: PlanningBenchmarkBinding32,
+  prepared: ReturnType<typeof preparePlanningBenchmark32>,
+  declarations?: PlanningEventDeclarationsInput32,
+  expectedSourceBindingFingerprint?: string,
+  trustedValidation?: PlanningEventDeclarationsValidation32,
+): {
+  result: Omit<PlanningBenchmarkResult32, 'resultFingerprint'>
+  context: CalculationContext | null
+  /** Private shared operands for function-aware equipment comparisons. */
+  runtimeInput32: SourceBackedPlanningTeamDpsInput | null
+} {
+  let context: CalculationContext | null = null
+  let runtimeInput32: SourceBackedPlanningTeamDpsInput | null = null
+  const payload: Omit<PlanningBenchmarkResult32, 'resultFingerprint'> = {
+    contract: planningBenchmark32Contract,
+    runId: input.runId,
+    candidateId: input.candidateId,
+    fitFingerprint: input.fit.fingerprint,
+    accountFingerprint: input.accountFingerprint,
+    sourceBindingFingerprint: prepared.sourceBindingFingerprint,
+    metadata: prepared.metadata,
+    inputFingerprint: declarations
+      ? planningEventDeclarationsInputFingerprint32(declarations)
+      : null,
+    sideEffect: 'read_only',
+    status: prepared.gaps.length ? 'unsupported' : 'metadata',
+    formalCycleReady: false,
+    totalDamage: null,
+    benchmarkDps: null,
+    declaredDurationSeconds: null,
+    eventResults: [],
+    includedEffectKeys: [],
+    excludedEffects: [],
+    gaps: [...prepared.gaps],
+    missingContext: [
+      '音擎使用当前方案身份与精炼；未指定等级的替换沿用账户记录等级与突破。',
+      '事件声明不证明完整轮转的占场、资源收支和触发窗口。',
+      '本次切片不纳入异常结算、失衡进度、邦布及没有声明的动作。',
+    ],
+  }
+  const finish = () => {
+    const excluded = new Map<string, PlanningBenchmarkResult32['excludedEffects'][number]>()
+    for (const row of payload.excludedEffects) {
+      const previous = excluded.get(row.effectKey)
+      excluded.set(row.effectKey, {
+        ...row,
+        fields: [...new Set([...(previous?.fields ?? []), ...row.fields])],
+        sourceRefs: [...new Set([...(previous?.sourceRefs ?? []), ...row.sourceRefs])],
+      })
+    }
+    payload.excludedEffects = [...excluded.values()]
+    payload.gaps = [...new Set(payload.gaps)]
+    return {
+      result: { ...payload },
+      context,
+      runtimeInput32,
+    }
+  }
+  if (!prepared.metadata || !declarations) return finish()
+  if (expectedSourceBindingFingerprint !== prepared.sourceBindingFingerprint) {
+    payload.status = 'unsupported'
+    payload.gaps.push('来源、账户或配装绑定已变化，请重新读取条件定义。')
+    return finish()
+  }
+  const validated =
+    trustedValidation ?? validatePlanningEventDeclarations32(declarations, prepared.metadata)
+  if (validated.gaps.length) {
+    payload.status = 'unsupported'
+    payload.gaps.push(...validated.gaps)
+    return finish()
+  }
+  const discEffects = compileCurrentDriveDiscPlanningEffects({
+    members: prepared.members,
+    loadouts: prepared.loadouts.map((loadout) => ({
+      ...loadout,
+      discs: loadout.discs.filter(
+        (disc) => !(disc.setId in reviewedDriveDiscSemanticsIdentity32.sources),
+      ),
+    })),
+  })
+  if (discEffects.status !== 'supported') {
+    payload.status = 'unsupported'
+    payload.gaps.push(...discEffects.blockers)
+    return finish()
+  }
+  const schedule: PlanningEventSchedule32 = {
+    sourceFingerprint: prepared.sourceBindingFingerprint,
+    declarationFingerprint: payload.inputFingerprint!,
+    occurrences: [],
+    ...(declarations.triggerAftershockWindow32
+      ? { triggerAftershockWindow32: declarations.triggerAftershockWindow32 }
+      : {}),
+  }
+  for (const occurrence of validated.occurrences) {
+    const projection = prepared.projections.get(occurrence.ownerAgentId)!
+    const resolved = resolveCurrentPlanningConditionDeclarations32({
+      projection,
+      // The signed comparison vocabulary may include inactive alternatives.
+      // It was fully validated above; apply only this candidate's actual equipment.
+      declarations: input.equipmentConditionAlternatives32
+        ? occurrence.conditions.filter((condition) =>
+            projection.defs.some(
+              (def) =>
+                def.providerAgentId === condition.providerAgentId &&
+                def.referenceKey === condition.referenceKey,
+            ),
+          )
+        : occurrence.conditions,
+    })
+    if (resolved.status !== 'supported') {
+      payload.gaps.push(...resolved.blockers)
+      continue
+    }
+    const referencesByAgentId: Record<string, Record<string, string | number | boolean>> = {}
+    const runtimeByAgentId: Record<string, CurrentWEngineFormulaRuntime> = {}
+    const discBindings = new Map<string, DriveDiscEventRuntimeBinding32>()
+    for (const row of resolved.values) {
+      if (row.disposition === 'unknown' || row.value === undefined) continue
+      const evidence = projection.evidence.find(
+        (item) =>
+          item.providerAgentId === row.providerAgentId && item.referenceKey === row.referenceKey,
+      )!
+      if (evidence.discSetId) {
+        const key = JSON.stringify([row.providerAgentId, evidence.discSetId])
+        const binding = discBindings.get(key) ?? {
+          providerAgentId: row.providerAgentId,
+          setId: evidence.discSetId,
+          runtime: {},
+        }
+        if (typeof row.value === 'boolean')
+          binding.runtime.flags = {
+            ...binding.runtime.flags,
+            [evidence.runtimeReference]: row.value,
+          }
+        else if (typeof row.value === 'number')
+          binding.runtime.accumulators = {
+            ...binding.runtime.accumulators,
+            [evidence.runtimeReference]: row.value,
+          }
+        else payload.gaps.push(`四件套条件类型尚未闭合：${row.referenceKey}`)
+        discBindings.set(key, binding)
+      } else if (evidence.engineId) {
+        const state = runtimeByAgentId[row.providerAgentId] ?? { flags: {}, numbers: {} }
+        if (typeof row.value === 'boolean')
+          state.flags = { ...state.flags, [evidence.runtimeReference]: row.value }
+        else if (typeof row.value === 'number') {
+          const requirements = getCurrentFormulaContractRequirements('wengine', evidence.engineId)
+          if (requirements?.accumulators.includes(evidence.runtimeReference))
+            state.accumulators = { ...state.accumulators, [evidence.runtimeReference]: row.value }
+          else if (requirements?.numbers.includes(evidence.runtimeReference))
+            state.numbers = { ...state.numbers, [evidence.runtimeReference]: row.value }
+          else {
+            payload.gaps.push(`音擎数值条件没有对应来源输入：${row.referenceKey}`)
+            continue
+          }
+        } else {
+          payload.gaps.push(`音擎枚举尚未映射到实际公式：${row.referenceKey}`)
+          continue
+        }
+        runtimeByAgentId[row.providerAgentId] = state
+      } else {
+        if (
+          typeof row.value !== 'number' &&
+          typeof row.value !== 'boolean' &&
+          typeof row.value !== 'string'
+        )
+          continue
+        referencesByAgentId[row.providerAgentId] = {
+          ...referencesByAgentId[row.providerAgentId],
+          [evidence.runtimeReference]: row.value,
+        }
+      }
+    }
+    const reviewedDiscs = compileReviewedDriveDiscEventEffects32({
+      members: prepared.members,
+      loadouts: prepared.loadouts,
+      ownerAgentId: occurrence.ownerAgentId,
+      runtimeBindings: [...discBindings.values()],
+    })
+    if (reviewedDiscs.status !== 'supported') {
+      payload.gaps.push(...reviewedDiscs.blockers)
+      continue
+    }
+    const engines = projectTargetTeamWEngineModifiers({
+      memberIds: input.fit.memberIds,
+      members: prepared.members,
+      parameters: { wEngines: prepared.parameters },
+      wEngineLevelsByAgentId: Object.fromEntries(
+        prepared.parameters.map((row) => [row.agentId, row.level]),
+      ),
+      runtimeByAgentId,
+    })
+    if (engines.status !== 'supported') {
+      payload.gaps.push(...engines.blockers)
+      continue
+    }
+    payload.excludedEffects.push(
+      ...engines.directRuntime.exclusions.map((row) => {
+        const engineId = 'engineId' in row ? row.engineId : undefined
+        const index = 'effectIndex' in row ? row.effectIndex : undefined
+        return {
+          effectKey: `${occurrence.occurrenceId}:wengine:${String(engineId ?? ('effectKey' in row ? row.effectKey : 'unknown'))}:${String(index ?? row.reason ?? 'excluded')}`,
+          reason: String(row.reason ?? '来源效果尚未纳入。'),
+          fields:
+            'fields' in row && Array.isArray(row.fields)
+              ? row.fields.filter((field): field is string => typeof field === 'string')
+              : [],
+          sourceRefs:
+            'sourceRefs' in row && Array.isArray(row.sourceRefs)
+              ? row.sourceRefs.filter((ref): ref is string => typeof ref === 'string')
+              : (engines.wEngines.find((engine) => engine.engineId === engineId)?.sourceRefs ?? []),
+        }
+      }),
+    )
+    schedule.occurrences = [
+      ...schedule.occurrences,
+      {
+        occurrenceId: occurrence.occurrenceId,
+        ownerAgentId: occurrence.ownerAgentId,
+        eventId: occurrence.eventId,
+        atSeconds: occurrence.atSeconds,
+        ...(occurrence.durationSeconds === undefined
+          ? {}
+          : { durationSeconds: occurrence.durationSeconds, rateState: occurrence.rateState }),
+        ...(occurrence.snapshotAtSeconds === undefined
+          ? {}
+          : { snapshotAtSeconds: occurrence.snapshotAtSeconds }),
+        referencesByAgentId,
+        commonAnomalyObservations:
+          occurrence.windswept === 'unobserved'
+            ? []
+            : [
+                {
+                  eventId: occurrence.eventId,
+                  windswept: occurrence.windswept === 'active',
+                  sourceRefs: occurrence.sourceRefs,
+                },
+              ],
+        equipmentModifierBuckets: [
+          ...engines.directRuntime.buckets,
+          ...discEffects.buckets,
+          ...reviewedDiscs.buckets,
+        ],
+        sourceRefs: occurrence.sourceRefs,
+        ...(occurrence.anomalyLifecycleByAgentId
+          ? { anomalyLifecycleByAgentId: occurrence.anomalyLifecycleByAgentId }
+          : {}),
+        ...(occurrence.targetEffectStatesByAgentId32
+          ? { targetEffectStatesByAgentId32: occurrence.targetEffectStatesByAgentId32 }
+          : {}),
+      },
+    ]
+  }
+  if (payload.gaps.length) {
+    payload.status = 'unsupported'
+    return finish()
+  }
+  const usageMap = new Map<
+    string,
+    {
+      ownerAgentId: string
+      eventId: string
+      skillLevel: number
+      occurrenceCount: number
+      durationSeconds?: number
+      evidenceRefs: string[]
+    }
+  >()
+  for (const occurrence of validated.occurrences) {
+    const metadata = prepared.metadata.events.find((row) => eventKey(row) === eventKey(occurrence))!
+    const usage = usageMap.get(eventKey(occurrence)) ?? {
+      ownerAgentId: occurrence.ownerAgentId,
+      eventId: occurrence.eventId,
+      skillLevel: metadata.skillLevel,
+      occurrenceCount: 0,
+      evidenceRefs: occurrence.sourceRefs,
+    }
+    usage.occurrenceCount++
+    if (occurrence.durationSeconds !== undefined)
+      usage.durationSeconds = (usage.durationSeconds ?? 0) + occurrence.durationSeconds
+    usageMap.set(eventKey(occurrence), usage)
+  }
+  // Named event/loadout readiness is independently derived. It does not grant
+  // complete-cycle readiness or require the unimplemented resource simulation.
+  const qualification = qualifyReviewedPlanningEventSet32(input, prepared, declarations)
+  const qualifiedCapabilities = [
+    'formal_event_damage_ready',
+    'formal_event_set_ready',
+    'formal_loadout_ready',
+  ] as const
+  const calculationContext = createCalculationContext({
+    schemaVersion: 'calculation-context-v2',
+    contextId: `declared32:${prepared.sourceBindingFingerprint}:${payload.inputFingerprint}`,
+    gameVersion: '3.2',
+    canonical: {
+      packageId: 'declared-planning-events32',
+      packageVersion: prepared.sourceBindingFingerprint,
+      gameVersion: '3.2',
+      contentHash: prepared.sourceBindingFingerprint,
+      status: qualification.allowed ? 'formal' : 'candidate',
+      rollbackPackageId: null,
+    },
+    accountSnapshot: {
+      accountId: input.warehouse.accountId ?? 'legacy-local',
+      rosterHash: input.accountFingerprint,
+      warehouseHash: input.fit.fingerprint,
+      planningHash: payload.inputFingerprint!,
+      capturedAt: input.capturedAt,
+      stale: false,
+    },
+    scope: { kind: 'team', agentIds: [...input.fit.memberIds] },
+    actors: prepared.actorBindings,
+    bangboo: null,
+    scenario: {
+      playModeId: 'declared-event-benchmark32',
+      scenarioId: baseline.baselineId,
+      scenarioHash: stableContentHash(baseline),
+      enemy: { ...baseline.enemy, level: planningBenchmarkContextPolicy32.enemyLevel },
+    },
+    cycle: {
+      id: 'declared-event-benchmark32',
+      durationSeconds: baseline.declaredDurationSeconds,
+      actionSequenceHash: stableContentHash(schedule),
+      hitCount: schedule.occurrences.length,
+      buffWindowHash: payload.inputFingerprint!,
+      complete: false,
+    },
+    objective: 'candidate_warehouse_score',
+    constraintsHash: input.fit.fingerprint,
+    evidence: [
+      {
+        fieldId: 'declared32-source-and-asset-binding',
+        status: 'candidate',
+        applicability: 'verified_current',
+        sourceRefs: [prepared.sourceBindingFingerprint, payload.inputFingerprint!],
+        sourceVersion: '3.2',
+        requiredFor: ['candidate_warehouse'],
+        reason: '来源事件与逐次声明绑定实际账户/十八盘；未升级完整固定轮转。',
+      },
+      ...qualifiedCapabilities.map((capability) => ({
+        fieldId: `reviewed32:${capability}`,
+        status: qualification.allowed ? ('formal' as const) : ('candidate' as const),
+        applicability: 'verified_current' as const,
+        sourceRefs: [
+          ...qualification.evidenceRefs,
+          prepared.sourceBindingFingerprint,
+          payload.inputFingerprint!,
+        ],
+        sourceVersion: '3.2',
+        requiredFor: [capability],
+        reason: qualification.allowed
+          ? `${reviewedPlanningEventSetIdentity32.qualificationId}核验当前事件、条件及实际配装；完整轮转不在该资格范围。`
+          : qualification.gaps.join('；'),
+      })),
+    ],
+  })
+  context = calculationContext
+  runtimeInput32 = {
+    memberIds: input.fit.memberIds,
+    members: prepared.members,
+    eventUsages: [...usageMap.values()],
+    baseline,
+    eventSchedule32: schedule,
+  }
+  const result = evaluateSourceBackedPlanningTeamDps(runtimeInput32)
+  if (result.status !== 'supported' || !('eventResults' in result)) {
+    payload.status = 'unsupported'
+    payload.gaps.push(
+      ...(result.status === 'unsupported' ? result.blockers : ['逐次事件结果缺失。']),
+    )
+    return finish()
+  }
+  payload.status = 'declared_event_benchmark'
+  payload.totalDamage = result.totalDamage
+  payload.benchmarkDps = result.planningDps
+  payload.declaredDurationSeconds = result.declaredDurationSeconds
+  payload.eventResults = result.eventResults.map((event) => ({
+    ...event,
+    runtimeHash: stableContentHash({
+      eventRuntimeHash: event.runtimeHash,
+      calculationContextFingerprint: calculationContext.fingerprint,
+    }),
+  }))
+  payload.includedEffectKeys = [
+    ...new Set(
+      [...result.effectBuckets, ...result.equipmentModifierBuckets].map((row) => row.effectKey),
+    ),
+  ]
+  payload.excludedEffects.push(
+    ...result.sourceEffectExclusions,
+    ...discEffects.exclusions.map((row) => ({
+      effectKey: `disc:${row.agentId}:${row.setId}`,
+      reason: row.reason,
+      fields: row.fields,
+      sourceRefs: row.sourceRefs,
+    })),
+    ...[...prepared.projections.entries()].flatMap(([ownerAgentId, row]) =>
+      row.blockedReferences
+        .filter((ref) => {
+          const events = validated.occurrences.filter(
+            (occurrence) => occurrence.ownerAgentId === ownerAgentId,
+          )
+          if (!events.length) return false
+          // A source failure in an EX-only modifier does not invalidate an explicitly
+          // declared basic attack. Unknown/unscoped dependencies remain blocking.
+          if (!ref.eventScopes?.length) return true
+          return events.some((occurrence) => {
+            const event = getCurrentAgentEventContract(ownerAgentId)?.eventContract.events.find(
+              (event) => event.eventId === occurrence.eventId,
+            )
+            return (
+              !event?.damageType ||
+              ref.eventScopes!.some(
+                (scope) => !scope.damageType || scope.damageType === event.damageType,
+              )
+            )
+          })
+        })
+        .map((ref) => ({
+          effectKey: `${ref.providerAgentId}:${ref.referenceKey}`,
+          reason: ref.reason,
+          fields: [ref.referenceKey],
+          sourceRefs: ref.sourceRefs,
+        })),
+    ),
+  )
+  return finish()
+}

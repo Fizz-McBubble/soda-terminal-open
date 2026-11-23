@@ -32,6 +32,12 @@
   text-decoration: none;
 }
 
+.f5v-shell .journey-list--five .journey-item a:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 4px;
+  border-radius: var(--soda-radius-control);
+}
+
 .f5v-shell .home-journey__number {
   position: absolute;
   left: 10px;
@@ -117,6 +123,10 @@
   background: rgba(30, 24, 45, 0.35);
 }
 
+.f5v-shell .home-asset-dialog[aria-busy='true'] {
+  cursor: progress;
+}
+
 .f5v-shell .home-asset-dialog header {
   display: flex;
   align-items: center;
@@ -134,6 +144,11 @@
   width: 36px;
   padding: 0;
   flex: 0 0 36px;
+}
+
+.f5v-shell .home-asset-dialog .home-asset-dialog__close:disabled {
+  opacity: 0.5;
+  cursor: progress;
 }
 
 .f5v-shell .home-asset-dialog p {
@@ -238,5 +253,12 @@
   }
   .f5v-shell .soda-home--golden .home-scene__orbit--two {
     width: 56%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f5v-shell .journey-list--five .journey-item,
+  .f5v-shell .home-catalog-cache__action {
+    transition: none;
   }
 }

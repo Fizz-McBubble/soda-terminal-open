@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { contentHash } from './contentHash'
 import {
+  reviewedTargetEffectStateSchema32,
+  type ReviewedTargetEffectState32,
+} from '../domain/reviewedTargetEffectState32'
+import {
   publicTriggerAftershockWindowSchema32,
   type PublicTriggerAftershockWindow32,
 } from './publicTriggerAftershockWindow32'
@@ -57,6 +61,7 @@ export type PlanningEventOccurrence32 = {
   windswept: 'active' | 'inactive' | 'unobserved'
   sourceRefs: string[]
   anomalyLifecycleByAgentId?: Record<string, PublicPlanningAnomalyLifecycle32>
+  targetEffectStatesByAgentId32?: Record<string, ReviewedTargetEffectState32>
 }
 export type PlanningEventDeclarationsInput32 = {
   contract: typeof planningEventDeclarations32Contract
@@ -142,6 +147,9 @@ const inputSchema = z
             sourceRefs: refs,
             anomalyLifecycleByAgentId: z
               .record(text, publicPlanningAnomalyLifecycleSchema32)
+              .optional(),
+            targetEffectStatesByAgentId32: z
+              .record(text, reviewedTargetEffectStateSchema32)
               .optional(),
           })
           .strict(),
@@ -333,6 +341,17 @@ export function validatePlanningEventDeclarations32(
         lifecycle.event.atSeconds !== occurrence.atSeconds
       )
         gaps.push(`anomaly_lifecycle_occurrence_mismatch:${id}:${providerId}`)
+    }
+    for (const [providerId, state] of Object.entries(
+      occurrence.targetEffectStatesByAgentId32 ?? {},
+    )) {
+      const expectedProvider = {
+        promeia_guilty: 'agent-promeia',
+        sunna_cat_gaze: 'agent-sunna',
+        nangong_misstep: 'agent-nangong',
+      }[state.kind]
+      if (!trustedMetadata.memberIds.includes(providerId) || providerId !== expectedProvider)
+        gaps.push(`target_effect_occurrence_provider_mismatch:${id}:${providerId}`)
     }
     if (!event) continue
     const acceptedRefs = new Set([

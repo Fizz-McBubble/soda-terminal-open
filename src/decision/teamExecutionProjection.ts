@@ -1,5 +1,6 @@
 import type { AccountPlanningDraft } from '../accounts/types'
 import type { AccountRoster } from '../assault/types'
+import { captureTeamCultivation, type SavedTeamCultivation } from './savedTeamCultivation'
 import { currentBangbooDirectory } from '../assault/catalog'
 import type { AccountBuildResult } from '../optimizer/optimizeAccountBuilds'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
@@ -61,6 +62,7 @@ export type TeamExecutionImpact = {
 
 export type TeamExecutionMember = {
   agentId: string
+  cultivation?: SavedTeamCultivation
   current: { wEngineCopyId: string | null; discIds: string[] }
   suggested: { wEngine: TeamExecutionWEngine | null; discIds: string[] }
   actions: TeamExecutionAction[]
@@ -281,7 +283,7 @@ function projectOne(
       agentId,
       input.roster,
       effectiveEquipmentParameters,
-      Boolean(candidate.authorComparisonMembership && candidate.bangbooId === null),
+      Boolean(candidate.authorComparisonMembership && !candidate.authorComparisonMembership.independentDefaultAdmission && candidate.bangbooId === null),
     )
     const actions = [...wEngine.actions]
     const impacts = [
@@ -327,6 +329,9 @@ function projectOne(
         : 'ready'
     return {
       agentId,
+      cultivation: captureTeamCultivation(
+        input.roster.agents.find((agent) => agent.agentId === agentId),
+      ),
       current: { wEngineCopyId: wEngine.currentCopyId, discIds: currentDiscIds },
       suggested: { wEngine: wEngine.suggested, discIds: suggestedDiscIds },
       actions,
@@ -362,17 +367,17 @@ function projectOne(
     memberIds: [...candidate.memberIds],
     // Ordinary legacy pending-Bangboo plans keep their established representation.
     // Only the separately qualified author membership carries an explicit null identity.
-    bangbooId: candidate.authorComparisonMembership
+    bangbooId: candidate.authorComparisonMembership && !candidate.authorComparisonMembership.independentDefaultAdmission
       ? candidate.bangbooId
       : (candidate.bangbooId ?? ''),
-    ...(candidate.bangbooId === null && candidate.authorComparisonMembership
+    ...(candidate.bangbooId === null && candidate.authorComparisonMembership && !candidate.authorComparisonMembership.independentDefaultAdmission
       ? { authorComparisonMembership: candidate.authorComparisonMembership }
       : {}),
     bangbooStar: recordedBangbooStar(
       effectiveEquipmentParameters?.bangbooStars ?? schemeBangbooStar(candidate),
     ),
     wEngineBindingMode:
-      candidate.authorComparisonMembership && candidate.bangbooId === null
+      candidate.authorComparisonMembership && !candidate.authorComparisonMembership.independentDefaultAdmission && candidate.bangbooId === null
         ? 'account_fact_binding'
         : 'scheme_parameters',
     members,

@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentType, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import {
   createBrowserRouter,
   Navigate,
@@ -8,14 +8,19 @@ import {
   useNavigation,
 } from 'react-router-dom'
 import type { initializeDatabase } from './db/database'
+import { ensureOfficialCatalogInstalled } from './assets/visualAssetInstallCoordinator'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { AppInitializationGate, AppRouteError, AppRouteLoading } from './components/AppEntryState'
 import { AppShell } from './components/AppShell'
+import { HomeLoading } from './components/HomeHeroScene'
 import { AccountDecisionWorldProvider } from './application/accountDecisionWorld'
-import { shouldAutoCalculateAccountDecision } from './application/decisionRoutePolicy'
+import {
+  shouldAutoCalculatePlayerDecisionWorld,
+  playerDecisionInputObservation,
+} from './application/decisionRoutePolicy'
 import type { CalculationQueryClient } from './application/calculationQueryContract'
+import { createOnlineCalculationConsentClient } from './application/onlineCalculationConsentClient'
 import type { RuntimeSelectionReader } from './application/accountDecisionWorldModel'
-import { DashboardPage } from './pages/DashboardPage'
 import { UsageStatistics } from './usageStatistics/UsageStatistics'
 import {
   LegacyAgentsRedirect,
@@ -53,7 +58,7 @@ function PlayerDecisionWorld({
 }) {
   const { pathname, search } = useLocation()
   const navigation = useNavigation()
-  const isScannerRoute = pathname.replace(/\/+$/, '').toLowerCase() === '/system/scanner'
+  const isDevelopmentDirectory = pathname.replace(/\/+$/, '').toLowerCase() === '/development'
   const onlineMode = decisionEnvironment.mode === 'remote'
   const [onlineAllowed, setOnlineAllowed] = useState(() => {
     try {
@@ -72,42 +77,51 @@ function PlayerDecisionWorld({
   }
   const queryClient = useMemo<CalculationQueryClient>(() => {
     if (!onlineMode || onlineAllowed) return decisionEnvironment.queryClient
-    const requireConsent = () => {
-      throw new Error('请先阅读在线计算说明并允许本次页面发送必要计算事实。')
-    }
-    return {
-      ...decisionEnvironment.queryClient,
-      releaseAccountDecisionRun: () => undefined,
-      calculateAccountDecision: requireConsent,
-      queryDecisionPortfolio: requireConsent,
-      calculateTargetTeamWarehouseFit: requireConsent,
-      queryDevelopmentCandidateAlternatives: requireConsent,
-      queryWarehouseDiscTransitionUses: requireConsent,
-    }
+    return createOnlineCalculationConsentClient(decisionEnvironment.queryClient)
   }, [onlineAllowed, onlineMode, decisionEnvironment])
+  const personalFactsAvailable = !onlineMode && Boolean(queryClient.queryDevelopmentWorkbenchFacts)
+  const personalSessionAvailable =
+    !onlineMode &&
+    Boolean(
+      queryClient.openPersonalDevelopmentSession &&
+      queryClient.queryPersonalDevelopmentCandidates &&
+      queryClient.queryPersonalDevelopmentRoute &&
+      queryClient.releasePersonalDevelopmentSession &&
+      queryClient.hasPersonalDevelopmentSession,
+    )
   return (
     <AppShell
       navigationPending={navigation.state !== 'idle'}
       onAllowOnlineCalculation={onlineMode && !onlineAllowed ? allowOnlineCalculation : undefined}
     >
-      <AppInitializationGate>
+      <AppInitializationGate
+        loadingFallback={pathname === '/' ? <HomeLoading title="正在读取本地资料" /> : undefined}
+      >
         <UsageStatistics />
-        {isScannerRoute ? (
-          // Intake owns its account guards and receipts; changing the active account must not remount its task.
-          <Outlet />
-        ) : (
-          <AccountDecisionWorldProvider
-            queryClient={queryClient}
-            runtimeSelectionReader={decisionEnvironment.runtimeSelectionReader}
-            repairRuntimeSelection={decisionEnvironment.repairRuntimeSelection}
-            autoCalculate={
-              (!onlineMode || onlineAllowed) &&
-              shouldAutoCalculateAccountDecision(pathname, search, decisionEnvironment.mode)
-            }
-          >
-            <Outlet />
-          </AccountDecisionWorldProvider>
-        )}
+        <AccountDecisionWorldProvider
+          queryClient={queryClient}
+          runtimeSelectionReader={decisionEnvironment.runtimeSelectionReader}
+          repairRuntimeSelection={decisionEnvironment.repairRuntimeSelection}
+          autoCalculate={shouldAutoCalculatePlayerDecisionWorld({
+            pathname,
+            search,
+            mode: decisionEnvironment.mode,
+            onlineMode,
+            onlineAllowed,
+            personalFactsAvailable,
+            personalSessionAvailable,
+          })}
+          observeInput={playerDecisionInputObservation(
+            pathname,
+            decisionEnvironment.mode,
+            personalFactsAvailable,
+            personalSessionAvailable,
+            search,
+          )}
+          enableDevelopmentDirectoryScaffold={isDevelopmentDirectory}
+        >
+          <Outlet context={decisionEnvironment.mode} />
+        </AccountDecisionWorldProvider>
       </AppInitializationGate>
     </AppShell>
   )
@@ -122,6 +136,16 @@ export default function AppCore({
   decisionEnvironment: DecisionEnvironment
   HealthProvider: HealthProviderComponent
 }) {
+  useEffect(() => {
+    const loadImages = () => {
+      // Image availability should not gate the player routes.
+      void ensureOfficialCatalogInstalled().catch(() => undefined)
+    }
+    loadImages()
+    window.addEventListener('online', loadImages)
+    return () => window.removeEventListener('online', loadImages)
+  }, [])
+
   const [router] = useState(() =>
     createBrowserRouter([
       {
@@ -150,7 +174,12 @@ export default function AppCore({
                 .AgentDevelopmentGoldenDirectoryPage,
             }),
           },
-          { index: true, element: <DashboardPage /> },
+          {
+            index: true,
+            lazy: async () => ({
+              Component: (await import('./pages/DashboardPage')).DashboardPage,
+            }),
+          },
           {
             path: 'assets',
             lazy: async () => ({
@@ -188,7 +217,7 @@ export default function AppCore({
           {
             path: 'loadouts/team',
             lazy: async () => ({
-              Component: (await import('./pages/OptimizerFlowPage')).OptimizerFlowPage,
+              Component: (await import('./pages/optimizer/TeamPicker')).TeamPicker,
             }),
           },
           {
@@ -227,13 +256,9 @@ export default function AppCore({
           },
           {
             path: 'loadouts/plans/:planId',
-            lazy: async () => {
-              const [page] = await Promise.all([
-                import('./pages/OptimizerFlowPage'),
-                import('./pages/optimizer/SavedPlan'),
-              ])
-              return { Component: page.OptimizerFlowPage }
-            },
+            lazy: async () => ({
+              Component: (await import('./pages/optimizer/SavedPlanRoute')).SavedPlanRoute,
+            }),
           },
           {
             path: 'optimizer/team',

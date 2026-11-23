@@ -43,19 +43,18 @@ export function benchmarkModelScope(benchmark: Benchmark | undefined) {
 export function benchmarkScopeNote(benchmark: Benchmark | undefined) {
   if (!benchmark || benchmark.status !== 'supported') return null
   if (benchmark.coverage.domain === 'prepared_anomaly_settlement')
-    return '单次异常比较只覆盖同一准备条件下的结算，部分效果未计入。'
-  return benchmarkModelScope(benchmark)
-    ? '按已列动作与固定窗口比较，不代表持续实战输出。'
-    : '按代表动作近似比较，部分效果可能未计入。'
+    return '比较同条件下的单次异常伤害。'
+  if (benchmark.coverage.generalConclusion === 'limited') return '比较固定动作的近似输出。'
+  return benchmarkModelScope(benchmark) ? '比较同一时段内的动作输出。' : '比较代表动作的近似输出。'
 }
 
 export function benchmarkLabel(benchmark: Benchmark | undefined, stale: boolean) {
   if (stale) return '需重新搭配'
-  if (!benchmark || benchmark.status !== 'supported') return '暂无输出对比'
+  if (!benchmark || benchmark.status !== 'supported') return '近似输出 —'
   if (benchmark.coverage.domain === 'prepared_anomaly_settlement') {
     const delta = benchmark.totalDamageDelta
     const percent = benchmark.totalDamagePercentDelta
-    if (delta === null) return '暂无输出对比'
+    if (delta === null) return '单次异常比较 —'
     if (delta === 0) return '单次异常比较持平'
     if (percent === null || Math.abs(percent) < 0.005)
       return `单次异常比较 ${delta > 0 ? '+' : ''}${delta.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}（无法换算百分比）`
@@ -63,17 +62,19 @@ export function benchmarkLabel(benchmark: Benchmark | undefined, stale: boolean)
   }
   const overallReason = benchmarkOverallReason(benchmark)
   const outputLabel = benchmarkModelScope(benchmark) ? '同段输出' : '近似输出'
-  const absoluteDelta = benchmark.planningDpsDelta
-  if (absoluteDelta === null) return '暂无输出对比'
-  if (
-    benchmark.planningDpsPercentDelta === null ||
-    (absoluteDelta !== 0 && Math.abs(benchmark.planningDpsPercentDelta) < 0.005)
-  ) {
+  const singleAction =
+    benchmark.comparisonBasis?.rankingMethod === 'fixed_single_action_damage_delta'
+  const absoluteDelta = singleAction ? benchmark.totalDamageDelta : benchmark.planningDpsDelta
+  const percentDelta = singleAction
+    ? benchmark.totalDamagePercentDelta
+    : benchmark.planningDpsPercentDelta
+  if (absoluteDelta === null) return `${outputLabel} —`
+  if (percentDelta === null || (absoluteDelta !== 0 && Math.abs(percentDelta) < 0.005)) {
     return absoluteDelta === 0
       ? `${outputLabel}持平`
       : `${outputLabel} ${absoluteDelta > 0 ? '+' : ''}${absoluteDelta.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}（无法换算百分比）`
   }
-  const value = benchmark.planningDpsPercentDelta
+  const value = percentDelta
   if (benchmark.coverage.domain === 'fixed_event_direct_damage' || overallReason) {
     return value === 0
       ? `${outputLabel}持平`
@@ -93,22 +94,30 @@ export function effectiveHitLabel(value: string) {
 export function candidateSearchLabel(search: GoldenTop10Data['candidateSearch']) {
   if (!search) return '本次排序方法未记录，请重新搭配查看。'
   const method =
-    search.rankingMethod === 'prepared_anomaly_settlement'
-      ? '按同条件单次异常结算排序，仅覆盖已声明结算，不代表持续输出、全角色循环或整体最优'
-      : search.rankingMethod === 'comparison_groups'
-        ? `可比候选分组取舍：${[
-            ...(search.rankingScopes?.includes('panel_target') ? ['支援按机制面板目标'] : []),
-            ...(search.rankingScopes?.includes('declared_event') ? ['已覆盖事件按输出'] : []),
-            ...(search.rankingScopes?.includes('fixed_event_slice')
-              ? ['同来源优先级、相同覆盖与功能属性的候选按已计入输出']
-              : []),
-          ].join('；')}；不同组保留原顺序，未计入效果仍未知，不代表整体收益或全局最优`
-        : search.rankingMethod === 'dynamic_objective'
-          ? '按已覆盖模型目标排序'
-          : '按来源建议与局部细化排序，输出对比不代表名次依据'
-  return search.status === 'budget_exhausted'
-    ? `${method}；搜索预算已用尽，不代表全局最优。`
-    : search.status === 'objective_unresolved'
-      ? `${method}；部分目标尚未解决。`
-      : `${method}。`
+    search.rankingMethod === 'parameter_bound_unranked'
+      ? '当前没有足够的同条件可比候选，未生成伤害排序'
+      : search.rankingMethod === 'prepared_anomaly_settlement'
+        ? '按同条件单次异常结算排序；仅覆盖已声明条件和结算，不代表持续输出、全角色循环或游戏内整体最优'
+        : search.rankingMethod === 'comparison_groups'
+          ? `可比候选分组取舍：${[
+              ...(search.rankingScopes?.includes('panel_target') ? ['支援按机制面板目标'] : []),
+              ...(search.rankingScopes?.includes('declared_event') ? ['已覆盖事件按输出'] : []),
+              ...(search.rankingScopes?.includes('fixed_event_slice')
+                ? ['其他功能条件与覆盖相同的候选，仅按已计入的固定事件输出排序']
+                : []),
+            ].join(
+              '；',
+            )}；异常精通可能还有未计入的收益，未覆盖效果及其换装影响仍未知；顺序不代表整体优先级或游戏内最优`
+          : search.rankingMethod === 'dynamic_objective'
+            ? '按已覆盖属性与输出目标排序；未覆盖效果仍未知，不代表游戏内整体最优'
+            : '按来源建议与局部细化排序；未覆盖效果仍未知，输出对比不代表名次依据或游戏内最优'
+  if (search.status === 'not_run')
+    return search.rankingMethod === 'comparison_groups'
+      ? `${method}；未运行额外搜索。`
+      : '排序尚未运行；当前顺序不能作为比较结论。'
+  if (search.status === 'budget_exhausted')
+    return `${method}；目前只搜索了部分搭配，可能还有其他方案。`
+  if (search.status === 'objective_unresolved')
+    return `${method}；部分目标尚未解决，未解决项不会按 0 处理。`
+  return `${method}。`
 }

@@ -63,7 +63,7 @@ describe('team loadout overview result layers', () => {
     ).toEqual([])
   })
 
-  it('uses Account Decision order and categorical authority without exposing raw DPS as the answer', () => {
+  it('keeps Account Decision order without assigning an unreviewed trio a rating or using raw DPS', () => {
     const decision = decisionWithResultLayers()
     decision.boxNumericDecision = {
       ranked: [
@@ -78,12 +78,12 @@ describe('team loadout overview result layers', () => {
     expect(primary).toMatchObject({
       id: 'decision:team-first',
       cultivationPriority: 'ready_now',
-      teamRatingBand: 'S',
-      confidence: 'high',
+      teamRatingBand: null,
+      confidence: null,
       outputPotentialBand: 'excellent',
       authorityReasons: ['权威顺位 1'],
     })
-    expect(model.answer.summary).toContain('优先推荐有攻略支持的队伍，选定后搭配装备')
+    expect(model.answer.summary).toContain('优先推荐有搭配资料支持的队伍，选定后可继续搭配装备')
     expect(model.answer.summary).not.toContain('DPS')
   })
 
@@ -137,7 +137,7 @@ describe('team loadout overview result layers', () => {
     expect(stronger).toMatchObject({
       id: 'decision:authority-stronger-unsolved',
       kind: 'direction',
-      teamRatingBand: 'S',
+      teamRatingBand: null,
       cultivationPriority: 'ready_now',
     })
     expect(stronger.gaps).toEqual([])
@@ -239,7 +239,7 @@ describe('team loadout overview result layers', () => {
       teamEquipmentParameters: {
         wEngines: [{ agentId: current.memberIds[0], engineId: 'historic-engine', refinement: 1 }],
         bangbooId: current.bangbooId,
-        bangbooStars: 6,
+        bangbooStars: 4,
         source: 'player_confirmed',
       },
       warehouseRefs: [],
@@ -289,12 +289,12 @@ describe('team loadout overview result layers', () => {
       confidence: null,
       planningDps: null,
       planningDpsStatus: 'unsupported',
+      bangbooStars: 4,
       bangbooAuthority: 'authoritative',
       reason: expect.stringContaining('已保存 18 张不同驱动盘'),
     })
-    expect(exact.gaps).toContain(
-      '已保存的驱动盘中有 1 张当前不在仓库；原记录已保留，未自动缩减或替换。',
-    )
+    expect(exact.gaps).toContain('已保存的驱动盘中有 1 张当前不在仓库。')
+    expect(saved.candidateWarehouse?.loadouts.flatMap((row) => row.discIds)).toEqual(savedRefs)
     expect(variants.find((item) => item.id === `saved:${wrongBangboo.id}`)).toMatchObject({
       teamRatingBand: null,
       planningDps: null,
@@ -307,7 +307,7 @@ describe('team loadout overview result layers', () => {
     expect(conflicting.gaps).toEqual(
       expect.arrayContaining([
         '当前保存了 19/18 张不同驱动盘',
-        '保存记录中的驱动盘信息不一致；已完整保留，需重新匹配后才能作为当前方案。',
+        '保存记录中的驱动盘信息不一致，请重新匹配。',
       ]),
     )
     expect(conflicting.readiness).toBe(

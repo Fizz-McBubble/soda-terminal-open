@@ -1,18 +1,19 @@
+import { withTeamGuidePreferencePresentations } from '../decision/teamGuidePreferencePresentation'
 import {
   authorityOnlyPresentationMetadata,
   recommendationItem,
   targetFitBangbooPresentation,
+  withCurrentTeamSystemRanking,
 } from './teamLoadoutRecommendationItem'
 export { unselectedBangbooReason } from './teamLoadoutRecommendationItem'
 import type { AccountPlanningDraft } from '../accounts/types'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import { getAgentName } from '../application/publicRosterNames'
-import type {
-  AccountDecisionSnapshot,
-  TargetTeamWarehouseFitQueryResult,
-} from '../application/calculationQueryContract'
+import type { AccountDecisionSnapshot } from '../application/calculationQueryContract'
+import type { TeamLoadoutCapturedFit } from './teamLoadoutOverviewTypes'
 import {
   playerFacingExecutionBlocker,
+  presentTeamExecution,
   presentTeamExecutionSummary,
 } from './teamExecutionPresentation'
 import { defaultSchemeBangbooId } from './teamLoadoutDecisionViewModel'
@@ -23,16 +24,16 @@ import {
   savedPlanItem,
 } from './teamLoadoutSavedPlanProjection'
 import { visibleDecisionText } from './teamLoadoutVisibleDecisionText'
-import { resolveTeamPresentationFamily } from './teamSourceFamilyProjection'
 import { authorityConsumerRecommendations } from '../application/authorityConsumerRecommendations'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
-import { orderRecommendationFamilies, orderTeamRecommendations } from './teamRecommendationOrdering'
+import { orderRecommendationFamilies } from './teamRecommendationOrdering'
+import { familyFromVariants } from './teamLoadoutFamily'
+export { familyFromVariants } from './teamLoadoutFamily'
 import { projectTeamLoadoutCompletionCandidates } from './teamLoadoutCompletionCandidates'
 import { genericTeamRatingScopeCopy } from './teamRatingText'
 import { referenceRecommendationFamilies } from './teamRecommendationVisibility'
-import { formedCultivationGaps } from '../application/formedCultivationGaps'
+import { currentTeamCultivation, formedCultivationGaps } from '../application/formedCultivationGaps'
 import type {
-  TeamLoadoutOverviewFamily,
   TeamLoadoutOverviewGroup,
   TeamLoadoutOverviewItem,
   TeamLoadoutOverviewModel,
@@ -60,55 +61,13 @@ type BuildOverviewModelInput = {
   contextDiscId?: string | null
 }
 
-export function familyFromVariants(
-  familyKey: string,
-  variants: TeamLoadoutOverviewItem[],
-): TeamLoadoutOverviewFamily {
-  const ordered = variants.some((item) => item.kind === 'saved')
-    ? [...variants].sort(
-        (left, right) =>
-          right.recommendationRank - left.recommendationRank || left.id.localeCompare(right.id),
-      )
-    : orderTeamRecommendations(variants)
-  const primary = ordered[0]!
-  const isSaved = primary.kind === 'saved'
-  const core = resolveTeamPresentationFamily(primary.agentIds as [string, string, string])
-  return {
-    id: `family:${familyKey}`,
-    kind: primary.kind,
-    title:
-      !isSaved && ordered.length > 1 && core.status === 'aggregated'
-        ? `${core.coreAgentIds.map(getAgentName).join(' · ')}核心`
-        : primary.title,
-    coreAgentIds: primary.coreAgentIds,
-    mechanism: primary.mechanism,
-    stateLabel: isSaved
-      ? '已保存'
-      : ordered.length > 1
-        ? `${primary.stateLabel} · ${ordered.length} 种搭配`
-        : primary.stateLabel,
-    reason: isSaved
-      ? primary.reason
-      : ordered.length > 1
-        ? `同一核心有 ${ordered.length} 种三人搭配，可分别查看评级与邦布建议。`
-        : primary.reason,
-    planningDps: primary.planningDps,
-    planningDpsStatus: primary.planningDpsStatus,
-    cultivationPriority: primary.cultivationPriority,
-    teamRatingBand: primary.teamRatingBand,
-    confidence: primary.confidence,
-    outputPotentialBand: primary.outputPotentialBand,
-    variants: ordered,
-  }
-}
-
 /**
  * A target fit is an exact, user-requested result from the same analysis run.
  * Project it onto that exact variant without changing source rank, score, or family identity.
  */
 export function projectTargetTeamFitsIntoOverviewModel(
   model: TeamLoadoutOverviewModel,
-  targetTeamFits: Readonly<Record<string, TargetTeamWarehouseFitQueryResult>>,
+  targetTeamFits: Readonly<Record<string, TeamLoadoutCapturedFit>>,
   warehouse?: CoreWarehouse,
 ): TeamLoadoutOverviewModel {
   const fits = Object.values(targetTeamFits)
@@ -118,22 +77,29 @@ export function projectTargetTeamFitsIntoOverviewModel(
   const groups = model.groups.map((group) => ({
     ...group,
     items: group.items.map((family) => {
-      let checkedVariant: TeamLoadoutOverviewItem | undefined
+      let changed = false
       const variants = family.variants.map((variant) => {
+        const memberKey = exactMembersKey(variant.agentIds)
         const sourceFit = fits.find(
           (candidate) =>
-            candidate.candidateId === variant.detailCandidateId ||
-            candidate.candidateId === variant.candidateId,
+            memberKey !== null &&
+            (candidate.candidateId === variant.detailCandidateId ||
+              candidate.candidateId === variant.candidateId) &&
+            exactMembersKey(candidate.memberIds) === memberKey &&
+            exactMembersKey(candidate.targetExecution?.memberIds ?? []) === memberKey,
         )
         // Older pages can return a duplicate candidate removed by exact-trio
         // deduplication. Within this analysis run, recover only the same three
         // members; another third member or an unrelated saved plan is not a match.
-        const memberKey = exactMembersKey(variant.agentIds)
-        const fit =
-          sourceFit ??
-          (variant.kind !== 'saved' && memberKey
-            ? fits.find((candidate) => exactMembersKey(candidate.memberIds) === memberKey)
-            : undefined)
+        const legacyMatches =
+          !sourceFit && variant.kind !== 'saved' && memberKey
+            ? fits.filter(
+                (candidate) =>
+                  exactMembersKey(candidate.memberIds) === memberKey &&
+                  exactMembersKey(candidate.targetExecution?.memberIds ?? []) === memberKey,
+              )
+            : []
+        const fit = sourceFit ?? (legacyMatches.length === 1 ? legacyMatches[0] : undefined)
         if (!fit) return variant
         const summary = presentTeamExecutionSummary(fit.targetExecution, warehouse)
         const concreteGaps = [...fit.warehousePlan.gaps, ...fit.targetExecution.blockers].map(
@@ -143,8 +109,12 @@ export function projectTargetTeamFitsIntoOverviewModel(
           ...variant,
           ...targetFitBangbooPresentation(fit, variant),
           kind:
-            summary.status === 'direct' || summary.status === 'adjust' ? 'buildable' : 'progress',
-          stateLabel: summary.statusLabel,
+            variant.kind === 'saved'
+              ? 'saved'
+              : summary.status === 'direct' || summary.status === 'adjust'
+                ? 'buildable'
+                : 'progress',
+          stateLabel: variant.kind === 'saved' ? '已保存' : summary.statusLabel,
           reason: summary.headline,
           readiness: summary.headline,
           gaps: [...new Set(concreteGaps)],
@@ -156,20 +126,24 @@ export function projectTargetTeamFitsIntoOverviewModel(
           executionStatus: summary.status,
           primaryActions: summary.primaryActions,
           impacts: summary.impacts,
+          ...(warehouse
+            ? {
+                memberEquipment: presentTeamExecution(
+                  fit.targetExecution,
+                  warehouse,
+                  fit.warehousePlan.loadouts,
+                ).members,
+              }
+            : {}),
         } satisfies TeamLoadoutOverviewItem
-        checkedVariant ??= projected
+        changed = true
         return projected
       })
-      if (!checkedVariant) return family
+      if (!changed) return family
       const rebuilt = familyFromVariants(family.variants[0]!.familyKey, variants)
       return {
         ...rebuilt,
         id: family.id,
-        stateLabel:
-          variants.length > 1
-            ? `${checkedVariant.stateLabel} · ${variants.length} 种搭配`
-            : checkedVariant.stateLabel,
-        reason: checkedVariant.reason,
       }
     }),
   }))
@@ -195,6 +169,36 @@ function recommendationFamilies(recommendations: TeamLoadoutOverviewItem[]) {
   )
 }
 
+function recommendedFamilies(items: TeamLoadoutOverviewItem[]) {
+  const admitted = items.filter((item) => item.defaultEligible === true)
+  if (!admitted.length || admitted.length === items.length) return recommendationFamilies(items)
+  const defaults = recommendationFamilies(admitted)
+  const supplementary = new Map(
+    recommendationFamilies(items.filter((item) => item.defaultEligible !== true)).map((family) => [
+      family.id,
+      family,
+    ]),
+  )
+  const combined = defaults.map((family) => {
+    const extra = supplementary.get(family.id)
+    if (!extra) return family
+    supplementary.delete(family.id)
+    const exactTeams = new Set(
+      family.variants.map((variant) => [...variant.agentIds].sort().join('|')),
+    )
+    return {
+      ...family,
+      variants: [
+        ...family.variants,
+        ...extra.variants.filter(
+          (variant) => !exactTeams.has([...variant.agentIds].sort().join('|')),
+        ),
+      ],
+    }
+  })
+  return [...combined, ...supplementary.values()]
+}
+
 export function buildTeamLoadoutOverviewModel({
   decision,
   savedPlanDecision = decision,
@@ -216,12 +220,17 @@ export function buildTeamLoadoutOverviewModel({
         right.updatedAt.localeCompare(left.updatedAt),
     )
     .map((plan) =>
-      savedPlanItem(plan, {
-        currentAuthority: currentAuthorityForSavedPlan(plan, savedPlanDecision.decisionAuthority),
-        currentTeamRating: currentTeamRatingForSavedPlan(plan, savedPlanDecision.decisionAuthority),
-        availableDiscIds,
-        warehouse,
-      }),
+      withCurrentTeamSystemRanking(
+        savedPlanItem(plan, {
+          currentAuthority: currentAuthorityForSavedPlan(plan, savedPlanDecision.decisionAuthority),
+          currentTeamRating: currentTeamRatingForSavedPlan(
+            plan,
+            savedPlanDecision.decisionAuthority,
+          ),
+          availableDiscIds,
+          warehouse,
+        }),
+      ),
     )
   const memberKey = (memberIds: readonly string[]) => [...memberIds].sort().join('|')
   const engineByMembers = new Map<
@@ -260,27 +269,33 @@ export function buildTeamLoadoutOverviewModel({
     })
     return authorityItems
   })()
-  for (const item of recommendations) {
+  for (const item of [...recommendations, ...saved]) {
+    if (warehouse)
+      item.currentMemberCultivation = currentTeamCultivation(item.agentIds, warehouse.roster)
     if (warehouse && item.formedTeamReference)
       item.formedCultivationGaps = formedCultivationGaps(item.formedTeamReference, warehouse.roster)
   }
-  const families = recommendationFamilies(recommendations)
-  const referenceFamilies = referenceRecommendationFamilies(families)
   const hardPreference = decision.portfolioInput.preference
-  const satisfiesHardPreference = (family: TeamLoadoutOverviewFamily) =>
-    family.variants.some(
-      (variant) =>
-        hardPreference.fixedAgentIds.every((agentId) => variant.agentIds.includes(agentId)) &&
-        hardPreference.fixedBangbooIds.every((bangbooId) => variant.bangbooId === bangbooId) &&
-        (hardPreference.templateIds.length === 0 ||
-          hardPreference.templateIds.includes(variant.candidateId ?? '')),
-    )
-  // Authority order already combines Team Strength with the account cultivation tie-breaks.
-  // Execution is retained as a card state, never as a second ranking or a reason to hide an
-  // owned exact Authority direction from the primary BOX journey.
-  const visibleRecommendationFamilies = families.filter(satisfiesHardPreference)
-  const restrictedFamilies = families.filter((family) => !satisfiesHardPreference(family))
+  const eligible = recommendations.filter(
+    (variant) =>
+      hardPreference.fixedAgentIds.every((agentId) => variant.agentIds.includes(agentId)) &&
+      hardPreference.fixedBangbooIds.every((bangbooId) => variant.bangbooId === bangbooId) &&
+      (!hardPreference.templateIds.length ||
+        hardPreference.templateIds.includes(variant.candidateId ?? '')),
+  )
+  // Select exact trios before deduplication: a later Bangboo/template may satisfy the lock.
+  const visibleRecommendationFamilies = recommendedFamilies(eligible)
+  const referenceFamilies = referenceRecommendationFamilies(visibleRecommendationFamilies)
+  const eligibleTrios = new Set(eligible.map((item) => memberKey(item.agentIds)))
+  const restrictedFamilies = recommendationFamilies(
+    recommendations.filter((item) => !eligibleTrios.has(memberKey(item.agentIds))),
+  ).map((family) => ({ ...family, id: `development:${family.id}` }))
   const savedFamilies = saved.map((item) => familyFromVariants(item.familyKey, [item]))
+  const familyCount = new Set(
+    [...visibleRecommendationFamilies, ...restrictedFamilies].map(
+      (family) => family.variants[0]!.familyKey,
+    ),
+  ).size
   const completionCandidates = ownedAgentIds
     ? projectTeamLoadoutCompletionCandidates({
         ownedAgentIds,
@@ -289,9 +304,11 @@ export function buildTeamLoadoutOverviewModel({
         pack: current31TeamEngineD1Pack,
       })
     : []
-  const contextDecision = recommendations.find((item) =>
-    contextAgentId ? item.agentIds.includes(contextAgentId) : false,
-  )
+  const contextFamily =
+    contextAgentId &&
+    restrictedFamilies.find((family) =>
+      family.variants.some((item) => item.agentIds.includes(contextAgentId)),
+    )
   const contextSaved = saved.find((item) =>
     savedPlans.some(
       (plan) =>
@@ -301,42 +318,25 @@ export function buildTeamLoadoutOverviewModel({
     ),
   )
   const claim = decision.claims.overall
-  const visibleBlockers = [
-    ...new Set([
-      ...claim.blockers
-        .map(visibleDecisionText)
-        .filter((text) => !/缺少.*(?:成员|agent-)|没有.*第三人|双人核心/.test(text)),
-      ...decision.claims.teamEngine.blockers.map(visibleDecisionText),
-      ...decision.claims.coordination.blockers.map(visibleDecisionText),
-      ...(decision.decisionAuthority.status === 'ready'
-        ? []
-        : decision.decisionAuthority.blockers.map(visibleDecisionText)),
-    ]),
-  ]
   const restrictedByHardConstraints =
     decision.hardConstraints.active.length > 0 && visibleRecommendationFamilies.length === 0
   const answer = {
     status: claim.status,
     title: visibleRecommendationFamilies.length
-      ? '当前 BOX 已形成队伍建议'
+      ? '当前账户已形成队伍建议'
       : claim.status === 'unsupported'
-        ? '当前 BOX 暂无队伍建议'
+        ? '当前账户暂无队伍建议'
         : claim.status === 'limited' && (restrictedFamilies.length || completionCandidates.length)
-          ? '当前 BOX 只有待培养方向'
-          : '当前 BOX 暂无队伍建议',
+          ? '当前账户只有待培养方向'
+          : '当前账户暂无队伍建议',
     summary: visibleRecommendationFamilies.length
-      ? '优先推荐有攻略支持的队伍，选定后搭配装备。'
+      ? '优先推荐有搭配资料支持的队伍，选定后可继续搭配装备。'
       : restrictedFamilies.length || completionCandidates.length
         ? '可查看下方培养方向，或调整固定成员与邦布。'
         : ownedAgentIds && ownedAgentIds.length < 3
           ? '已记录的代理人不足三名，请先在资产中补充已拥有代理人。'
-          : '当前已记录的代理人暂未形成支持的队伍，请在资产中补充或更新资料。',
-    // Once this Run has a real executable answer, capability-boundary diagnostics belong in the
-    // selected team detail/Evidence instead of displacing the overview's primary decision.
-    blockers:
-      visibleRecommendationFamilies.length || (ownedAgentIds && ownedAgentIds.length < 3)
-        ? []
-        : visibleBlockers,
+          : '本次暂无推荐队伍。',
+    blockers: [],
     boundary: visibleDecisionText([...new Set(claim.forbids)].join('；')),
     fingerprint: decision.fingerprint.inputHash,
   } satisfies TeamLoadoutVisibleAnswer
@@ -386,7 +386,7 @@ export function buildTeamLoadoutOverviewModel({
           recommendationCount:
             decision.decisionAuthority.status === 'ready' ? allAuthorityRecommendations.length : 0,
           rejectedCount: decision.teamEngineCoverage.stages.rejected.total,
-          familyCount: families.length,
+          familyCount,
           adapterDroppedCount: decision.teamEngineCoverage.adapter.droppedRecommendations,
           numericCandidateCount: decision.decisionAuthority.coverage.ratedFormationCount,
           numericLegalCandidateCount: decision.decisionAuthority.coverage.inputFormationCount,
@@ -404,16 +404,16 @@ export function buildTeamLoadoutOverviewModel({
           recommendationCount:
             decision.decisionAuthority.status === 'ready' ? allAuthorityRecommendations.length : 0,
           rejectedCount: decision.teamEngine.rejected?.length ?? 0,
-          familyCount: families.length,
+          familyCount,
           adapterDroppedCount: 0,
           numericCandidateCount: decision.decisionAuthority.coverage.ratedFormationCount,
           numericLegalCandidateCount: decision.decisionAuthority.coverage.inputFormationCount,
         },
-    groups,
+    groups: withTeamGuidePreferencePresentations(groups),
     initialSelectedId:
       visibleRecommendationFamilies[0]?.id ??
-      (contextDecision
-        ? `family:${contextDecision.familyKey}`
+      (contextFamily
+        ? contextFamily.id
         : contextSaved
           ? `family:${contextSaved.familyKey}`
           : (savedFamilies[0]?.id ?? restrictedFamilies[0]?.id ?? null)),

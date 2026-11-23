@@ -1,4 +1,5 @@
 import type { CoreWarehouse } from '../accounts/coreFlow'
+import { savedTeamCultivationRoster } from '../decision/savedTeamCultivation'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { getAgentName } from '../application/publicRosterNames'
 import {
@@ -68,15 +69,23 @@ export function savedPlanGraduationCompletion(
     return unknownCompletion('保存方案的事件条件无法核验；请按当前条件重新比较，原方案仍保留。')
   }
   try {
-    results = saved.executions.map((execution) =>
-      createSavedTeamGraduationCompletion({
+    results = saved.executions.map((execution) => {
+      const roster = savedTeamCultivationRoster(execution, warehouse.roster)
+      if (!roster) return unknownCompletion('保存方案的培养快照不完整或已损坏；未改用当前培养。')
+      const result = createSavedTeamGraduationCompletion({
         execution,
-        roster: warehouse.roster,
+        roster,
         discs: warehouse.discs,
         scenarioSelection: plan.solutionContext?.scenarioSelection,
         eventConditionDeclarationsByAgentId: declarations,
-      }),
-    )
+      })
+      return execution.members.some((member) => member.cultivation !== undefined)
+        ? result
+        : {
+            ...result,
+            reason: `旧方案未保存原培养快照，以下按当前培养参考查看；不代表原条件重评。${result.reason}`,
+          }
+    })
   } catch {
     return unknownCompletion('保存执行快照字段不完整；需要成员身份、计划音擎和六个可复算盘位。')
   }
@@ -109,7 +118,7 @@ export function savedPlanGraduationCompletion(
     reason: scored
       ? '按三名成员的毕业推荐计算。'
       : reference
-        ? '包含已核来源的培养参考对照；来源参考不混入机制满档评分。'
+        ? '包含已核对的培养目标对照；搭配目标不混入机制满档评分。'
         : `三名成员必须都有完整配装、可比面板和已自动对齐的目标条件。${memberGaps.length ? ` 未完成项：${memberGaps.join('；')}` : ''}`,
   }
 }

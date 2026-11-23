@@ -24,17 +24,18 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
   }
   return {
     snapshotId: candidate.snapshotSha256,
-    counts: { agents: candidate.counts.importableAgents, discs: candidate.counts.sDiscs },
+    counts: { agents: candidate.counts.importableAgents, discs: candidate.counts.discs },
     compactSummary: [
+      `其中 S 级 ${candidate.counts.sDiscs} 张，A/B 级 ${candidate.counts.discs - candidate.counts.sDiscs} 张；配装与分析只使用 S 级。`,
       ...(plan
         ? [
             `驱动盘新增 ${plan.summary.newDiscs} 张、更新 ${plan.summary.updatedDiscs} 张、保留 ${plan.summary.retainedDiscs} 张。`,
             [
               plan.summary.syncedManualProgressionFields
-                ? `更新手动养成 ${plan.summary.syncedManualProgressionFields} 项`
+                ? `更新已录入养成资料 ${plan.summary.syncedManualProgressionFields} 项`
                 : '',
               plan.summary.protectedFields
-                ? `保留未读取等字段 ${plan.summary.protectedFields} 项`
+                ? `保留现有养成记录 ${plan.summary.protectedFields} 项`
                 : '',
               plan.summary.inferredDiscLinks
                 ? `按相同属性匹配旧扫描盘 ${plan.summary.inferredDiscLinks} 张，请核对盘数`
@@ -44,33 +45,22 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
               .join('；'),
           ]
         : []),
-      ...((candidate.warnings ?? []).some(
-        (warning) => !warning.startsWith('本次仅检查已出现的代理人和S级盘'),
-      )
-        ? ['未读全的代理人或音擎资料保留原值，可手动补齐。']
-        : []),
     ].filter(Boolean),
     validSummary: [
+      `其中 S 级 ${candidate.counts.sDiscs} 张，A/B 级 ${candidate.counts.discs - candidate.counts.sDiscs} 张；A/B 级记录保留，不参与配装与分析。`,
       ...(plan
         ? [
             `将新增 ${plan.summary.newDiscs} 张、更新 ${plan.summary.updatedDiscs} 张驱动盘${plan.summary.retainedDiscs ? `；保留 ${plan.summary.retainedDiscs} 张原有驱动盘` : ''}。`,
             ...(plan.summary.protectedFields
-              ? [`保留 ${plan.summary.protectedFields} 个未读取、锁定或较新的字段。`]
+              ? [`保留 ${plan.summary.protectedFields} 项现有养成记录。`]
               : []),
             ...(plan.summary.syncedManualProgressionFields
-              ? [`将用本次读取值更新 ${plan.summary.syncedManualProgressionFields} 项手动养成。`]
+              ? [`将更新 ${plan.summary.syncedManualProgressionFields} 项已录入养成资料。`]
               : []),
             ...(plan.summary.inferredDiscLinks
-              ? [
-                  `${plan.summary.inferredDiscLinks} 张旧扫描盘按完全相同属性对应物理实例，请同时核对盘数。`,
-                ]
+              ? [`本次按相同属性匹配 ${plan.summary.inferredDiscLinks} 张旧扫描盘，请核对数量。`]
               : []),
           ]
-        : []),
-      ...((candidate.warnings ?? []).some(
-        (warning) => !warning.startsWith('本次仅检查已出现的代理人和S级盘'),
-      )
-        ? ['部分代理人或音擎资料未读全，保留原值；可先导入驱动盘，再手动补齐。']
         : []),
     ],
     issues: [

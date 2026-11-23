@@ -1,5 +1,6 @@
 import { useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { CoreWarehouse } from '../accounts/coreFlow'
+import { teamDiscCompletion } from '../domain/teamDiscCompletion'
 import type {
   TargetTeamEquipmentParameterSelection,
   TargetTeamWarehouseFitQueryResult,
@@ -12,68 +13,19 @@ import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { getAgentName } from '../application/publicRosterNames'
 import type { TeamDeploymentOrder } from '../decision/teamDeployment'
 import type {
-  TeamExecutionDiscPresentation,
   TeamExecutionPresentation,
 } from './teamExecutionPresentation'
 import type { TeamExecutionAttributePanel } from './teamExecutionAttributePanel'
 import { PublicTeamAttributeInspector } from './PublicTeamAttributeInspector'
 import type { TeamExecutionWorkspaceAlternate } from './TeamExecutionWorkspaceSurface'
 import { substitutesForMember } from './teamExecutionWorkspaceSubstitutes'
+import { TeamExecutionDiscCard } from './teamExecutionDiscCard'
 import { PlayerSelect } from '../components/PlayerSelect'
-import { FormedTeamReference } from './FormedTeamReference'
-import { formedCultivationGaps } from '../application/formedCultivationGaps'
+import { currentTeamCultivation } from '../application/formedCultivationGaps'
+import { resolveMemberMindscapeDisplay } from './teamMemberMindscapePresentation'
+import { TeamLoadoutMindscapeSuggestion } from './TeamLoadoutMindscapeBadge'
+import { useTeamDiscAttributeLinkage } from './useTeamDiscAttributeLinkage'
 import './team-equipment-parameters.css'
-
-function PublicDiscCard({
-  disc,
-  condensed = false,
-}: {
-  disc: TeamExecutionDiscPresentation
-  condensed?: boolean
-}) {
-  return (
-    <li className={`team-execution__disc-card is-${disc.state}`} aria-label={`${disc.slot}号位`}>
-      <header>
-        <span>
-          {disc.slot}号位 · +{disc.level}
-        </span>
-        {disc.grade !== '未评定' || disc.score !== undefined ? (
-          <b>
-            {disc.grade === '未评定'
-              ? `评分 ${disc.score}`
-              : `${disc.grade} · ${disc.score ?? '未评分'}`}
-          </b>
-        ) : null}
-      </header>
-      <div className="team-execution__disc-main">
-        <small>{disc.set}</small>
-        <strong>{disc.main}</strong>
-        <b>{disc.mainValue}</b>
-      </div>
-      {condensed ? (
-        <p className="team-execution__disc-substats-summary">
-          {disc.subs[0]?.name ?? '暂无副词条'} {disc.subs[0]?.value ?? ''} · 另{' '}
-          {Math.max(0, disc.subs.length - 1)} 条
-        </p>
-      ) : (
-        <ul className="team-execution__disc-substats" aria-label="副词条">
-          {disc.subs.map((sub, index) => (
-            <li className={sub.effective ? 'is-effective' : undefined} key={`${sub.name}:${index}`}>
-              <span>{sub.name}</span>
-              <em>{sub.hits > 0 ? `+${sub.hits}` : ''}</em>
-              <b>{sub.value}</b>
-            </li>
-          ))}
-        </ul>
-      )}
-      {disc.state === 'borrow' || disc.state === 'change' ? (
-        <footer>
-          <em>{disc.state === 'borrow' ? '借用' : '替换当前装备'}</em>
-        </footer>
-      ) : null}
-    </li>
-  )
-}
 
 /** The public browser renders only the private Query's accepted player-facing facts. */
 export function PublicTeamExecutionPanel({
@@ -108,8 +60,19 @@ export function PublicTeamExecutionPanel({
   const pendingMemberFocus = useRef<string | null>(null)
   const selectedMember =
     view.members.find((member) => member.agentId === selectedMemberId) ?? view.members[0]
-  const expectedDiscCount = view.members.length * 6
-  const actualDiscCount = view.members.reduce((sum, member) => sum + member.discFacts.length, 0)
+
+  const { selectedDiscId, selectedAttributeKey, matchedAttributeKeys, isDiscHighlighted,
+    handleDiscSelect, handleAttributeSelect, handleDeselect } = useTeamDiscAttributeLinkage(view, selectedMemberId, setSelectedMemberId)
+  const currentCultivation = currentTeamCultivation(
+    view.members.map((member) => member.agentId),
+    warehouse.roster,
+  )
+  const expectedDiscCount = 18
+  const completion = teamDiscCompletion(
+    targetTeamFit?.memberIds ?? view.members.map((member) => member.agentId),
+    view.members, warehouse.discs,
+  )
+  const actualDiscCount = completion.matchedSlots
   const selection = targetTeamFit
     ? equipmentParameterSelection({
         memberIds: targetTeamFit.memberIds,
@@ -138,7 +101,7 @@ export function PublicTeamExecutionPanel({
     if (!memberId || memberId !== selectedMember?.agentId) return
     pendingMemberFocus.current = null
     memberTabRefs.current.get(memberId)?.focus()
-  }, [selectedMember?.agentId])
+  }, [selectedMember?.agentId, showWholeTeam])
 
   const apply = async (next: TargetTeamEquipmentParameterSelection) => {
     if (!onConfirmEquipmentParameters || pending || readOnly) return
@@ -147,7 +110,7 @@ export function PublicTeamExecutionPanel({
     try {
       await onConfirmEquipmentParameters({ ...next, koledaFixedEventConditions32: undefined })
     } catch {
-      setError('方案参数未应用，原方案已保留。请重试。')
+      setError('方案参数未应用，请重试。')
     } finally {
       setPending(false)
     }
@@ -162,84 +125,87 @@ export function PublicTeamExecutionPanel({
   const memberDiscCount = selectedMember.discFacts.length
   return (
     <section className={`team-execution is-${view.status}`} aria-label="队伍配装">
-      <FormedTeamReference
-        reference={targetTeamFit?.formedTeamReference}
-        gaps={
-          targetTeamFit?.formedTeamReference
-            ? formedCultivationGaps(targetTeamFit.formedTeamReference, warehouse.roster)
-            : []
-        }
-      />
       <section className="team-execution__loadout">
         <div className="team-execution__top-rail">
           <div className="team-execution__formation">
             <div className="team-execution__member-strip" role="tablist" aria-label="选择队伍成员">
-              {orderedMembers.map((member, index) => (
-                <div className="team-execution__member-slot" key={member.agentId}>
-                  <button
-                    ref={(element) => {
-                      if (element) memberTabRefs.current.set(member.agentId, element)
-                      else memberTabRefs.current.delete(member.agentId)
-                    }}
-                    type="button"
-                    role="tab"
-                    id={`${headingId}-${member.agentId}`}
-                    aria-selected={selectedMember.agentId === member.agentId}
-                    aria-controls={`${headingId}-panel`}
-                    tabIndex={selectedMember.agentId === member.agentId ? 0 : -1}
-                    className={selectedMember.agentId === member.agentId ? 'is-selected' : ''}
-                    onKeyDown={(event) => {
-                      const next =
-                        event.key === 'Home'
-                          ? 0
-                          : event.key === 'End'
-                            ? orderedMembers.length - 1
-                            : event.key === 'ArrowRight'
-                              ? (index + 1) % orderedMembers.length
-                              : event.key === 'ArrowLeft'
-                                ? (index + orderedMembers.length - 1) % orderedMembers.length
-                                : null
-                      if (next === null) return
-                      event.preventDefault()
-                      pendingMemberFocus.current = orderedMembers[next].agentId
-                      setSelectedMemberId(orderedMembers[next].agentId)
-                      setShowWholeTeam(false)
-                    }}
-                    onClick={() => {
-                      setSelectedMemberId(member.agentId)
-                      setShowWholeTeam(false)
-                    }}
-                  >
-                    <span className="team-execution__member-copy">
-                      <strong>{member.agentName}</strong>
-                      <span>
-                        {index + 1}号位 · {member.statusLabel}
-                      </span>
-                    </span>
-                  </button>
-                  {substitutesForMember(member, alternate).length ? (
-                    <div
-                      className="team-execution__replacement"
-                      aria-label={`${member.agentName}的替补`}
+              {orderedMembers.map((member, index) => {
+                const mindscape = resolveMemberMindscapeDisplay(
+                  member.agentId,
+                  targetTeamFit?.formedTeamReference,
+                  currentCultivation[member.agentId],
+                )
+                return (
+                  <div className="team-execution__member-slot" key={member.agentId}>
+                    <button
+                      ref={(element) => {
+                        if (element) memberTabRefs.current.set(member.agentId, element)
+                        else memberTabRefs.current.delete(member.agentId)
+                      }}
+                      type="button"
+                      role="tab"
+                      id={`${headingId}-${member.agentId}`}
+                      aria-selected={selectedMember.agentId === member.agentId}
+                      aria-controls={`${headingId}-panel`}
+                      tabIndex={selectedMember.agentId === member.agentId ? 0 : -1}
+                      className={selectedMember.agentId === member.agentId ? 'is-selected' : ''}
+                      onKeyDown={(event) => {
+                        const next =
+                          event.key === 'Home'
+                            ? 0
+                            : event.key === 'End'
+                              ? orderedMembers.length - 1
+                              : event.key === 'ArrowRight'
+                                ? (index + 1) % orderedMembers.length
+                                : event.key === 'ArrowLeft'
+                                  ? (index + orderedMembers.length - 1) % orderedMembers.length
+                                  : null
+                        if (next === null) return
+                        event.preventDefault()
+                        pendingMemberFocus.current = orderedMembers[next].agentId
+                        memberTabRefs.current.get(orderedMembers[next].agentId)?.focus()
+                        handleDeselect()
+                        setSelectedMemberId(orderedMembers[next].agentId)
+                        setShowWholeTeam(false)
+                      }}
+                      onClick={() => {
+                        setSelectedMemberId(member.agentId)
+                        setShowWholeTeam(false)
+                        handleDeselect()
+                      }}
                     >
-                      <span>替补</span>
-                      <div className="team-execution__replacement-list">
-                        {substitutesForMember(member, alternate).map((replacement) => (
-                          <button
-                            key={`${replacement.targetAgentId}:${replacement.agentId}`}
-                            type="button"
-                            disabled={!replacement.onSelect}
-                            aria-label={`用${replacement.agentName}替换${member.agentName}`}
-                            onClick={replacement.onSelect}
-                          >
-                            {replacement.agentName}
-                          </button>
-                        ))}
+                      <span className="team-execution__member-copy">
+                        <strong>{member.agentName}</strong>
+                        <span>
+                          {index + 1}号位 · {member.statusLabel}
+                        </span>
+                        <TeamLoadoutMindscapeSuggestion display={mindscape} />
+                      </span>
+                    </button>
+                    {substitutesForMember(member, alternate).length ? (
+                      <div
+                        className="team-execution__replacement"
+                        aria-label={`${member.agentName}的替补`}
+                      >
+                        <span>替补</span>
+                        <div className="team-execution__replacement-list">
+                          {substitutesForMember(member, alternate).map((replacement) => (
+                            <button
+                              key={`${replacement.targetAgentId}:${replacement.agentId}`}
+                              type="button"
+                              disabled={!replacement.onSelect}
+                              aria-label={`用${replacement.agentName}替换${member.agentName}`}
+                              onClick={replacement.onSelect}
+                            >
+                              {replacement.agentName}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ) : null}
-                </div>
-              ))}
+                    ) : null}
+                  </div>
+                )
+              })}
             </div>
             <div className="team-execution__deployment" aria-label="队伍站位">
               <span>当前站位 · {orderedNames.join(' → ')}</span>
@@ -314,18 +280,18 @@ export function PublicTeamExecutionPanel({
                 {selectedBangboo?.name ??
                   (targetTeamFit?.targetExecution.bangbooId
                     ? playerFacingBangbooLabel(targetTeamFit.targetExecution.bangbooId)
-                    : '未纳入')}
+                    : '未记录')}
               </p>
             )}
           </div>
         </div>
-        <div className="team-execution__workspace" id={`${headingId}-panel`} role="tabpanel">
+        <div className="team-execution__workspace" id={`${headingId}-panel`} role="tabpanel" aria-labelledby={`${headingId}-${selectedMember.agentId}`}>
           <div className="team-execution__main">
             <header className="team-execution__loadout-heading">
               <div>
                 <h2>{showWholeTeam ? '全队配装' : `${selectedMember.agentName}的方案配装`}</h2>
                 <p>
-                  {actualDiscCount === expectedDiscCount
+                  {completion.complete
                     ? `本次方案 ${actualDiscCount}/${expectedDiscCount} 张已匹配驱动盘`
                     : `已匹配 ${actualDiscCount}/${expectedDiscCount} 张驱动盘`}
                 </p>
@@ -418,9 +384,12 @@ export function PublicTeamExecutionPanel({
               </p>
             ) : null}
             {view.blockers.length ? (
-              <p className="team-execution__loadout-impact">注意：{view.blockers.join('；')}</p>
+              <p className="team-execution__scheme-note">
+                <strong>配装提示</strong>
+                <span>{view.blockers.join('；')}</span>
+              </p>
             ) : null}
-            {evidence && actualDiscCount === expectedDiscCount ? (
+            {evidence && completion.complete ? (
               <div className="team-execution__evidence">{evidence}</div>
             ) : null}
             {showWholeTeam ? (
@@ -433,12 +402,20 @@ export function PublicTeamExecutionPanel({
                     </header>
                     <ol aria-label={`${member.agentName}的六张驱动盘`}>
                       {member.discFacts.map((disc) => (
-                        <PublicDiscCard key={disc.id} disc={disc} condensed />
+                        <TeamExecutionDiscCard
+                          key={disc.id}
+                          disc={disc}
+                          condensed
+                          selected={selectedDiscId === disc.id}
+                          highlighted={isDiscHighlighted(disc, member.agentId)}
+                          onSelect={() => handleDiscSelect(disc, member.agentId)}
+                          onDeselect={handleDeselect}
+                        />
                       ))}
                     </ol>
                     {member.missingDiscIds.length ? (
                       <p role="status">
-                        有 {member.missingDiscIds.length} 张方案驱动盘当前不在仓库；原记录已保留。
+                        有 {member.missingDiscIds.length} 张方案驱动盘当前不在仓库。
                       </p>
                     ) : null}
                   </article>
@@ -454,13 +431,19 @@ export function PublicTeamExecutionPanel({
                   aria-label={`${selectedMember.agentName}的六张驱动盘`}
                 >
                   {selectedMember.discFacts.map((disc) => (
-                    <PublicDiscCard key={disc.id} disc={disc} />
+                    <TeamExecutionDiscCard
+                      key={disc.id}
+                      disc={disc}
+                      selected={selectedDiscId === disc.id}
+                      highlighted={isDiscHighlighted(disc, selectedMember.agentId)}
+                      onSelect={() => handleDiscSelect(disc, selectedMember.agentId)}
+                      onDeselect={handleDeselect}
+                    />
                   ))}
                 </ol>
                 {selectedMember.missingDiscIds.length ? (
                   <p role="status">
-                    有 {selectedMember.missingDiscIds.length}{' '}
-                    张方案驱动盘当前不在仓库；原记录已保留。
+                    有 {selectedMember.missingDiscIds.length} 张方案驱动盘当前不在仓库。
                   </p>
                 ) : null}
                 {memberDiscCount === 0 && warehouse.discs.length === 0 ? (
@@ -474,6 +457,10 @@ export function PublicTeamExecutionPanel({
             agentId={selectedMember.agentId}
             agentName={selectedMember.agentName}
             panel={attributePanelsByAgent?.[selectedMember.agentId] ?? null}
+            matchedAttributeKeys={matchedAttributeKeys}
+            selectedAttributeKey={selectedAttributeKey}
+            onSelectAttribute={handleAttributeSelect}
+            onDeselectAttribute={handleDeselect}
           />
         </div>
       </section>

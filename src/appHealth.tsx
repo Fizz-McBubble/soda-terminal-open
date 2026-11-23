@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AppHealthContext, type AppHealth, type HealthStatus } from './appHealthContext'
 import { gameData, gameDataResult } from './data/gameData'
 import { databaseSchemaVersion, initializeDatabase } from './db/database'
-import { currentVersionProjection } from './gameDataPacks/currentVersionProjection'
+import { publicVersionIdentity } from './application/publicVersionIdentity'
 import { readCurrentGameDataRuntimeSelection } from './gameDataPacks/runtimeSelection'
 
 type DetailedHealth = {
@@ -21,30 +21,35 @@ export function AppHealthProvider({
   const [databaseStatus, setDatabaseStatus] = useState<HealthStatus>('loading')
   const [databaseError, setDatabaseError] = useState<string | null>(null)
   const [detailedHealth, setDetailedHealth] = useState<DetailedHealth | null>(null)
+  const detailedLoad = useRef<Promise<void> | null>(null)
+  const mounted = useRef(false)
 
   useEffect(() => {
-    // These optional diagnostics have no browser-product consumer. Their authority/validation
-    // graphs remain in the calculation Worker, not the synchronous player UI entry.
-    if (import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true') return
-    let active = true
-    void Promise.all([
-      import('./gameDataPacks/currentDataAuthorityProjection'),
-      import('./appCapabilityHealth'),
-    ]).then(
-      ([authority, capabilities]) => {
-        if (active)
-          setDetailedHealth({
-            authority: authority.currentDataAuthorityProjection,
-            createCapabilities: capabilities.createAppCapabilityHealth,
-          })
-      },
-      () => {
-        // Optional diagnostics must not change the actual database/data failure gate below.
-      },
-    )
+    mounted.current = true
     return () => {
-      active = false
+      mounted.current = false
     }
+  }, [])
+  const loadDetailedHealth = useCallback(() => {
+    if (import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true') return Promise.resolve()
+    if (!detailedLoad.current) {
+      detailedLoad.current = Promise.all([
+        import('./gameDataPacks/currentDataAuthorityProjection'),
+        import('./appCapabilityHealth'),
+      ])
+        .then(([authority, capabilities]) => {
+          if (mounted.current)
+            setDetailedHealth({
+              authority: authority.currentDataAuthorityProjection,
+              createCapabilities: capabilities.createAppCapabilityHealth,
+            })
+        })
+        .catch((error: unknown) => {
+          detailedLoad.current = null
+          throw error
+        })
+    }
+    return detailedLoad.current
   }, [])
 
   // This query is deliberately inactive until initialization completes. It observes the same
@@ -64,7 +69,7 @@ export function AppHealthProvider({
 
     databaseInitializer({
       schemaVersion: databaseSchemaVersion,
-      gameVersion: currentVersionProjection.gameVersion,
+      gameVersion: publicVersionIdentity.gameVersion,
     })
       .then(() => {
         if (active) setDatabaseStatus('ready')
@@ -100,13 +105,14 @@ export function AppHealthProvider({
   const value = useMemo<AppHealth>(
     () => ({
       data: dataStatus === 'ready' ? gameData : null,
-      currentVersion: currentVersionProjection,
+      currentVersion: publicVersionIdentity,
       ...(detailedHealth
         ? {
             currentDataAuthority: detailedHealth.authority,
             capabilities: detailedHealth.createCapabilities({ dataStatus, databaseStatus }),
           }
         : {}),
+      ...(import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true' ? {} : { loadDetailedHealth }),
       dataStatus,
       dataError,
       canRepairApplicationData,
@@ -121,6 +127,7 @@ export function AppHealthProvider({
       databaseError,
       databaseStatus,
       detailedHealth,
+      loadDetailedHealth,
       repairApplicationData,
     ],
   )

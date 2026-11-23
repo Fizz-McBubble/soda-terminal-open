@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart02 = [
     agentId: 'agent-velina',
     playerName: '维琳娜',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '3.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F7',
     objectiveTopology: 'O4',
     configHash: 'b93f7e33cdeaa80f36d879d5fe711ad17b383534f6e87b680347c98d71e41de0',
-    inputHash: '5745f10308ee6f8db540b848b58be6348c064c3c9d8e0f2bada7fc8b8dd20319',
+    inputHash: 'dc80e9d9f0f9954d5ab8049f4bd9cb06ee24fc706a13cd09b8f322eaa69d5303',
     inputReferences: [
       {
         record_id:
@@ -119,7 +119,7 @@ export const graduationCandidateProfilesPart02 = [
       deterministic: true,
       configHash: 'ab5a5e4c4283e6bc9cd5bc30021657f17966841ba5b4d672b1d74770cba124e1',
     },
-    profileHash: '973cb6a37e04a8e036485d2a700ab0b522c18ed0ec77f381017dc4a15eff96d6',
+    profileHash: '9c81a99eb6cec5cc6768bd6d796aa90a7ba6565d1c361fa0798615f2aa707628',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -130,14 +130,14 @@ export const graduationCandidateProfilesPart02 = [
     agentId: 'agent-starlight-billy',
     playerName: '星徽·比利',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.8',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F6',
     objectiveTopology: 'O3',
     configHash: 'c42a8bf84122db2277009e2b6ec75f17023f5dddf8e8e99e46168cd7188da70d',
-    inputHash: '1994286cdbb92d867cf98c0d9cb7fa0b1467123f03e24ec50c8e80f34b75a268',
+    inputHash: 'e023e73e47f3938025e245ca1fe469c804971a549ea58e59e6f378f861239d5e',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-starlight-billy-core-levels:core.levels:batch-agents-2.8-r3b',
@@ -239,7 +239,7 @@ export const graduationCandidateProfilesPart02 = [
       deterministic: true,
       configHash: '08def3898bf4f908c00f5b9665edd772b5c52e64fc309816d4836a72222b7c92',
     },
-    profileHash: 'a4cd10e552fae8aed315be6f9a09987a9498d59facbbd68645252b2ec32f1a70',
+    profileHash: '4f6bd0a92e62d8dfd5a04945f26aae5b816e179a285f36244baf262940ce6b6d',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -250,14 +250,14 @@ export const graduationCandidateProfilesPart02 = [
     agentId: 'agent-promeia',
     playerName: '普罗米娅',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.8',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F4',
     objectiveTopology: 'O5',
     configHash: '6e1ceca423a1a88f740b1dadf807b095e61d8413b648b2f85f891a53c5d2d368',
-    inputHash: '32f8d66d56d16d561308f89567febea234c046147b4d6328eb506ee917af620d',
+    inputHash: 'c3524305a8fb8fff35880a1efeaa16c1438db5968bc789509f2acd5dc9fff032',
     inputReferences: [
       {
         record_id:
@@ -365,6 +365,6 @@ export const graduationCandidateProfilesPart02 = [
       deterministic: true,
       configHash: '1a1daca0ee80ea446cb421a4a2311735734af39932f78ed9e35a18a7f5ecd887',
     },
-    profileHash: '854dad61bb10d9f4a1ca9c06c465cf35ab1f077d6b086ba6d80e6b00e118b39f',
+    profileHash: 'fbcbc371c85033e9ee39b143ad590af513226b724754e4bca2cf3de4c3bd35b8',
   },
 ] as const

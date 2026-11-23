@@ -16,7 +16,8 @@ export const reviewedBuildFieldContinuity33 = Object.freeze({
   actorCount: review.formulaBindings.length,
   ...review.boundary,
 })
-/** Exact historical payload/source/formula retention, never a current meta or runtime proof. */
+/** Exact reviewed payload/source/formula binding. Source corrections require an
+ * explicit field review; a matching identity never proves current meta or runtime. */
 export function resolveReviewedBuildFieldContinuity33(input: {
   agentId: string
   targetVersion: string

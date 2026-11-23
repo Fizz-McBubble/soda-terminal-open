@@ -1,17 +1,21 @@
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { getCandidateWEngineLabels } from '../application/publicCandidateLabels'
+import { savedPlanDisplayName } from '../application/savedPlanDisplayName'
 import { getAgentName } from '../application/publicRosterNames'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
+import { SavedEquipmentNote } from './SavedEquipmentNote'
 import { PublicSavedDiscList } from './PublicSavedDiscList'
 
 /** Historical plan facts are displayed from local storage without inventing a current score. */
 export function PublicSavedTeamHistory({
   plan,
   warehouse,
+  verifying = false,
 }: {
   plan: AccountPlanningDraft
   warehouse: CoreWarehouse
+  verifying?: boolean
 }) {
   const loadouts = (plan.candidateWarehouse?.loadouts ?? []).filter((loadout) =>
     plan.selection.agentIds.includes(loadout.agentId),
@@ -19,11 +23,21 @@ export function PublicSavedTeamHistory({
   const assignedIds = new Set(loadouts.flatMap((loadout) => loadout.discIds))
   const unassignedRefs = plan.warehouseRefs.filter((id) => !assignedIds.has(id))
   return (
-    <section className="team-execution is-build" aria-label="历史保存方案配装">
+    <section className="team-execution is-build" aria-label={verifying ? '已保存方案配装' : '历史保存方案配装'}>
       <header className="team-execution__header">
-        <p className="team-execution__state">历史记录</p>
-        <h2>已保存的配装</h2>
-        <p>按当前仓库资料展示已保存的成员与驱动盘；未重新匹配。</p>
+        {verifying ? (
+          <>
+            <h1>{savedPlanDisplayName(plan)}</h1>
+            <p role="status">已读取保存的配装，正在核对当前面板。</p>
+          </>
+        ) : (
+          <>
+            <p className="team-execution__state">历史记录</p>
+            <h2>已保存的配装</h2>
+            <p>按当前仓库资料展示已保存的成员与驱动盘；未重新匹配。</p>
+          </>
+        )}
+        {verifying && <SavedEquipmentNote note={plan.candidateWarehouse?.panelObjectiveNote} />}
         {plan.selection.bangbooId ? (
           <p>邦布：{playerFacingBangbooLabel(plan.selection.bangbooId)}</p>
         ) : null}
@@ -44,9 +58,7 @@ export function PublicSavedTeamHistory({
                 label={`${getAgentName(agentId)}的已保存驱动盘`}
               />
             ) : (
-              <p className="team-execution__disc-missing">
-                这份方案未记录该成员使用哪些驱动盘，其他已保存内容仍保留。
-              </p>
+              <p className="team-execution__disc-missing">这份方案未记录该成员的驱动盘。</p>
             )}
           </article>
         )
@@ -67,8 +79,11 @@ export function PublicSavedTeamHistory({
           <ul>
             {plan.teamEquipmentParameters.wEngines.map((engine) => (
               <li key={engine.agentId}>
-                {getAgentName(engine.agentId)} · {getCandidateWEngineLabels([engine.engineId])[0]} ·
-                P{engine.refinement}
+                {getAgentName(engine.agentId)} ·{' '}
+                {getCandidateWEngineLabels([engine.engineId])[0] === '音擎资料待补齐'
+                  ? '音擎名称未知'
+                  : getCandidateWEngineLabels([engine.engineId])[0]}
+                {typeof engine.refinement === 'number' ? ` · P${engine.refinement}` : ''}
               </li>
             ))}
           </ul>

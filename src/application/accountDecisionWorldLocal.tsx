@@ -10,13 +10,15 @@ import {
 } from './accountDecisionWorldModel'
 import type { AccountDecisionRun, CalculationQueryClient } from './calculationQueryContract'
 import { localCalculationQueryClient } from './localCalculationQueryClient'
-import { readCurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
-import { repairBundledCurrentGameData } from '../gameDataPacks/repository'
+import {
+  readCurrentGameDataRuntimeSelection,
+  repairCurrentGameDataOnDemand,
+} from '../gameDataPacks/runtimeSelection'
 
 export function AccountDecisionWorldProvider({
   queryClient = localCalculationQueryClient,
   runtimeSelectionReader = readCurrentGameDataRuntimeSelection,
-  repairRuntimeSelection = repairBundledCurrentGameData,
+  repairRuntimeSelection = repairCurrentGameDataOnDemand,
   ...props
 }: Omit<
   AccountDecisionWorldProviderProps,

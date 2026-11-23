@@ -1,3 +1,4 @@
+import { savedAgentCandidateWarehouse } from './savedAgentCandidateWarehouse'
 import {
   normalizeReviewedEventConditionDeclarations32,
   reviewedEventConditionDeclarationsIdentity32,
@@ -97,22 +98,7 @@ export function createAgentDevelopmentSavedPlan(input: {
           }
         : {}),
     },
-    candidateWarehouse: {
-      ...(candidatePlan.inventoryTransition ? { inventoryTransition: true as const } : {}),
-      scope: 'agent',
-      totalScore: candidatePlan.totalScore,
-      loadouts: [
-        {
-          agentId,
-          totalScore: candidate.totalScore,
-          discIds: candidate.discs.map((item) => item.disc.id),
-          effectiveRolls: candidate.discs.reduce((total, item) => total + item.effectiveRolls, 0),
-          setPattern: candidate.setPattern,
-          degraded: candidate.degraded,
-        },
-      ],
-      boundary: candidatePlan.boundary,
-    },
+    candidateWarehouse: savedAgentCandidateWarehouse(agentId, candidatePlan, candidate),
     comparisonCapability: profileSave!.status === 'formal' ? 'formal' : 'direction',
   }
 }

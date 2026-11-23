@@ -29,6 +29,10 @@
   --soda-space-4: 16px;
   --soda-space-5: 24px;
   --soda-space-6: 32px;
+  --soda-layout-catalog-columns: minmax(0, 72fr) minmax(310px, 28fr);
+  --soda-layout-development-columns: minmax(260px, 26fr) minmax(0, 74fr);
+  --soda-layout-team-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  --soda-layout-warehouse-columns: minmax(0, 1.7fr) minmax(300px, 0.72fr);
   --soda-accent-ink: #2d2445;
   --soda-info: #dff1f7;
   --soda-green: #326b56;
@@ -37,11 +41,14 @@
   --soda-radius-surface: 12px;
   --soda-radius-control: 8px;
   --soda-radius-tag: 4px;
+  --soda-radius-shell: 16px;
+  --soda-panel: var(--soda-surface);
   --soda-control-height: 42px;
   --soda-focus: rgba(85, 69, 128, 0.42);
   --soda-motion-fast: 160ms;
   --soda-motion-route: 200ms;
   --soda-motion-overlay: 180ms;
+  --soda-motion-emphasis: 320ms;
   --soda-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --f5-canvas: var(--soda-shell);
   --f5-rail: var(--soda-canvas);
@@ -73,8 +80,8 @@
   --sea-text-3: #93afbd;
   --sea-shadow: 0 18px 48px rgba(0, 9, 20, 0.28);
   --sea-glow: 0 0 0 1px rgba(75, 216, 233, 0.18), 0 0 28px rgba(75, 216, 233, 0.12);
-  --radius-card: 18px;
-  --radius-control: 12px;
+  --radius-card: var(--soda-radius-surface);
+  --radius-control: var(--soda-radius-control);
   --radius-pill: 999px;
   --blur-glass: 16px;
   --soda-viewport-height: 100dvh;

@@ -37,7 +37,7 @@ describe('team loadout completion candidates', () => {
     expect(unknown.sourceConditions?.length).toBeGreaterThan(0)
     expect(unknown.accountReferenceNotes?.join(' ')).toContain('当前潜能未记录')
     expect(observed.accountReferenceNotes?.join(' ')).toContain('当前潜能0')
-    expect(observed.accountReferenceNotes?.join(' ')).toContain('来源参考潜能6')
+    expect(observed.accountReferenceNotes?.join(' ')).toContain('参考搭配使用潜能6')
     expect(observed.accountReferenceNotes?.join(' ')).toContain('不是最低门槛')
     expect(observed.sourceConditions).toEqual(unknown.sourceConditions)
     expect(observed.memberIds).toEqual(unknown.memberIds)

@@ -100,7 +100,7 @@ export function assessScanImportItem(
       issues.push(
         issue('mainStat', 'illegal_main_stat', `${candidate.slot} 号位不允许该主词条。`, 'invalid'),
       )
-    if (candidate.rarity && candidate.level !== null && candidate.mainStatValue !== null) {
+    if (candidate.rarity === 'S' && candidate.level !== null && candidate.mainStatValue !== null) {
       const valueRule = context.rules.mainStatBaseByRarity[candidate.rarity].find(
         (item) => item.stat === candidate.mainStat,
       )
@@ -134,7 +134,8 @@ export function assessScanImportItem(
       issues.push(issue('level', 'level_out_of_range', '强化等级超过稀有度上限。', 'invalid'))
   }
 
-  const expectedSubStatCount = candidate.level !== null && candidate.level >= 3 ? 4 : 3
+  const expectedSubStatCount =
+    candidate.rarity === 'S' ? (candidate.level !== null && candidate.level >= 3 ? 4 : 3) : 0
   if (candidate.subStats.length < expectedSubStatCount || candidate.subStats.length > 4)
     issues.push(
       issue(
@@ -165,7 +166,7 @@ export function assessScanImportItem(
         issue(`subStats.${index}.stat`, 'duplicate_sub_stat', '副词条字段重复。', 'invalid'),
       )
     seen.add(subStat.stat)
-    if (candidate.rarity) {
+    if (candidate.rarity === 'S') {
       const expected = getSubStatExpectedValue(
         subStat.stat,
         candidate.rarity,

@@ -8,7 +8,13 @@ import {
 } from '../assetQuickRead/syntheticAssetSnapshotTestFixture'
 import { createAgentDevelopmentPanelProjection } from '../pages/agentDevelopmentPanelProjection'
 import { projectOutOfCombatMenuPanel } from '../calculation/outOfCombatPanel'
-import { candidatePanelInputForAgent } from './optimizeAccountBuildsPanelInput'
+import {
+  candidatePanelInputForAgent,
+  candidatePanelInputForSchemeAgent,
+  type CandidateSchemeAgentPlanningState,
+} from './optimizeAccountBuildsPanelInput'
+import { candidatePanelInputsForScheme } from './optimizeAccountBuilds'
+import { buildIntentFingerprintMatches, compileTeamBuildIntent } from '../decision/buildIntent'
 
 const discs: DriveDisc[] = [1, 2, 3, 4, 5, 6].map((slot) => ({
   id: `synthetic-potential-panel-${slot}`,
@@ -92,11 +98,109 @@ describe('observed potential and shared panel inputs', () => {
       const candidate = candidatePanelInputForAgent(agent)
       expect(candidate).toBeDefined()
       expect(candidate?.potentialImage).toBe(potentialImage)
-      const calculated = projectOutOfCombatMenuPanel({ ...candidate!, discs })
+      if (!candidate || candidate.mindscape == null)
+        throw new Error('fixture requires a known mindscape')
+      const calculated = projectOutOfCombatMenuPanel({
+        ...candidate,
+        mindscape: candidate.mindscape,
+        discs,
+      })
       expect(calculated.status).toBe('ok')
       expect(createAgentDevelopmentPanelProjection({ agent, discs }).result.values).toEqual(
         calculated.values,
       )
     },
   )
+
+  it('uses one explicit planning state for scheme panels and preserves P0', () => {
+    const agent = createEmptyRoster().agents.find((row) => row.agentId === 'agent-astra')!
+    agent.level = 60
+    agent.ascension = 5
+    agent.skillLevels.core = 7
+    agent.potentialImage = 5
+    agent.wEngineDetails = {
+      id: 'wengine-14102',
+      name: null,
+      level: 60,
+      ascension: 5,
+      refinement: 1,
+    }
+    const engine = { engineId: 'wengine-14102', refinement: 1, level: 60, ascension: 5 }
+    const p0 = candidatePanelInputForSchemeAgent(agent, engine, { potentialImage: 0 })
+    const p6 = candidatePanelInputForSchemeAgent(agent, engine, { potentialImage: 6 })
+    expect(p0?.potentialImage).toBe(0)
+    expect(p6?.potentialImage).toBe(6)
+    expect(agent.potentialImage).toBe(5)
+  })
+
+  it('preserves an explicit unknown mindscape instead of substituting the account state', () => {
+    const agent = createEmptyRoster().agents.find((row) => row.agentId === 'agent-nangong')!
+    agent.level = 60
+    agent.ascension = 5
+    agent.skillLevels.core = 7
+    agent.mindscape = 2
+    agent.wEngineDetails = {
+      id: 'wengine-14102',
+      name: null,
+      level: 60,
+      ascension: 5,
+      refinement: 1,
+    }
+    const input = candidatePanelInputForSchemeAgent(
+      agent,
+      { engineId: 'wengine-14102', refinement: 1, level: 60, ascension: 5 },
+      { mindscape: null, potentialImage: 0 },
+    )
+    expect(input).toMatchObject({ mindscape: null, potentialImage: 0 })
+    expect(agent.mindscape).toBe(2)
+  })
+
+  it('fingerprints one effective planning state across P0 and P6 panel/branch inputs', () => {
+    const memberIds = ['agent-zhao', 'agent-astra', 'agent-pan-yinhu'] as const
+    const agents = memberIds.map((agentId) => {
+      const agent = createEmptyRoster().agents.find((row) => row.agentId === agentId)!
+      agent.level = 60
+      agent.ascension = 5
+      agent.skillLevels.core = 7
+      agent.wEngineDetails = {
+        id: 'wengine-14102',
+        name: null,
+        level: 60,
+        ascension: 5,
+        refinement: 1,
+      }
+      return agent
+    })
+    agents[0]!.potentialImage = 5
+    const engines = memberIds.map((agentId) => ({
+      agentId,
+      engineId: 'wengine-14102',
+      refinement: 1,
+      level: 60,
+      ascension: 5,
+    }))
+    const compile = (agentState: CandidateSchemeAgentPlanningState) =>
+      compileTeamBuildIntent({
+        candidateId: 'planning-potential-single-variable',
+        memberIds,
+        bangbooId: 'bangboo-avocaboo',
+        agentStateById: { 'agent-zhao': agentState },
+        optimizerOptions: {
+          panelInputsByAgent: candidatePanelInputsForScheme(agents, memberIds, engines, {
+            'agent-zhao': agentState,
+          }),
+        },
+      })
+    const p0 = compile({ potentialImage: 0 })
+    const p6 = compile({ potentialImage: 6 })
+    const unknownMindscape = compile({ mindscape: null, potentialImage: 0 })
+    expect(p0.constraints.panelInputsByAgent?.['agent-zhao']?.potentialImage).toBe(0)
+    expect(p6.constraints.panelInputsByAgent?.['agent-zhao']?.potentialImage).toBe(6)
+    expect(unknownMindscape.constraints.panelInputsByAgent?.['agent-zhao']?.mindscape).toBeNull()
+    expect(p0.fingerprint).not.toBe(p6.fingerprint)
+    expect(buildIntentFingerprintMatches(JSON.parse(JSON.stringify(p0)))).toBe(true)
+    expect(buildIntentFingerprintMatches(JSON.parse(JSON.stringify(p6)))).toBe(true)
+    expect(buildIntentFingerprintMatches(JSON.parse(JSON.stringify(unknownMindscape)))).toBe(true)
+    expect(agents[0]!.potentialImage).toBe(5)
+  })
 })

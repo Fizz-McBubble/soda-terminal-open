@@ -5,6 +5,7 @@ import { createAccount, setActiveAccount } from '../accounts/repository'
 import { database } from '../db/database'
 import { baseScannerSnapshot as baseSnapshot } from './scannerAssistantTestFixture'
 import { readLastScanDiagnostic } from '../scanner/scanFeedback'
+import { scannerDistributionManifest } from '../scanner/distribution'
 import {
   createScannerTargetAccountBinding,
   saveScannerTargetAccountBinding,
@@ -14,10 +15,16 @@ import {
   type createScannerRuntimeCommands,
 } from './scannerAssistantPageTestSupport'
 
+async function findCompletedReviewAction() {
+  const results = await screen.findByRole('region', { name: '扫描结果与下一步' }, { timeout: 5000 })
+  return within(results).getByRole('button', { name: '检查需确认的记录' })
+}
+
 export function registerScannerRecoveryTests({
   App,
   runtimeMock,
   setRuntimeState,
+  setPublishedRelease,
 }: {
   App: ComponentType
   runtimeMock: {
@@ -25,8 +32,10 @@ export function registerScannerRecoveryTests({
     commands: ReturnType<typeof createScannerRuntimeCommands>
   }
   setRuntimeState: (state: string) => void
+  setPublishedRelease: () => void
 }) {
   it('offers updating a connected old Helper and prevents starting another scan', async () => {
+    setPublishedRelease()
     const account = await createAccount('主账号', database, { id: 'account-main' })
     await setActiveAccount(account.id, database)
     setRuntimeState('ready')
@@ -34,6 +43,7 @@ export function registerScannerRecoveryTests({
       ...runtimeMock.snapshot,
       distribution: {
         ...baseSnapshot.distribution,
+        targetVersion: scannerDistributionManifest.runtime.version,
         state: 'update_available',
         action: 'update',
         message: '请更新画面扫描后再扫描。',
@@ -48,6 +58,7 @@ export function registerScannerRecoveryTests({
   })
 
   it('offers updating and blocks another start when the connected Helper becomes outdated', async () => {
+    setPublishedRelease()
     const account = await createAccount('主账号', database, { id: 'account-main' })
     await setActiveAccount(account.id, database)
     setRuntimeState('ready')
@@ -76,6 +87,7 @@ export function registerScannerRecoveryTests({
   })
   it.each([500, 401])(
     'recovers a completed result HTTP %s without exposing raw helper errors',
+    { timeout: 10000 },
     async (status) => {
       const account = await createAccount('恢复账户', database, { id: 'account-recovery-account' })
       await setActiveAccount(account.id, database)
@@ -87,7 +99,7 @@ export function registerScannerRecoveryTests({
         new Error(`helper_request_failed_${status}`),
       )
       render(<App />)
-      fireEvent.click(await screen.findByRole('button', { name: '检查需确认的记录' }))
+      fireEvent.click(await findCompletedReviewAction())
       expect(await screen.findByText(/暂时无法读取本次扫描结果。请重试/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: '检查需确认的记录' })).toBeEnabled()
       expect(screen.getByLabelText('选择本机文件（JSON）')).toBeInTheDocument()
@@ -120,7 +132,7 @@ export function registerScannerRecoveryTests({
         }),
     )
     render(<App />)
-    const trigger = await screen.findByRole('button', { name: '检查需确认的记录' })
+    const trigger = await findCompletedReviewAction()
     vi.useFakeTimers()
     try {
       fireEvent.click(trigger)
@@ -144,7 +156,7 @@ export function registerScannerRecoveryTests({
     }
     expect(await database.accountDriveDiscs.count()).toBe(0)
     expect(await database.accountScanImportBatches.count()).toBe(0)
-  })
+  }, 10000)
 
   it('cancels a pending staging read and prevents its late data entering the next scan', async () => {
     const account = await createAccount('取消恢复账户', database, { id: 'account-cancel-account' })
@@ -163,12 +175,24 @@ export function registerScannerRecoveryTests({
         }),
     )
     const rendered = render(<App />)
-    fireEvent.click(await screen.findByRole('button', { name: '检查需确认的记录' }))
-    await waitFor(() => expect(runtimeMock.commands.requestResultStaging).toHaveBeenCalled())
+    fireEvent.click(await findCompletedReviewAction())
+    await waitFor(() =>
+      expect(runtimeMock.commands.requestResultStaging).toHaveBeenCalledExactlyOnceWith(
+        'local-staging.json',
+        expect.objectContaining({ aborted: false }),
+      ),
+    )
     fireEvent.click(screen.getByRole('button', { name: '放弃' }))
     expect(await screen.findByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
+    expect(runtimeMock.commands.requestResultStaging).toHaveBeenCalledWith(
+      'local-staging.json',
+      expect.objectContaining({ aborted: true }),
+    )
+    const start = screen.getByRole('button', { name: '开始扫描' })
+    await waitFor(() => expect(start).toBeEnabled())
+    fireEvent.click(start)
+    await waitFor(() => expect(runtimeMock.commands.startScan).toHaveBeenCalledOnce())
     setRuntimeState('scanning')
-    await setActiveAccount(account.id, database)
     rendered.rerender(<App />)
     await act(async () => resolveStaging(createReadyScannerStaging()))
     expect(
@@ -177,7 +201,7 @@ export function registerScannerRecoveryTests({
     expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
     expect(await database.accountScanImportBatches.count()).toBe(0)
-  })
+  }, 10000)
 
   it('shows formal import feedback while a failed database write preserves the account warehouse', async () => {
     const account = await createAccount('导入失败恢复账户', database, {
@@ -190,8 +214,8 @@ export function registerScannerRecoveryTests({
     setRuntimeState('completed')
     runtimeMock.commands.requestResultStaging.mockResolvedValueOnce(createReadyScannerStaging())
     render(<App />)
-    fireEvent.click(await screen.findByRole('button', { name: '检查需确认的记录' }))
-    const confirm = await screen.findByRole('button', { name: '导入' })
+    fireEvent.click(await findCompletedReviewAction())
+    const confirm = await screen.findByRole('button', { name: '导入' }, { timeout: 5000 })
     await waitFor(() => expect(confirm).toBeEnabled())
     const before = await database.accountDriveDiscs.toArray()
     const profilesBefore = await database.accounts.toArray()
@@ -212,5 +236,5 @@ export function registerScannerRecoveryTests({
     } finally {
       database.accountDriveDiscs.hook('creating').unsubscribe(failWrite)
     }
-  })
+  }, 10000)
 }

@@ -1,8 +1,14 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import {
+  showPage,
+  assertFocusedWorkspace,
+  facts,
+  quickFile,
+  prepareQuick,
+  assertWorkbenchAccountChoiceWithoutRead,
+} from './scannerWorkbenchTestHelpers'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { webcrypto } from 'node:crypto'
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
-import { ScannerAssistantPage } from './ScannerAssistantPage'
 import { createAccount, setActiveAccount } from '../accounts/repository'
 import { saveAccountPlanningDraft } from '../accounts/planningDrafts'
 import { database } from '../db/database'
@@ -12,13 +18,26 @@ import {
   resetScannerPageTestDatabase,
   createScannerRuntimeCommands,
 } from './scannerAssistantPageTestSupport'
-import { syntheticWorkbenchQuickSnapshot } from './ScannerAssistantPage.workbench.syntheticfixture'
-import type { AssetBridgeJob } from '../assetQuickRead/bridgeClient'
+import {
+  syntheticWorkbenchQuickSnapshot,
+  syntheticWorkbenchBridgeJob,
+} from './ScannerAssistantPage.workbench.syntheticfixture'
 import { initialDistributionSnapshot } from '../scanner/distribution'
 import { choosePlayerSelect } from '../testing/choosePlayerSelect'
+import * as pendingResults from '../assetQuickRead/pendingResult'
 
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 const runtimeState = vi.hoisted(() => ({ snapshot: {} as Record<string, unknown> }))
+const releaseStateFixture = vi.hoisted(() => ({
+  override: null as null | 'published' | 'not_published',
+}))
+vi.mock('../scanner/distribution', async (importOriginal) => {
+  const { scannerDistributionFixture } = await import('../testing/scannerManifestFixture')
+  return scannerDistributionFixture(
+    await importOriginal<typeof import('../scanner/distribution')>(),
+    () => releaseStateFixture.override,
+  )
+})
 const commands = createScannerRuntimeCommands(vi.fn)
 vi.mock('../scanner/runtime', () => ({
   useScannerAssistantRuntime: () => ({ snapshot: runtimeState.snapshot, commands }),
@@ -40,21 +59,10 @@ vi.mock('../assetQuickRead/bridgeClient', () => ({
   },
 }))
 const accountId = 'account-workbench-synthetic'
-const job: AssetBridgeJob = {
-  jobId: 'b41d3a49-e16c-4d14-98a5-afbfdbad1cba',
-  targetAccountId: accountId,
-  state: 'starting',
-  phase: 'awaiting_elevation',
-  code: null,
-  startedAt: '2026-10-10T00:00:00Z',
-  readyAt: null,
-  deadline: null,
-  remainingSeconds: null,
-  counts: { agents: 0, discs: 0, engines: 0 },
-  candidateAvailable: false,
-}
+const job = syntheticWorkbenchBridgeJob(accountId)
 
 beforeEach(async () => {
+  releaseStateFixture.override = null
   vi.clearAllMocks()
   vi.stubGlobal('crypto', webcrypto)
   await resetScannerPageTestDatabase()
@@ -77,62 +85,19 @@ afterEach(async () => {
   await cleanupScannerPageTestDatabase()
   vi.unstubAllGlobals()
 })
-function page() {
-  return (
-    <MemoryRouter>
-      <ScannerAssistantPage />
-    </MemoryRouter>
-  )
-}
-async function showPage() {
-  const result = render(page())
-  await screen.findByRole('region', { name: '本次操作目标账户' })
-  return result
-}
 
 it('uses the top-level account selection for quick read without another confirmation', async () => {
-  await showPage()
-  await choosePlayerSelect(
-    screen.getByRole('combobox', { name: '目标账户' }),
-    'account-workbench-other',
-  )
-  await waitFor(() =>
-    expect(screen.getByRole('combobox', { name: '目标账户' })).toHaveTextContent('合成备用账户'),
-  )
-  expect(screen.queryByRole('button', { name: '使用所选接收账户' })).not.toBeInTheDocument()
-  expect(bridge.start).not.toHaveBeenCalled()
-  expect(await database.accountDriveDiscs.count()).toBe(0)
+  await assertWorkbenchAccountChoiceWithoutRead(bridge.start)
 })
-function assertFocusedWorkspace() {
-  expect(screen.getByRole('complementary', { name: '非官方工具风险提示' })).toBeVisible()
-  expect(document.getElementById('scanner-workbench-guides')).toBeNull()
-  expect(screen.getByRole('region', { name: '采集方式与风险说明' })).toBeVisible()
-}
-async function facts() {
-  return {
-    discs: await database.accountDriveDiscs.toArray(),
-    rosters: await database.accountRosters.toArray(),
-    accounts: await database.accounts.toArray(),
-    batches: await database.accountScanImportBatches.toArray(),
-  }
-}
-function quickFile(snapshot = syntheticWorkbenchQuickSnapshot()) {
-  const text = JSON.stringify(snapshot)
-  const file = new File([text], 'synthetic-workbench-quick.json', { type: 'application/json' })
-  Object.defineProperties(file, {
-    text: { value: async () => text },
-    arrayBuffer: { value: async () => new TextEncoder().encode(text).buffer },
-  })
-  return file
-}
 
 it('keeps a failed connection in one diagnosis without a duplicate alert or stage badge', async () => {
+  releaseStateFixture.override = 'not_published'
   const snapshot = createScannerRuntimeSnapshot('unchecked')
   runtimeState.snapshot = {
     ...snapshot,
     readiness: { ...snapshot.readiness, helperConnected: false },
   }
-  commands.openHelper.mockRejectedValueOnce(new Error('helper_request_failed_503'))
+  commands.retryConnection.mockRejectedValueOnce(new Error('helper_request_failed_503'))
   await showPage()
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接画面扫描' })))
   const diagnosis = await screen.findByRole('region', { name: '扫描诊断' })
@@ -141,17 +106,36 @@ it('keeps a failed connection in one diagnosis without a duplicate alert or stag
   )
   expect(document.querySelector('.scanner-task__feedback')).toBeNull()
   expect(within(diagnosis).queryByText('连接画面扫描')).not.toBeInTheDocument()
+  expect(commands.retryConnection).toHaveBeenCalledTimes(1)
+  expect(commands.openHelper).not.toHaveBeenCalled()
+  expect(screen.queryByRole('button', { name: '下载画面扫描' })).not.toBeInTheDocument()
   expect(commands.startScan).not.toHaveBeenCalled()
   expect(await database.accountDriveDiscs.count()).toBe(0)
 })
-async function prepareQuick() {
-  fireEvent.change(screen.getByLabelText('游戏安装目录'), {
-    target: { value: "soda-source-ref:ee09b7b910b89ca3d044849bf8cbb524" },
-  })
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
-  fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '一键读取' })))
-}
+
+it('returns a partial native scan to preparation without importing or restarting it', async () => {
+  const failed = createScannerRuntimeSnapshot('connection_failed')
+  runtimeState.snapshot = {
+    ...failed,
+    readiness: { ...failed.readiness, helperConnected: true },
+    progress: { processed: 27, total: 381, stageLabel: '读取中断', etaSeconds: null },
+    error: {
+      userMessage: '翻行后仓库位置未能确认。',
+      recoveryAction: 'retry',
+      diagnosticCode: 'scan_navigation_failed',
+    },
+  }
+  const before = await facts()
+  await showPage()
+  expect(await screen.findByRole('heading', { name: '本次扫描未完成' })).toBeVisible()
+  expect(screen.queryByRole('button', { name: /确认导入/ })).not.toBeInTheDocument()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '返回准备步骤' })))
+  expect(commands.retryConnection).toHaveBeenCalledTimes(1)
+  expect(commands.startScan).not.toHaveBeenCalled()
+  expect(commands.requestResultFile).not.toHaveBeenCalled()
+  expect(await facts()).toEqual(before)
+  expect(screen.getByRole('combobox', { name: '目标账户' })).toBeEnabled()
+})
 
 it('presents one account area, both acquisition methods and exactly one file input without an initial task', async () => {
   const result = await showPage()
@@ -159,8 +143,8 @@ it('presents one account area, both acquisition methods and exactly one file inp
   expect(screen.getAllByRole('combobox', { name: '目标账户' })).toHaveLength(1)
   const acquisition = screen.getByRole('region', { name: '获取资产' })
   expect(within(acquisition).getByRole('heading', { name: '画面扫描' })).toBeInTheDocument()
-  expect(within(acquisition).getByRole('heading', { name: /资产快读.*测试/ })).toBeInTheDocument()
-  expect(within(acquisition).getByText('测试', { exact: true })).toBeInTheDocument()
+  expect(within(acquisition).getByRole('heading', { name: '资产快读' })).toBeInTheDocument()
+  expect(within(acquisition).queryByText('测试版', { exact: true })).not.toBeInTheDocument()
   expect(acquisition).not.toHaveTextContent('Beta')
   expect(result.container.querySelectorAll('input[type="file"]')).toHaveLength(1)
   expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()
@@ -203,6 +187,32 @@ it('drops a quick snapshot into the existing shared inspection without connectin
   expect(bridge.connect).not.toHaveBeenCalled()
   expect(bridge.start).not.toHaveBeenCalled()
   expect(await facts()).toEqual(before)
+})
+
+it('keeps a shared file handoff while the initial pending-result live query is still loading', async () => {
+  let finishRead!: (value: null) => void
+  const initialRead = new Promise<null>((resolve) => {
+    finishRead = resolve
+  })
+  const read = vi
+    .spyOn(pendingResults, 'readPendingAssetResult')
+    .mockImplementationOnce(() => initialRead)
+  try {
+    const before = await facts()
+    await showPage()
+    await waitFor(() => expect(read).toHaveBeenCalledTimes(1))
+    expect(screen.getByText('正在核对上次读取结果。')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
+      target: { files: [quickFile()] },
+    })
+    await screen.findByRole('heading', { name: '本次读取结果' })
+    expect(read.mock.calls.length).toBeGreaterThanOrEqual(2)
+    expect(bridge.connect).not.toHaveBeenCalled()
+    expect(await facts()).toEqual(before)
+  } finally {
+    await act(async () => finishRead(null))
+    read.mockRestore()
+  }
 })
 
 it('rejects multiple dragged files without replacing any account facts', async () => {
@@ -251,6 +261,7 @@ it('recognizes a synthetic quick snapshot from the shared file without connectin
 })
 
 it('keeps an existing installer download mounted and cancellable when a quick file becomes the task', async () => {
+  releaseStateFixture.override = 'published'
   runtimeState.snapshot = {
     ...createScannerRuntimeSnapshot('ready'),
     distribution: initialDistributionSnapshot,
@@ -479,7 +490,7 @@ it('keeps a production recovery blocker in its modal and preserves real persiste
   expect(await facts()).toEqual(before)
   expect(await database.accountPlanningDrafts.toArray()).toEqual([saved])
   expect(await database.accountPreferences.toArray()).toEqual(preferences)
-  fireEvent.click(within(dialog).getByRole('button', { name: '取消撤销' }))
+  fireEvent.click(within(dialog).getByRole('button', { name: '取消' }))
   expect(screen.queryByRole('dialog', { name: '撤销这次资产快读导入？' })).not.toBeInTheDocument()
   expect(screen.queryByText(/合成恢复保护方案/)).not.toBeInTheDocument()
 })

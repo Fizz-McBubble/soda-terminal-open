@@ -1,0 +1,13 @@
+{
+  "contract": "default-team-admission-reviewed-plays/v1",
+  "gameVersion": "3.3",
+  "entries": [
+    {
+      "members": ["agent-astra", "agent-vivian", "agent-yanagi"],
+      "primary": "agent-yanagi",
+      "playId": "sha256:82f8d52e486b6b65f43426d20842450d0e450188b2b07b52ca4d634bbacfa93b",
+      "outputModuleClaimId": "reviewed-nested-20f927440022fb126a2b9272",
+      "reason": "The reviewed source identifies Yanagi as the anomaly driver with Vivian and Astra; the current catalog contains this exact play. Membership and role are supported, not a strength grade or a validated rotation."
+    }
+  ]
+}

@@ -1,110 +1,9 @@
+import { lighterResolvedAbilityDmgIr } from './sourceExpressionReconciliationLighter'
+export { lighterResolvedAbilityDmgIr } from './sourceExpressionReconciliationLighter'
 import { canonical } from './numeric'
 
 export const sourceReconciliationVersion = 'source-text-bound-initial-stat-reconciliation-r1'
 export const PINNED_SOURCE_COMMIT = '3456cd0f6f5bea10e168074502460dac2fcd6df4'
-
-const lighterQualifiedDamageIr = {
-  kind: 'call',
-  operator: 'prod',
-  arguments: [
-    {
-      kind: 'call',
-      operator: 'min',
-      arguments: [
-        { kind: 'reference', path: 'dm.ability.max_ice_fire_dmg_' },
-        {
-          kind: 'call',
-          operator: 'prod',
-          arguments: [
-            { kind: 'reference', path: 'elation' },
-            {
-              kind: 'call',
-              operator: 'sum',
-              arguments: [
-                { kind: 'reference', path: 'dm.ability.ice_fire_dmg_' },
-                {
-                  kind: 'call',
-                  operator: 'prod',
-                  arguments: [
-                    {
-                      kind: 'call',
-                      operator: 'max',
-                      arguments: [
-                        { kind: 'literal', value: 0 },
-                        {
-                          kind: 'call',
-                          operator: 'sum',
-                          arguments: [
-                            { kind: 'reference', path: 'own.final.impact' },
-                            {
-                              kind: 'call',
-                              operator: 'negate',
-                              arguments: [
-                                { kind: 'reference', path: 'dm.ability.impact_threshold' },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                    {
-                      kind: 'call',
-                      operator: 'binary:/',
-                      arguments: [
-                        { kind: 'literal', value: 1 },
-                        { kind: 'reference', path: 'dm.ability.impact_step' },
-                      ],
-                    },
-                    { kind: 'reference', path: 'dm.ability.extra_ice_fire_dmg_' },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      kind: 'call',
-      operator: 'cmpGE',
-      arguments: [
-        { kind: 'reference', path: 'char.mindscape' },
-        { kind: 'literal', value: 2 },
-        { kind: 'reference', path: 'dm.m2.ability_buff_inc_' },
-        { kind: 'literal', value: 1 },
-      ],
-    },
-  ],
-}
-
-// The source alias includes the actual team-count gate; expanding only its
-// numeric branch would incorrectly activate an unqualified formation.
-export const lighterResolvedAbilityDmgIr = Object.freeze({
-  kind: 'call',
-  operator: 'cmpGE',
-  arguments: [
-    {
-      kind: 'call',
-      operator: 'sum',
-      arguments: [
-        {
-          kind: 'call',
-          operator: 'withSpecialty',
-          receiver: { kind: 'reference', path: 'team.common.count' },
-          arguments: [{ kind: 'literal', value: 'attack' }],
-        },
-        {
-          kind: 'call',
-          operator: 'withFaction',
-          receiver: { kind: 'reference', path: 'team.common.count' },
-          arguments: [{ kind: 'literal', value: 'SonsOfCalydon' }],
-        },
-      ],
-    },
-    { kind: 'literal', value: 2 },
-    lighterQualifiedDamageIr,
-  ],
-})
 
 interface ReconciliationTargetConfig {
   agentId: string
@@ -359,6 +258,67 @@ const RECONCILIATION_TARGETS: ReconciliationTargetConfig[] = [
     expressionSha256: '18DD97D83A91BA783241AFABD42296932DD5B3272FB263025592FBA7614C4325',
     originalIrSha256: '2112525bc5069fd153bf50e5bd0845205ef3944d0130c13dc74b312e0329b366',
   },
+  ...(
+    [
+      [
+        2,
+        'teamBuff.combat.crit_dmg_',
+        '3E79144B57B06AA4889288489E087A1E979D68B349CCB71ECAB169D4D041CC5E',
+        '5774e376eefeed4713f8c1e65cd2dac055b8aec65b2c189fc42de6a102baffa6',
+      ],
+      [
+        4,
+        'ownBuff.combat.crit_dmg_',
+        'F78241A61E64116E770FE838F5345FF5E291790BE0269C26F7C420BD973054D6',
+        'e918816a2d345280fe27b5bb0308cf4be5d63ddbdf1c93e72de5133e5cb780cc',
+      ],
+    ] as const
+  ).map(([mindscape, receiver, expressionSha256, originalIrSha256]) => ({
+    agentId: 'agent-ju-fufu',
+    effectId: `m${mindscape}_crit_dmg_`,
+    targetPath: 'libs/zzz/formula/src/data/char/sheets/JuFufu.ts',
+    sourceRef: `dm.m${mindscape}.crit_dmg_`,
+    // Both bonuses require Tiger's Roar. Keep the progress gate outermost:
+    // M0 is known inactive even when the event has no observed Roar state.
+    replacementRootIr: {
+      kind: 'call',
+      operator: 'add',
+      receiver: { kind: 'reference', path: receiver },
+      arguments: [
+        {
+          kind: 'call',
+          operator: 'cmpGE',
+          arguments: [
+            { kind: 'reference', path: 'char.mindscape' },
+            { kind: 'literal', value: mindscape },
+            {
+              kind: 'call',
+              operator: 'ifOn',
+              receiver: { kind: 'reference', path: 'tigers_roar' },
+              arguments: [
+                {
+                  kind: 'call',
+                  operator: 'percent',
+                  arguments: [{ kind: 'reference', path: `dm.m${mindscape}.crit_dmg_` }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    evidence: [
+      `frzyc/genshin-optimizer@${PINNED_SOURCE_COMMIT}:libs/zzz/formula/src/data/char/sheets/JuFufu.ts:148-154`,
+      'https://static.nanoka.cc/zzz/3.3/zh/character/1391.json:mindscapes/1,3',
+      'localization-sha256:339a2ea504b1af994e5867584695c4da02bdca47f6f604ec2e8daf94c96c49df',
+      'source-semantic-contract:requires-observed-tigers_roar;M2-team-22-percent;M4-self-only-35-percent;no-trigger-or-duration-inferred',
+      sourceReconciliationVersion,
+    ],
+    prefix: `jufufu_m${mindscape}_tigers_roar`,
+    formulaSha256: 'AD33CBC292233EA3D57921C0667CC327F368876133A7C29D76D8917E8D6C3B51',
+    expressionSha256,
+    originalIrSha256,
+  })),
   {
     agentId: 'agent-dialyn',
     effectId: 'core_impact',

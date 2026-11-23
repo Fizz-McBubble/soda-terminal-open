@@ -14,6 +14,7 @@ import type {
   SavedTeamPlanReplayQuery,
   SavedTeamSolutionComponentsQuery,
   WarehouseDiscTransitionUsesQuery,
+  WarehouseActionsQuery,
   WarehouseDiscTransitionUsesResult,
 } from './calculationQueryContract'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
@@ -68,6 +69,7 @@ export type RemoteCalculationRequest =
       protocolVersion: typeof remoteCalculationProtocolVersion
       query: WarehouseDiscTransitionUsesQuery
     }
+  | { protocolVersion: typeof remoteCalculationProtocolVersion; query: WarehouseActionsQuery }
 
 type PublicCandidateWarehousePlan = Omit<CandidateWarehousePlan, 'alternatives' | 'solver'> & {
   alternatives: []
@@ -192,6 +194,7 @@ export type RemoteCalculationResult =
   | PublicDevelopmentCandidateAlternatives
   | import('./publicDevelopmentWorkbenchRoute').DevelopmentWorkbenchRoutePresentation
   | WarehouseDiscTransitionUsesResult
+  | ReturnType<typeof import('./publicWarehouseActionTransport').packPublicWarehouseActions>
 
 export type RemoteTaskState =
   | { status: 'queued' | 'running' }

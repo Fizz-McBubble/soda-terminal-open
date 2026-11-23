@@ -15,6 +15,7 @@ import {
 } from './current31TeamStrengthCalibration'
 
 const memberIds = ['agent-yixuan', 'agent-lucia', 'agent-dialyn'] as const
+const readinessMemberIds = ['agent-yixuan', 'agent-lucia', 'agent-ju-fufu'] as const
 
 type RankedFormation = Parameters<
   typeof projectAccountDecisionAuthority
@@ -79,6 +80,7 @@ function fixture(ownedMemberIds: readonly string[] = memberIds) {
           ...agent,
           owned: true,
           level: 60,
+          mindscape: 0,
           skillLevels: {
             basic: 12,
             dodge: 12,
@@ -116,6 +118,7 @@ export {
   resolveCurrent31LegacyCalibrationDiagnostic,
   resolveCurrent31MainstreamRecognition,
   memberIds,
+  readinessMemberIds,
   formation,
   fixture,
 }

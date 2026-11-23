@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart18 = [
     agentId: 'agent-billy',
     playerName: '比利',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F1',
     objectiveTopology: 'O5',
     configHash: '198361ae7bcd843182b024da311b3afebf083bc265b313f9030e0461476356b2',
-    inputHash: '9231507d681796733a9175f48fc084f6ba9118445ee24e641046908009e7854e',
+    inputHash: 'e5d835074b2825638b4572c122c78d2fa997702dd441c3b04f90b9f7610c1976',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-r3r2-billy-atk:stats.lv60.raw.atk:batch-agents-1.0-b-r3r2',
@@ -130,7 +130,7 @@ export const graduationCandidateProfilesPart18 = [
       deterministic: true,
       configHash: 'a11e4a70e788e6ec2e9ec35706ddf7ef0f158fa90bb52afeb23a470d067e40e1',
     },
-    profileHash: '14d56664d26f8c8ccf7610337a3631d5183cc5a804dbd23eeb580d0f68dc967c',
+    profileHash: '3ed52c1be562a979c09882b91cf49891b670df906a8de8a022d6ba5d91485eb7',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -141,14 +141,14 @@ export const graduationCandidateProfilesPart18 = [
     agentId: 'agent-anton',
     playerName: '安东',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F9',
     objectiveTopology: 'O5',
     configHash: '8963b92d1d733b20dac2ab6801880f392943ca9dfffe625b7e8d19973d952f2b',
-    inputHash: '0da7ad70eb51e56f1649621e8529201f023110b164c715aafe56365fdaac5de6',
+    inputHash: 'fd1bb1dd63c2f6620108905538cf306f0f42c8acc89bbe50d0927e900efadb11',
     inputReferences: [
       {
         record_id:
@@ -261,7 +261,7 @@ export const graduationCandidateProfilesPart18 = [
       deterministic: true,
       configHash: '9b3745b7405bb6debacfa6efa0072852e75d401b48fbd88c96ce546efe404e76',
     },
-    profileHash: '5a31842ca06622783fe40cb62efd94f5299da4358f133ffea40bb08eba9369b9',
+    profileHash: '083cd7b857ab64ed446511d8e0ee0164a0b47a5d7f4d006a8a2674a384f97a71',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -272,14 +272,14 @@ export const graduationCandidateProfilesPart18 = [
     agentId: 'agent-ben',
     playerName: '本',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F8',
     objectiveTopology: 'O4',
     configHash: 'b5f20f00917a2ffc7819d6a243f76fee83d1b7553f5a833fdb633fe428cb0109',
-    inputHash: 'e7d21160d0b3d52ad3674cd0fdebb8244e2bbf28834728326001e1eadf7ad010',
+    inputHash: 'aca0a15668f85811c49016eb5e464f90cbc56453940c9aa5952f8357ee39585f',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-ben-atk:stats.lv60.raw.atk:batch-agents-1.0-a-r3r1',
@@ -386,6 +386,6 @@ export const graduationCandidateProfilesPart18 = [
       deterministic: true,
       configHash: '22dffa17c4b8d4ed1bf63d49618133c84e3ebb620c49a68459e36dc10ba9807e',
     },
-    profileHash: '158cdd115f952267d715ae29ed2a97dbb74588d58520d3dc01690f883879fd3d',
+    profileHash: '5bb0fdaa6452784d5fa20b180372dad3c99f25eca371a74a79d3ffeb583a9cd9',
   },
 ] as const

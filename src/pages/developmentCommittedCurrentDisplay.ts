@@ -3,6 +3,8 @@ import type { GoldenWorkbenchData } from '../features/agentDevelopmentGolden'
 import type { DevelopmentWorkbenchRoutePresentation } from '../application/publicDevelopmentWorkbenchRoute'
 import { createAgentDevelopmentPanelFacts } from './agentDevelopmentDecisionGuide'
 import { developmentPanelSummary } from './agentDevelopmentPublicDisplay'
+import type { WarehouseRefresh } from './agentDevelopmentWorkbenchViewState'
+import type { DevelopmentWorkbenchFactsRequest } from '../application/publicDevelopmentWorkbenchFacts'
 
 /** Display saved account facts; recommendations remain those of the captured run until refresh. */
 export function developmentCommittedCurrentDisplay(
@@ -60,7 +62,48 @@ export function developmentCommittedCurrentDisplayFailure(
     currentPanel: {
       ...presentation.currentPanel,
       refreshState: 'failed',
-      summary: '当前面板更新失败；请重新编辑当前状态后保存。',
+      refreshPlaceholderSummary:
+        presentation.currentPanel.refreshPlaceholderSummary ?? presentation.currentPanel.summary,
+      summary: '当前面板更新未完成，请重试。',
     },
   }
+}
+
+export function developmentAnalysisRecoveryDisplay(
+  presentation: GoldenWorkbenchData,
+  phase: 'updating' | 'failed',
+): GoldenWorkbenchData {
+  return {
+    ...presentation,
+    currentPanel: {
+      ...presentation.currentPanel,
+      refreshState: phase,
+      refreshPlaceholderSummary:
+        presentation.currentPanel.refreshPlaceholderSummary ?? presentation.currentPanel.summary,
+      summary:
+        phase === 'updating' ? '正在按最新账户资料更新当前面板…' : '当前面板更新未完成，请重试。',
+    },
+  }
+}
+
+export function warehouseRefreshFor(
+  capture: WarehouseRefresh | null,
+  facts: { loading: boolean; request: DevelopmentWorkbenchFactsRequest | null },
+  account: { id: string },
+  agentId: string,
+  decision: { liveFingerprint: string | null },
+) {
+  if (capture?.accountId !== account.id || capture.agentId !== agentId) return null
+  if (capture.inFlight) return { presentation: capture.presentation, pending: false }
+  const pending = capture.retainUntilFacts
+  if (pending)
+    return facts.loading && pending === facts.request
+      ? {
+          presentation: developmentAnalysisRecoveryDisplay(capture.presentation, 'updating'),
+          pending: true,
+        }
+      : null
+  return capture.inputFingerprint === decision.liveFingerprint
+    ? { presentation: capture.presentation, pending: false }
+    : null
 }

@@ -22,6 +22,18 @@
     background: transparent !important;
   }
 
+  .workbench--single-page .agent-scene:has(img.agent-art)::before {
+    content: '';
+    position: absolute;
+    inset: 14% 6% 8%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(118deg, transparent 72%, rgb(119 91 168 / 12%) 72% 78%, transparent 78%),
+      radial-gradient(ellipse at 58% 54%, #e7ddf6, rgb(231 221 246 / 0%) 76%);
+    clip-path: polygon(8% 0, 100% 0, 100% 86%, 90% 100%, 0 100%, 0 14%);
+  }
+
   .workbench--single-page .agent-identity {
     top: 76px;
   }
@@ -120,125 +132,6 @@
     overscroll-behavior: auto;
   }
 
-  .workbench--single-page .current-overview {
-    position: relative;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0;
-    min-height: 0;
-    margin: 0;
-    padding: 12px;
-    border: 1px solid rgba(93, 79, 130, 0.1);
-    border-radius: var(--soda-radius-surface);
-    background: #fff;
-    box-shadow: 0 5px 10px rgba(61, 48, 96, 0.05);
-  }
-
-  .workbench--single-page .current-overview__state,
-  .workbench--single-page .current-overview__panel {
-    height: 100%;
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    overflow: hidden;
-  }
-
-  .workbench--single-page .current-overview__state {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    padding-right: 18px;
-  }
-
-  .workbench--single-page .current-overview__panel {
-    padding-left: 18px;
-    border-left: 0;
-    overflow: visible;
-    scrollbar-width: none;
-  }
-
-  .workbench--single-page .current-overview__panel::-webkit-scrollbar {
-    display: none;
-  }
-
-  .workbench--single-page .current-overview::after {
-    content: '';
-    position: absolute;
-    top: 12px;
-    bottom: 12px;
-    left: 50%;
-    width: 1px;
-    background: rgba(93, 79, 130, 0.1);
-    pointer-events: none;
-  }
-
-  .workbench--single-page .current-overview__state > header {
-    display: flex;
-    grid-column: 1;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 0;
-    min-height: 28px;
-  }
-
-  .workbench--single-page .current-overview__state > header p {
-    margin-top: 1px;
-    font-size: 0.54rem;
-    line-height: 1.2;
-  }
-
-  .workbench--single-page .current-overview__state .edit-current {
-    grid-column: auto;
-    min-height: 28px;
-    margin: 0;
-    padding-inline: 9px;
-  }
-
-  .workbench--single-page .current-overview__panel {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    align-content: stretch;
-    margin: 0;
-  }
-
-  .workbench--single-page .current-overview__panel header {
-    min-height: 28px;
-    margin-bottom: 3px;
-  }
-
-  .workbench--single-page .current-overview__panel header p {
-    overflow: hidden;
-    max-width: 280px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .workbench--single-page .current-overview__panel .stat-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(5, minmax(32px, auto));
-    column-gap: 24px;
-    row-gap: 4px;
-  }
-
-  .workbench--single-page .current-overview__panel .stat-grid div {
-    min-height: 32px;
-    padding-inline: 6px;
-    border-bottom: 0;
-  }
-
-  .workbench--single-page .current-overview__panel .stat-grid div.focus {
-    border-radius: var(--soda-radius-tag);
-  }
-
-  .workbench--single-page .current-overview__panel .panel-graduation-targets {
-    margin-top: 4px;
-    padding-top: 4px;
-    border-top: 0;
-  }
-
   .workbench--single-page .panel-source-label {
     max-width: 100px;
     padding: 4px 6px;
@@ -270,62 +163,6 @@
     padding-left: 16px;
   }
 
-  .workbench--single-page .loadout-disc-options {
-    grid-template-columns: minmax(0, 1fr);
-    align-content: start;
-    gap: var(--soda-space-2);
-    min-height: 0;
-    overflow: visible;
-    overscroll-behavior: auto;
-  }
-
-  .workbench--single-page .loadout-disc-options li {
-    grid-template-columns: max-content minmax(0, 1fr);
-    gap: 7px;
-  }
-
-  /* Keep current plus three named alternatives inside the compact status row:
-     four equal stacks preserve the panel height while names remain legible. */
-  .workbench--single-page .current-engine-plan {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    align-items: start;
-    gap: 6px;
-    min-height: 80px;
-  }
-
-  .workbench--single-page .current-engine-plan__actual,
-  .workbench--single-page .current-engine-plan__options li {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto 44px auto;
-    align-content: start;
-    justify-items: start;
-    gap: 2px;
-  }
-
-  .workbench--single-page .current-engine-plan__actual {
-    display: grid;
-    grid-template-rows: 44px auto;
-  }
-
-  .workbench--single-page .current-engine-plan--merged {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .workbench--single-page .current-engine-plan__options {
-    display: contents;
-  }
-
-  .workbench--single-page .current-engine-plan :is(small, b) {
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .workbench--single-page .current-engine-plan b {
-    line-height: 1.2;
-  }
-
   .workbench--single-page .scenario-note {
     position: absolute;
     z-index: 2;
@@ -333,32 +170,6 @@
     bottom: 10px;
     left: 12px;
     min-height: 30px;
-  }
-
-  .workbench--single-page .disc-section--workbench {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-
-  .workbench--single-page .disc-section--workbench > header {
-    min-height: 56px;
-    margin-bottom: 7px;
-  }
-
-  .f5v-shell .workbench--single-page .disc-grid,
-  .workbench--single-page .disc-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-    grid-auto-rows: minmax(198px, auto);
-    gap: 7px;
-  }
-
-  .workbench--single-page .disc-card {
-    grid-template-rows: 20px 54px minmax(80px, 1fr) 18px;
-    min-height: 198px;
-    padding: 7px;
   }
 
   .workbench--single-page .disc-main {
@@ -385,16 +196,6 @@
 
   .workbench--single-page .disc-main small,
   .workbench--single-page .disc-main b {
-    line-height: 1.15;
-  }
-
-  .workbench--single-page .disc-card ul {
-    grid-template-rows: repeat(4, 19px);
-    margin-block: 2px;
-  }
-
-  .workbench--single-page .disc-card li {
-    min-height: 19px;
     line-height: 1.15;
   }
 }

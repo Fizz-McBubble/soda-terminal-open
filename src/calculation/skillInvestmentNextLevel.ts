@@ -23,6 +23,20 @@ export type SkillInvestmentNextLevelInput = {
   eventIds?: readonly string[]
 }
 
+export type SkillInvestmentBlockReason =
+  | 'current_level_unknown'
+  | 'target_level_unknown'
+  | 'current_and_target_unknown'
+  | 'mindscape_bonus_unknown'
+  | 'invalid_levels'
+  | 'event_contract_unavailable'
+  | 'invalid_mindscape_bonus'
+  | 'level_out_of_bounds'
+  | 'core_growth_unavailable'
+  | 'skill_events_unavailable'
+
+export type SkillInvestmentMissingInput = 'current_level' | 'target_level' | 'mindscape_bonus'
+
 const delta = (before: number, after: number) => ({
   before,
   after,
@@ -40,36 +54,68 @@ export const skillInvestmentNextLevelIdentity = Object.freeze({
 })
 
 export function evaluateSkillInvestmentNextLevel(input: SkillInvestmentNextLevelInput) {
-  const blocked = <S extends 'unknown' | 'unsupported'>(status: S, reason: string) => ({
+  const missingInputs: SkillInvestmentMissingInput[] = [
+    ...(input.currentLevel === null ? ['current_level' as const] : []),
+    ...(input.targetLevel === null ? ['target_level' as const] : []),
+    ...(input.skill !== 'core' && input.effectiveLevelBonus == null
+      ? ['mindscape_bonus' as const]
+      : []),
+  ]
+  const blocked = <S extends 'unknown' | 'unsupported'>(
+    status: S,
+    reasonCode: SkillInvestmentBlockReason,
+    reason: string,
+  ) => ({
     status,
+    reasonCode,
+    missingInputs,
     reason,
+    currentLevel: input.currentLevel,
+    targetLevel: input.targetLevel,
     events: [],
     materials: null,
     identity: skillInvestmentNextLevelIdentity,
   })
-  if (input.currentLevel === null || input.targetLevel === null)
-    return blocked('unknown', '当前等级或来源目标未知。')
+  if (input.currentLevel === null && input.targetLevel === null)
+    return blocked(
+      'unknown',
+      'current_and_target_unknown',
+      '当前技能等级未记录，实际投入目标也未确定。',
+    )
+  if (input.currentLevel === null)
+    return blocked('unknown', 'current_level_unknown', '当前技能等级未记录。')
+  if (input.targetLevel === null)
+    return blocked('unknown', 'target_level_unknown', '实际投入目标未确定。')
   if (
     !Number.isInteger(input.currentLevel) ||
     !Number.isInteger(input.targetLevel) ||
     input.currentLevel < 1 ||
     input.targetLevel < 1
   )
-    return blocked('unsupported', '当前等级和目标必须是合法正整数。')
+    return blocked('unsupported', 'invalid_levels', '当前等级和目标必须是合法正整数。')
   const contract = getCurrentAgentEventContract(input.agentId)
-  if (!contract) return blocked('unsupported', '当前主体无已采用事件合同。')
+  if (!contract)
+    return blocked('unsupported', 'event_contract_unavailable', '当前主体无已采用事件合同。')
   const bonus = input.skill === 'core' ? 0 : input.effectiveLevelBonus
   if (bonus === undefined || bonus === null)
-    return blocked('unknown', '付费基础等级与影画加级未明确；不能把有效等级静默当基础等级。')
+    return blocked(
+      'unknown',
+      'mindscape_bonus_unknown',
+      '付费基础等级与影画加级未明确；不能把有效等级静默当基础等级。',
+    )
   if (
     ![0, 2, 4].includes(bonus) ||
     (input.skill === 'core' && input.effectiveLevelBonus != null && input.effectiveLevelBonus !== 0)
   )
-    return blocked('unsupported', '已锁来源只支持明确的影画技能加级0、2、4；核心不加级。')
+    return blocked(
+      'unsupported',
+      'invalid_mindscape_bonus',
+      '已锁来源只支持明确的影画技能加级0、2、4；核心不加级。',
+    )
   const baseLevel = input.currentLevel - bonus
   const cap = input.skill === 'core' ? 7 : 12
   if (baseLevel < 1 || baseLevel > cap || input.targetLevel > cap + bonus)
-    return blocked('unsupported', '基础等级或有效目标超出来源上限。')
+    return blocked('unsupported', 'level_out_of_bounds', '基础等级或有效目标超出来源上限。')
   if (baseLevel === cap || input.currentLevel >= input.targetLevel)
     return {
       status: 'no_upgrade' as const,
@@ -96,7 +142,7 @@ export function evaluateSkillInvestmentNextLevel(input: SkillInvestmentNextLevel
       basis: 'source_growth',
     })
     if (before.status !== 'supported' || after.status !== 'supported')
-      return blocked('unsupported', '核心静态成长来源不支持该升级。')
+      return blocked('unsupported', 'core_growth_unavailable', '核心静态成长来源不支持该升级。')
     const valuesBefore = before.values as Record<string, number>
     const valuesAfter = after.values as Record<string, number>
     const coreGrowth = Object.fromEntries(
@@ -127,7 +173,7 @@ export function evaluateSkillInvestmentNextLevel(input: SkillInvestmentNextLevel
     !candidates.length ||
     input.eventIds?.some((id) => !candidates.some((event) => event.eventId === id))
   )
-    return blocked('unsupported', '具名事件不属于该技能或无来源事件。')
+    return blocked('unsupported', 'skill_events_unavailable', '具名事件不属于该技能或无来源事件。')
   const events = candidates.map((event) => {
     const before = resolveCurrentAgentEvent({
       stableId: input.agentId,

@@ -1,4 +1,7 @@
-import { sortCatalogByRarityAndRelease } from '../application/catalogDisplayOrdering'
+import {
+  catalogReleaseDataDependency,
+  sortCatalogByRarityAndRelease,
+} from '../application/catalogDisplayOrdering'
 import { publicAssetCatalog } from '../application/publicAssetCatalog'
 
 // The display projection already carries the verified rarity/release order used
@@ -26,5 +29,4 @@ export function sortOwnedAgentsForPicker<
   return sortCatalogByRarityAndRelease(items)
 }
 
-export const pickerReleaseDataDependency =
-  '同稀有度优先按已核验上线日期从新到旧；未核验日期的条目保持稳定目录顺序。'
+export const pickerReleaseDataDependency = catalogReleaseDataDependency

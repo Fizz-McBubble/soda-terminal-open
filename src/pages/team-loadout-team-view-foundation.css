@@ -196,9 +196,14 @@
   max-width: 75ch;
 }
 
-.team-execution__attribute-row:not(.is-heading):nth-child(even),
 .team-execution__attribute-row.is-priority {
-  background: #f5f0fd;
+  background: color-mix(in srgb, var(--soda-accent) 7%, #fff);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--soda-accent) 72%, #fff);
+}
+
+.team-execution__attribute-row.is-priority.is-below-target {
+  background: color-mix(in srgb, #a34a5d 5%, #fff);
+  box-shadow: inset 3px 0 0 #a34a5d;
 }
 
 .team-execution__attribute-row strong {
@@ -217,6 +222,10 @@
 
 .team-execution__attribute-row.is-below-target > .team-execution__attribute-proposed {
   color: #a34a5d;
+  font-weight: 760;
+}
+
+.team-execution__attribute-proposed[data-changed='true'] {
   font-weight: 760;
 }
 

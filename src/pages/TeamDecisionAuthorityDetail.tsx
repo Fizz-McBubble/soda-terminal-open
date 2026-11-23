@@ -15,36 +15,17 @@ export function TeamDecisionAuthorityDetail({
   targetTeamFit?: TargetTeamWarehouseFitQueryResult
 }) {
   if (!targetTeamFit) return null
-  const plan = targetTeamFit.warehousePlan
-  // Member-specific notes are shown beside that member's equipment, not applied to every tab.
-  const teamGaps = plan.gaps.filter(
-    (gap) => !plan.loadouts?.some((loadout) => loadout.degradeReasons.includes(gap)),
-  )
-  const benchmark = targetTeamFit.accountBoundBenchmark
-  const missingEffects =
-    benchmark.equipmentModifierProjection?.wEngines.filter(
-      (item) => item.passiveStatus !== 'supported',
-    ).length ?? 0
   const comparison = targetTeamFit.valueBenchmark
   const baselineModel = comparison?.baseline?.memberModelQualification32
   const candidateModel = comparison?.candidate?.memberModelQualification32
   const sameMembers =
     targetTeamFit.memberIds?.length === memberIds.length &&
     memberIds.every((id) => targetTeamFit.memberIds.includes(id))
-  const luminize = sameMembers ? comparison?.luminizeComparison32 : undefined
-  const number = (value: number) => value.toLocaleString('zh-CN', { maximumFractionDigits: 2 })
-  const mechanismNote =
-    luminize?.status === 'supported' &&
-    luminize.currentDamage !== null &&
-    luminize.candidateDamage !== null &&
-    luminize.delta !== null
-      ? `单次辉映（同一静态配装准备，非暴击）：当前 ${number(luminize.currentDamage)}，方案 ${number(luminize.candidateDamage)}，差值 ${luminize.delta > 0 ? '+' : ''}${number(luminize.delta)}。`
-      : luminize?.status === 'stale'
-        ? '配装机制比较已失效，请重新分析；保存的历史条件仍保留。'
-        : null
-  const notes = [...new Set(teamGaps), ...(mechanismNote ? [mechanismNote] : [])]
+  const wEngines = targetTeamFit.accountBoundBenchmark.equipmentModifierProjection?.wEngines
   const qualifiedComparison =
     sameMembers &&
+    wEngines?.length === memberIds.length &&
+    wEngines.every((item) => item.passiveStatus === 'supported') &&
     comparison?.status === 'supported' &&
     baselineModel?.status === 'formal' &&
     candidateModel?.status === 'formal' &&
@@ -56,24 +37,18 @@ export function TeamDecisionAuthorityDetail({
     candidateModel.bangbooIncluded === false &&
     comparison.baseline.planningDps === baselineModel.planningDps &&
     comparison.candidate.planningDps === candidateModel.planningDps
-  const comparisonLabel = qualifiedComparison ? benchmarkLabel(comparison, false) : null
-  if (!notes.length && !missingEffects && !comparisonLabel) return null
+  const comparisonLabel = qualifiedComparison
+    ? benchmarkLabel(comparison, false).replace(
+        /^(?:同段输出|近似输出|预计输出)/,
+        '三人固定动作输出',
+      )
+    : null
+  if (!comparisonLabel) return null
   return (
     <div className="team-decision-summary" aria-label="配装结果摘要">
-      {comparisonLabel ? (
-        <p>
-          <strong>{comparisonLabel}</strong>
-          <span>仅比较三人已列动作的固定窗口，不含邦布、准备伤害、异常结算与提前失衡收益。</span>
-        </p>
-      ) : null}
-      {missingEffects && !qualifiedComparison ? (
-        <p>有 {missingEffects} 名成员的音擎效果资料未齐，暂不能完整比较收益。</p>
-      ) : null}
-      {notes.length ? (
-        <p role="status" title={mechanismNote ? luminize?.boundary : undefined}>
-          方案说明：{notes.join('；')}
-        </p>
-      ) : null}
+      <p>
+        <strong>{comparisonLabel}</strong>
+      </p>
     </div>
   )
 }

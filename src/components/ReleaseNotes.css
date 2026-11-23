@@ -6,9 +6,10 @@
   gap: 8px;
 }
 
-.f5v-shell .release-notes > .explanation__trigger {
+.f5v-shell .explanation.release-notes > .explanation__trigger:not(.button) {
   min-height: 34px;
   padding: 5px 10px;
+  border: 1px solid transparent;
   border-radius: 8px;
   color: var(--f5-accent);
   font-size: 0.75rem;
@@ -16,8 +17,14 @@
   white-space: nowrap;
 }
 
-.f5v-shell .release-notes > .explanation__trigger:is(:hover, [aria-expanded='true']) {
+.f5v-shell
+  .explanation.release-notes
+  > .explanation__trigger:not(.button):is(:hover, [aria-expanded='true']) {
   background: var(--f5-wash);
+}
+
+.f5v-shell .explanation.release-notes > .explanation__trigger:not(.button)[aria-expanded='true'] {
+  border-color: var(--soda-line-strong);
 }
 
 .release-notes .explanation-popover[popover] {
@@ -79,10 +86,22 @@
 }
 
 .release-notes__entry h2 {
+  text-wrap: balance;
   margin: 8px 0;
   color: var(--soda-text);
   font-size: 0.9375rem;
   line-height: 1.5;
+}
+
+.release-notes__sections {
+  margin-top: 14px;
+}
+
+.release-notes__sections h3 {
+  margin: 0 0 4px;
+  color: var(--soda-text);
+  font-size: 0.875rem;
+  line-height: 1.55;
 }
 
 .release-notes__entry li + li {
@@ -95,7 +114,14 @@
     gap: 2px;
   }
 
-  .f5v-shell .release-notes > .explanation__trigger {
-    padding-inline: 6px;
+  .f5v-shell .explanation.release-notes > .explanation__trigger:not(.button) {
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .f5v-shell .explanation.release-notes > .explanation__trigger:not(.button) {
+    min-height: 26px;
+    padding-block: 2px;
   }
 }

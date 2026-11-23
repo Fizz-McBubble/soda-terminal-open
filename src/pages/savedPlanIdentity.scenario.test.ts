@@ -6,7 +6,9 @@ import type { TargetTeamWarehouseFitQueryResult } from '../application/calculati
 import {
   resolveSavedPlanScenarioSelection,
   savedTeamDiscAssignmentFingerprint,
+  savedTeamDiscAssignments,
   savedTeamTargetFitMatchesSavedDiscs,
+  currentSavedDiscReplay,
 } from './savedPlanIdentity'
 
 const memberIds = ['agent-anby', 'agent-billy', 'agent-nicole']
@@ -258,6 +260,39 @@ describe('savedPlanIdentity scenario validation and compatibility', () => {
   })
 })
 
+it('binds replay hashes to exact assignments, potential and engine growth while retaining malformed history', () => {
+  const plan = makeMockPlan()
+  plan.teamEquipmentParameters = {
+    wEngines: [
+      { agentId: 'agent-billy', engineId: 'wengine-13001', refinement: 1, level: 60, ascension: 5 },
+    ],
+    potentialByAgentId: { 'agent-billy': 0 },
+    bangbooId: 'bangboo-amillion',
+    bangbooStars: 1,
+    source: 'player_confirmed',
+  }
+  const original = savedTeamReplayPlanHash(plan)
+  const potential = structuredClone(plan)
+  potential.teamEquipmentParameters!.potentialByAgentId!['agent-billy'] = 6
+  expect(savedTeamReplayPlanHash(potential)).not.toBe(original)
+  const growth = structuredClone(plan)
+  growth.teamEquipmentParameters!.wEngines[0]!.level = 50
+  expect(savedTeamReplayPlanHash(growth)).not.toBe(original)
+  const placement = structuredClone(plan)
+  placement.teamExecutionSnapshot!.deploymentOrder = ['agent-nicole', 'agent-billy', 'agent-anby']
+  expect(savedTeamReplayPlanHash(placement)).not.toBe(original)
+  const inconsistent = structuredClone(plan)
+  inconsistent.candidateWarehouse!.loadouts[0]!.discIds[0] = 'different-disc'
+  expect(savedTeamReplayPlanHash(inconsistent)).not.toBe(original)
+  expect(savedTeamDiscAssignments(inconsistent)).toBeNull()
+  const overlapping = structuredClone(plan)
+  const shared = overlapping.candidateWarehouse!.loadouts[0]!.discIds[0]!
+  overlapping.candidateWarehouse!.loadouts[1]!.discIds[0] = shared
+  overlapping.teamExecutionSnapshot!.members[1]!.suggested.discIds[0] = shared
+  expect(savedTeamDiscAssignments(overlapping)).toBeNull()
+  expect(savedTeamTargetFitMatchesSavedDiscs(inconsistent, makeMockFit())).toBe(false)
+})
+
 it('binds saved eighteen-disc replay to the same declared event preparation and keeps malformed history readable', () => {
   const plan = makeMockPlan()
   const fit = makeMockFit()
@@ -312,4 +347,49 @@ it('requires the current replay to reissue the saved standard selection identity
       standardReference32: standardReference('different-selection'),
     }),
   ).toBe(false)
+})
+
+it('accepts refreshed reference metadata only with a receipt for the exact current saved-disc request', () => {
+  const plan = makeMockPlan()
+  plan.solutionContext!.standardReference32 = { ...standardReference(), status: 'metadata' }
+  const expected = currentSavedDiscReplay(plan, 'acc', 'current-input')!
+  const fit = makeMockFit()
+  fit.standardReference32 = {
+    ...plan.solutionContext!.standardReference32,
+    preparedIdentity: 'current-prepared',
+    sourceBindingFingerprint: 'current-sources',
+  }
+  fit.savedPlanReplay = { ...expected }
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, fit)).toBe(false)
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, fit, expected)).toBe(true)
+  for (const field of [
+    'planId',
+    'planHash',
+    'accountId',
+    'inputFingerprint',
+    'sourcePolicy',
+  ] as const) {
+    const wrong = structuredClone(fit)
+    Object.assign(wrong.savedPlanReplay!, { [field]: 'different' })
+    expect(savedTeamTargetFitMatchesSavedDiscs(plan, wrong, expected)).toBe(false)
+  }
+  expect(
+    savedTeamTargetFitMatchesSavedDiscs(plan, { ...fit, savedPlanReplay: undefined }, expected),
+  ).toBe(false)
+  const substituted = structuredClone(fit)
+  substituted.warehousePlan.loadouts[0]!.discs[0]!.disc.id = 'other-disc'
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, substituted, expected)).toBe(false)
+  const changedScenario = {
+    ...fit,
+    scenarioSelection: { schemaVersion: 1 as const, id: 'declared-stun-comparison' as const },
+  }
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, changedScenario, expected)).toBe(false)
+  plan.solutionContext!.standardReference32 = standardReference()
+  const selectedRequest = currentSavedDiscReplay(plan, 'acc', 'current-input')!
+  const changedSelection = {
+    ...fit,
+    savedPlanReplay: selectedRequest,
+    standardReference32: standardReference('other-selection'),
+  }
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, changedSelection, selectedRequest)).toBe(false)
 })

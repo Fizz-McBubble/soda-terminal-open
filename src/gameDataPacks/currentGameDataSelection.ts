@@ -8,5 +8,5 @@ export const currentGameDataSelection: Readonly<{
 }> = Object.freeze({
   gameVersion: '3.3',
   packageId: 'game-base-3.3.0-current',
-  phase: 'phase_i',
+  phase: 'phase_ii',
 })

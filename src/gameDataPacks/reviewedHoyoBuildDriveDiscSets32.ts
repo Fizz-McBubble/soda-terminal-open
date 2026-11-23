@@ -34,7 +34,7 @@ export const reviewedHoyoBuildDriveDiscGuides32: readonly ReviewedDriveDiscGuide
     sourceUpdatedAt: '2026-09-26',
     setDirections: [
       '啄木鸟电音4 + 折枝剑歌2：通用方向，普攻用于维持EX与终结技前的套装层数。',
-      '炎狱重金属4 + 啄木鸟电音2：需要稳定灼烧，仅与柏妮思或柚叶等强灼烧来源可靠。',
+      '炎狱重金属4 + 啄木鸟电音2：需要队伍稳定维持灼烧；不把原文举例视为角色具备施加灼烧的证明。',
       '河豚电音4 + 啄木鸟电音2：与琉音同队时优先，终结技转换可提前建立套装效果。',
       '荆棘玫瑰4 + 摇摆爵士2：3.2来源的直伤方向，初始防御达到1,000/1,800时获得对应档位。',
     ],
@@ -215,7 +215,7 @@ export const reviewedHoyoBuildDriveDiscGuides32: readonly ReviewedDriveDiscGuide
         purpose: 'conditional',
         sourceText:
           'Swing Jazz 4 + Puffer Electro 2 if another Support already runs Moonlight Lullaby.',
-        conditionRule: { kind: 'teammate_not_four_piece', setId: 'set-moonlight-lullaby' },
+        conditionRule: { kind: 'teammate_four_piece', setId: 'set-moonlight-lullaby' },
       },
       {
         pattern: '4+2',
@@ -260,7 +260,7 @@ export const reviewedHoyoBuildDriveDiscGuides32: readonly ReviewedDriveDiscGuide
         secondarySetIds: ['set-astral-voice'],
         purpose: 'conditional',
         sourceText: 'Swing Jazz 4 + Astral Voice 2 if another Agent already wears Astral Voice.',
-        conditionRule: { kind: 'teammate_not_four_piece', setId: 'set-astral-voice' },
+        conditionRule: { kind: 'teammate_four_piece', setId: 'set-astral-voice' },
       },
     ],
   },
@@ -305,7 +305,7 @@ export const reviewedHoyoBuildDriveDiscGuides32: readonly ReviewedDriveDiscGuide
         secondarySetIds: ['set-hormone-punk'],
         purpose: 'conditional',
         sourceText: 'Swing Jazz 4 + Hormone Punk 2 if someone else already wears Astral Voice.',
-        conditionRule: { kind: 'teammate_not_four_piece', setId: 'set-astral-voice' },
+        conditionRule: { kind: 'teammate_four_piece', setId: 'set-astral-voice' },
       },
     ],
   },

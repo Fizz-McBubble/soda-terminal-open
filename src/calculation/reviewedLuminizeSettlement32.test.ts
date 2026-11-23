@@ -30,6 +30,22 @@ describe('declared Luminize settlement', () => {
     expect(result.totalDamage).toBeCloseTo(1600 * 1.8 * 1.15 * 1.2, 10)
     expect(result.instances[0]!.storedRefringeCoefficient).toBe(0.2)
   })
+  it('uses the teammate snapshot penetration and Remielle anomaly bonus as separate factors', () => {
+    const input = luminizeFixture32()
+    input.voidflares[0]!.stats.penetrationRatio = 0.5
+    input.remielle.generalAnomalyDamageBonus = 0.15
+    const result = evaluateReviewedLuminizeSettlement32(input)
+    // 794 enemy DEF with 50% snapshot PEN leaves 397 DEF; provider bonus is separate.
+    expect(result.totalDamage).toBeCloseTo(1600 * (794 / (794 + 397)) / 0.5 * 1.15, 10)
+    expect(result.instances[0]!.factors.buffMultiplier).toBeCloseTo(1.15, 10)
+    // The schema does not claim a Remielle PEN result, and rejects the M1 self-owned case.
+    Object.assign(input.remielle, { penetrationRatio: 0.5 })
+    expect(evaluateReviewedLuminizeSettlement32(input).status).toBe('unsupported')
+    delete (input.remielle as typeof input.remielle & { penetrationRatio?: number }).penetrationRatio
+    input.remielle.mindscape = 1
+    input.voidflares[0]!.ownerAgentId = 'agent-remielle'
+    expect(evaluateReviewedLuminizeSettlement32(input).status).toBe('unsupported')
+  })
   it('retains individual owners and attributes in a mixed volley', () => {
     const input = luminizeFixture32()
     input.memberAgentIds.push('agent-anby')

@@ -7,6 +7,8 @@ import { stableContentHash } from '../gameDataPacks/types'
 /** Membership capability only; independent of the active recommendation lifecycle. */
 export type AuthorComparisonMembership32 = {
   explicitSelectionOnly: true
+  /** Current independent admission affects the team, not this historical source. */
+  independentDefaultAdmission?: true
   observationRole: 'author_comparison_setup'
   sourceVersion: '3.2'
   conditions: string[]

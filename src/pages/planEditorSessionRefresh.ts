@@ -1,5 +1,10 @@
-import type { AccountDecisionRun } from '../application/calculationQueryContract'
+import {
+  calculationQueryContractVersion,
+  type AccountDecisionRun,
+  type CalculationQueryClient,
+} from '../application/calculationQueryContract'
 import { useEffect } from 'react'
+import { browserCalculationInputFingerprint } from '../application/browserCalculationInputFingerprint'
 import type { AccountDecisionWorldContextValue } from '../application/accountDecisionWorldModel'
 import type { NavigateFunction } from 'react-router-dom'
 import { acceptTeamOverviewPresentation } from './teamLoadoutPresentationDto'
@@ -7,6 +12,7 @@ import {
   currentTeamAnalysisSession,
   setCurrentTeamAnalysisSession,
   type LastCompleteAnalysis,
+  type TeamAnalysisResult,
   type TeamAnalysisState,
 } from './teamAnalysisSession'
 import type { DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
@@ -21,6 +27,7 @@ export function useSavedPlanEditorRefresh({
   releaseRun,
   setAnalysis,
   setLastCompleteAnalysis,
+  calculationClient,
 }: {
   analysis: TeamAnalysisState
   account: { accountId: string | null; appSessionId: string; hydrating: boolean } | null
@@ -28,6 +35,7 @@ export function useSavedPlanEditorRefresh({
   releaseRun: (runId: string) => void
   setAnalysis: (next: LastCompleteAnalysis) => void
   setLastCompleteAnalysis: (next: LastCompleteAnalysis) => void
+  calculationClient?: CalculationQueryClient | null
 }) {
   useEffect(() => {
     if (
@@ -39,21 +47,62 @@ export function useSavedPlanEditorRefresh({
       world.liveFingerprint !== world.run.inputFingerprint
     )
       return
-    const next = adoptSavedPlanEditorRefresh(
-      analysis,
-      world.run,
-      {
-        accountId: account.accountId,
-        appSessionId: account.appSessionId,
-        liveFingerprint: world.liveFingerprint,
-      },
-      releaseRun,
-    )
-    if (next) {
-      setAnalysis(next)
-      setLastCompleteAnalysis(next)
+    const accountId = account.accountId
+    let active = true
+    void (async () => {
+      const run = world.run
+      const identity = {
+        runId: run.runId,
+        accountId: run.input.warehouse.accountId ?? '',
+        inputFingerprint: run.snapshot.fingerprint.inputHash,
+        agentId: null,
+        planId: null,
+        discId: null,
+      }
+      let overviewModel = acceptTeamOverviewPresentation(
+        run.teamPresentation,
+        identity,
+      )?.overviewModel
+      if (!overviewModel && calculationClient) {
+        overviewModel = acceptTeamOverviewPresentation(
+          await calculationClient.queryTeamOverviewPresentation({
+            contractVersion: calculationQueryContractVersion,
+            kind: 'team_overview_presentation',
+            runId: run.runId,
+            context: { agentId: null, planId: null, discId: null },
+          }),
+          identity,
+        )?.overviewModel
+      }
+      if (!active) return
+      const next = adoptSavedPlanEditorRefresh(
+        analysis,
+        run,
+        {
+          accountId,
+          appSessionId: account.appSessionId,
+          liveFingerprint: world.liveFingerprint,
+        },
+        releaseRun,
+        overviewModel,
+      )
+      if (next) {
+        setAnalysis(next)
+        setLastCompleteAnalysis(next)
+      }
+    })().catch(() => undefined)
+    return () => {
+      active = false
     }
-  }, [analysis, account, world, releaseRun, setAnalysis, setLastCompleteAnalysis])
+  }, [
+    analysis,
+    account,
+    world,
+    releaseRun,
+    setAnalysis,
+    setLastCompleteAnalysis,
+    calculationClient,
+  ])
 }
 
 export async function finishPlanEditorSave({
@@ -63,6 +112,7 @@ export async function finishPlanEditorSave({
   navigate,
   setMessage,
   savedName,
+  savedPlan,
   isCurrentSave = () => true,
   appSessionId,
 }: {
@@ -73,6 +123,7 @@ export async function finishPlanEditorSave({
   navigate: NavigateFunction
   setMessage: (message: string) => void
   savedName: string
+  savedPlan?: { id: string; accountId: string }
   isCurrentSave?: () => boolean
   appSessionId?: string
 }) {
@@ -97,7 +148,7 @@ export async function finishPlanEditorSave({
         if (previous) savedRefreshSnapshots.delete(previous.result.decisionSnapshot)
       },
     )
-    navigate('/loadouts/team', { replace: true })
+    navigate('/loadouts/team', { replace: true, ...(savedPlan ? { state: { savedPlan } } : {}) })
     return true
   }
   setMessage(`已保存“${savedName}”，刷新后可以继续调整。`)
@@ -110,6 +161,7 @@ export function adoptSavedPlanEditorRefresh(
   refreshed: AccountDecisionRun,
   account: { accountId: string; appSessionId: string; liveFingerprint: string },
   releaseRun: (runId: string) => void,
+  overviewModel?: TeamAnalysisResult['overviewModel'],
 ) {
   const current = currentTeamAnalysisSession
   if (
@@ -130,7 +182,7 @@ export function adoptSavedPlanEditorRefresh(
     refreshed.runId === expected.result.sourceRunId
   )
     return null
-  if (!refreshPlanEditorSession(refreshed, releaseRun)) return null
+  if (!refreshPlanEditorSession(refreshed, releaseRun, overviewModel)) return null
   savedRefreshSnapshots.delete(expected.result.decisionSnapshot)
   return currentTeamAnalysisSession
 }
@@ -139,16 +191,19 @@ export function adoptSavedPlanEditorRefresh(
 export function refreshPlanEditorSession(
   refreshed: AccountDecisionRun,
   releaseRun: (runId: string) => void,
+  suppliedOverviewModel?: TeamAnalysisResult['overviewModel'],
 ) {
   if (!currentTeamAnalysisSession) return true
-  const overviewModel = acceptTeamOverviewPresentation(refreshed.teamPresentation, {
-    runId: refreshed.runId,
-    accountId: refreshed.input.warehouse.accountId ?? '',
-    inputFingerprint: refreshed.snapshot.fingerprint.inputHash,
-    agentId: null,
-    planId: null,
-    discId: null,
-  })?.overviewModel
+  const overviewModel =
+    suppliedOverviewModel ??
+    acceptTeamOverviewPresentation(refreshed.teamPresentation, {
+      runId: refreshed.runId,
+      accountId: refreshed.input.warehouse.accountId ?? '',
+      inputFingerprint: refreshed.snapshot.fingerprint.inputHash,
+      agentId: null,
+      planId: null,
+      discId: null,
+    })?.overviewModel
   if (!overviewModel) return false
   const previous = currentTeamAnalysisSession.result
   if (previous.sourceRunId && previous.analysisRunId !== refreshed.runId)
@@ -164,6 +219,7 @@ export function refreshPlanEditorSession(
       decisionSnapshot: refreshed.snapshot,
       capturedAt: new Date(refreshed.capturedAt),
       inputFingerprint: refreshed.snapshot.fingerprint.inputHash,
+      inputReadFingerprint: browserCalculationInputFingerprint(refreshed.input),
       targetTeamFits: {},
       teamRoutePresentations: undefined,
       fitOverviewModel: undefined,

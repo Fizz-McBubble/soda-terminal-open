@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart06 = [
     agentId: 'agent-lucia',
     playerName: '卢西娅',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.3',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F7',
     objectiveTopology: 'O4',
     configHash: 'fa2633734a02221af717e5b4c599f2c6bf1d988e1cae0b397de40820a18b0d82',
-    inputHash: '87bed82f42208710ded6fa33b3bc3994e23438f062eff77b8a47ff88cd727896',
+    inputHash: 'eae14b643d1dd91660347a87c67a466388aa835d5d0dbd9ab561a9d155796323',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-lucia-atk:stats.lv60.raw.atk:batch-agents-2.3-r3g',
@@ -117,7 +117,7 @@ export const graduationCandidateProfilesPart06 = [
       deterministic: true,
       configHash: '68ad264d756e82b1b7d3c241d55011db2a13deb9f77da36a42bc0a2e307ab2c1',
     },
-    profileHash: 'e6d1dadc7cad8d312b2258cc73d857a6d699a2de1f8f69f433fe503297fd0c05',
+    profileHash: 'edc53e7802ae18bdcd88b4be7fc593b27132c67ffa60b0d66351bb9122ff6925',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -128,14 +128,14 @@ export const graduationCandidateProfilesPart06 = [
     agentId: 'agent-orphie-magus',
     playerName: '奥菲丝&「鬼火」',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.2',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F2',
     objectiveTopology: 'O5',
     configHash: '407fe2a800561fd14db76853feac5544565484ca60276a73cb1750334bdb092a',
-    inputHash: '3d080661831e5f97b52072a0aca0745ff3ad64552174e3f32f3571c5eae6b53f',
+    inputHash: 'dd8f50c9e4c6e38e5a4e748501e78e08179893a949b67d12cfde1bef6f3e00fc',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-orphie-magus-atk:stats.lv60.raw.atk:batch-agents-2.2-r3h',
@@ -248,7 +248,7 @@ export const graduationCandidateProfilesPart06 = [
       deterministic: true,
       configHash: '8cd2aac535ec2aa0e80423304680595292b802e235219d71a6d63422620b9a33',
     },
-    profileHash: 'fb075c4f9ff0854028366c5e7eb597a60e0d2b794e97fa0148262186ba3453e2',
+    profileHash: 'a9effe41855c1f0420c8a48a532fbb9aef2b40ad1eff7e8868e72bc9a218794b',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -259,14 +259,14 @@ export const graduationCandidateProfilesPart06 = [
     agentId: 'agent-seed',
     playerName: '「席德」',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.2',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F2',
     objectiveTopology: 'O5',
     configHash: 'f3853c1ba729993292f4d0bad1c321af8896491675d92464990e8962060459ed',
-    inputHash: 'b60fa10a6a7408f7e22143a089483927cb654a81fbf79aaa2c51415d58996e65',
+    inputHash: '2002f145eba1cb8b2df9d1d62e4e25ff4782723d9d9348541e1a3ff648017c88',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-seed-atk:stats.lv60.raw.atk:batch-agents-2.2-r3h',
@@ -377,6 +377,6 @@ export const graduationCandidateProfilesPart06 = [
       deterministic: true,
       configHash: '71f59c9d9f86c483f825a7078a17eb4f2128b0b2158d3f706a8c8ba028eb2e03',
     },
-    profileHash: 'fb08385f65520a9e5415ab0cc193de580ecae0a3a33983dd959821b0b11c7792',
+    profileHash: '1fe747faa13e62db2b929a866b2b15c6cfa39652066d88f901750a9487434e95',
   },
 ] as const

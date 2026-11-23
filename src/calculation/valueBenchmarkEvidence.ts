@@ -38,6 +38,16 @@ export function valueBenchmarkSideEvidenceIssues(
     if (!nonEmptyString(side.dimensions?.[dimension])) issues.push(`缺少比较上下文：${dimension}。`)
   }
   if (!nonEmptyString(side.calculationFingerprint)) issues.push('缺少计算结果指纹。')
+  if (
+    side.coverage?.domain === 'fixed_event_direct_damage' &&
+    side.dimensions.duration === 'not_applicable'
+  ) {
+    if (!hasWellFormedValueBenchmarkCoverage(side.coverage))
+      issues.push('单次动作缺少完整覆盖声明。')
+    if (side.planningDps !== null) issues.push('单次动作不能声明时段DPS。')
+    if (side.modelQualification32 || side.memberModelQualification32)
+      issues.push('单次动作不能复用完整时段模型资格。')
+  }
   if (side.coverage?.domain === 'prepared_anomaly_settlement') {
     if (!hasWellFormedValueBenchmarkCoverage(side.coverage))
       issues.push('单次异常比较缺少完整覆盖声明。')

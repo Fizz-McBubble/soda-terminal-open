@@ -1,11 +1,13 @@
 import type { TeamRatingResult, CultivationPriorityInput } from './teamDecisionAuthority'
 import type { AccountCultivationRealInvestment } from './accountCultivationRealInvestment'
+import { referenceRatingBands, type GenericReferenceInterval } from './teamReferenceInterval'
 
 export function marginalGain(
   rating: TeamRatingResult,
   coverageGain: CultivationPriorityInput['coverageGain'],
 ): CultivationPriorityInput['marginalAccountGain'] {
   if (rating.status !== 'rated') return 'unknown'
+  if (rating.ratingBand === 'Experimental') return 'unknown'
   if (coverageGain === 'new_required_team' && ['S+', 'S'].includes(rating.ratingBand))
     return 'transformative'
   if (coverageGain === 'new_required_team' || ['S+', 'S', 'A+'].includes(rating.ratingBand))
@@ -37,6 +39,8 @@ export type AccountCultivationMarginalYield = {
   marginalAccountGain: CultivationPriorityInput['marginalAccountGain']
   yieldCategory: CultivationYieldCategory
   tradeoffSummary: string
+  referenceInterval?: GenericReferenceInterval
+  strengthUnrated?: boolean
   multiDimensionalVector: {
     ratingRank: number
     confidenceRank: number
@@ -89,9 +93,13 @@ export function evaluateAccountCultivationMarginalYield(
             ? 3
             : input.teamRating.ratingBand === 'A'
               ? 2
-              : input.teamRating.ratingBand === 'B'
-                ? 1
-                : 0
+              : input.teamRating.ratingBand === 'B+'
+                ? 1.5
+                : input.teamRating.ratingBand === 'C'
+                  ? 0.5
+                  : input.teamRating.ratingBand === 'B'
+                    ? 1
+                    : 0
 
   const confidenceRank =
     input.teamRating.status !== 'rated'
@@ -143,7 +151,18 @@ export function evaluateAccountCultivationMarginalYield(
     candidateId: input.candidateId,
     marginalAccountGain,
     yieldCategory,
-    tradeoffSummary,
+    tradeoffSummary:
+      tradeoffSummary +
+      (input.teamRating.status === 'rated' && input.teamRating.referenceInterval
+        ? ` 参考范围${input.teamRating.referenceInterval.lower}～${input.teamRating.referenceInterval.upper}；收益分类仅取保守下界，重叠范围不构成严格强弱。`
+        : ''),
+    ...(input.teamRating.status === 'rated' && input.teamRating.referenceInterval
+      ? { referenceInterval: structuredClone(input.teamRating.referenceInterval) }
+      : {}),
+    ...(input.teamRating.status === 'rated' &&
+    input.teamRating.playAdmission === 'complete_conditional_play'
+      ? { strengthUnrated: true }
+      : {}),
     multiDimensionalVector: {
       ratingRank,
       confidenceRank,
@@ -159,6 +178,12 @@ export type PartialOrderComparisonResult = {
   leftWins: readonly string[]
   rightWins: readonly string[]
   tradeoffSummary: string
+  strengthRelation:
+    | 'left_preferred'
+    | 'right_preferred'
+    | 'same_reference_range'
+    | 'overlapping_reference_ranges'
+    | 'not_established'
 }
 
 export function compareCultivationPriorityPartialOrder(
@@ -168,12 +193,34 @@ export function compareCultivationPriorityPartialOrder(
   const leftWins: string[] = []
   const rightWins: string[] = []
 
-  const leftQuality =
-    left.multiDimensionalVector.ratingRank * 10 + left.multiDimensionalVector.confidenceRank
-  const rightQuality =
-    right.multiDimensionalVector.ratingRank * 10 + right.multiDimensionalVector.confidenceRank
-  if (leftQuality > rightQuality) leftWins.push('队伍综合评级与置信度更高')
-  else if (rightQuality > leftQuality) rightWins.push('队伍综合评级与置信度更高')
+  const range = (value: AccountCultivationMarginalYield) =>
+    value.referenceInterval
+      ? [
+          5 - referenceRatingBands.indexOf(value.referenceInterval.lower),
+          5 - referenceRatingBands.indexOf(value.referenceInterval.upper),
+        ]
+      : [value.multiDimensionalVector.ratingRank, value.multiDimensionalVector.ratingRank]
+  const [leftLower, leftUpper] = range(left) as [number, number]
+  const [rightLower, rightUpper] = range(right) as [number, number]
+  let strengthRelation: PartialOrderComparisonResult['strengthRelation'] = 'same_reference_range'
+  const qualityLabel =
+    left.referenceInterval || right.referenceInterval
+      ? '队伍参考范围更高'
+      : '队伍综合评级与置信度更高'
+  if (left.strengthUnrated || right.strengthUnrated) {
+    strengthRelation = 'not_established'
+  } else if (leftLower > rightUpper) {
+    leftWins.push(qualityLabel)
+    strengthRelation = 'left_preferred'
+  } else if (rightLower > leftUpper) {
+    rightWins.push(qualityLabel)
+    strengthRelation = 'right_preferred'
+  } else if (leftLower !== rightLower || leftUpper !== rightUpper)
+    strengthRelation = 'overlapping_reference_ranges'
+  else if (left.multiDimensionalVector.confidenceRank > right.multiDimensionalVector.confidenceRank)
+    leftWins.push('参考置信度更高')
+  else if (left.multiDimensionalVector.confidenceRank < right.multiDimensionalVector.confidenceRank)
+    rightWins.push('参考置信度更高')
 
   if (left.multiDimensionalVector.coverageRank > right.multiDimensionalVector.coverageRank) {
     leftWins.push('账户阵容覆盖增益更显著')
@@ -202,7 +249,13 @@ export function compareCultivationPriorityPartialOrder(
   let relation: PartialOrderComparisonResult['relation']
   let tradeoffSummary: string
 
-  if (leftWins.length > 0 && rightWins.length === 0) {
+  if (
+    strengthRelation === 'overlapping_reference_ranges' ||
+    strengthRelation === 'not_established'
+  ) {
+    relation = 'incomparable_tradeoff'
+    tradeoffSummary = `${strengthRelation === 'not_established' ? '存在未评级玩法' : '参考区间重叠'}，不能由下界推出强弱或支配；左侧已知账户优势：${leftWins.join('、') || '无'}；右侧：${rightWins.join('、') || '无'}。`
+  } else if (leftWins.length > 0 && rightWins.length === 0) {
     relation = 'left_dominates'
     tradeoffSummary = `左侧候选在各维度均不劣于右侧，且在部分维度占据确定性优势（${leftWins.join('、')}），形成支配关系。`
   } else if (rightWins.length > 0 && leftWins.length === 0) {
@@ -221,5 +274,32 @@ export function compareCultivationPriorityPartialOrder(
     leftWins,
     rightWins,
     tradeoffSummary,
+    strengthRelation,
   }
+}
+
+/** A category derived from a conservative endpoint cannot override unknown or
+ * overlapping strength evidence. Account readiness remains a separate input. */
+export function compareAccountCultivationYield(
+  left: AccountCultivationMarginalYield,
+  right: AccountCultivationMarginalYield,
+) {
+  const categoryOrder: Record<AccountCultivationMarginalYield['yieldCategory'], number> = {
+    immediate_high_impact: 0,
+    high_efficiency_progression: 1,
+    strategic_high_potential: 2,
+    standard_development: 3,
+    redundant_marginal: 4,
+    unrealizable: 5,
+  }
+  const partialOrder = compareCultivationPriorityPartialOrder(left, right)
+  const categoryDifference = categoryOrder[left.yieldCategory] - categoryOrder[right.yieldCategory]
+  if (
+    categoryDifference &&
+    !['overlapping_reference_ranges', 'not_established'].includes(partialOrder.strengthRelation)
+  )
+    return categoryDifference
+  if (partialOrder.relation === 'left_dominates') return -1
+  if (partialOrder.relation === 'right_dominates') return 1
+  return 0
 }

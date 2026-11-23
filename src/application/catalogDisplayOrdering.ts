@@ -46,7 +46,7 @@ export function sortCatalogByRarityAndRelease<
 }
 
 export const catalogReleaseDataDependency =
-  '同稀有度优先按已核验上线日期从新到旧；未核验日期的条目保持稳定目录顺序。'
+  '同稀有度按上线时间从新到旧排列；上线时间未知时按目录顺序显示。'
 
 export function sortTupleCatalog<T extends readonly [string, string, ...unknown[]]>(
   items: readonly T[],

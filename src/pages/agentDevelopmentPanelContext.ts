@@ -5,7 +5,7 @@ export function createDevelopmentPanelContext({
   panelProjection,
   hasComparablePlan,
   candidateChoices,
-  savedAgentBuild,
+  savedDiscIds,
   currentDiscIds,
   data,
   coreLevel,
@@ -14,7 +14,7 @@ export function createDevelopmentPanelContext({
   panelProjection: ReturnType<typeof createAgentDevelopmentPanelProjection>
   hasComparablePlan: boolean
   candidateChoices: readonly { disc: { id: string } }[]
-  savedAgentBuild?: { warehouseRefs: string[] } | null
+  savedDiscIds?: readonly string[] | null
   currentDiscIds: readonly string[]
   data: { discs: DriveDisc[] }
   coreLevel?: number | null
@@ -35,7 +35,7 @@ export function createDevelopmentPanelContext({
         currentSetIds: (() => {
           const selectedIds = hasComparablePlan
             ? candidateChoices.map((choice) => choice.disc.id)
-            : (savedAgentBuild?.warehouseRefs ?? currentDiscIds)
+            : (savedDiscIds ?? currentDiscIds)
           const counts = new Map<string, number>()
           data.discs
             .filter((disc) => selectedIds.includes(disc.id))

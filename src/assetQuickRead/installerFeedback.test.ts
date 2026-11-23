@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+  createInstallerDownloadFeedbackReport,
+  InstallerDownloadError,
+} from '../scanner/installerDownload'
+import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
+import {
   consumeInstallerFeedbackFragment,
   readInstallerReceipt,
   readLastInstallerReceipt,
@@ -35,6 +40,109 @@ const sampleReport: InstallerFeedbackReport = {
 }
 
 describe('installerFeedback sanitization and fragment consumption', () => {
+  it('keeps dynamic download versions and identity strict on both sides without promoting them to native releases', () => {
+    const report = createInstallerDownloadFeedbackReport({
+      tool: 'asset_quick_read_installer',
+      installerVersion: '1.2.1',
+      expectedSize: 65536,
+      expectedSha256: 'a'.repeat(64),
+      durationMs: 10,
+      error: new InstallerDownloadError(new Error('private transport error'), {
+        code: 'installer_download_request_failed',
+        phase: 'range',
+        bytesReceived: 0,
+        attemptCount: 1,
+        waitReason: 'none',
+        httpStatus: 404,
+      }),
+    })
+    for (const installerVersion of ['1.2.1', '1.3.0', '2.0.0', '999.999.999']) {
+      const current = { ...report, installerVersion }
+      expect(sanitizeInstallerFeedback(current)).toEqual(current)
+      expect(sanitizeScanFeedbackPayload(current)).toMatchObject({ ok: true, record: current })
+      const replaceState = vi.fn()
+      expect(
+        consumeInstallerFeedbackFragment(
+          {
+            hash: `#${encodeURIComponent(JSON.stringify(current))}`,
+            pathname: '/installer-feedback',
+          },
+          { replaceState },
+        ),
+      ).toEqual(current)
+      expect(replaceState).toHaveBeenCalledWith(null, '', '/installer-feedback')
+    }
+    const invalidReports = [
+      ...[
+        '1.2',
+        '1.2.1.0',
+        '01.2.1',
+        '1.02.1',
+        '1.2.01',
+        '1000.2.1',
+        '1.2.1-beta',
+        '1.2.1+private',
+        '1.2.1\n',
+        '1'.repeat(4097),
+      ].map((installerVersion) => ({ ...report, installerVersion })),
+      { ...report, tool: 'unknown_installer' },
+      { ...report, reportId: 'private' },
+      { ...report, stage: 'verify' },
+      { ...report, code: 'installer_download_invented' },
+      { ...report, code: 'protocol_download_timeout' },
+      { ...report, attempts: sampleReport.attempts },
+      { ...report, failure: { operation: 'prepare', kind: 'access_denied' } },
+      { ...report, download: undefined },
+      { ...report, download: null },
+      { ...report, download: {} },
+      { ...report, download: { ...report.download, expectedRelease: undefined } },
+      { ...report, download: { ...report.download, expectedRelease: { size: 65536 } } },
+      {
+        ...report,
+        download: { ...report.download, expectedRelease: { size: 1, sha256: 'a'.repeat(64) } },
+      },
+      {
+        ...report,
+        download: {
+          ...report.download,
+          expectedRelease: { size: 1_073_741_825, sha256: 'a'.repeat(64) },
+        },
+      },
+      {
+        ...report,
+        download: { ...report.download, expectedRelease: { size: 65536, sha256: 'A'.repeat(64) } },
+      },
+      {
+        ...report,
+        download: { ...report.download, expectedRelease: { size: 65536, sha256: 'a'.repeat(63) } },
+      },
+      {
+        ...report,
+        download: {
+          ...report.download,
+          expectedRelease: { ...report.download.expectedRelease, url: 'private' },
+        },
+      },
+      { ...report, download: { ...report.download, path: 'private' } },
+      { ...report, rawError: 'private' },
+    ]
+    for (const invalid of invalidReports) {
+      expect(sanitizeInstallerFeedback(invalid)).toBeNull()
+      expect(sanitizeScanFeedbackPayload(invalid)).toEqual({ status: 400 })
+      const replaceState = vi.fn()
+      expect(
+        consumeInstallerFeedbackFragment(
+          {
+            hash: `#${encodeURIComponent(JSON.stringify(invalid))}`,
+            pathname: '/installer-feedback',
+          },
+          { replaceState },
+        ),
+      ).toBeNull()
+      expect(replaceState).toHaveBeenCalledWith(null, '', '/installer-feedback')
+    }
+  })
+
   it('accepts the fixed official archive source without accepting arbitrary hosts or paths', () => {
     const report = {
       ...sampleReport,
@@ -92,15 +200,30 @@ describe('installerFeedback sanitization and fragment consumption', () => {
     expect(safe?.tool).toBe('asset_quick_read_installer')
   })
 
-  it('accepts carried product 1.2.0 diagnostics and preserves historical versions', () => {
-    const nextReleaseReport = { ...sampleReport, installerVersion: '1.2.0' }
-    const safe = sanitizeInstallerFeedback(nextReleaseReport)
-    expect(safe).not.toBeNull()
-    expect(safe?.installerVersion).toBe('1.2.0')
+  it('accepts named native 1.2.0, normalized 1.2.1 and historical 1.3.0 diagnostics without allowing arbitrary native versions', () => {
+    for (const installerVersion of ['1.0.9', '1.1.0', '1.2.0', '1.2.1', '1.3.0']) {
+      const report = { ...sampleReport, installerVersion }
+      expect(sanitizeInstallerFeedback(report)).toEqual(report)
+      expect(sanitizeScanFeedbackPayload(report)).toMatchObject({ ok: true, record: report })
+      expect(
+        consumeInstallerFeedbackFragment(
+          {
+            hash: `#${encodeURIComponent(JSON.stringify(report))}`,
+            pathname: '/installer-feedback',
+          },
+          { replaceState: vi.fn() },
+        ),
+      ).toEqual(report)
+    }
 
-    for (const invalidVersion of ['1.2.1', '2.0.0', '0.9.0', '1.0.0.0']) {
+    for (const invalidVersion of ['1.2.2', '1.3.1', '1.4.0', '2.0.0', '0.9.0', '1.0.0.0']) {
       expect(
         sanitizeInstallerFeedback({ ...sampleReport, installerVersion: invalidVersion }),
+      ).toBeNull()
+    }
+    for (const patch of [{ bridgeVersion: '1.2.0' }, { protocolVersion: '3.3' }]) {
+      expect(
+        sanitizeInstallerFeedback({ ...sampleReport, installerVersion: '1.3.0', ...patch }),
       ).toBeNull()
     }
   })
@@ -122,6 +245,46 @@ describe('installerFeedback sanitization and fragment consumption', () => {
       const copy = { ...sampleReport, [key]: 'secret' }
       expect(sanitizeInstallerFeedback(copy)).toBeNull()
     }
+  })
+
+  it('accepts bounded browser-download facts and rejects URLs, paths and unbounded values', () => {
+    const report = {
+      ...sampleReport,
+      stage: 'prepare',
+      code: 'installer_download_rate_limited',
+      attempts: [],
+      download: {
+        phase: 'range',
+        bytesReceived: 12_582_912,
+        attemptCount: 7,
+        waitReason: 'rate_limit',
+        httpStatus: 429,
+        expectedRelease: {
+          size: 100_172_302,
+          sha256: '7ac9c27ba9ad47c72fba214ec8f4209d9803a13d5b8372b579c4bad96c55f435',
+        },
+      },
+    }
+    expect(sanitizeInstallerFeedback(report)).toEqual(report)
+    for (const download of [
+      { ...report.download, url: 'https://private.invalid/file' },
+      { ...report.download, token: 'private' },
+      { ...report.download, path: "soda-source-ref:1b75fc3f778a0105c16fa089aa25d430" },
+      { ...report.download, phase: 'raw_request' },
+      { ...report.download, waitReason: 'forever' },
+      { ...report.download, httpStatus: 201 },
+      { ...report.download, bytesReceived: 1_073_741_825 },
+      { ...report.download, attemptCount: 1025 },
+      {
+        ...report.download,
+        expectedRelease: { ...report.download.expectedRelease, url: 'private' },
+      },
+      {
+        ...report.download,
+        expectedRelease: { ...report.download.expectedRelease, sha256: 'private' },
+      },
+    ])
+      expect(sanitizeInstallerFeedback({ ...report, download })).toBeNull()
   })
 
   it('rejects unclassified codes or invalid stages', () => {

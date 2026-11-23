@@ -1,11 +1,13 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import release from '../../public/downloads/scanner-installer-release.v1.json'
+import candidateRelease from '../../public/downloads/scanner-installer-release.v1.json'
 import { scannerInstallerFileName } from './installerDownload'
 import {
   installerReleaseUrl,
   parseInstallerRelease,
   readInstallerRelease,
 } from './installerRelease'
+
+const release = { ...candidateRelease, releaseState: 'published' }
 
 afterEach(() => vi.unstubAllGlobals())
 

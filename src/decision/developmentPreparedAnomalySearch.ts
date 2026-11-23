@@ -1,4 +1,5 @@
 import type { DriveDisc } from '../domain/schemas'
+import { stableContentHash } from '../gameDataPacks/types'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 import { refineComparableCandidatePool } from '../optimizer/refineComparableCandidatePool'
 import {
@@ -9,6 +10,38 @@ import {
 const key = (discs: readonly DriveDisc[]) =>
   JSON.stringify(discs.toSorted((a, b) => a.slot - b.slot).map((disc) => disc.id))
 const records = (plan: CandidateWarehousePlan) => plan.loadouts[0]!.discs.map((row) => row.disc)
+const candidateIdentity = (plan: CandidateWarehousePlan) =>
+  stableContentHash({
+    agentId: plan.agentIds[0] ?? null,
+    discs: records(plan)
+      .toSorted((left, right) => left.slot - right.slot)
+      .map((disc) => [disc.slot, disc.id]),
+  })
+
+export const preparedAnomalyCandidateRankingContract =
+  'soda-prepared-anomaly-candidate-ranking/v1' as const
+
+export type PreparedAnomalyCandidateRankingEntry = {
+  candidateIdentity: string
+  calculationIdentity: string
+  coverageIdentity: string
+  groupId: string
+  groupRank: number
+  groupSize: number
+  comparable: true
+  totalDamage: number
+  swapCount: number
+}
+
+export type PreparedAnomalyCandidateRanking = {
+  contract: typeof preparedAnomalyCandidateRankingContract
+  source: 'prepared_anomaly_settlement'
+  candidateRarityScope: 'S'
+  baselineCalculationIdentity: string
+  comparisonParametersIdentity: string | null
+  entries: PreparedAnomalyCandidateRankingEntry[]
+  identity: string
+}
 
 /** Cover each legal main-stat/set branch before spending the budget on its variants. */
 function interleaveBranches(pool: readonly DriveDisc[]) {
@@ -37,6 +70,7 @@ export function searchPreparedAnomalyCandidates(input: {
   fixedDiscId?: string
   equippedIds: readonly string[]
   evaluationBudget: number
+  comparisonParametersIdentity?: string | null
 }) {
   const budget = Number.isFinite(input.evaluationBudget)
     ? Math.max(1, Math.min(384, Math.floor(input.evaluationBudget)))
@@ -45,6 +79,15 @@ export function searchPreparedAnomalyCandidates(input: {
   const initialPlan = input.compile(input.initial)
   const originals = input.candidates.length ? input.candidates : initialPlan ? [initialPlan] : []
   const baselinePanel = initialPlan?.loadouts[0]?.panelObjective
+  // Request-scoped object identity is conservative: different plan or side
+  // evidence objects never share an entry. Repeated calls on the same immutable
+  // search object reuse the original predicate result.
+  const eligibilityCache = new WeakMap<CandidateWarehousePlan, boolean>()
+  const coverageCache = new WeakMap<CandidateWarehousePlan, string>()
+  const comparabilityCache = new Map<
+    CandidateWarehousePlan,
+    WeakMap<CandidateWarehousePlan, boolean>
+  >()
   const sides = new Map<string, ValueBenchmarkSide>()
   let exhausted = false
   let nodes = 0
@@ -61,46 +104,65 @@ export function searchPreparedAnomalyCandidates(input: {
   }
   const protectedStats = ['impact', 'enerRegen', 'anomMas', 'anomProf'] as const
   const eligible = (plan: CandidateWarehousePlan) => {
-    if (!input.compile(records(plan))) return false
-    const current = side(records(plan))
-    if (!current || current.coverage?.domain !== 'prepared_anomaly_settlement') return false
-    if (!baseline.functionalStats32 || !current.functionalStats32) return false
-    if (
-      protectedStats.some((stat) => {
-        const before = baseline.functionalStats32![stat]
-        const after = current.functionalStats32![stat]
-        return !Number.isFinite(before) || !Number.isFinite(after) || after + 1e-9 < before
-      })
-    )
-      return false
-    const panel = plan.loadouts[0]?.panelObjective
-    const priority = baselinePanel?.priorityStat ?? 'anomalyProficiency'
-    const beforePriority =
-      priority === 'source' ? baselinePanel?.hpDeficit : baselinePanel?.[priority]
-    const afterPriority = priority === 'source' ? panel?.hpDeficit : panel?.[priority]
-    if (
-      baselinePanel &&
-      (!panel ||
-        panel.attackDeficit > baselinePanel.attackDeficit ||
-        !Number.isFinite(beforePriority) ||
-        !Number.isFinite(afterPriority) ||
-        (priority === 'source'
-          ? panel.priorityStat !== 'source' || afterPriority! > beforePriority!
-          : afterPriority! < beforePriority!))
-    )
-      return false
-    return compareValueBenchmarkSides({
-      baseline,
-      candidate: current,
-      changedDimensions: ['disc_loadout'],
-      labels: { baseline: '同条件单次异常', candidate: '同条件单次异常' },
-    }).comparable
+    const cached = eligibilityCache.get(plan)
+    if (cached !== undefined) return cached
+    let result = false
+    if (input.compile(records(plan))) {
+      const current = side(records(plan))
+      if (current?.coverage?.domain === 'prepared_anomaly_settlement') {
+        if (baseline.functionalStats32 && current.functionalStats32) {
+          const protectedUtilityPreserved = protectedStats.every((stat) => {
+            const before = baseline.functionalStats32![stat]
+            const after = current.functionalStats32![stat]
+            return Number.isFinite(before) && Number.isFinite(after) && after + 1e-9 >= before
+          })
+          const panel = plan.loadouts[0]?.panelObjective
+          const priority = baselinePanel?.priorityStat ?? 'anomalyProficiency'
+          const beforePriority =
+            priority === 'source' ? baselinePanel?.hpDeficit : baselinePanel?.[priority]
+          const afterPriority = priority === 'source' ? panel?.hpDeficit : panel?.[priority]
+          const panelPreserved =
+            !baselinePanel ||
+            (Boolean(panel) &&
+              (panel!.priorityStat ?? 'anomalyProficiency') === priority &&
+              panel!.attackDeficit <= baselinePanel.attackDeficit &&
+              Number.isFinite(beforePriority) &&
+              Number.isFinite(afterPriority) &&
+              (priority === 'source'
+                ? panel!.priorityStat === 'source' && afterPriority! <= beforePriority!
+                : afterPriority! >= beforePriority!))
+          result =
+            protectedUtilityPreserved &&
+            panelPreserved &&
+            compareValueBenchmarkSides({
+              baseline,
+              candidate: current,
+              changedDimensions: ['disc_loadout'],
+              labels: { baseline: '同条件单次异常', candidate: '同条件单次异常' },
+            }).comparable
+        }
+      }
+    }
+    eligibilityCache.set(plan, result)
+    return result
   }
   const coverage = (plan: CandidateWarehousePlan) => {
+    const cached = coverageCache.get(plan)
+    if (cached !== undefined) return cached
     const value = side(records(plan))?.coverage
-    return JSON.stringify([
+    const stats = side(records(plan))?.functionalStats32
+    const result = JSON.stringify([
       plan.inventoryTransition ?? false,
       plan.loadouts[0]?.degraded ?? false,
+      plan.loadouts[0]?.panelObjective
+        ? { priorityStat: plan.loadouts[0]!.panelObjective!.priorityStat ?? 'anomalyProficiency' }
+        : null,
+      plan.loadouts[0]?.panelObjectiveStatus ?? null,
+      // AP is the settlement operand and is already protected against baseline
+      // regression above; it must be allowed to vary within this output group.
+      stats
+        ? protectedStats.filter((stat) => stat !== 'anomProf').map((stat) => stats[stat])
+        : null,
       [...(value?.includedEffectKeys ?? [])].sort(),
       (value?.excludedEffects ?? [])
         .map((effect) => [
@@ -111,9 +173,23 @@ export function searchPreparedAnomalyCandidates(input: {
         ])
         .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
     ])
+    coverageCache.set(plan, result)
+    return result
   }
-  const comparable = (a: CandidateWarehousePlan, b: CandidateWarehousePlan) =>
-    eligible(a) && eligible(b) && coverage(a) === coverage(b)
+  const comparable = (a: CandidateWarehousePlan, b: CandidateWarehousePlan) => {
+    const leftCached = comparabilityCache.get(a)?.get(b)
+    if (leftCached !== undefined) return leftCached
+    const rightCached = comparabilityCache.get(b)?.get(a)
+    if (rightCached !== undefined) return rightCached
+    const result = eligible(a) && eligible(b) && coverage(a) === coverage(b)
+    const left = comparabilityCache.get(a) ?? new WeakMap<CandidateWarehousePlan, boolean>()
+    const right = comparabilityCache.get(b) ?? new WeakMap<CandidateWarehousePlan, boolean>()
+    left.set(b, result)
+    right.set(a, result)
+    comparabilityCache.set(a, left)
+    comparabilityCache.set(b, right)
+    return result
+  }
   const swaps = (plan: CandidateWarehousePlan) =>
     input.equippedIds.length === 6
       ? records(plan).filter((disc) => !input.equippedIds.includes(disc.id)).length
@@ -162,10 +238,92 @@ export function searchPreparedAnomalyCandidates(input: {
     },
   })
   const rankingApplied = originals.some((plan) => eligible(plan))
+  const baselineCalculationIdentity = baseline.calculationFingerprint
+  const candidateIdentityCounts = new Map<string, number>()
+  for (const plan of candidates) {
+    const identity = candidateIdentity(plan)
+    candidateIdentityCounts.set(identity, (candidateIdentityCounts.get(identity) ?? 0) + 1)
+  }
+  const groups = new Map<
+    string,
+    Array<{
+      plan: CandidateWarehousePlan
+      candidateIdentity: string
+      calculationIdentity: string | null
+      coverageIdentity: string
+      totalDamage: number
+      swapCount: number
+    }>
+  >()
+  if (baselineCalculationIdentity) {
+    for (const plan of candidates) {
+      if (!eligible(plan)) continue
+      const value = side(records(plan))
+      if (!value || !Number.isFinite(value.totalDamage) || value.state !== 'supported') continue
+      const coverageText = coverage(plan)
+      const coverageIdentity = stableContentHash(JSON.parse(coverageText))
+      const groupId = `prepared-anomaly:${coverageIdentity}`
+      const rows = groups.get(groupId) ?? []
+      rows.push({
+        plan,
+        candidateIdentity: candidateIdentity(plan),
+        calculationIdentity: value.calculationFingerprint,
+        coverageIdentity,
+        totalDamage: value.totalDamage!,
+        swapCount: swaps(plan),
+      })
+      groups.set(groupId, rows)
+    }
+  }
+  const preparedEntries: PreparedAnomalyCandidateRankingEntry[] = []
+  for (const [groupId, rows] of groups) {
+    if (
+      rows.length < 2 ||
+      rows.some((row) => !row.calculationIdentity) ||
+      rows.some((row) => candidateIdentityCounts.get(row.candidateIdentity) !== 1) ||
+      !rows.every((left, leftIndex) =>
+        rows.slice(leftIndex + 1).every((right) => comparable(left.plan, right.plan)),
+      )
+    )
+      continue
+    rows.forEach((row, index) => {
+      preparedEntries.push({
+        candidateIdentity: row.candidateIdentity,
+        calculationIdentity: row.calculationIdentity!,
+        coverageIdentity: row.coverageIdentity,
+        groupId,
+        groupRank: index + 1,
+        groupSize: rows.length,
+        comparable: true,
+        totalDamage: row.totalDamage,
+        swapCount: row.swapCount,
+      })
+    })
+  }
+  const preparedCandidateRanking =
+    baselineCalculationIdentity && preparedEntries.length
+      ? {
+          contract: preparedAnomalyCandidateRankingContract,
+          source: 'prepared_anomaly_settlement' as const,
+          candidateRarityScope: 'S' as const,
+          baselineCalculationIdentity,
+          comparisonParametersIdentity: input.comparisonParametersIdentity ?? null,
+          entries: preparedEntries,
+          identity: stableContentHash({
+            contract: preparedAnomalyCandidateRankingContract,
+            source: 'prepared_anomaly_settlement',
+            candidateRarityScope: 'S',
+            baselineCalculationIdentity,
+            comparisonParametersIdentity: input.comparisonParametersIdentity ?? null,
+            entries: preparedEntries,
+          }),
+        }
+      : undefined
   return {
     candidates,
     search: null,
-    rankingApplied,
+    rankingApplied: Boolean(preparedCandidateRanking),
+    preparedCandidateRanking,
     preparedAnomalySearch: {
       status: exhausted
         ? ('budget_exhausted' as const)

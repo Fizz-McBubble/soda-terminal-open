@@ -17,7 +17,29 @@ describe('targetTeamSourceBangbooOptions recommendation shortlist and policies',
     const options = targetTeamBangbooOptions({ memberIds })
     expect(options.length).toBeGreaterThan(0)
     expect(options.every((row) => row.activationStatus === 'active')).toBe(true)
-    expect(getCurrentAgentEventContract('agent-phoenix')).toBeNull()
+    const phoenixContract = getCurrentAgentEventContract('agent-phoenix')
+    expect(phoenixContract).toMatchObject({
+      agentId: 'agent-phoenix',
+      gameVersion: '3.3',
+      eventContract: {
+        interpretation:
+          'limited_nanoka_source_parameter_projection_not_exact_hit_sequence_or_formula_authority',
+      },
+    })
+    expect(phoenixContract!.eventContract.events).toHaveLength(20)
+    expect(
+      phoenixContract!.eventContract.events.every(
+        (row) =>
+          'sourceLocator' in row &&
+          typeof row.sourceLocator === 'string' &&
+          row.sourceLocator.length > 0,
+      ),
+    ).toBe(true)
+    expect(
+      phoenixContract!.eventContract.events.every(
+        (row) => row.formulaBinding?.status === 'limited',
+      ),
+    ).toBe(true)
     expect(options.every((option) => option.recipientFit !== 'unknown')).toBe(true)
     const recoveryOption = resolveTargetTeamBangbooOption({ memberIds }, 'bangboo-exploreboo')!
     const recovery = projectBangbooUtility({

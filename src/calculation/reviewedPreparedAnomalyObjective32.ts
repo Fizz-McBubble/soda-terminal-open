@@ -1,9 +1,15 @@
+import type { ReviewedPreparedAnomalyObjectiveInput32 } from './reviewedPreparedAnomalyObjective32.types'
+export type { ReviewedPreparedAnomalyObjectiveInput32 } from './reviewedPreparedAnomalyObjective32.types'
+import { applyReviewedPreparedAriaMindscapes32 } from './reviewedPreparedAriaMindscapes32'
 import { validateReviewedPreparedAnomalyPreparation32 } from './reviewedPreparedAnomalyValidation32'
+import {
+  bindReviewedAnomalyPartyState32,
+  reviewedAnomalyPartyEffectIds32,
+} from './reviewedAnomalyPartyState32'
 import { collectReviewedPreparedAnomalyModifiers32 } from './reviewedPreparedAnomalyModifiers32'
 import {
   evaluateReviewedPreparedPolarityObjective32,
   reviewedPreparedPolarityObjectiveHash32,
-  type ReviewedPreparedPolarityInput32,
 } from './reviewedPreparedPolarityObjective32'
 import { stableContentHash } from '../gameDataPacks/types'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
@@ -11,9 +17,6 @@ import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionM
 import { currentAgentPlanningEffectBlueprints } from './currentAgentPlanningEffectBlueprint'
 import { evaluateCurrentPlanningEffectEntries32 } from './currentPlanningEffectRuntime'
 import { planningRuntimeEffectBuckets32 } from './currentPlanningSelfEffects32'
-import type { PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
-import type { SourceBackedPlanningEffectBucket } from './currentPlanningDamageModifiers'
-import type { PlanningBaseline } from './planningDpsContract'
 import {
   commonAnomalySettlementHash32,
   commonAnomalySettlementIdentity32,
@@ -24,7 +27,6 @@ import {
   type PreparedAnomalyExclusion32,
   type PreparedAnomalyModifier32,
 } from './reviewedPreparedAnomalyEquipment32'
-import type { CurrentWEngineFormulaRuntime } from './currentWEnginePersonalPlanningEffects'
 import {
   compileReviewedPreparedJaneAssault32,
   reviewedPreparedJaneEffectIds32,
@@ -40,7 +42,6 @@ import {
   ariaEtherAbloomMultipliers,
   reviewedPreparedAnomalyObjectiveHash32,
   reviewedPreparedAnomalyPreparation32,
-  type PreparedAnomalyPreparation32,
 } from './reviewedPreparedAnomalyDeclarations32'
 export {
   reviewedPreparedAnomalyObjectiveHash32,
@@ -48,21 +49,6 @@ export {
   reviewedPreparedAnomalyPreparation32,
   type PreparedAnomalyPreparation32,
 } from './reviewedPreparedAnomalyDeclarations32'
-
-export type ReviewedPreparedAnomalyObjectiveInput32 = {
-  member: PlanningEffectRuntimeMember
-  members?: readonly PlanningEffectRuntimeMember[]
-  baseline: PlanningBaseline
-  preparation?: PreparedAnomalyPreparation32
-  /** Explicit formation buckets only. Equipment is separately resolved below. */
-  effectBuckets?: readonly SourceBackedPlanningEffectBucket[]
-  equipmentModifierBuckets?: readonly SourceBackedPlanningEffectBucket[]
-  wEngine?: { engineId: string; refinement: number; runtime?: CurrentWEngineFormulaRuntime }
-  discs?: readonly { setId: string }[]
-  sourceIdentityHash?: string
-  originalEquipment?: ReviewedPreparedPolarityInput32['originalEquipment']
-  baselineReferencesByAgentId?: ReviewedPreparedPolarityInput32['baselineReferencesByAgentId']
-}
 
 const baseBoundary =
   '只评价一个已声明、100%本人来源的准备态异常结算。准备资源与异常基底是比较条件，未计其获取成本；不推断异常阈值、积蓄次数、循环频率或全周期DPS。直伤、其他属性基底与特殊混合快照保持未建模。'
@@ -72,6 +58,24 @@ const ownEffects: Record<string, string[]> = {
   'agent-promeia': ['reviewed_initial_mastery_proficiency32'],
   'agent-jane': [],
   'agent-aria': ['reviewed_core_proficiency32'],
+  'agent-burnice': ['m2_pen_', 'm6_burn_fire_resIgn_'],
+  'agent-grace': ['ability_shock_dmg_', 'm2_electric_resRed_'],
+  'agent-vivian': ['ability_corruption_dmg_', 'm1_anomaly_dmg_', 'm4_atk_', 'm6_ether_dmg_'],
+  'agent-velina': ['reviewed_initial_regen_damage32'],
+}
+const personalOrdinaryAttributes: Record<string, string> = {
+  'agent-burnice': 'fire',
+  'agent-grace': 'electric',
+  'agent-vivian': 'ether',
+  'agent-velina': 'wind',
+}
+const ordinaryEffectStateKeys: Record<string, string> = {
+  'agent-burnice:m2_pen_': 'thermal_penetration',
+  'agent-burnice:m6_burn_fire_resIgn_': 'exSpecial_active',
+  'agent-grace:ability_shock_dmg_': 'exSpecialHit',
+  'agent-grace:m2_electric_resRed_': 'grenadeHit',
+  'agent-vivian:m1_anomaly_dmg_': 'prophecy',
+  'agent-vivian:m4_atk_': 'fluttering_featherbloom_used',
 }
 
 /** Actual panel -> sourced effects/equipment -> declared settlement runtime.
@@ -97,6 +101,10 @@ export function evaluateReviewedPreparedAnomalyObjective32(
     })
   const boundary =
     baseBoundary +
+    (preparation?.kind === 'personal_single_ordinary_anomaly' ||
+    preparation?.kind === 'team_single_ordinary_anomaly'
+      ? '仅比较该角色本人的一次普通属性异常结算；不包含余烬、霜灼、绽放、极性紊乱或流明特殊结算。未绑定的自身和装备状态保留为排除项。'
+      : '') +
     (member.agentId === 'agent-jane'
       ? '简的本次结算显式声明狂热、猎物及此前强击/紊乱增益；这些是准备态前提，未从盘面推断。'
       : '')
@@ -148,9 +156,19 @@ export function evaluateReviewedPreparedAnomalyObjective32(
     members.some((row) => !getCurrentAgentEventContract(row.agentId))
   )
     return failure(['prepared_anomaly_formation_identity_invalid'])
-  const expectedPreparation = reviewedPreparedAnomalyPreparation32(member.agentId)!
+  const teamOrdinary = preparation.kind === 'team_single_ordinary_anomaly'
+  const ordinary = preparation.kind === 'personal_single_ordinary_anomaly' || teamOrdinary
+  const expectedPreparation = reviewedPreparedAnomalyPreparation32(member.agentId)
   if (
-    preparation.kind !== expectedPreparation.kind ||
+    (ordinary
+      ? personalOrdinaryAttributes[member.agentId] !== contract.identity.attribute ||
+        (teamOrdinary
+          ? members.length !== 3 || preparation.originalOwnerAgentId !== member.agentId
+          : members.length !== 1) ||
+        !Array.isArray(preparation.sourceRefs) ||
+        !preparation.sourceRefs.length ||
+        preparation.sourceRefs.some((ref) => typeof ref !== 'string' || !ref.trim())
+      : !expectedPreparation || preparation.kind !== expectedPreparation.kind) ||
     preparation.acceptedSingleOwnerSettlement !== true
   )
     return failure(['prepared_anomaly_preparation_identity_mismatch'])
@@ -165,6 +183,7 @@ export function evaluateReviewedPreparedAnomalyObjective32(
     `${contract.source.formulaPath}#${contract.source.formulaSha256}`,
     `${contract.source.statsPath}#${contract.source.statsSha256}`,
     decision.resourceContract?.resourceFlow.evidenceLocator ?? '',
+    ...(ordinary ? preparation.sourceRefs : []),
   ].filter(Boolean)
   let motionValueMultiplier = 1
   if (preparation.kind === 'alice_single_polarized_assault') {
@@ -217,6 +236,8 @@ export function evaluateReviewedPreparedAnomalyObjective32(
     },
     preparation,
     enemy: input.baseline.enemy,
+    settlementAtSeconds: input.settlementAtSeconds ?? null,
+    partyEffectObservations: input.baselineReferencesByAgentId ?? null,
     formulaIdentity: reviewedPreparedAnomalyObjectiveHash32,
     equipmentState: input.wEngine?.runtime ?? null,
     declaredEffectContext: (input.effectBuckets ?? []).map((row) => ({
@@ -275,19 +296,38 @@ export function evaluateReviewedPreparedAnomalyObjective32(
   }
   const selected = currentAgentPlanningEffectBlueprints.filter(
     (row) =>
-      row.providerAgentId === member.agentId && ownEffects[member.agentId]!.includes(row.effectId),
+      row.providerAgentId === member.agentId &&
+      ownEffects[member.agentId]!.includes(row.effectId) &&
+      (!ordinary ||
+        !ordinaryEffectStateKeys[row.effectKey] ||
+        Object.hasOwn(
+          input.baselineReferencesByAgentId?.[member.agentId] ?? {},
+          ordinaryEffectStateKeys[row.effectKey]!,
+        )),
   )
   const self = evaluateCurrentPlanningEffectEntries32(
     {
       memberIds: members.map((row) => row.agentId),
       members,
       baselineReferencesByAgentId: {
-        [member.agentId]: { power: 0, assault_triggered: false, physical_anomaly_inflicted: false },
+        [member.agentId]: ordinary
+          ? (input.baselineReferencesByAgentId?.[member.agentId] ?? {})
+          : { power: 0, assault_triggered: false, physical_anomaly_inflicted: false },
       },
     },
     selected,
   )
   if (self.status === 'unsupported') return failure(self.blockers)
+  for (const row of self.results.filter((row) => row.status !== 'supported')) {
+    const source = selected.find((entry) => entry.effectKey === row.effectKey)
+    if (!source) return failure([`prepared_anomaly_self_effect_source_missing:${row.effectKey}`])
+    exclusions.push({
+      effectKey: row.effectKey,
+      reason: 'self_state_unknown_not_zero',
+      fields: 'missing' in row ? (row.missing ?? []) : [],
+      sourceRefs: row.sourceRefs ?? source.sourceRefs,
+    })
+  }
   for (const row of currentAgentPlanningEffectBlueprints.filter(
     (row) =>
       row.providerAgentId === member.agentId &&
@@ -308,9 +348,55 @@ export function evaluateReviewedPreparedAnomalyObjective32(
   })
   if (equipment.status === 'unsupported') return failure(equipment.blockers)
   exclusions.push(...equipment.exclusions)
+  const partyReferences: Record<string, Readonly<Record<string, unknown>>> = {}
+  for (const provider of members) {
+    const references = input.baselineReferencesByAgentId?.[provider.agentId]
+    if (
+      references?.reviewedTargetEffectState32 !== undefined &&
+      input.settlementAtSeconds === undefined
+    )
+      return failure(['prepared_party_effect_event_clock_required32'])
+    const bound = bindReviewedAnomalyPartyState32({
+      providerAgentId: provider.agentId,
+      references,
+      ...(input.settlementAtSeconds === undefined
+        ? {}
+        : {
+            snapshot: { targetId: input.baseline.enemy.id, atSeconds: input.settlementAtSeconds },
+          }),
+    })
+    if (bound.status !== 'supported') return failure(bound.blockers)
+    partyReferences[provider.agentId] = bound.references
+    refs.push(...bound.sourceRefs)
+  }
+  const party = evaluateCurrentPlanningEffectEntries32(
+    {
+      memberIds: members.map((row) => row.agentId),
+      members,
+      baselineReferencesByAgentId: partyReferences,
+    },
+    currentAgentPlanningEffectBlueprints.filter(
+      (row) =>
+        members.some((member) => member.agentId === row.providerAgentId) &&
+        (reviewedAnomalyPartyEffectIds32 as readonly string[]).includes(row.effectId),
+    ),
+  )
+  if (party.status !== 'supported') return failure(party.blockers)
+  const unknownPartyEffects = party.results.filter((row) => row.status === 'excluded_unknown')
+  for (const row of unknownPartyEffects)
+    exclusions.push({
+      effectKey: row.effectKey,
+      reason: 'party_state_unknown_not_zero',
+      fields: row.missing,
+      sourceRefs: row.sourceRefs,
+    })
   const bucketRows = [
     ...planningRuntimeEffectBuckets32(
       self.results,
+      members.map((row) => row.agentId),
+    ),
+    ...planningRuntimeEffectBuckets32(
+      party.results,
       members.map((row) => row.agentId),
     ),
     ...(input.effectBuckets ?? []),
@@ -327,6 +413,11 @@ export function evaluateReviewedPreparedAnomalyObjective32(
     included,
     refs,
     sums,
+    settlementType:
+      preparation.kind === 'promeia_single_self_ice_abloom' ||
+      preparation.kind === 'aria_single_self_ether_abloom'
+        ? 'abloom'
+        : 'anomaly',
   })
   if (modifierBlockers) return failure(modifierBlockers)
   const final = member.finalStats
@@ -344,75 +435,7 @@ export function evaluateReviewedPreparedAnomalyObjective32(
       refs.push(...row.sourceRefs)
     }
   }
-  if (preparation.kind === 'aria_single_self_ether_abloom') {
-    if (member.mindscape >= 1) {
-      const excessMas = Math.max(0, member.initialStats.anomMas - 100)
-      const m1CritRate = 0.25 + excessMas * 0.005
-      const m1CritDmg = 0.25
-      sums['combat.anom_crit_'] = (sums['combat.anom_crit_'] ?? 0) + m1CritRate
-      sums['combat.anom_crit_dmg_'] = (sums['combat.anom_crit_dmg_'] ?? 0) + m1CritDmg
-      included.push('agent-aria:m1_energetic_sound_waves')
-      refs.push(
-        `libs/zzz/dm-localization/assets/locales/en/char_Aria_gen.json#sha256=${ariaLocalizationSourceSha256}#/mindscapes/1`,
-      )
-      exclusions.push({
-        effectKey: 'agent-aria:m1_buildup_res_ignore',
-        reason: 'outside_anomaly_settlement_scope',
-        fields: ['anomBuildupRes_'],
-        sourceRefs: [
-          `libs/zzz/dm-localization/assets/locales/en/char_Aria_gen.json#sha256=${ariaLocalizationSourceSha256}#/mindscapes/1`,
-        ],
-      })
-    }
-    if (member.mindscape >= 2) {
-      const m2DefIgn = 0.16 + (preparation.momentOfDelusion ? 0.08 : 0)
-      sums['combat.defIgn_'] = (sums['combat.defIgn_'] ?? 0) + m2DefIgn
-      included.push('agent-aria:m2_fantastical_beat')
-      refs.push(
-        `libs/zzz/dm-localization/assets/locales/en/char_Aria_gen.json#sha256=${ariaLocalizationSourceSha256}#/mindscapes/2`,
-      )
-    }
-    if (member.mindscape >= 3) {
-      exclusions.push({
-        effectKey: 'agent-aria:m3_delulu',
-        reason: 'outside_anomaly_settlement_scope',
-        fields: ['skillLevels'],
-        sourceRefs: [
-          `libs/zzz/dm-localization/assets/locales/en/char_Aria_gen.json#sha256=${ariaLocalizationSourceSha256}#/mindscapes/3`,
-        ],
-      })
-    }
-    if (member.mindscape >= 4) {
-      exclusions.push({
-        effectKey: 'agent-aria:m4_mechanical_angel',
-        reason: 'outside_anomaly_settlement_scope',
-        fields: ['energy', 'decibels', 'rotation'],
-        sourceRefs: [
-          `libs/zzz/dm-localization/assets/locales/en/char_Aria_gen.json#sha256=${ariaLocalizationSourceSha256}#/mindscapes/4`,
-        ],
-      })
-    }
-    if (member.mindscape >= 5) {
-      exclusions.push({
-        effectKey: 'agent-aria:m5_tears_in_the_rain',
-        reason: 'outside_anomaly_settlement_scope',
-        fields: ['skillLevels'],
-        sourceRefs: [
-          `libs/zzz/dm-localization/assets/locales/en/char_Aria_gen.json#sha256=${ariaLocalizationSourceSha256}#/mindscapes/5`,
-        ],
-      })
-    }
-    if (member.mindscape >= 6) {
-      exclusions.push({
-        effectKey: 'agent-aria:m6_constructs_dream',
-        reason: 'outside_anomaly_settlement_scope',
-        fields: ['decibels', 'actionDamageBonus', 'allOutCheering', 'rotation'],
-        sourceRefs: [
-          `libs/zzz/dm-localization/assets/locales/en/char_Aria_gen.json#sha256=${ariaLocalizationSourceSha256}#/mindscapes/6`,
-        ],
-      })
-    }
-  }
+  applyReviewedPreparedAriaMindscapes32({ member, preparation, sums, included, refs, exclusions })
   const attack =
     final.atk + member.initialStats.atk * (sums['combat.atk_'] ?? 0) + (sums['combat.atk'] ?? 0)
   const stats = {
@@ -441,9 +464,15 @@ export function evaluateReviewedPreparedAnomalyObjective32(
       eventId: preparation.kind,
       triggerAgentId: member.agentId,
       memberAgentIds: members.map((row) => row.agentId),
-      attribute: contract.identity.attribute as 'physical' | 'ice' | 'ether',
+      attribute: contract.identity.attribute as
+        | 'physical'
+        | 'fire'
+        | 'electric'
+        | 'ice'
+        | 'ether'
+        | 'wind',
       targetId: input.baseline.enemy.id,
-      atSeconds: 0,
+      atSeconds: input.settlementAtSeconds ?? 0,
       buildupStateId: contextHash,
       totalBuildup: 1,
       sourceRefs: refs,
@@ -468,11 +497,17 @@ export function evaluateReviewedPreparedAnomalyObjective32(
           id: 'declared-complete-self-snapshot',
           ownerAgentId: member.agentId,
           ownerKind: 'agent',
-          attribute: contract.identity.attribute as 'physical' | 'ice' | 'ether',
+          attribute: contract.identity.attribute as
+            | 'physical'
+            | 'fire'
+            | 'electric'
+            | 'ice'
+            | 'ether'
+            | 'wind',
           targetId: input.baseline.enemy.id,
           buildupStateId: contextHash,
           buildup: 1,
-          snapshotAtSeconds: 0,
+          snapshotAtSeconds: input.settlementAtSeconds ?? 0,
           stats,
           instance: {
             kind:
@@ -502,6 +537,10 @@ export function evaluateReviewedPreparedAnomalyObjective32(
       triggered: true as const,
       snapshot: stats,
       motionValueMultiplier,
+      unknownPartyEffects,
+      partyEffectCoverage: unknownPartyEffects.length
+        ? ('partial_unknown_states' as const)
+        : ('declared_states' as const),
     }
     return { ...core, runtimeHash: stableContentHash({ core, input }) }
   } catch (error) {

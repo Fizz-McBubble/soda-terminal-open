@@ -70,7 +70,15 @@ it('reads PEN and elemental main stats through quick-read import, reload, panel 
     expect(panel.values.pen).toBe(54)
     expect(panel.values.physicalDamageBonus).toBe(17.5)
     expect(panel.values.fireDamageBonus).toBe(0)
-    expect(panel.values.maxEnergy).toBeUndefined()
+    expect(panel.values.maxEnergy).toBe(120)
+    expect(panel.trace.filter((row) => row.key === 'maxEnergy')).toEqual([
+      expect.objectContaining({
+        operation: 'base',
+        value: 120,
+        source: expect.stringContaining('zzz-data-mechanics-energy-baseline-2025-07-11'),
+      }),
+    ])
+    expect(panel.values.maxNamedResource).toBeUndefined()
     await restoreAssetQuickReadImport(
       accountId,
       receipt.recoveryKey,

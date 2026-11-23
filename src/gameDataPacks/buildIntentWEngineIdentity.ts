@@ -8,6 +8,10 @@ const stableWEngineIds = new Set(currentWEngineDirectory.map((engine) => engine.
 const adoptedAgentBuildIntentWEngineIds: Readonly<Record<string, readonly string[]>> = {
   // gameData31RemielleEquipmentIntake: project stable ID + current account-ownable catalog entry.
   'agent-remielle': ['wengine-14158'],
+  // gameData33BuildGuidance.phoenixInGame33: the source names 涅槃初翎 without embedding its stable ID.
+  'agent-phoenix': ['wengine-14164'],
+  // gameData33BuildGuidance.severianInGame33: the source names 禁罪囚笼 without embedding its stable ID.
+  'agent-severian': ['wengine-14163'],
 }
 
 export function resolveBuildIntentWEngineIds(agentId: string, values: readonly string[]) {

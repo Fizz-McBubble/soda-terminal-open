@@ -1,12 +1,14 @@
 /** Locked formula identities; recipient corrections are separate from source IR. */
 export const reviewedDriveDiscSemanticsIdentity32 = Object.freeze({
-  revision: 'explicit-four-piece-event-state-and-recipients-r2',
+  revision: 'explicit-four-piece-event-state-and-recipients-r4',
   commit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
   policies: {
     conditions: 'source-explicit-per-occurrence-no-defaults',
     king: 'provider-event-final-crit-combat-cd-only',
     astral: 'quick-assist-event-owner-only-single-same-name-effect',
     proto: 'squad-recipient-description-corrects-own-source-path',
+    yunkui: 'wearer-crit-per-stack-and-squad-sheer-damage-at-three-stacks',
+    recipients: 'per-effect-source-target-with-reviewed-proto-and-astral-exceptions',
     stacking: 'single-active-provider-or-identical-value-once-otherwise-unresolved',
   },
   sources: {
@@ -51,6 +53,12 @@ export const reviewedDriveDiscSemanticsIdentity32 = Object.freeze({
       sha256: '249A6269415F09861BAF88CBDE2EC99B7BF2B4FBC8EFFC1CC35EAD8BA72369C5',
       conditionalsSha256: 'E20B3F4F86F3F20B249988330BEE2ED505C8C5CBC45E037F1A6EABC44132C996',
       localizationSha256: 'EB6D0314E4A4093D5A7D7B73D12BD078485F3DA5FCD8190D11EF887078870B0B',
+    },
+    'set-bunny-in-wonderland': {
+      key: 'BunnyInWonderland',
+      sha256: '7508DBF681DEF6ED8563EBCFFFAA41A6FDDBB2D4841C1083FA9FBB2B90410BE8',
+      conditionalsSha256: '9BB88F2D9B2EC35FBAE9BD9CC1BC20221150454AC3672F7E7C921C24CE694300',
+      localizationSha256: 'C1EB9976A8041A5A2F0878C78C430BDCB632A21E5347928C44634D708883C646',
     },
     'set-swing-jazz': {
       key: 'SwingJazz',

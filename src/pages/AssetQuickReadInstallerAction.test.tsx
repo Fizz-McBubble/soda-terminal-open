@@ -4,6 +4,13 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadRelease } from '../assetQuickRead/distribution'
+import { assetQuickReadInstallerReleaseUrl } from '../assetQuickRead/installerDownload'
+import {
+  consumeInstallerFeedbackFragment,
+  sanitizeInstallerFeedback,
+} from '../assetQuickRead/installerFeedback'
+import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
+import { InstallerFeedbackPage } from './InstallerFeedbackPage'
 import { AssetQuickReadEntry } from './AssetQuickReadEntry'
 const executable = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
 const release = {
@@ -13,6 +20,16 @@ const release = {
   sha256: createHash('sha256').update(executable).digest('hex'),
 }
 const save = vi.fn().mockReturnValue('blob:synthetic-installer')
+function setDownloadFetcher(fetcher: typeof fetch) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: RequestInfo | URL, init?: RequestInit) =>
+      url === assetQuickReadInstallerReleaseUrl
+        ? Promise.resolve(Response.json(release))
+        : fetcher(url, init),
+    ),
+  )
+}
 beforeEach(() => {
   vi.stubGlobal('Blob', NodeBlob)
   vi.stubGlobal('crypto', webcrypto)
@@ -31,7 +48,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 it('replaces the disconnected status with download feedback and removes installation copy once connected', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable)))
+  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executable)))
   const props = {
     onConnect: vi.fn(),
     onStart: vi.fn(),
@@ -83,10 +100,7 @@ it('replaces the disconnected status with download feedback and removes installa
   expect(screen.getByRole('heading', { name: '准备游戏' })).toBeVisible()
 })
 it('replaces prepared-download feedback with a new failure and lets a later download become current', async () => {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn().mockImplementation(() => Promise.resolve(new Response(executable))),
-  )
+  setDownloadFetcher(vi.fn().mockImplementation(() => Promise.resolve(new Response(executable))))
   const props = {
     onConnect: vi.fn(),
     onStart: vi.fn(),
@@ -170,7 +184,7 @@ it('shows the connected old Bridge upgrade in the compact preparation status', a
 })
 it('does not pretend a missing release is downloadable', () => {
   const fetcher = vi.fn()
-  vi.stubGlobal('fetch', fetcher)
+  setDownloadFetcher(fetcher)
   render(<AssetQuickReadInstallerAction release={{ ...release, size: null }} />)
   expect(screen.getByRole('button', { name: '下载资产快读' })).toBeDisabled()
   expect(screen.getByRole('button', { name: '下载资产快读' })).toHaveAttribute(
@@ -193,7 +207,7 @@ it('streams exact installer bytes, supports cancel/retry and prepares a file wit
       }),
     ),
   )
-  vi.stubGlobal('fetch', fetcher)
+  setDownloadFetcher(fetcher)
   render(<AssetQuickReadInstallerAction release={release} />)
   expect(screen.getByRole('button', { name: '下载资产快读' })).toHaveAttribute(
     'title',
@@ -201,6 +215,7 @@ it('streams exact installer bytes, supports cancel/retry and prepares a file wit
   )
   expect(screen.getByText(`v${release.version}`)).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  await waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
   await act(async () => stream.enqueue(executable.subarray(0, 4)))
   await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('value', '4'))
   expect(save).not.toHaveBeenCalled()
@@ -221,8 +236,159 @@ it('streams exact installer bytes, supports cancel/retry and prepares a file wit
     (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
   ).toBe(release.fileName)
 })
+it('resolves the current manifest before downloading so an old tab cannot bind stale bytes', async () => {
+  const stale = {
+    ...release,
+    version: '1.0.0',
+    bridgeVersion: '1.0.0',
+    fileName: 'Soda-Asset-Quick-Read-Setup-1.0.0.exe',
+    releaseTag: 'v1.0.0',
+  }
+  const fetcher = vi.fn().mockResolvedValue(new Response(executable))
+  setDownloadFetcher(fetcher)
+  render(<AssetQuickReadInstallerAction release={stale} />)
+  expect(screen.getByText('v1.0.0')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
+  expect(fetcher).toHaveBeenCalledOnce()
+  expect(screen.getByText(`v${release.version}`)).toBeInTheDocument()
+  expect(
+    (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
+  ).toBe(release.fileName)
+})
+
+it('refreshes one changed manifest identity and discards stale package bytes', async () => {
+  const nextExecutable = new Uint8Array([0x4d, 0x5a, 7, 7, 7, 7, 7, 7])
+  const nextRelease = {
+    ...release,
+    sha256: createHash('sha256').update(nextExecutable).digest('hex'),
+  }
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json(release))
+    .mockResolvedValueOnce(
+      new Response(executable, {
+        status: 206,
+        headers: {
+          'content-range': 'bytes 0-7/8',
+          'content-length': '8',
+          etag: `"${'b'.repeat(64)}"`,
+        },
+      }),
+    )
+    .mockResolvedValueOnce(Response.json(nextRelease))
+    .mockResolvedValueOnce(new Response(nextExecutable))
+  vi.stubGlobal('fetch', fetcher)
+  render(<AssetQuickReadInstallerAction release={release} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
+  expect(fetcher).toHaveBeenCalledTimes(4)
+  expect(save).toHaveBeenCalledOnce()
+  expect(save.mock.calls[0][0].size).toBe(nextExecutable.byteLength)
+  expect(
+    (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
+  ).toBe(nextRelease.fileName)
+})
+
+it('carries a refreshed 1.2.1 download 404 through fragment, explicit feedback and receipt refresh', async () => {
+  localStorage.clear()
+  const currentRelease = {
+    ...release,
+    version: '1.2.1',
+    releaseTag: 'v1.2.1',
+    fileName: 'SodaTerminal-AssetReader-Setup-1.2.1.exe',
+  }
+  const posts: unknown[] = []
+  const fetcher = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+    if (url === assetQuickReadInstallerReleaseUrl) return Response.json(currentRelease)
+    if (url === '/_soda/scan-feedback') {
+      const report = JSON.parse(init?.body as string)
+      expect(sanitizeScanFeedbackPayload(report)).toMatchObject({ ok: true, record: report })
+      expect(init).toMatchObject({ method: 'POST', credentials: 'omit' })
+      posts.push(report)
+      return Response.json({
+        status: 'received',
+        reportId: report.reportId,
+        receivedAt: '2026-10-23T08:45:00.000Z',
+      })
+    }
+    expect(url).toBe(currentRelease.downloadUrl)
+    return new Response(null, { status: 404 })
+  })
+  vi.stubGlobal('fetch', fetcher)
+  const action = render(<AssetQuickReadInstallerAction release={release} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  const link = await screen.findByRole('link', { name: '报告下载问题' })
+  expect(posts).toHaveLength(0)
+  expect(fetcher).toHaveBeenCalledTimes(2)
+  expect(save).not.toHaveBeenCalled()
+  const hash = new URL((link as HTMLAnchorElement).href).hash
+  const replaceState = vi.fn()
+  const report = consumeInstallerFeedbackFragment(
+    { hash, pathname: '/installer-feedback' },
+    { replaceState },
+  )
+  expect(replaceState).toHaveBeenCalledWith(null, '', '/installer-feedback')
+  expect(report).toMatchObject({
+    tool: 'asset_quick_read_installer',
+    installerVersion: '1.2.1',
+    stage: 'prepare',
+    code: 'installer_download_request_failed',
+    attempts: [],
+    download: {
+      phase: 'range',
+      httpStatus: 404,
+      expectedRelease: { size: currentRelease.size, sha256: currentRelease.sha256 },
+    },
+  })
+  expect(sanitizeScanFeedbackPayload(report)).toMatchObject({ ok: true, record: report })
+  action.unmount()
+  const feedbackPage = render(<InstallerFeedbackPage initialReport={report} />)
+  expect(screen.getByRole('button', { name: '发送反馈' })).toBeEnabled()
+  expect(posts).toHaveLength(0)
+  expect(fetcher).toHaveBeenCalledTimes(2)
+  fireEvent.click(screen.getByRole('button', { name: '发送反馈' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: '已发送' })).toBeDisabled())
+  expect(posts).toEqual([report])
+  feedbackPage.unmount()
+  render(<InstallerFeedbackPage initialReport={null} />)
+  expect(screen.getByRole('button', { name: '已发送' })).toBeDisabled()
+  expect(screen.getByText(`回执编号：${report!.reportId}`)).toBeVisible()
+  expect(fetcher).toHaveBeenCalledTimes(3)
+  expect(posts).toHaveLength(1)
+  localStorage.clear()
+})
+
+it('offers explicit download feedback with bounded identity and no automatic upload', async () => {
+  const fetcher = vi.fn().mockResolvedValue(
+    new Response(executable.subarray(0, 6), {
+      status: 200,
+    }),
+  )
+  setDownloadFetcher(fetcher)
+  render(<AssetQuickReadInstallerAction release={release} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
+  const link = screen.getByRole('link', { name: '报告下载问题' })
+  const report = sanitizeInstallerFeedback(
+    JSON.parse(decodeURIComponent(new URL((link as HTMLAnchorElement).href).hash.slice(1))),
+  )
+  expect(report).toMatchObject({
+    tool: 'asset_quick_read_installer',
+    code: 'installer_download_incomplete',
+    download: {
+      phase: 'range',
+      bytesReceived: 6,
+      attemptCount: 1,
+      waitReason: 'none',
+      expectedRelease: { size: release.size, sha256: release.sha256 },
+    },
+  })
+  expect(JSON.stringify(report)).not.toMatch(/token|private|https?:/u)
+  expect(fetcher).toHaveBeenCalledOnce()
+})
 it('rejects truncated bytes and exposes retry without preparing a wrong file', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable.subarray(0, 6))))
+  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executable.subarray(0, 6))))
   render(<AssetQuickReadInstallerAction release={release} />)
   fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
@@ -230,7 +396,7 @@ it('rejects truncated bytes and exposes retry without preparing a wrong file', a
   expect(screen.getByRole('button', { name: '下载资产快读' })).toBeEnabled()
 })
 it('returning after an installer download probes once, never invokes the explicit launch callback automatically', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable)))
+  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executable)))
   const onConnect = vi.fn().mockResolvedValue(undefined)
   const onReturnConnect = vi.fn().mockRejectedValue(new Error('synthetic service missing'))
   render(
@@ -254,7 +420,7 @@ it('returning after an installer download probes once, never invokes the explici
   expect(onConnect).not.toHaveBeenCalled()
 })
 it('blocks new download and continuation while keeping an in-flight cancel accessible', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})))
+  setDownloadFetcher(vi.fn().mockReturnValue(new Promise(() => {})))
   const view = render(<AssetQuickReadInstallerAction release={release} blocked />)
   expect(screen.getByRole('button', { name: '下载资产快读' })).toBeDisabled()
   view.rerender(<AssetQuickReadInstallerAction release={release} />)

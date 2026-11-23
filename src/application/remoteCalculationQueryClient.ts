@@ -201,14 +201,22 @@ export function createRemoteCalculationQueryClient(options: {
           : undefined,
       }
     },
-    calculateTargetTeamWarehouseFit(query) {
-      return submit(query.runId, { protocolVersion: remoteCalculationProtocolVersion, query })
+    calculateTargetTeamWarehouseFit(query, requestOptions) {
+      return submit(
+        query.runId,
+        { protocolVersion: remoteCalculationProtocolVersion, query },
+        requestOptions?.signal,
+      )
     },
     queryTeamOverviewPresentation(query) {
       return submit(query.runId, { protocolVersion: remoteCalculationProtocolVersion, query })
     },
-    queryTeamRoutePresentation(query) {
-      return submit(query.runId, { protocolVersion: remoteCalculationProtocolVersion, query })
+    queryTeamRoutePresentation(query, requestOptions) {
+      return submit(
+        query.runId,
+        { protocolVersion: remoteCalculationProtocolVersion, query },
+        requestOptions?.signal,
+      )
     },
     querySavedTeamPlanReplay(query) {
       return submit(query.runId, { protocolVersion: remoteCalculationProtocolVersion, query })
@@ -222,8 +230,12 @@ export function createRemoteCalculationQueryClient(options: {
     async queryDecisionPortfolio() {
       throw new Error('在线版暂不支持多队查询。')
     },
-    queryDevelopmentCandidateAlternatives(query) {
-      return submit(query.runId, { protocolVersion: remoteCalculationProtocolVersion, query })
+    queryDevelopmentCandidateAlternatives(query, requestOptions) {
+      return submit(
+        query.runId,
+        { protocolVersion: remoteCalculationProtocolVersion, query },
+        requestOptions?.signal,
+      )
     },
     async queryCommonAnomalySettlement32(request) {
       const query = structuredClone(request)
@@ -261,6 +273,15 @@ export function createRemoteCalculationQueryClient(options: {
     },
     queryDevelopmentWorkbenchRoute(query) {
       return submit(query.runId, { protocolVersion: remoteCalculationProtocolVersion, query })
+    },
+    async queryWarehouseActions(query, options) {
+      return unpackPublicWarehouseActions(
+        await submit(
+          query.runId,
+          { protocolVersion: remoteCalculationProtocolVersion, query },
+          options?.signal,
+        ),
+      )
     },
     queryWarehouseDiscTransitionUses(query, options) {
       return submit(

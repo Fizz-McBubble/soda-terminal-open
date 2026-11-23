@@ -138,7 +138,7 @@ export function ScannerDiagnosticFeedback({
               ? '反馈暂时无法发送，请稍后再试。'
               : error instanceof ScanFeedbackSubmissionError && error.reason === 'release_changed'
                 ? '这份反馈已更新，请重新尝试。'
-                : '发送失败，请再试一次。',
+                : '反馈发送未完成，请重试。',
         })
     } finally {
       if (pendingId.current === reportKey) pendingId.current = null
@@ -151,7 +151,7 @@ export function ScannerDiagnosticFeedback({
       if (currentId.current === reportKey) setLocalMessage({ reportKey, text: '诊断已复制。' })
     } catch {
       if (currentId.current === reportKey)
-        setLocalMessage({ reportKey, text: '复制失败，可下载诊断文件。' })
+        setLocalMessage({ reportKey, text: '复制未完成，可下载诊断。' })
     }
   }
   function download() {
@@ -163,9 +163,9 @@ export function ScannerDiagnosticFeedback({
       anchor.download = `soda-scan-diagnostic-${receivedReport.reportId}.json`
       anchor.click()
       URL.revokeObjectURL(url)
-      setLocalMessage({ reportKey, text: '诊断下载已开始。' })
+      setLocalMessage({ reportKey, text: '已开始下载诊断。' })
     } catch {
-      setLocalMessage({ reportKey, text: '下载失败，可复制诊断或稍后重试。' })
+      setLocalMessage({ reportKey, text: '下载未完成，可复制诊断或重试。' })
     }
   }
   const sendAction = (

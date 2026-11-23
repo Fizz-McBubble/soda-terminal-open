@@ -120,12 +120,10 @@ export function FormalImportHandoff({
           </div>
         </dl>
         <div className="formal-import-handoff__impact" aria-label="账户影响">
-          <span>确认后的账户影响</span>
+          <span>检查通过后的导入范围</span>
           <strong>{current.account.displayName}</strong>
-          <b>
-            {current.binding.baselineDiscCount} → {current.items.length} 张
-          </b>
-          <small>完整替换，不与现有仓库合并</small>
+          <b>{current.items.length} 张 S 级驱动盘待导入</b>
+          <small>只替换已确认的 S 级记录；A/B 级和品质未确认记录保留</small>
         </div>
       </header>
       <div className="formal-import-handoff__action">
@@ -177,6 +175,7 @@ export function FormalImportConfirmationDialog({
   dialogRef,
   cancelRef,
   busy,
+  error,
   onClose,
   onConfirm,
   onKeyDown,
@@ -185,6 +184,7 @@ export function FormalImportConfirmationDialog({
   dialogRef: RefObject<HTMLElement | null>
   cancelRef: RefObject<HTMLButtonElement | null>
   busy: boolean
+  error?: string | null
   onClose: () => void
   onConfirm: () => void
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
@@ -199,26 +199,32 @@ export function FormalImportConfirmationDialog({
         className="panel modal-panel"
         role="dialog"
         aria-modal="true"
+        aria-busy={busy}
         aria-labelledby="replace-discs-heading"
         onKeyDown={containDialogFocus}
       >
-        <h2 id="replace-discs-heading">是否覆盖“{current.account.displayName}”的驱动盘信息？</h2>
-        <p>此操作只替换该账户的驱动盘，不会覆盖代理人、邦布、音擎、备份或其他账户。</p>
+        <h2 id="replace-discs-heading">更新“{current.account.displayName}”的 S 级驱动盘？</h2>
         <p>
-          替换前驱动盘：{current.binding.baselineDiscCount}；捕获：
-          {current.items.length}；唯一：
+          当前已记录驱动盘：{current.binding.baselineDiscCount} 张（含其他品质）；本次扫描：
+          {current.items.length} 条；去重后：
           {new Set(current.items.map((item) => item.sourceIdentity)).size}；可导入：
           {current.summary.ready}。
         </p>
         <p className="danger-note">
-          确认后将完整替换该账户的驱动盘仓库，不会进行合并；稳定匹配的驱动盘会保留本地标记与方案引用。
+          确认后只替换该账户已确认的 S 级驱动盘；匹配到的旧盘会保留本地标记与方案引用，A/B
+          级和品质未确认记录保留。可随时在账户与备份中恢复。
         </p>
-        <p className="muted-note">即使存在同名账户，本操作也不会切换、读取或改动其他账户。</p>
+        {error ? (
+          <p className="danger-note" role="alert">
+            {error}
+          </p>
+        ) : null}
         <div className="management-actions">
           <button
             ref={cancelRef}
             className="button button--quiet"
             type="button"
+            disabled={busy}
             onClick={closeConfirmation}
           >
             取消
@@ -229,7 +235,7 @@ export function FormalImportConfirmationDialog({
             disabled={busy}
             onClick={() => void confirmImport()}
           >
-            确认更新仓库
+            {busy ? '正在更新仓库…' : error ? '重新检查' : '确认更新仓库'}
           </button>
         </div>
       </section>

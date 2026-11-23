@@ -14,7 +14,7 @@ import { compileCurrentPlanningInteractionBundle } from '../calculation/currentP
 import { evaluateSourceBackedPlanningTeamDps } from '../calculation/currentPlanningTeamDpsRuntime'
 import { compilePlanningCalculationContext } from '../calculation/planningCalculationContextCompiler'
 import { projectTargetTeamEquipmentModifiers } from '../calculation/targetTeamEquipmentModifierProjection'
-import { candidateCalculationPackage } from '../gameDataPacks/currentCalculationCandidate'
+import { targetTeamPlanningContextBindings } from './targetTeamPlanningContextBindings'
 import { usesIncremental32Capabilities } from '../gameDataPacks/incremental32AffectedCapabilities'
 import {
   incremental32RecoveryPolicy,
@@ -294,6 +294,7 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     baselineReferencesByAgentId: observedReferences,
     resourceTimelineDeclaration32: resourceDeclaration.declaration,
     sourceActionUsages32: eventUsages,
+    baselineDurationSeconds: scenario.baseline.declaredDurationSeconds,
   })
   if (interactions.status === 'unsupported')
     return {
@@ -302,31 +303,11 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
       fingerprint: stableContentHash({ input, blockers: unique(interactions.blockers) }),
       ...koledaMetadata,
     }
-  const accountSnapshot = {
-    accountId: input.warehouse.accountId ?? 'legacy-local',
-    rosterHash: input.rosterHash,
-    warehouseHash: input.warehouseHash,
-    planningHash: input.planningHash,
-    ownedAgentIds: input.warehouse.roster.agents
-      .filter((agent) => agent.owned)
-      .map((agent) => agent.agentId),
-    // Compatibility field in the planning contract. Scheme-parameter calculations do not
-    // fingerprint or validate a Bangboo entity inventory.
-    ownedBangbooIds: [],
-    capturedAt: input.capturedAt,
-    stale: false,
-  }
+  const { accountSnapshot, canonical } = targetTeamPlanningContextBindings(input, scenario.baseline)
   const compilation = compilePlanningCalculationContext({
     contextId: `target:${input.candidate.candidateId}:${input.planningHash}:${input.modifierProjection.fingerprint}`,
     gameVersion: scenario.baseline.gameVersion,
-    canonical: {
-      packageId: candidateCalculationPackage.packageId,
-      packageVersion: candidateCalculationPackage.packageVersion,
-      gameVersion: scenario.baseline.gameVersion,
-      contentHash: scenario.baseline.sourcePackHash,
-      status: 'candidate',
-      rollbackPackageId: candidateCalculationPackage.rollbackPackageId,
-    },
+    canonical,
     accountSnapshot,
     baseline: scenario.baseline,
     memberIds: [...input.fit.memberIds],

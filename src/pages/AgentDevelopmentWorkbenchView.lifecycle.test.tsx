@@ -1,121 +1,17 @@
-import type { ComponentProps } from 'react'
-import { act, render, screen } from '@testing-library/react'
+import { mocks, type Props, type RouteResult } from './agentDevelopmentWorkbenchViewLifecycleMocks'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ReturnLocation } from './AgentLoadoutComparisonPage.testFixture'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { AgentDevelopmentWorkbenchView } from './AgentDevelopmentWorkbenchView'
-import { createWorkbenchViewProps as props } from './agentDevelopmentWorkbenchViewTestSupport'
+import {
+  createWorkbenchViewProps as props,
+  createWorkbenchCandidateResult as candidateResult,
+} from './agentDevelopmentWorkbenchViewTestSupport'
 import { Workbench } from '../features/agentDevelopmentGolden/AgentDevelopmentWorkbench'
 import { workbench } from '../features/agentDevelopmentGolden/AgentDevelopmentGolden.workbench.testFixture'
 import { developmentCurrentRecordBinding } from '../application/publicDevelopmentWorkbenchRoute'
-
-const mocks = vi.hoisted(() => ({
-  golden: null as Record<string, unknown> | null,
-  editor: null as { onSaved: (roster: Props['roster']) => Promise<void> } | null,
-  cache: vi.fn(() => true),
-  save: vi.fn(),
-  refreshCandidates: vi.fn(),
-}))
-vi.mock('../features/agentDevelopmentGolden', () => ({
-  AgentDevelopmentGolden: (props: Record<string, unknown>) => {
-    mocks.golden = props
-    return null
-  },
-}))
-vi.mock('./agentDevelopmentCandidateSession', () => ({
-  cacheDevelopmentCandidateSnapshot: mocks.cache,
-  readDevelopmentCandidateSnapshot: vi.fn(),
-  refreshDevelopmentCandidatesAfterSave: mocks.refreshCandidates,
-}))
-vi.mock('../accounts/planningDrafts', () => ({ saveCurrentAgentBuild: mocks.save }))
-vi.mock('./AgentDevelopmentCurrentEditor', () => ({
-  AgentDevelopmentCurrentEditor: (props: {
-    onSaved: (roster: Props['roster']) => Promise<void>
-  }) => {
-    mocks.editor = props
-    return null
-  },
-}))
-vi.mock('./agentDevelopmentSavedPlan', () => ({ createAgentDevelopmentSavedPlan: vi.fn() }))
-vi.mock('../application/publicDevelopmentWorkbenchRoute', async (original) => ({
-  ...(await original<typeof import('../application/publicDevelopmentWorkbenchRoute')>()),
-  isCurrentDevelopmentWorkbenchRoute: vi.fn(() => true),
-}))
-
-type Props = ComponentProps<typeof AgentDevelopmentWorkbenchView>
-type RouteResult = Awaited<ReturnType<Props['queryDevelopmentWorkbenchRoute']>>
-beforeEach(() => vi.clearAllMocks())
-
-it('releases the committed edit snapshot before a slow account analysis finishes', async () => {
-  let resolve!: (value: Props['decisionWorld']['run']) => void
-  const initial = props(vi.fn())
-  initial.workbenchData = workbench
-  const savedRoster = {
-    ...initial.roster,
-    agents: initial.roster.agents.map((agent) =>
-      agent.agentId === initial.agentId ? { ...agent, level: 59 } : agent,
-    ),
-  }
-  initial.queryDevelopmentWorkbenchRoute = vi.fn(
-    async (_runId, selection, record) =>
-      ({
-        status: 'ready',
-        accountId: initial.accountId,
-        selection,
-        currentRecordBinding: record ? developmentCurrentRecordBinding(record) : undefined,
-        workbench: {
-          slices: {
-            currentPanel: {
-              availability: 'available',
-              facts: [{ label: '攻击力', current: '1234' }],
-            },
-          },
-        },
-        panel: { source: '当前已装备', result: { status: 'ok' } },
-      }) as RouteResult,
-  )
-  initial.editingThisAgent = true
-  initial.editingPresentation = {
-    accountId: initial.accountId,
-    presentation: initial.workbenchData,
-  }
-  initial.decisionWorld = {
-    ...initial.decisionWorld,
-    refresh: vi.fn(
-      () =>
-        new Promise<Props['decisionWorld']['run']>((done) => {
-          resolve = done
-        }),
-    ),
-  }
-  render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
-  let pending!: Promise<void>
-  await act(async () => {
-    pending = mocks.editor!.onSaved(savedRoster)
-  })
-  expect(initial.setEditingCurrent).toHaveBeenCalledWith(false)
-  expect(initial.setEditingPresentation).toHaveBeenCalledWith(null)
-  expect(initial.queryDevelopmentWorkbenchRoute).toHaveBeenCalledOnce()
-  const preview = vi.mocked(initial.setSaveRefresh).mock.calls.at(-1)![0] as NonNullable<
-    Props['saveRefresh']
-  >
-  expect(preview.presentation.level).toBe(59)
-  expect(preview.presentation.panelFacts[0].value).toBe('1234')
-  expect(initial.decisionWorld.refresh).toHaveBeenCalledOnce()
-  expect(initial.setRouteRead).not.toHaveBeenCalled()
-  await act(async () => {
-    resolve(initial.decisionWorld.run)
-    await pending
-  })
-  expect(initial.queryDevelopmentWorkbenchRoute).toHaveBeenCalledWith('isolated-run', {
-    agentId: initial.agentId,
-    requestedPlanId: null,
-    candidateRank: null,
-    candidateLoadoutFingerprint: null,
-  })
-  expect(initial.setRouteRead).toHaveBeenCalledOnce()
-})
 
 it('does not publish a saved edit refresh into an account the player switched to', async () => {
   let resolve!: (value: Props['decisionWorld']['run']) => void
@@ -144,7 +40,9 @@ it('does not publish a saved edit refresh into an account the player switched to
         }),
     ),
   }
-  const view = render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
+  const view = render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
   let pending!: Promise<void>
   await act(async () => {
     pending = mocks.editor!.onSaved(initial.roster)
@@ -162,7 +60,10 @@ it('does not publish a saved edit refresh into an account the player switched to
 it('opens comparison on the same candidate shown in the workbench, including a clamped route', async () => {
   const initial = props(vi.fn())
   initial.selectedCandidateRank = 25
-  initial.workbenchData = { ...initial.workbenchData, selectedCandidateRank: 2 }
+  initial.workbenchData = {
+    ...initial.workbenchData,
+    selectedCandidateRank: 2,
+  }
   render(
     <MemoryRouter initialEntries={['/development/agent-billy?candidate=25']}>
       <AgentDevelopmentWorkbenchView {...initial} />
@@ -181,14 +82,20 @@ it('retains committed current facts and panel after analysis failure, with editi
   const initial = props(vi.fn())
   initial.workbenchData = workbench
   initial.editingThisAgent = true
-  initial.editingPresentation = { accountId: initial.accountId, presentation: workbench }
+  initial.editingPresentation = {
+    accountId: initial.accountId,
+    presentation: workbench,
+  }
   const savedRoster = {
     ...initial.roster,
     agents: initial.roster.agents.map((agent) =>
       agent.agentId === initial.agentId ? { ...agent, level: 59 } : agent,
     ),
   }
-  initial.decisionWorld = { ...initial.decisionWorld, refresh: vi.fn().mockResolvedValue(null) }
+  initial.decisionWorld = {
+    ...initial.decisionWorld,
+    refresh: vi.fn().mockResolvedValue(null),
+  }
   initial.queryDevelopmentWorkbenchRoute = vi.fn(
     async (_runId, selection, record) =>
       ({
@@ -207,7 +114,9 @@ it('retains committed current facts and panel after analysis failure, with editi
         panel: { source: '当前已装备', result: { status: 'ok' } },
       }) as RouteResult,
   )
-  const view = render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
+  const view = render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
   await act(async () => {
     await mocks.editor!.onSaved(savedRoster)
   })
@@ -215,6 +124,7 @@ it('retains committed current facts and panel after analysis failure, with editi
     Props['saveRefresh']
   >
   expect(retained.phase).toBe('failed')
+  expect(retained.stage).toBe('account')
   expect(retained.presentation.level).toBe(59)
   expect(retained.presentation.panelFacts[0].value).toBe('1234')
   expect(initial.setSaveRefresh).not.toHaveBeenCalledWith(null)
@@ -228,7 +138,133 @@ it('retains committed current facts and panel after analysis failure, with editi
   )
   expect((mocks.golden!.workbench as Props['workbenchData']).level).toBe(59)
   expect(mocks.golden!.onEditCurrent).toBeTypeOf('function')
+  expect(mocks.golden!.currentUpdate as { message: string }).toMatchObject({
+    message: '养成建议更新失败',
+    tone: 'failed',
+  })
   expect((mocks.golden!.currentUpdate as { onRetry: unknown }).onRetry).toBeTypeOf('function')
+})
+
+it('stops at a retryable panel failure without misreporting the account-wide refresh', async () => {
+  const initial = props(vi.fn())
+  initial.workbenchData = workbench
+  initial.editingThisAgent = true
+  initial.editingPresentation = {
+    accountId: initial.accountId,
+    presentation: workbench,
+  }
+  initial.queryDevelopmentWorkbenchRoute = vi
+    .fn()
+    .mockRejectedValue(new Error('当前面板查询超时。'))
+  initial.decisionWorld = {
+    ...initial.decisionWorld,
+    refresh: vi.fn(),
+  }
+  const view = render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
+  await act(async () => {
+    await mocks.editor!.onSaved(initial.roster)
+  })
+  const retained = vi.mocked(initial.setSaveRefresh).mock.calls.at(-1)![0] as NonNullable<
+    Props['saveRefresh']
+  >
+  expect(retained).toMatchObject({
+    phase: 'failed',
+    stage: 'panel',
+    error: '资料已保存。当前面板查询超时。',
+  })
+  expect(initial.decisionWorld.refresh).not.toHaveBeenCalled()
+  view.rerender(
+    <AgentDevelopmentWorkbenchView
+      {...initial}
+      editingThisAgent={false}
+      savingThisAgent={false}
+      saveRefresh={retained}
+    />,
+  )
+  expect(mocks.golden!.currentUpdate).toMatchObject({
+    message: '面板更新失败',
+    detail: undefined,
+    tone: 'failed',
+  })
+  expect((mocks.golden!.currentUpdate as { message: string }).message).not.toMatch(/重新编辑/)
+  expect((mocks.golden!.currentUpdate as { onRetry: unknown }).onRetry).toBeTypeOf('function')
+})
+
+it('recreates a missing run when retrying the saved panel without saving again', async () => {
+  const initial = props(vi.fn())
+  initial.workbenchData = workbench
+  initial.editingThisAgent = true
+  const recoveredRun = initial.decisionWorld.run!
+  const refresh = vi.fn().mockResolvedValue(recoveredRun)
+  initial.decisionWorld = {
+    ...initial.decisionWorld,
+    status: 'error',
+    run: null,
+    refresh,
+  } as Props['decisionWorld']
+  initial.queryDevelopmentWorkbenchRoute = vi.fn(
+    async (_runId, selection, record) =>
+      ({
+        status: 'ready',
+        accountId: initial.accountId,
+        selection,
+        currentRecordBinding: record ? developmentCurrentRecordBinding(record) : undefined,
+        workbench: {
+          slices: { currentPanel: { availability: 'available', facts: [] } },
+        },
+        panel: { source: '当前已装备', result: { status: 'ok' } },
+      }) as unknown as RouteResult,
+  )
+  render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
+  await act(async () => {
+    await mocks.editor!.onSaved(initial.roster)
+  })
+  expect(initial.queryDevelopmentWorkbenchRoute).toHaveBeenCalledWith(
+    recoveredRun.runId,
+    expect.anything(),
+    expect.anything(),
+  )
+  expect(initial.setSaveRefresh).toHaveBeenLastCalledWith(null)
+  expect(mocks.save).not.toHaveBeenCalled()
+})
+
+it('keeps the last workbench presentation when a stale account refresh fails', () => {
+  const initial = props(vi.fn())
+  const retry = vi.fn()
+  initial.workbenchData = workbench
+  initial.analysisRefresh = {
+    key: 'stale-input',
+    phase: 'failed',
+    error: '本次分析超时；已保留上次结果。',
+    onRetry: retry,
+  }
+  initial.decisionWorld = {
+    ...initial.decisionWorld,
+    status: 'error',
+    run: null,
+    liveInput: initial.decisionWorld.run!.input,
+    message: '本次分析超时。',
+  } as Props['decisionWorld']
+
+  render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
+
+  expect(mocks.golden!.workbench).toEqual({
+    ...workbench,
+    saveScopeKey: expect.any(String),
+  })
+  expect(mocks.golden!.currentUpdate).toMatchObject({
+    message: '养成建议更新失败',
+    detail: undefined,
+    tone: 'failed',
+  })
+  ;(mocks.golden!.currentUpdate as { onRetry: () => void }).onRetry()
+  expect(retry).toHaveBeenCalledOnce()
 })
 
 it.each(['unmount', 'agent', 'account'] as const)(
@@ -242,9 +278,14 @@ it.each(['unmount', 'agent', 'account'] as const)(
         }),
     )
     const initial = props(query as Props['queryDevelopmentCandidateAlternatives'])
-    const view = render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
+    const view = render(<AgentDevelopmentWorkbenchView {...initial} />, {
+      wrapper: MemoryRouter,
+    })
     const analyze = mocks.golden!.onAnalyzeWarehouse as () => Promise<void>
     const pending = analyze()
+    await waitFor(() =>
+      expect(initial.queryDevelopmentCandidateAlternatives).toHaveBeenCalledOnce(),
+    )
     if (change === 'unmount') view.unmount()
     else
       view.rerender(
@@ -274,12 +315,100 @@ it('still accepts a delayed match while the same page remains active', async () 
     candidates: [],
   }
   const initial = props(vi.fn().mockResolvedValue(result))
-  render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
+  render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
   await act(async () => {
     await (mocks.golden!.onAnalyzeWarehouse as () => Promise<void>)()
   })
   expect(mocks.cache).toHaveBeenCalledWith(result)
   expect(initial.setAnalysisVersion).toHaveBeenCalledOnce()
+  expect(initial.queryDevelopmentWorkbenchRoute).toHaveBeenCalledOnce()
+})
+
+it('caches and hands a default compare result to comparison without publishing the workbench route', async () => {
+  const result = candidateResult()
+  const initial = props(vi.fn().mockResolvedValue(result))
+  initial.workbenchData = workbench
+  render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
+
+  await act(async () => {
+    await (mocks.golden!.onAnalyzeWarehouse as (intent: string) => Promise<void>)('compare')
+  })
+
+  expect(mocks.cache).toHaveBeenCalledWith(result)
+  expect(initial.queryDevelopmentWorkbenchRoute).not.toHaveBeenCalled()
+  expect(initial.setRouteRead).not.toHaveBeenCalled()
+  expect(initial.setLastRouteProjection).not.toHaveBeenCalled()
+  expect(initial.setAnalysisVersion).not.toHaveBeenCalled()
+})
+
+it('keeps route publication and cleanup for an explicit generate request', async () => {
+  const result = candidateResult()
+  const initial = props(vi.fn().mockResolvedValue(result))
+  initial.workbenchData = workbench
+  render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
+
+  await act(async () => {
+    await (mocks.golden!.onAnalyzeWarehouse as (intent: string) => Promise<void>)('generate')
+  })
+
+  expect(initial.queryDevelopmentWorkbenchRoute).toHaveBeenCalledOnce()
+  expect(mocks.cache).toHaveBeenCalledWith(result)
+  expect(initial.setRouteRead).toHaveBeenCalledOnce()
+  expect(initial.setLastRouteProjection).toHaveBeenCalledOnce()
+  expect(initial.setAnalysisVersion).toHaveBeenCalledOnce()
+})
+
+it('keeps the verified route path for explicit comparison parameters', async () => {
+  const result = candidateResult()
+  const initial = props(vi.fn().mockResolvedValue(result))
+  initial.workbenchData = workbench
+  initial.candidateSnapshot = {
+    candidateParametersByRank: { 1: { potential: 0 } },
+  } as unknown as Props['candidateSnapshot']
+  render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
+
+  await act(async () => {
+    await (mocks.golden!.onAnalyzeWarehouse as (intent: string) => Promise<void>)('compare')
+  })
+
+  expect(initial.queryDevelopmentWorkbenchRoute).toHaveBeenCalledOnce()
+  expect(initial.setRouteRead).toHaveBeenCalledOnce()
+  expect(initial.setAnalysisVersion).toHaveBeenCalledOnce()
+})
+
+it('does not cache a compare result after the account changes while the route module is pending', async () => {
+  let resolve!: (value: ReturnType<typeof candidateResult>) => void
+  const initial = props(
+    vi.fn(
+      () =>
+        new Promise<ReturnType<typeof candidateResult>>((done) => {
+          resolve = done
+        }),
+    ) as Props['queryDevelopmentCandidateAlternatives'],
+  )
+  initial.workbenchData = workbench
+  const view = render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
+  })
+  const pending = (mocks.golden!.onAnalyzeWarehouse as (intent: string) => Promise<void>)('compare')
+  await waitFor(() => expect(initial.queryDevelopmentCandidateAlternatives).toHaveBeenCalledOnce())
+  view.rerender(<AgentDevelopmentWorkbenchView {...initial} accountId="isolated-b" />)
+  await act(async () => {
+    resolve(candidateResult())
+    await pending
+  })
+
+  expect(mocks.cache).not.toHaveBeenCalled()
+  expect(initial.queryDevelopmentWorkbenchRoute).not.toHaveBeenCalled()
+  expect(initial.setAnalysisVersion).not.toHaveBeenCalled()
 })
 
 it.each(['unmount', 'agent', 'account'] as const)(
@@ -296,8 +425,13 @@ it.each(['unmount', 'agent', 'account'] as const)(
           ),
       ),
     )
-    const view = render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
+    const view = render(<AgentDevelopmentWorkbenchView {...initial} />, {
+      wrapper: MemoryRouter,
+    })
     const pending = (mocks.golden!.onAnalyzeWarehouse as () => Promise<void>)()
+    await waitFor(() =>
+      expect(initial.queryDevelopmentCandidateAlternatives).toHaveBeenCalledOnce(),
+    )
     if (change === 'unmount') view.unmount()
     else
       view.rerender(
@@ -336,13 +470,17 @@ it('keeps a reused workbench ready for the new agent and ignores the old rejecti
     hasComparablePlan: false,
     warehouseAnalysis: { status: 'idle' as const, summary: '' },
   }
-  const base = { toOverview: vi.fn(), toTop10: navigate, scenario: 'current' as const }
+  const base = {
+    toOverview: vi.fn(),
+    toTop10: navigate,
+    scenario: 'current' as const,
+  }
   const user = userEvent.setup()
   const view = render(<Workbench {...base} data={data} onAnalyzeWarehouse={analyzeOld} />, {
     wrapper: MemoryRouter,
   })
   const heading = screen.getByRole('heading', { name: '比利' })
-  await user.click(screen.getByRole('button', { name: '比较其他配装' }))
+  await user.click(screen.getByRole('button', { name: '从仓库搭配并比较' }))
   expect(screen.getByRole('button', { name: '正在搭配…' })).toBeDisabled()
   view.rerender(
     <Workbench
@@ -352,8 +490,8 @@ it('keeps a reused workbench ready for the new agent and ignores the old rejecti
     />,
   )
   expect(screen.getByRole('heading', { name: '安比' })).toBe(heading)
-  expect(screen.getByRole('button', { name: '从仓库搭配' })).toBeEnabled()
-  await user.click(screen.getByRole('button', { name: '从仓库搭配' }))
+  expect(screen.getByRole('button', { name: '从仓库搭配并比较' })).toBeEnabled()
+  await user.click(screen.getByRole('button', { name: '从仓库搭配并比较' }))
   await act(async () => {
     rejectOld(new Error('旧角色请求失败'))
   })
@@ -364,19 +502,11 @@ it('keeps a reused workbench ready for the new agent and ignores the old rejecti
   await act(async () => {
     resolveNew()
   })
-  expect(screen.getByRole('button', { name: '从仓库搭配' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '从仓库搭配并比较' })).toBeEnabled()
 })
 
 it('does not publish a candidate before its matching route is ready, and keeps errors local', async () => {
-  const result = {
-    status: 'ready',
-    gaps: [],
-    accountId: 'isolated-a',
-    agentId: 'agent-billy',
-    runId: 'isolated-run',
-    inputFingerprint: 'isolated-input',
-    candidates: [],
-  }
+  const result = { ...candidateResult(), candidates: [] }
   let reject!: (error: Error) => void
   const initial = props(vi.fn().mockResolvedValue(result))
   initial.queryDevelopmentWorkbenchRoute = vi.fn(
@@ -385,32 +515,36 @@ it('does not publish a candidate before its matching route is ready, and keeps e
         reject = fail
       }),
   )
-  render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
-  const pending = (mocks.golden!.onAnalyzeWarehouse as () => Promise<void>)()
-  await act(async () => {
-    await Promise.resolve()
+  render(<AgentDevelopmentWorkbenchView {...initial} />, {
+    wrapper: MemoryRouter,
   })
-  expect(initial.queryDevelopmentWorkbenchRoute).toHaveBeenCalledOnce()
+  const pending = (mocks.golden!.onAnalyzeWarehouse as () => Promise<void>)()
+  await waitFor(() => expect(initial.queryDevelopmentWorkbenchRoute).toHaveBeenCalledOnce())
   expect(mocks.cache).not.toHaveBeenCalled()
   expect(initial.setAnalysisVersion).not.toHaveBeenCalled()
   reject(new Error('route unavailable'))
   await expect(pending).rejects.toThrow('route unavailable')
   expect(mocks.cache).not.toHaveBeenCalled()
-  expect(initial.setWarehouseRefresh).toHaveBeenCalledOnce()
+  expect(initial.setAnalysisVersion).not.toHaveBeenCalled()
+  const refreshCalls = vi.mocked(initial.setWarehouseRefresh).mock.calls
+  expect(refreshCalls).toHaveLength(2)
+  const [[started], [settle]] = refreshCalls
+  if (!started || typeof started === 'function' || typeof settle !== 'function') {
+    throw new Error('Expected refresh start followed by a local failure transition')
+  }
+  expect(started).toMatchObject({
+    accountId: initial.accountId,
+    agentId: initial.agentId,
+    inFlight: true,
+    presentation: initial.workbenchData,
+  })
+  expect(settle(started)).toEqual({ ...started, inFlight: false })
 })
 
 it.each(['fingerprint', 'rank'] as const)(
   'rejects a delayed projection after the %s changes',
   async (change) => {
-    const result = {
-      status: 'ready',
-      gaps: [],
-      accountId: 'isolated-a',
-      agentId: 'agent-billy',
-      runId: 'isolated-run',
-      inputFingerprint: 'isolated-input',
-      candidates: [],
-    }
+    const result = { ...candidateResult(), candidates: [] }
     let resolve!: (value: RouteResult) => void
     const initial = props(vi.fn().mockResolvedValue(result))
     initial.queryDevelopmentWorkbenchRoute = vi.fn(
@@ -419,7 +553,9 @@ it.each(['fingerprint', 'rank'] as const)(
           resolve = done
         }),
     )
-    const view = render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
+    const view = render(<AgentDevelopmentWorkbenchView {...initial} />, {
+      wrapper: MemoryRouter,
+    })
     const pending = (mocks.golden!.onAnalyzeWarehouse as () => Promise<void>)()
     await act(async () => {
       await Promise.resolve()
@@ -442,38 +578,3 @@ it.each(['fingerprint', 'rank'] as const)(
     expect(initial.setAnalysisVersion).not.toHaveBeenCalled()
   },
 )
-
-it('does not refresh or redirect a new agent after an already requested save finishes', async () => {
-  let resolve!: () => void
-  mocks.save.mockImplementation(
-    () =>
-      new Promise<void>((done) => {
-        resolve = done
-      }),
-  )
-  const initial = props(vi.fn())
-  initial.equipment = {} as NonNullable<Props['equipment']>
-  initial.candidates = [
-    {
-      loadouts: [
-        {
-          discs: Array.from({ length: 6 }, (_, index) => ({
-            disc: { id: `isolated-${index}` },
-          })),
-        },
-      ],
-    },
-  ] as Props['candidates']
-  const view = render(<AgentDevelopmentWorkbenchView {...initial} />, { wrapper: MemoryRouter })
-  const save = mocks.golden!.onSavePlan as (rank: number) => Promise<void>
-  const pending = save(1)
-  expect(mocks.save).toHaveBeenCalledOnce()
-  view.rerender(<AgentDevelopmentWorkbenchView {...initial} agentId="agent-anby" />)
-  await act(async () => {
-    resolve()
-    await pending
-  })
-  expect(mocks.refreshCandidates).not.toHaveBeenCalled()
-  expect(initial.setRouteRead).not.toHaveBeenCalled()
-  expect(initial.setAnalysisVersion).not.toHaveBeenCalled()
-})

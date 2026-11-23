@@ -14,6 +14,7 @@ const set = {
 }
 export const assetGoldenDisc = (id: string, revision: string, level = 15): DiscItem => ({
   stableId: id,
+  rarity: 'S',
   set,
   slot: 4,
   level,

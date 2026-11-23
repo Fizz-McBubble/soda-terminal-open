@@ -10,7 +10,7 @@ import {
 } from './accountDecisionAuthority.testFixture'
 
 describe('current cultivation with unassessed inventory', () => {
-  it('retains known investment gaps without rewriting intrinsic team strength', () => {
+  it('keeps reviewed strength diagnostic while current portfolios use the current rating and investment', () => {
     const developed = ['agent-billy', 'agent-nicole', 'agent-anby'] as const
     const { roster, allocation } = fixture([...memberIds, ...developed])
     roster.agents = roster.agents.map((agent) =>
@@ -40,9 +40,20 @@ describe('current cultivation with unassessed inventory', () => {
     )!
     expect(stronger.accountInputs.currentReadiness).toBe('not_evaluated')
     expect(nearer.accountInputs.currentReadiness).toBe('not_evaluated')
-    expect(stronger.teamStrengthOrder).toBeLessThan(nearer.teamStrengthOrder!)
+    expect(stronger.teamStrengthOrder).toBeNull()
+    expect(nearer.teamStrengthOrder).toBeNull()
+    expect(stronger.metaCalibration.projectedStrengthBand).toBe('A+')
+    expect(nearer.metaCalibration.projectedStrengthBand).toBe('B')
+    expect(stronger.teamRating).toMatchObject({ ratingBand: 'B', confidence: 'high' })
+    expect(stronger.teamSystemRanking?.genericOrder?.sourceAuthority).toBe(
+      'standardized_theory_graduation',
+    )
+    expect(nearer.teamRating.ratingBand).toBe('B')
+    expect(stronger.metaCalibration.recommendationScore).toBeGreaterThan(
+      nearer.metaCalibration.recommendationScore!,
+    )
     expect(nearer.cultivationPriorityOrder).toBeLessThan(stronger.cultivationPriorityOrder!)
-    expect(result.longTermPortfolio.candidateIds).toEqual(['stronger-long-term'])
+    expect(result.longTermPortfolio.candidateIds).toEqual(['less-investment-now'])
     expect(result.currentPortfolio.candidateIds).toEqual(['less-investment-now'])
     expect(nearer.accountInputs.buildCompletionDistance.missingDiscSlots).toBeNull()
   })

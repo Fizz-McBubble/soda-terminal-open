@@ -5,6 +5,7 @@ import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolv
 import type { TeamAnalysisResult } from './teamAnalysisSession'
 import { currentTeamAnalysisSession } from './teamAnalysisSession'
 import { getAgentName } from '../application/publicRosterNames'
+import { targetTeamEquipmentParametersFingerprint } from '../application/publicTargetTeamEquipmentFingerprint'
 
 export function planEditorSaveBlockReason({
   equipmentParametersRequireRefresh,
@@ -20,7 +21,7 @@ export function planEditorSaveBlockReason({
   duplicateMemberId: string | undefined
 }): string | null | undefined {
   if (equipmentParametersRequireRefresh) return '正在按新参数重新匹配，完成后才能保存。'
-  if (readOnly) return staleNotice ?? '角色或装备已更新，请重新分析后保存。'
+  if (readOnly) return staleNotice ?? '当前方案暂不能保存。'
   if (!accountId) return null
   if (duplicateMemberId) return `队伍成员重复：${getAgentName(duplicateMemberId)}。请调整后再保存。`
   return undefined
@@ -79,4 +80,44 @@ export function projectPlanEditorCandidateWarehouse(
     boundary: plan.boundary,
     ...(plan.panelObjectiveNote ? { panelObjectiveNote: plan.panelObjectiveNote } : {}),
   }
+}
+
+/** Automatic fixed-action evidence is optional for an ordinary equipment save.
+ * Only detach a fresh result that was evaluated in a different deployment order. */
+export function projectPlanEditorTeamFitForSave({
+  fit,
+  deploymentOrder,
+  equipment,
+  capturedInputFingerprint,
+}: {
+  fit: TargetTeamWarehouseFitQueryResult | undefined
+  deploymentOrder: readonly string[] | undefined
+  equipment: AccountPlanningDraft['teamEquipmentParameters']
+  capturedInputFingerprint: string | undefined
+}) {
+  const benchmark = fit?.accountBoundBenchmark
+  const prepared = benchmark?.luminizeSnapshot32
+  if (
+    !fit ||
+    !deploymentOrder ||
+    !equipment ||
+    equipment.luminizeComparison32 !== undefined ||
+    !fit.effectiveEquipmentParameters ||
+    !capturedInputFingerprint ||
+    benchmark?.sourceInputFingerprint !== capturedInputFingerprint ||
+    prepared?.status !== 'supported' ||
+    !prepared.snapshot ||
+    targetTeamEquipmentParametersFingerprint(equipment) !==
+      targetTeamEquipmentParametersFingerprint(fit.effectiveEquipmentParameters)
+  )
+    return fit
+  const declaredMembers = prepared.snapshot.declaration.memberAgentIds
+  if (
+    deploymentOrder.length !== declaredMembers.length ||
+    new Set(deploymentOrder).size !== declaredMembers.length ||
+    deploymentOrder.some((agentId) => !declaredMembers.includes(agentId)) ||
+    deploymentOrder.every((agentId, index) => agentId === declaredMembers[index])
+  )
+    return fit
+  return { ...fit, accountBoundBenchmark: { ...benchmark, luminizeSnapshot32: undefined } }
 }

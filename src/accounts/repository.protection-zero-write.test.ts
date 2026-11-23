@@ -23,6 +23,7 @@ describe('protected mixed-batch deletion stays atomic in synthetic storage', () 
         })
         const protectedDisc = {
           ...sampleDiscs.treasureCandidate,
+          rarity: 'S' as const,
           id: 'protected',
           favorite: Boolean(mask & 1),
           locked: false,

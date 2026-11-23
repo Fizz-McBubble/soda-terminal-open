@@ -63,6 +63,7 @@ async function savedGrowthAccount(db: SodaDatabase, includeGrowth: boolean) {
         accountId,
         {
           ...sampleDiscs.potentialCandidate,
+          rarity: 'S' as const,
           id,
           slot: ((index % 6) + 1) as 1 | 2 | 3 | 4 | 5 | 6,
           mainStat: (

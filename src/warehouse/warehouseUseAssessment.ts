@@ -44,12 +44,28 @@ type Choice = {
   secondaryRank: number
 }
 
+function setSlotKey(setId: string, slot: number) {
+  return `${slot}:${setId}`
+}
+
+function indexEntriesBySetSlot(entries: readonly Entry[]) {
+  const index = new Map<string, Entry[]>()
+  for (const entry of entries) {
+    const key = setSlotKey(entry.disc.setId, entry.disc.slot)
+    const matching = index.get(key)
+    if (matching) matching.push(entry)
+    else index.set(key, [entry])
+  }
+  for (const matching of index.values()) matching.sort(compareEntries)
+  return index
+}
+
 /** Pick an actual set pattern, not independent winners that cannot form a set.
  * Empty slots are allowed: a missing good disc never admits a bad filler.
  */
 function chooseBranch(
   context: WarehouseDemandContext,
-  entries: Entry[],
+  entriesBySetSlot: ReadonlyMap<string, readonly Entry[]>,
   unavailable: ReadonlySet<string>,
 ): Choice {
   const plan = context.setPlan
@@ -75,12 +91,10 @@ function chooseBranch(
         : 0
     const bySlot = Array.from({ length: 6 }, (_, index) =>
       Object.keys(pattern).flatMap((setId) => {
-        const eligible = entries.filter(
-          ({ disc }) =>
-            disc.slot === index + 1 && disc.setId === setId && !unavailable.has(disc.id),
-        )
-        eligible.sort(compareEntries)
-        return eligible.length ? [eligible[0]!] : []
+        const available = entriesBySetSlot
+          .get(setSlotKey(setId, index + 1))
+          ?.find(({ disc }) => !unavailable.has(disc.id))
+        return available ? [available] : []
       }),
     )
     const visit = (
@@ -128,6 +142,60 @@ function compareChoices(left: Choice, right: Choice) {
     right.score - left.score ||
     left.context.id.localeCompare(right.context.id)
   )
+}
+
+function retainNonDominated(
+  pool: readonly Entry[],
+  weights: WarehouseDemandContext['constraint']['subStatWeights'],
+  retain: (entry: Entry) => void,
+) {
+  const stats = Object.entries(weights)
+    .filter(([, weight]) => weight > 0)
+    .map(([stat]) => stat)
+  const groups = new Map<
+    string,
+    Array<{
+      entry: Entry
+      seedLines: string
+      values: number[]
+    }>
+  >()
+  const records = pool.map((entry) => {
+    const { disc } = entry
+    const key = JSON.stringify([
+      disc.setId,
+      disc.slot,
+      disc.mainStat,
+      disc.level,
+      disc.rarity ?? 'S',
+    ])
+    const record = {
+      entry,
+      seedLines: disc.subStats
+        .map((line) => line.stat)
+        .sort()
+        .join('|'),
+      values: stats.map((stat) => disc.subStats.find((line) => line.stat === stat)?.value ?? 0),
+    }
+    const group = groups.get(key)
+    if (group) group.push(record)
+    else groups.set(key, [record])
+    return { key, record }
+  })
+  for (const { key, record } of records) {
+    const { entry, values, seedLines } = record
+    const dominated = groups
+      .get(key)!
+      .some(
+        (other) =>
+          other.entry.disc.id !== entry.disc.id &&
+          (!entry.quality.worthInvestment || other.seedLines === seedLines) &&
+          other.values.every((value, index) => value >= values[index]!) &&
+          (other.values.some((value, index) => value > values[index]!) ||
+            other.entry.disc.id.localeCompare(entry.disc.id) < 0),
+      )
+    if (!dominated) retain(entry)
+  }
 }
 
 export function assessWarehouseUses(
@@ -183,6 +251,15 @@ export function assessWarehouseUses(
     sources.set(source, [...(sources.get(source) ?? []), branches])
   }
   const incompleteSearchContexts = new Set<string>()
+  const slotIndexes = new Map<string, ReturnType<typeof indexEntriesBySetSlot>>()
+  const slotsForContext = (id: string) => {
+    let index = slotIndexes.get(id)
+    if (!index) {
+      index = indexEntriesBySetSlot(byContext.get(id) ?? [])
+      slotIndexes.set(id, index)
+    }
+    return index
+  }
   for (const members of sources.values()) {
     let best: Choice[] = []
     let visits = 0
@@ -218,7 +295,7 @@ export function assessWarehouseUses(
       }
       remaining.forEach((branches, index) => {
         const choices = branches
-          .map((context) => chooseBranch(context, byContext.get(context.id) ?? [], assigned))
+          .map((context) => chooseBranch(context, slotsForContext(context.id), assigned))
           .sort(compareChoices)
         const distinct = new Set<string>()
         for (const choice of choices) {
@@ -264,45 +341,7 @@ export function assessWarehouseUses(
         ? quality.viableNow || quality.worthInvestment
         : quality.premium || quality.functionMain,
     )
-    for (const entry of pool) {
-      const dominated = pool.some((other) => {
-        const left = entry.disc,
-          right = other.disc
-        if (
-          left.id === right.id ||
-          left.setId !== right.setId ||
-          left.slot !== right.slot ||
-          left.mainStat !== right.mainStat ||
-          left.level !== right.level ||
-          (left.rarity ?? 'S') !== (right.rarity ?? 'S')
-        )
-          return false
-        // Different seed lines carry different future opportunities.
-        if (
-          entry.quality.worthInvestment &&
-          left.subStats
-            .map((line) => line.stat)
-            .sort()
-            .join('|') !==
-            right.subStats
-              .map((line) => line.stat)
-              .sort()
-              .join('|')
-        )
-          return false
-        const stats = Object.entries(context.constraint.subStatWeights)
-          .filter(([, weight]) => weight > 0)
-          .map(([stat]) => stat)
-        const value = (disc: DriveDisc, stat: string) =>
-          disc.subStats.find((line) => line.stat === stat)?.value ?? 0
-        return (
-          stats.every((stat) => value(right, stat) >= value(left, stat)) &&
-          (stats.some((stat) => value(right, stat) > value(left, stat)) ||
-            right.id.localeCompare(left.id) < 0)
-        )
-      })
-      if (!dominated) retain(entry)
-    }
+    retainNonDominated(pool, context.constraint.subStatWeights, retain)
   }
   const completeBuildCache = new Map<string, readonly WarehouseCompleteBuildImprovement[]>()
   for (const context of coverageComplete ? contexts : []) {

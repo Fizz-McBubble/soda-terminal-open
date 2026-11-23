@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { CoreWarehouse } from '../../accounts/coreWarehouse'
 import type { AccountPlanningDraft } from '../../accounts/types'
 import { buildExactTeamVariantKey } from '../../accounts/planningSolutionContext'
+import { resolvePlanningDiscReferences } from '../../accounts/planningDiscReferences'
 import type {
   useAccountDecisionWorld,
   useTargetTeamWarehouseFitCalculation,
@@ -16,6 +17,7 @@ import { contentHash } from '../../application/contentHash'
 import {
   inspectSavedTeamPlanSnapshotFreshness,
   inspectSavedTeamPortfolioPlanSnapshotFreshness,
+  canRecalculateSavedTeamPlan,
 } from '../../application/publicSavedPlanFreshness'
 import { savedPlanStaleNotice } from '../../application/publicSavedPlanStaleNotice'
 import {
@@ -38,11 +40,13 @@ import { acceptTeamRoutePresentation } from '../publicTeamRoutePresentation'
 import {
   resolveSavedPlanScenarioSelection,
   savedTeamDiscAssignmentFingerprint,
-  savedTeamTargetFitMatchesSavedDiscs,
+  currentSavedDiscReplay,
+  savedDiscFitState,
 } from '../savedPlanIdentity'
 import { currentSavedTeamRatingLabel } from '../savedTeamRatingPresentation'
 import { decisionTeamViewModel } from '../teamLoadoutDecisionViewModel'
 import { acceptTeamOverviewPresentation } from '../teamLoadoutPresentationDto'
+import type { TeamAnalysisResult } from '../teamAnalysisSession'
 
 export function useSavedPlanReplay({
   plan,
@@ -69,6 +73,7 @@ export function useSavedPlanReplay({
   >()
   const [restoredTargetFitRetry, setRestoredTargetFitRetry] = useState(0)
 
+  const runLost = decisionWorld.analysisIssue?.kind === 'run_lost'
   const runForReplay = decisionWorld.run
   const liveInputForFreshness =
     decisionWorld.status === 'current' &&
@@ -86,6 +91,7 @@ export function useSavedPlanReplay({
     if (
       !plan ||
       plan.kind !== 'team' ||
+      runLost ||
       !runForReplay ||
       !liveInputForFreshness ||
       !componentsIdentity ||
@@ -123,6 +129,7 @@ export function useSavedPlanReplay({
     }
   }, [
     plan,
+    runLost,
     runForReplay,
     liveInputForFreshness,
     componentsIdentity,
@@ -151,6 +158,7 @@ export function useSavedPlanReplay({
   useEffect(() => {
     if (
       !plan ||
+      runLost ||
       !runForReplay ||
       !decision ||
       !calculationClient ||
@@ -194,6 +202,7 @@ export function useSavedPlanReplay({
     }
   }, [
     plan,
+    runLost,
     runForReplay,
     decision,
     calculationClient,
@@ -220,6 +229,7 @@ export function useSavedPlanReplay({
   useEffect(() => {
     if (
       !currentCandidateId ||
+      runLost ||
       !calculationClient ||
       decisionWorld.status !== 'current' ||
       !decision ||
@@ -259,6 +269,7 @@ export function useSavedPlanReplay({
     }
   }, [
     currentCandidateId,
+    runLost,
     calculationClient,
     decision,
     decisionWorld,
@@ -286,50 +297,148 @@ export function useSavedPlanReplay({
       })
     : undefined
 
+  const referencedIds = new Set(plan ? resolvePlanningDiscReferences(plan).referenceIds : [])
+  const outOfScopeDisc = warehouse.discs.some(
+    (disc) => referencedIds.has(disc.id) && disc.rarity !== 'S',
+  )
   const portfolioSnapshotFreshness = plan?.teamPortfolioSnapshot
-    ? inspectSavedTeamPortfolioPlanSnapshotFreshness(
-        plan,
-        liveInputForFreshness && nonPlanningComponents && plan.teamPortfolioBuildIntent
-          ? buildSavedTeamPortfolioPlanSolutionFingerprintFromComponents({
-              decisionInput: liveInputForFreshness,
-              planId: plan.id,
-              buildIntent: plan.teamPortfolioBuildIntent,
-              nonPlanningComponents,
-            })
-          : undefined,
-      )
-    : undefined
-
-  const snapshotFreshness =
-    plan && !plan.teamPortfolioSnapshot
-      ? inspectSavedTeamPlanSnapshotFreshness(
+    ? outOfScopeDisc
+      ? { stale: true as const, reason: 'disc-rarity-outside-scope' as const }
+      : inspectSavedTeamPortfolioPlanSnapshotFreshness(
           plan,
-          decision?.fingerprint.inputHash,
-          currentBuildIntent && decision
-            ? contentHash([decision.fingerprint.inputHash, currentBuildIntent.fingerprint])
-            : undefined,
-          currentBuildIntent && liveInputForFreshness && nonPlanningComponents
-            ? buildSavedTeamPlanSolutionFingerprintFromComponents({
+          liveInputForFreshness && nonPlanningComponents && plan.teamPortfolioBuildIntent
+            ? buildSavedTeamPortfolioPlanSolutionFingerprintFromComponents({
                 decisionInput: liveInputForFreshness,
                 planId: plan.id,
-                buildIntentFingerprint: contentHash([
-                  currentBuildIntent.fingerprint,
-                  currentExactVariantKey!,
-                  currentSavedTeam!.effectiveEquipmentParameters
-                    ? targetTeamEquipmentParametersFingerprint(
-                        currentSavedTeam!.effectiveEquipmentParameters,
-                      )
-                    : currentSavedTeam!.accountFactBinding!.fingerprint,
-                ]),
+                buildIntent: plan.teamPortfolioBuildIntent,
                 nonPlanningComponents,
               })
             : undefined,
         )
+    : undefined
+
+  const snapshotFreshness =
+    plan && !plan.teamPortfolioSnapshot
+      ? outOfScopeDisc
+        ? { stale: true as const, reason: 'disc-rarity-outside-scope' as const }
+        : inspectSavedTeamPlanSnapshotFreshness(
+            plan,
+            decision?.fingerprint.inputHash,
+            currentBuildIntent && decision
+              ? contentHash([decision.fingerprint.inputHash, currentBuildIntent.fingerprint])
+              : undefined,
+            currentBuildIntent && liveInputForFreshness && nonPlanningComponents
+              ? buildSavedTeamPlanSolutionFingerprintFromComponents({
+                  decisionInput: liveInputForFreshness,
+                  planId: plan.id,
+                  buildIntentFingerprint: contentHash([
+                    currentBuildIntent.fingerprint,
+                    currentExactVariantKey!,
+                    currentSavedTeam!.effectiveEquipmentParameters
+                      ? targetTeamEquipmentParametersFingerprint(
+                          currentSavedTeam!.effectiveEquipmentParameters,
+                        )
+                      : currentSavedTeam!.accountFactBinding!.fingerprint,
+                  ]),
+                  nonPlanningComponents,
+                })
+              : undefined,
+          )
       : undefined
 
-  const restoredPlanStale = portfolioSnapshotFreshness?.stale ?? snapshotFreshness?.stale ?? true
-  const staleNotice = snapshotFreshness ? savedPlanStaleNotice(snapshotFreshness) : undefined
+  const freshness = portfolioSnapshotFreshness ?? snapshotFreshness
+  const restoredPlanPending =
+    !freshness || (freshness.stale && freshness.reason === 'current-result-unavailable')
+  const restoredPlanStale = Boolean(freshness?.stale && !restoredPlanPending)
+  const staleNotice =
+    snapshotFreshness && !restoredPlanPending
+      ? savedPlanStaleNotice(snapshotFreshness)
+      : outOfScopeDisc
+        ? '方案包含非 S 级或品质未确认的驱动盘，请使用 S 级驱动盘重新匹配。'
+        : undefined
   const currentRun = decisionWorld.status === 'current' ? decisionWorld.run : null
+  const currentRunOverviewIdentity =
+    plan &&
+    currentRun &&
+    currentRun.input.warehouse.accountId === warehouse.accountId &&
+    currentRun.snapshot.fingerprint.inputHash === decision?.fingerprint.inputHash &&
+    currentRun.snapshot.fingerprint.inputHash === decisionWorld.liveFingerprint
+      ? `${currentRun.runId}:${currentRun.snapshot.fingerprint.inputHash}:${plan.id}`
+      : null
+  const [currentRunOverview, setCurrentRunOverview] = useState<
+    { identity: string; overviewModel: TeamAnalysisResult['overviewModel'] | null } | undefined
+  >()
+  const directCurrentRunOverview =
+    currentRun && currentRunOverviewIdentity
+      ? acceptTeamOverviewPresentation(currentRun.teamPresentation, {
+          runId: currentRun.runId,
+          accountId: currentRun.input.warehouse.accountId ?? '',
+          inputFingerprint: currentRun.snapshot.fingerprint.inputHash,
+          agentId: null,
+          planId: null,
+          discId: null,
+        })?.overviewModel
+      : undefined
+  const currentRunOverviewModel =
+    directCurrentRunOverview ??
+    (currentRunOverview?.identity === currentRunOverviewIdentity
+      ? currentRunOverview.overviewModel
+      : null)
+
+  useEffect(() => {
+    if (
+      !currentRun ||
+      runLost ||
+      !currentRunOverviewIdentity ||
+      !calculationClient ||
+      typeof calculationClient.queryTeamOverviewPresentation !== 'function' ||
+      directCurrentRunOverview ||
+      currentRunOverview?.identity === currentRunOverviewIdentity
+    )
+      return
+    let active = true
+    void calculationClient
+      .queryTeamOverviewPresentation({
+        contractVersion: calculationQueryContractVersion,
+        kind: 'team_overview_presentation',
+        runId: currentRun.runId,
+        context: { agentId: null, planId: null, discId: null },
+      })
+      .then((projected) => {
+        if (!active) return
+        const overviewModel =
+          acceptTeamOverviewPresentation(projected, {
+            runId: currentRun.runId,
+            accountId: currentRun.input.warehouse.accountId ?? '',
+            inputFingerprint: currentRun.snapshot.fingerprint.inputHash,
+            agentId: null,
+            planId: null,
+            discId: null,
+          })?.overviewModel ?? null
+        setCurrentRunOverview(
+          overviewModel
+            ? { identity: currentRunOverviewIdentity, overviewModel }
+            : {
+                identity: currentRunOverviewIdentity,
+                overviewModel: null,
+              },
+        )
+      })
+      .catch(() => {
+        if (active)
+          setCurrentRunOverview({ identity: currentRunOverviewIdentity, overviewModel: null })
+      })
+    return () => {
+      active = false
+    }
+  }, [
+    calculationClient,
+    currentRun,
+    runLost,
+    currentRunOverview?.identity,
+    currentRunOverviewIdentity,
+    directCurrentRunOverview,
+  ])
 
   const savedItemFromCurrentRun = (() => {
     if (
@@ -343,16 +452,8 @@ export function useSavedPlanReplay({
       )
     )
       return null
-    const presentation = acceptTeamOverviewPresentation(currentRun.teamPresentation, {
-      runId: currentRun.runId,
-      accountId: warehouse.accountId ?? '',
-      inputFingerprint: currentRun.snapshot.fingerprint.inputHash,
-      agentId: null,
-      planId: null,
-      discId: null,
-    })
     return (
-      presentation?.overviewModel.groups
+      currentRunOverviewModel?.groups
         .flatMap((group) => group.items)
         .flatMap((family) => family.variants)
         .find((item) => item.id === `saved:${plan.id}`) ?? null
@@ -370,8 +471,12 @@ export function useSavedPlanReplay({
 
   const savedTargetCandidateId =
     plan &&
-    !restoredPlanStale &&
+    !runLost &&
+    canRecalculateSavedTeamPlan(snapshotFreshness) &&
     decisionWorld.status === 'current' &&
+    decisionWorld.run.input.warehouse.accountId === warehouse.accountId &&
+    plan.accountId === warehouse.accountId &&
+    decisionWorld.liveFingerprint === decision?.fingerprint.inputHash &&
     currentSavedTeam?.buildIntent.exactTeam.candidateId
       ? currentSavedTeam.buildIntent.exactTeam.candidateId
       : undefined
@@ -400,7 +505,7 @@ export function useSavedPlanReplay({
     savedTargetRunId &&
     savedTargetCandidateId &&
     (savedTargetParameters || savedAccountBindingFingerprint)
-      ? `${savedTargetRunId}:${savedTargetCandidateId}:${savedTargetParametersFingerprint}:${savedTargetDiscFingerprint}`
+      ? `${savedTargetRunId}:${savedTargetCandidateId}:${savedTargetParametersFingerprint}:${savedTargetDiscFingerprint}:${savedTeamReplayPlanHash(plan!)}`
       : ''
   const savedTargetRequestIdentity = savedTargetIdentity
     ? `${savedTargetIdentity}:${restoredTargetFitRetry}`
@@ -425,6 +530,11 @@ export function useSavedPlanReplay({
       (!stableSavedTargetParameters && !savedAccountBindingFingerprint)
     )
       return
+    const request = currentSavedDiscReplay(
+      plan,
+      warehouse.accountId!,
+      decision?.fingerprint.inputHash,
+    )
     void calculateTargetTeamWarehouseFit(
       savedTargetRunId,
       savedTargetCandidateId,
@@ -433,23 +543,12 @@ export function useSavedPlanReplay({
       plan?.solutionContext?.eventConditionDeclarationsByAgentId,
       undefined,
       plan?.solutionContext?.standardReferenceRequest32,
+      request,
     )
       .then((fit) => {
         if (!active || fit.candidateId !== savedTargetCandidateId) return
         setRestoredTargetTeamFitResult(
-          plan && savedTeamTargetFitMatchesSavedDiscs(plan, fit)
-            ? {
-                identity: savedTargetRequestIdentity,
-                status: 'ready',
-                fit: {
-                  ...fit,
-                  targetExecution: {
-                    ...fit.targetExecution,
-                    deploymentOrder: plan.teamExecutionSnapshot?.deploymentOrder,
-                  },
-                },
-              }
-            : { identity: savedTargetRequestIdentity, status: 'mismatch' },
+          savedDiscFitState(plan, fit, savedTargetRequestIdentity, request),
         )
       })
       .catch(() => {
@@ -470,6 +569,8 @@ export function useSavedPlanReplay({
     savedTargetRunId,
     savedTargetScenarioSelection,
     plan,
+    decision,
+    warehouse.accountId,
   ])
 
   return {
@@ -481,6 +582,7 @@ export function useSavedPlanReplay({
     portfolioSnapshotFreshness,
     snapshotFreshness,
     restoredPlanStale,
+    restoredPlanPending,
     staleNotice,
     restoredTeamRatingLabel,
     savedTargetCandidateId,

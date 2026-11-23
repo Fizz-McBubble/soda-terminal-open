@@ -3,6 +3,7 @@ import { getCurrentAgentEventContract } from '../calculation/currentAgentMechani
 import { currentBangbooAgentCompositionKey } from '../calculation/currentBangbooCompositionIdentity'
 import { definitionsByGameId } from '../calculation/currentBangbooMechanicDefinitions'
 import { resolveCurrentBangbooAdditionalActivation } from '../calculation/currentBangbooMechanicContracts'
+import { bangbooBaseSkillLevelForStars } from '../gameDataPacks/bangbooPlanningBaseline'
 import { getCurrentBangbooNumericData } from '../gameDataPacks/currentBangbooNumericCatalog'
 import display from '../gameDataPacks/data/current-bangboo-display.3.1.json'
 import { projectCurrentBangbooComposition } from './exhaustiveBangbooScoring'
@@ -66,7 +67,7 @@ export function describeBangbooConditions(input: {
     .find((skill) => skill.slot === 'b')
     ?.levels.find((level) => level.level === input.stars)
   const additionalDescription = additional ? stripRole(additional.description) : ''
-  const skillLevel = input.skillLevel ?? 1
+  const skillLevel = input.skillLevel ?? bangbooBaseSkillLevelForStars(input.stars)
   const baseSkills: BangbooConditionPresentation['baseSkills'] = (text?.skills ?? [])
     .filter((skill) => skill.slot !== 'b')
     .flatMap((skill) => {

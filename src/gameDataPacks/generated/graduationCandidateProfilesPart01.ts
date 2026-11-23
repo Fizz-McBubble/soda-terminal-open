@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart01 = [
     agentId: 'candidate-3.1-agent-remielle',
     playerName: '蕾米埃尔·丹',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '3.1',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F4+F5+F7',
     objectiveTopology: 'O6',
     configHash: '5cd30b0dedce2c93910dd7496113c0f8b4ef894fdd9c3169b6e3eb00e3e5f466',
-    inputHash: '9b6c79bc6acbd89c0c057280582660687c7c53e9163d9a397d286917d566995e',
+    inputHash: 'ca3b2bedc051811d6a8fa433892bf37f7321899a1fe8812745c69fe36535d9cc',
     inputReferences: [
       {
         record_id:
@@ -118,7 +118,7 @@ export const graduationCandidateProfilesPart01 = [
       deterministic: true,
       configHash: '4747caade78532b81cb3eb7f18d059102cfcc09feee144dc19831d07f0780b55',
     },
-    profileHash: 'ba6518f40d97553963d18a2079a45231be0159c15e693a2f9f2fc676233beaa5',
+    profileHash: '804298158efe194ec5c923b8272f014ef12b19be0237555f022280d1a00734a1',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -129,14 +129,14 @@ export const graduationCandidateProfilesPart01 = [
     agentId: 'agent-norma',
     playerName: '诺姆',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '3.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F3',
     objectiveTopology: 'O4',
     configHash: '6127eb423a273b78079aa78657d7a0bfaf5db1aff544e5497e52ce3803d6304f',
-    inputHash: '746cc3dae8f43f13ba6a319077ff6d7caf70dee7ae59ae7698a886ff50cf1f73',
+    inputHash: '42d6a550c81a26d6d8ab0b1133804f9cf115943765ad47e9d88099f5ac2c6436',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-norma-core-levels:core.levels:batch-agent-norma-r2d',
@@ -240,7 +240,7 @@ export const graduationCandidateProfilesPart01 = [
       deterministic: true,
       configHash: '98209ec7407b2f3d5ab9c17855240169a8278b79670f0949220ce364a963dff3',
     },
-    profileHash: 'f760ce2384038a9b4fb9f45704e1efae2b2a6e2b0a9afaa5f9223fda7667a104',
+    profileHash: '527c6bdb032db5b9faf7c9975bdbc2ad56c04cb1f8998011a8041b45dc031bbd',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -251,14 +251,14 @@ export const graduationCandidateProfilesPart01 = [
     agentId: 'agent-pyrois',
     playerName: '佩洛伊斯',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '3.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F1',
     objectiveTopology: 'O5',
     configHash: '2a4657b9b1bcbea0c7185c9ff115a600864284307cbe6653a4d1143ee67f6cd3',
-    inputHash: '78c1831a05d4b8db0c6be16fea07a1aad8e3eb1084d9bbbcdcaa2adc77e55f6a',
+    inputHash: 'b35774ae2f1e4d2f852ff4e43e42851c91eb0eac7fb6ae15e48fdddc564ea118',
     inputReferences: [
       {
         record_id:
@@ -372,6 +372,6 @@ export const graduationCandidateProfilesPart01 = [
       deterministic: true,
       configHash: '50eceb0026d0af73bbea5d1780ff2f278a7240d83ca14c1058f922428f5977de',
     },
-    profileHash: '9872ef4eaa14eefbcb5c63647415b7e1596daad36f62f9caa404be62d0a9566e',
+    profileHash: '5ff708da501a7508174e0e3b5ff5ff2f7586abf3248403d4093f8445811a010c',
   },
 ] as const

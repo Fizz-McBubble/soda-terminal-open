@@ -16,25 +16,7 @@ const completeDiscRecord = z.object({
   main_stat: stat.nullable(),
   substats: z.array(stat).max(4),
 })
-// A/B discs are outside the quick-read import scope. Classify by the observed
-// catalog identity before validating any of their unconsumed fields. Retain only
-// identity for counts/equipment warnings; omitted fields never become account facts.
-const discRecord = z.preprocess((input) => {
-  if (!input || typeof input !== 'object') return input
-  const row = input as Record<string, unknown>
-  const catalog = observation.safeParse(row.catalog_id)
-  if (!catalog.success || catalog.data.presence !== 'present') return input
-  const rarity = (Math.floor(catalog.data.value / 10) % 10) + 1
-  if (rarity !== 3 && rarity !== 4) return input
-  const uid = observation.safeParse(row.uid)
-  return {
-    catalog_id: catalog.data,
-    uid: uid.success ? uid.data : { presence: 'omitted', value: null },
-    level: { presence: 'omitted', value: null },
-    main_stat: null,
-    substats: [],
-  }
-}, completeDiscRecord)
+const discRecord = completeDiscRecord
 const engineRecord = z.object({
   uid: observation,
   catalog_id: observation,
@@ -55,16 +37,38 @@ const agentRecord = z.object({
 export type SnapshotAgentRecord = z.infer<typeof agentRecord>
 /** Unknown transport/security fields are stripped and never copied into account candidates. */
 const snapshotSourceSchema = z.object({
-  upstream_commit: z.literal('4853f07c8fb5322c12b9b580d6364b577c2ac96a'),
-  protocol_version: z.literal('3.2'),
   requested_game_region: z.literal('CN'),
   mode: z.literal('live_copy_only_client_cn_configuration_candidate'),
   capture_started_unix_seconds: z.number().int().positive().max(253402300799),
 })
+// Response identities are bound to the reviewed protocol source, not the UI version.
+// 3.3: native protocol-source.json at 444d2ccf, datamine load commands and
+// nap BIGOOGEGJEL int32 status descriptors (native response.rs verifies the same map).
+export const assetSnapshotProtocols = {
+  '3.2': {
+    upstreamCommit: '4853f07c8fb5322c12b9b580d6364b577c2ac96a',
+    responses: { discs: [3933, 12], engines: [1382, 12], agents: [2470, 8] },
+  },
+  '3.3': {
+    upstreamCommit: '444d2ccf3bae448d6a205e5d35107e85d462875a',
+    responses: { discs: [1744, 6], engines: [8256, 3], agents: [7398, 2] },
+  },
+} as const
+export type AssetSnapshotProtocolVersion = keyof typeof assetSnapshotProtocols
+const supportedSnapshotSourceSchema = z.discriminatedUnion('protocol_version', [
+  snapshotSourceSchema.extend({
+    protocol_version: z.literal('3.2'),
+    upstream_commit: z.literal(assetSnapshotProtocols['3.2'].upstreamCommit),
+  }),
+  snapshotSourceSchema.extend({
+    protocol_version: z.literal('3.3'),
+    upstream_commit: z.literal(assetSnapshotProtocols['3.3'].upstreamCommit),
+  }),
+])
 export const assetSnapshotSchema = z.object({
   schema: z.literal('soda-asset-snapshot-probe/v1'),
   status: z.enum(['staged_for_field_review', 'response_semantics_unverified']),
-  source: snapshotSourceSchema,
+  source: supportedSnapshotSourceSchema,
   coverage: z.object({
     disc_load_received: z.literal(true),
     engine_load_received: z.literal(true),

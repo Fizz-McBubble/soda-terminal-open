@@ -14,6 +14,25 @@ import {
 } from './absoluteDiscRetentionStagesFixture'
 
 describe('independent staged retention contract', () => {
+  it('excludes a known wrong set from a quality witness, but treats a missing set plan as unresolved', () => {
+    const strong = disc(['crit_rate', 'crit_dmg', 'atk_percent', 'def_flat'], 15, 4)
+    const wrong = {
+      ...baseProfile,
+      branchSetPlan: {
+        pattern: '2+2+2' as const,
+        primarySetIds: ['another-set'],
+        secondarySetIds: [],
+      },
+    }
+    const mismatch = assess(strong, [wrong])
+    expect(mismatch.evidence[0]?.useState).toBe('incompatible')
+    expect(mismatch.witnessProfileIds).not.toContain(wrong.id)
+    const unknown = { ...baseProfile, branchSetPlan: undefined }
+    const unresolved = assess(strong, [unknown])
+    expect(unresolved.evidence[0]?.useState).toBe('missing_fact')
+    expect(unresolved.qualityDisposition).toBe('review')
+    expect(unresolved.nextAction.kind).toBe('complete_data')
+  })
   const uncertainProfile = (weight: number, state: 'conditional' | 'missing_fact'): Profile => ({
     ...baseProfile,
     weights: { ...baseProfile.weights, hp_percent: weight },
@@ -154,6 +173,7 @@ describe('independent staged retention contract', () => {
         twoPieceFit: 'valid',
         fourPieceFit: 'incompatible',
         setFit: 'valid',
+        recommendationSetFit: 'valid',
         currentScore: 0,
         possibleUpper: 0,
         remainingNodes: 5,
@@ -318,8 +338,35 @@ describe('independent staged retention contract', () => {
     expect(assess(disc(), [gated]).evidence[0]).toMatchObject({
       twoPieceFit: 'valid',
       setFit: 'valid',
-      useState: 'valid',
+      recommendationSetFit: 'conditional',
+      useState: 'conditional',
     })
+  })
+  it('does not promote generic set utility when the exact set is outside the recommended branch', () => {
+    const unrelatedPlan: Profile = {
+      ...baseProfile,
+      branchSetPlan: {
+        pattern: '4+2',
+        primarySetIds: ['set-other-main'],
+        secondarySetIds: ['set-other-secondary'],
+      },
+      fourPieceUses: {},
+    }
+    const result = scoreProfile(
+      disc(),
+      unrelatedPlan,
+      catalog().sets[0],
+      rules,
+      policy([unrelatedPlan]),
+    )
+    expect(result.twoPieceFit).toBe('valid')
+    expect(result.setFit).toBe('valid')
+    expect(result.recommendationSetFit).toBe('incompatible')
+    expect(result.useState).toBe('incompatible')
+    const decision = assess(disc(), [unrelatedPlan])
+    expect(decision.reasonKind).toBe('no_supported_use')
+    expect(decision.ownedUseAgentIds).toEqual([])
+    expect(decision.unownedUseAgentIds).toEqual([])
   })
   it('distinguishes an explicit condition from an actual missing utility fact', () => {
     const conditional: Profile = {

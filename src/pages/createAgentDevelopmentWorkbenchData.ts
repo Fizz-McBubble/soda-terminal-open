@@ -4,7 +4,11 @@ import type { DriveDisc } from '../domain/schemas'
 import type { GoldenWorkbenchData } from '../features/agentDevelopmentGolden'
 import type { DevelopmentWorkbenchEquipmentDecision } from '../application/publicDevelopmentWorkbenchPresentation'
 import type { DevelopmentWorkbenchRoutePresentation } from '../application/publicDevelopmentWorkbenchRoute'
+import type { DevelopmentWorkbenchFactsPresentation } from '../application/publicDevelopmentWorkbenchFacts'
 import { publicDevelopmentDirectoryCatalog } from '../application/publicDevelopmentDirectoryCatalog'
+import { playerConditionLines } from '../application/playerDecisionPresentation'
+import { graduationConditionPresentation } from '../features/agentDevelopmentGolden/graduationConditionPresentation'
+import { workbenchPanelConditionPresentation } from '../features/agentDevelopmentGolden/workbenchPanelConditions'
 import {
   agentCatalog,
   getAgentName,
@@ -12,22 +16,54 @@ import {
   formatDevelopmentEntityText,
 } from '../application/publicRosterNames'
 import {
-  developmentSkillLabels as skillLabels,
   developmentPanelSummary as currentPanelSummary,
   developmentRecordedDiscFacts,
-  applyRecordedDevelopmentMetrics,
 } from './agentDevelopmentPublicDisplay'
 import { currentIndependentPlans, independentDiscConflicts } from './agentIndependentPlanReferences'
 import type { CandidateSnapshot } from './agentDevelopmentCandidateSession'
+import type {
+  PersonalDevelopmentCandidatesResult,
+  PersonalDevelopmentRoute,
+} from '../application/publicPersonalDevelopment'
 import { agentDevelopmentMainStatDifferences } from './agentDevelopmentMainStatDifferences'
+import { resolveWEngine } from '../decision/wEngineResolver'
+import { getReviewedWorkbenchDiscReference33 } from '../gameDataPacks/reviewedWorkbenchDiscReferences33'
+import { candidateDiscRecommendations } from './candidateDiscRecommendations'
 import {
   createAgentDevelopmentDecisionGuide,
   createAgentDevelopmentPanelFacts,
   createAgentDevelopmentWarehouseStatus,
 } from './agentDevelopmentDecisionGuide'
 
-type Candidate = CandidateSnapshot['candidates'][number]
+type DisplaySnapshot = CandidateSnapshot | PersonalDevelopmentCandidatesResult
+type Candidate = DisplaySnapshot['candidates'][number]
 type CandidateLoadout = Candidate['loadouts'][number]
+
+function uniquePlayerConditionTexts(values: readonly string[]) {
+  const seen = new Set<string>()
+  return playerConditionLines(values).flatMap((line) => {
+    if (seen.has(line.text)) return []
+    seen.add(line.text)
+    return [line.text]
+  })
+}
+
+export function presentAgentDevelopmentGraduationConditions({
+  panelConditions,
+  engineConditions,
+}: {
+  panelConditions: readonly string[]
+  engineConditions: readonly string[]
+}) {
+  const presentedPanelConditions = graduationConditionPresentation(panelConditions)
+  const panelConditionTexts = new Set(presentedPanelConditions)
+  return {
+    panelConditions: presentedPanelConditions,
+    engineConditions: uniquePlayerConditionTexts(engineConditions).filter(
+      (condition) => !panelConditionTexts.has(condition),
+    ),
+  }
+}
 
 export function createAgentDevelopmentWorkbenchData({
   agentId,
@@ -46,7 +82,6 @@ export function createAgentDevelopmentWorkbenchData({
   selectedCandidateIndex,
   candidates,
   selectedCandidate,
-  candidateLoadout,
   candidateChoices,
   hasComparablePlan,
   replacementCount,
@@ -58,14 +93,18 @@ export function createAgentDevelopmentWorkbenchData({
   catalog: (typeof publicDevelopmentDirectoryCatalog)[number]
   legacyCatalog: (typeof agentCatalog)[number] | undefined
   equipment: DevelopmentWorkbenchEquipmentDecision | null
-  routeProjection: DevelopmentWorkbenchRoutePresentation | null
+  routeProjection:
+    | DevelopmentWorkbenchRoutePresentation
+    | DevelopmentWorkbenchFactsPresentation
+    | PersonalDevelopmentRoute
+    | null
   selectedDiscs: DriveDisc[]
   planningDrafts: AccountPlanningDraft[]
   accountId: string
   requestedPlanId: string | null
-  candidateSnapshot: CandidateSnapshot | null
+  candidateSnapshot: DisplaySnapshot | null
   candidateSnapshotStale: boolean
-  currentCandidateSnapshot: CandidateSnapshot | null
+  currentCandidateSnapshot: DisplaySnapshot | null
   selectedCandidateIndex: number
   candidates: CandidateSnapshot['candidates']
   selectedCandidate: Candidate | undefined
@@ -76,8 +115,21 @@ export function createAgentDevelopmentWorkbenchData({
   analysisRequested: boolean
   savedAgentBuild: AccountPlanningDraft | undefined
 }): GoldenWorkbenchData {
-  const currentEngineName = equipment?.engine.name ?? agent.wEngineDetails.name ?? '未记录音擎'
+  const resolvedCurrentEngine = resolveWEngine({ agent }).current
+  // Fresh local edits (including explicit unknowns/removal) outrank an older
+  // captured route. Only an existing copy link may use its resolved inventory
+  // facts; recommended defaults never fill the current equipment slot.
+  const linkedEngine =
+    !agent.wEngineDetails.id && agent.wEngineCopyId ? equipment?.engine : undefined
+  const currentEngineId =
+    agent.wEngineDetails.id || resolvedCurrentEngine?.engineId || linkedEngine?.currentId
+  const currentEngineName =
+    resolvedCurrentEngine?.name ||
+    agent.wEngineDetails.name ||
+    linkedEngine?.name ||
+    (agent.wEngineDetails.id ? '音擎名称待确认' : '未记录音擎')
   const targetPanel = equipment?.targetPanel ?? null
+  const panelSourceNotes = equipment?.panelSourceNotes ?? []
   const panelProjection = routeProjection?.panel ?? null
   const workbench = routeProjection?.workbench ?? null
   const supportsPotential = equipment?.supportsPotential ?? false
@@ -101,62 +153,107 @@ export function createAgentDevelopmentWorkbenchData({
   const {
     targets: sourcedSkillTargets,
     priority: skillPriority,
+    priorityGroups: skillPriorityGroups,
     skills: recommendationSkills,
-  } = equipment?.skillRecommendation ?? { targets: {}, priority: [], skills: [] }
-  const skillGuidanceEvidence = skillPriority.length
-    ? ('priority_available' as const)
-    : equipment?.hasMechanicsWithoutPriority
-      ? ('mechanics_without_priority' as const)
-      : ('unavailable' as const)
-  const mainStats = equipment?.graduationDisplay.mainStats ?? []
+  } = equipment?.skillRecommendation ?? {
+    targets: {},
+    priority: [],
+    priorityGroups: [],
+    skills: [],
+  }
+  const primarySkills = recommendationSkills
+    .filter((skill) => skill.priority)
+    .map((skill) => skill.label)
+  const skillGuidanceEvidence =
+    primarySkills.length || skillPriority.length
+      ? ('priority_available' as const)
+      : equipment?.hasMechanicsWithoutPriority
+        ? ('mechanics_without_priority' as const)
+        : ('unavailable' as const)
+  const mainStats = (equipment?.graduationDisplay.mainStats ?? []).flatMap((stat) => {
+    const values = stat.value
+      .split(/\s*\/\s*/)
+      .filter((value) => value && !value.includes('资料待补齐'))
+    return values.length ? [{ ...stat, value: values.join(' / ') }] : []
+  })
+  const subStats = equipment?.graduationDisplay.subStats
+  const visibleSubStats = subStats && !subStats.includes('资料待补齐') ? subStats : ''
   const displayedGraduationTeams = equipment?.graduationTeams ?? []
-  const graduationEngines = (
-    equipment?.graduationEngines ?? [
-      {
-        tier: '候选方向' as const,
-        name: '音擎方向资料待刷新',
-        bonus: '请刷新当前账户的养成分析。',
-      },
-    ]
-  ).map((engine) => ({
-    ...engine,
-    name: formatDevelopmentEntityText(engine.name),
-    bonus: formatDevelopmentEntityText(engine.bonus),
-  }))
-  const graduationDiscSets = routeProjection?.setRecommendations ?? []
+  const graduationEngines = (equipment?.graduationEngines ?? [])
+    .filter((engine) => !engine.name.includes('资料待补齐'))
+    .map((engine) => ({
+      ...engine,
+      name: formatDevelopmentEntityText(engine.name),
+      bonus: formatDevelopmentEntityText(engine.bonus),
+    }))
+  const sourceDiscSets = routeProjection?.setRecommendations ?? []
+  const workbenchDiscReference = sourceDiscSets.length
+    ? getReviewedWorkbenchDiscReference33(agentId, equipment?.potential ?? agent.potentialImage)
+    : undefined
+  const graduationDiscSets = [
+    ...sourceDiscSets,
+    ...(workbenchDiscReference?.plans.flatMap((plan, index) =>
+      candidateDiscRecommendations([plan]).map((set) => ({
+        ...set,
+        recommendationConditionHint:
+          workbenchDiscReference.planHints?.[index] ?? set.recommendationConditionHint,
+      })),
+    ) ?? []),
+  ]
   const historicalDiscReferences = equipment?.historicalDiscReferences ?? []
   const discSetConditions = equipment?.discSetConditions ?? []
+  const presentedConditions = presentAgentDevelopmentGraduationConditions({
+    panelConditions: [
+      ...new Set([
+        ...(targetPanel?.conditions ?? []),
+        ...(workbench?.slices.currentPanel.facts
+          .filter((fact) => graduationPanel.some((target) => target.name === fact.label))
+          .flatMap((fact) => fact.targetConditions ?? []) ?? []),
+      ]),
+    ].filter(
+      (condition) =>
+        !panelSourceNotes.includes(condition) &&
+        !graduationPanel.some(
+          (target) => condition.trim() === `${target.name} ${target.value}`.trim(),
+        ),
+    ),
+    engineConditions: equipment?.engineConditions ?? [],
+  })
   const warehouseAnalysis = createAgentDevelopmentWarehouseStatus({
     inventoryTransition: selectedCandidate?.inventoryTransition,
     savedInventoryTransition: savedAgentBuild?.candidateWarehouse?.inventoryTransition,
     requested: analysisRequested,
     comparable: hasComparablePlan,
-    totalScore: candidateLoadout?.totalScore,
-    choices: candidateChoices,
+    evaluation: recordedEvaluation,
     replacementCount,
     gap: selectedCandidate?.gaps[0],
   })
-  if (!hasComparablePlan) applyRecordedDevelopmentMetrics(warehouseAnalysis, recordedEvaluation)
   return {
     panelScopeKey: JSON.stringify([accountId, agentId]),
     agentId,
     name: legacyCatalog?.[1] ?? catalog.playerName,
-    rarity: legacyCatalog?.[4] ?? catalog.rarity ?? '资料待补齐',
+    rarity: legacyCatalog?.[4] ?? catalog.rarity ?? '',
     specialty: getAgentSpecialtyLabel(legacyCatalog?.[2] ?? catalog.specialty),
     level: agent.level,
     mindscape: agent.mindscape,
     supportsPotential,
     potential: equipment?.potential ?? agent.potentialImage ?? undefined,
-    engine: equipment?.engine ?? {
+    engine: {
+      ...(equipment?.engine ?? {
+        detail: '',
+        copyLabel: '当前音擎 · 代理人维护共享',
+        copyId: null,
+        copies: [],
+        options: [],
+      }),
       name: currentEngineName,
-      detail: '当前音擎匹配资料待刷新',
-      copyLabel: '当前音擎 · 代理人维护共享',
-      copyId: null,
-      copies: [],
-      currentId: agent.wEngineDetails.id || null,
-      level: agent.wEngineDetails.level,
-      refinement: agent.wEngineDetails.refinement,
-      options: [],
+      currentId: currentEngineId || null,
+      level: linkedEngine ? linkedEngine.level : agent.wEngineDetails.level,
+      refinement: linkedEngine ? linkedEngine.refinement : agent.wEngineDetails.refinement,
+      visual:
+        currentEngineId && currentEngineName !== '未记录音擎'
+          ? { entityId: currentEngineId, name: currentEngineName }
+          : undefined,
     },
     skills: [
       ['普', '普攻', agent.skillLevels.basic],
@@ -177,42 +274,30 @@ export function createAgentDevelopmentWorkbenchData({
     graduation: {
       skills: recommendationSkills,
       potentialSkillReference: equipment?.potentialSkillReference ?? undefined,
-      skillPriority: skillPriority.length
-        ? skillPriority.map((key) => skillLabels[key])
-        : ['资料待补齐'],
+      skillPriority: primarySkills,
+      skillPriorityGroups: skillPriorityGroups.map((group) =>
+        group.map((key) => recommendationSkills.find((skill) => skill.key === key)?.label ?? key),
+      ),
       panel: graduationPanel,
-      panelDirection: graduationPanel.length ? undefined : equipment?.graduationDisplay.subStats,
-      panelConditions: [
-        ...new Set([
-          ...(targetPanel?.conditions ?? []),
-          ...(workbench?.slices.currentPanel.facts.flatMap((fact) => fact.targetConditions ?? []) ??
-            []),
-        ]),
-      ],
-      teams: displayedGraduationTeams.length
-        ? displayedGraduationTeams
-        : [{ label: '队伍方向资料待补齐', members: catalog.playerName, visuals: [] }],
+      panelDirection: graduationPanel.length ? undefined : visibleSubStats || undefined,
+      panelConditions: workbenchPanelConditionPresentation(presentedConditions.panelConditions),
+      panelSourceNotes,
+      teams: displayedGraduationTeams,
       engines: graduationEngines,
-      engineConditions: equipment?.engineConditions?.map(formatDevelopmentEntityText) ?? [],
+      engineConditions: presentedConditions.engineConditions,
       discs: {
         sets: graduationDiscSets,
         historicalReferences: historicalDiscReferences,
         directionNote: graduationDiscSets.length
           ? [
               ...discSetConditions,
-              ...(equipment?.graduationDisplay.unresolvedSetDirections.length
-                ? [
-                    `另有方向尚待确认完整搭配：${equipment.graduationDisplay.unresolvedSetDirections.join('；')}`,
-                  ]
-                : []),
+              ...(workbenchDiscReference?.primaryNote ? [workbenchDiscReference.primaryNote] : []),
             ].join('；') || undefined
           : undefined,
-        unavailableReason: graduationDiscSets.length
-          ? undefined
-          : (equipment?.graduationDisplay.setUnavailableReason ?? '完整套装搭配资料待补齐。'),
+        unavailableReason: undefined,
         mainStats,
         mainStatAlternatives: equipment?.graduationDisplay.mainStatAlternatives,
-        subStats: equipment?.graduationDisplay.subStats ?? '资料待补齐',
+        subStats: visibleSubStats,
       },
     },
     decisionGuide: createAgentDevelopmentDecisionGuide({
@@ -220,7 +305,7 @@ export function createAgentDevelopmentWorkbenchData({
       mindscape: agent.mindscape,
       currentEngineName,
       discSource: visibleDiscSource,
-      skillPriority: skillPriority.map((key) => skillLabels[key]),
+      skillPriority: primarySkills,
       skillTargetCount: Object.keys(sourcedSkillTargets).length,
       skillGuidanceEvidence,
       engines: graduationEngines,
@@ -233,7 +318,7 @@ export function createAgentDevelopmentWorkbenchData({
     }),
     panelFacts: createAgentDevelopmentPanelFacts(
       workbench?.slices.currentPanel.facts ?? [],
-      graduationPanel,
+      graduationPanel.filter((target) => target.placement !== 'reference'),
     ),
     currentPanel: {
       availability: workbench?.slices.currentPanel.availability ?? 'unavailable',
@@ -254,6 +339,7 @@ export function createAgentDevelopmentWorkbenchData({
         )
       : [],
     mode: requestedPlanId ? 'saved' : 'current',
+    comparisonTarget: routeProjection?.comparisonTarget,
     discSource: visibleDiscSource,
     discs: visibleDiscs,
   }

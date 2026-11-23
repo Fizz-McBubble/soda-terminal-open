@@ -6,7 +6,10 @@ import {
   getCandidateWarehouseConstraint,
   type CandidateWarehouseConstraint,
 } from '../gameDataPacks/candidateWarehouseConstraints'
-import { candidateSetIdsInSourceOrder } from '../gameDataPacks/candidateSetPlans'
+import {
+  candidateSetIdsInSourceOrder,
+  compileCandidateSetPlans,
+} from '../gameDataPacks/candidateSetPlans'
 import type { CandidateSetPlan } from '../gameDataPacks/candidateSetPlans'
 import { currentDriveDiscFormulaCatalog } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { currentAssetCatalog } from '../gameDataPacks/currentAssetCatalog'
@@ -18,6 +21,7 @@ import { stableContentHash } from '../gameDataPacks/types'
 import { sourcedFunctionalMains } from './absoluteDiscRetentionFunctions'
 import { retentionCondition } from './absoluteDiscRetentionConditions'
 import { resolveRetentionUseFacts } from './absoluteDiscRetentionUseFacts'
+import { warehouseInvestmentBranchKey } from './warehouseInvestmentBranch'
 import {
   resolveRetentionQualityWeights,
   retentionWeightParameters,
@@ -29,6 +33,7 @@ import type {
   Disc,
   Profile,
   QualityPolicy,
+  RetentionBranchSetPlan,
   CoverageGap,
   UtilityEvidence,
 } from './absoluteDiscRetentionKernel'
@@ -36,12 +41,6 @@ import type {
 const policyVersion = 'absolute-disc-retention-3.2-stage-r6-quality-dependency-lifecycle'
 const calibratedCutoffs = { cleanupBelow: 48, keepFrom: 60, premiumFrom: 67 } as const
 const calibratedRarities = ['S'] as const
-const rarityCleanup = {
-  id: 'approved-ab-cleanup-20260930',
-  approval: 'approved',
-  rarities: ['A', 'B'],
-  sourceIds: ['product-policy:user-approved-ab-cleanup-20260930'],
-} as const
 
 const released = currentAgentDirectory.filter(
   (entry) => entry.releaseState === 'released' && entry.accountOwnable,
@@ -64,6 +63,19 @@ function applicability(evidence: UtilityEvidence): Applicability {
       : 'conditional'
 }
 
+function retentionBranchSetPlan(
+  plan: CandidateSetPlan | undefined,
+): RetentionBranchSetPlan | undefined {
+  if (!plan) return undefined
+  return {
+    pattern: plan.pattern,
+    primarySetIds: [...plan.primarySetIds],
+    secondarySetIds: [...plan.secondarySetIds],
+    ...(plan.purpose ? { purpose: plan.purpose } : {}),
+    ...(plan.sourceText ? { sourceText: plan.sourceText } : {}),
+  }
+}
+
 function profile(
   constraint: CandidateWarehouseConstraint,
   branchId: string,
@@ -72,10 +84,12 @@ function profile(
   condition?: string | CandidateSetPlan['condition'],
   mainAvailability: Applicability = 'valid',
   selectedSetPlan?: CandidateSetPlan,
+  evidenceSetPlan?: CandidateSetPlan,
 ): Profile {
   const agentId = resolveCurrentReleasedIdentity(constraint.agentId)
   const sources = sourceIds(constraint)
   const facts = resolveRetentionUseFacts(constraint, agentId, undefined, selectedSetPlan)
+  const branchSetPlan = retentionBranchSetPlan(evidenceSetPlan ?? selectedSetPlan)
   const quality = resolveRetentionQualityWeights(constraint, agentId, facts)
   const mainStatsBySlot = Object.fromEntries(
     (['4', '5', '6'] as const).map((slot) => [
@@ -121,6 +135,7 @@ function profile(
         (facts.goal === 'functional' &&
           quality.weightEvidence.method === 'source_proven_no_functional_substat_goal')),
     ...quality,
+    ...(branchSetPlan ? { branchSetPlan } : {}),
     goal: facts.goal,
     mainStatsBySlot,
     effectUtility: Object.fromEntries(
@@ -145,6 +160,7 @@ function profile(
 
 function buildProfiles() {
   const profiles: Profile[] = []
+  const investmentBranchByProfileId = new Map<string, string>()
   const missingAgentIds: string[] = []
   const unresolvedBranchIds: string[] = []
   const coverageGaps: CoverageGap[] = []
@@ -172,40 +188,48 @@ function buildProfiles() {
     const plans = candidateSetPlansForConstraint(base)
     if (!plans.length) profiles.push(profile(base, 'two-piece-only', [], 'valid'))
     else
-      plans.forEach((plan, index) =>
-        profiles.push(
-          profile(
-            base,
-            `base-${index}:${stableContentHash(plan).slice(0, 10)}`,
-            plan.pattern === '4+2' ? plan.primarySetIds : [],
-            plan.condition || (plan.purpose && plan.purpose !== 'recommended')
-              ? 'conditional'
-              : 'valid',
-            plan.condition ??
-              (plan.purpose && plan.purpose !== 'recommended'
-                ? `来源构筑用途：${plan.purpose}`
-                : undefined),
-            'valid',
-            plan,
-          ),
-        ),
-      )
+      plans.forEach((plan, index) => {
+        const entry = profile(
+          base,
+          `base-${index}:${stableContentHash(plan).slice(0, 10)}`,
+          plan.pattern === '4+2' ? plan.primarySetIds : [],
+          plan.condition || (plan.purpose && plan.purpose !== 'recommended')
+            ? 'conditional'
+            : 'valid',
+          plan.condition ??
+            (plan.purpose && plan.purpose !== 'recommended'
+              ? `来源构筑用途：${plan.purpose}`
+              : undefined),
+          'valid',
+          plan,
+        )
+        profiles.push(entry)
+        investmentBranchByProfileId.set(
+          entry.id,
+          warehouseInvestmentBranchKey(agentId, 'base', plan),
+        )
+      })
     for (const [index, alternative] of (base.mainStatAlternatives ?? []).entries()) {
       const branch = {
         ...base,
         mainStats: { ...base.mainStats, [alternative.slot]: [...alternative.stats] },
         sources: [...base.sources, alternative.source],
       } satisfies CandidateWarehouseConstraint
-      profiles.push(
-        profile(
-          branch,
-          `main-alt-${index}:${alternative.purpose}`,
-          [],
-          'conditional',
-          alternative.condition ?? `来源主词替代用途：${alternative.purpose}`,
-          'conditional',
-        ),
-      )
+      const explicitlySourcedPlans = compileCandidateSetPlans([alternative.condition])
+      const alternativePlans = explicitlySourcedPlans.length ? explicitlySourcedPlans : [undefined]
+      for (const [planIndex, plan] of alternativePlans.entries())
+        profiles.push({
+          ...profile(
+            branch,
+            `main-alt-${index}:${alternative.purpose}${plan ? `:${planIndex}` : ''}`,
+            plan?.pattern === '4+2' ? plan.primarySetIds : [],
+            'conditional',
+            alternative.condition ?? `来源主词替代用途：${alternative.purpose}`,
+            'conditional',
+            plan,
+          ),
+          restrictedSlots: [Number(alternative.slot)],
+        })
     }
     for (const [index, direction] of (base.unresolvedSetDirections ?? []).entries()) {
       const setIds = candidateSetIdsInSourceOrder(direction)
@@ -227,14 +251,49 @@ function buildProfiles() {
         })
         continue
       }
-      profiles.push(
-        profile(
-          base,
-          `condition-${index}:${stableContentHash(direction).slice(0, 10)}`,
-          fourPieceIds,
-          'conditional',
-          direction,
+      // A named conditional two-piece can replace the secondary of a single
+      // sourced four-piece plan; retain its condition and never invent a main.
+      const basePrimary = [
+        ...new Set(
+          plans.filter((plan) => plan.pattern === '4+2').flatMap((plan) => plan.primarySetIds),
         ),
+      ]
+      const conditionalPlan: CandidateSetPlan | undefined =
+        /2\s*件/.test(direction) &&
+        !/4\s*件/.test(direction) &&
+        setIds.length === 1 &&
+        basePrimary.length === 1 &&
+        basePrimary[0] !== setIds[0]
+          ? {
+              pattern: '4+2',
+              primarySetIds: basePrimary,
+              secondarySetIds: setIds,
+              sourceText: direction,
+              purpose: 'conditional',
+            }
+          : undefined
+      const conditionalProfile = profile(
+        base,
+        `condition-${index}:${stableContentHash(direction).slice(0, 10)}`,
+        conditionalPlan?.primarySetIds ?? fourPieceIds,
+        'conditional',
+        direction,
+        'valid',
+        conditionalPlan,
+      )
+      profiles.push(
+        !conditionalPlan && fourPieceIds.length === 1
+          ? {
+              ...conditionalProfile,
+              branchSetPlan: {
+                pattern: '4+unconfirmed',
+                primarySetIds: fourPieceIds,
+                secondarySetIds: [],
+                sourceText: direction,
+                purpose: 'conditional',
+              },
+            }
+          : conditionalProfile,
       )
     }
     for (const direction of reviewedTeamDiscDirections.filter(
@@ -258,22 +317,35 @@ function buildProfiles() {
           },
         ],
       } satisfies CandidateWarehouseConstraint
-      profiles.push(
-        profile(
-          branch,
-          `reviewed-${direction.id}`,
-          direction.setPlan.pattern === '4+2' ? direction.setPlan.primarySetIds : [],
-          'conditional',
-          direction.source.locator.text,
-          direction.mainStats ? 'conditional' : 'valid',
-        ),
+      const entry = profile(
+        branch,
+        `reviewed-${direction.id}`,
+        direction.setPlan.pattern === '4+2' ? direction.setPlan.primarySetIds : [],
+        'conditional',
+        direction.source.locator.text,
+        direction.mainStats ? 'conditional' : 'valid',
+        undefined,
+        direction.setPlan,
+      )
+      profiles.push(entry)
+      investmentBranchByProfileId.set(
+        entry.id,
+        warehouseInvestmentBranchKey(agentId, direction.id, direction.setPlan),
       )
     }
   }
-  return { profiles, missingAgentIds, unresolvedBranchIds, coverageGaps }
+  return {
+    profiles,
+    missingAgentIds,
+    unresolvedBranchIds,
+    coverageGaps,
+    investmentBranchByProfileId,
+  }
 }
 
 const built = buildProfiles()
+export const warehouseInvestmentBranchByProfileId: ReadonlyMap<string, string> =
+  built.investmentBranchByProfileId
 
 const rules = driveDiscData?.rules
 // Locked upstream consts/disc.ts: discSubstatRollData. Lower rarity spends more
@@ -354,7 +426,6 @@ const catalog: Catalog = {
 /** Frozen policy identity includes the live branch, set-effect and game-rule inputs. */
 export function hashAbsoluteDiscRetentionCatalog(input: Catalog) {
   return stableContentHash({
-    rarityCleanup,
     profiles: input.profiles,
     sets: input.sets,
     rules: input.rules,
@@ -375,15 +446,14 @@ export function hashAbsoluteDiscRetentionCatalog(input: Catalog) {
 export const absoluteDiscRetentionCatalogHash = hashAbsoluteDiscRetentionCatalog(catalog)
 
 /**
- * Independent S-rarity calibration and holdout fix the cleanup and strong-keep lines.
- * The premium line is a sufficient high-score signal, not a claim to catch every
- * excellent disc. A/B follow the separately approved rarity rule, not these cutoffs.
+ * The S-rarity cutoffs support the current product retention decision flow.
+ * They are not player-population pass or percentile evidence. A/B discs are
+ * outside the current analysis scope.
  */
 export const absoluteDiscRetentionPolicy: QualityPolicy = {
   id: `${policyVersion}:${absoluteDiscRetentionCatalogHash}`,
   calibration: 'approved',
   calibratedRarities,
-  rarityCleanup,
   investment: {
     id: 'source-goal-stage-investment-r1',
     calibration: 'approved',
@@ -416,7 +486,7 @@ export function toAbsoluteRetentionDisc(disc: DriveDisc): Disc {
     id: disc.id,
     setId: disc.setId,
     slot: disc.slot,
-    rarity: disc.rarity ?? 'S',
+    rarity: disc.rarity ?? 'unknown',
     level: disc.level,
     mainStat: disc.mainStat,
     subStats: disc.subStats,

@@ -26,7 +26,7 @@ export function SavedPortfolioPlanTeams({ plan, warehouse }: SavedPortfolioPlanT
         </p>
       </header>
       <p className="panel optimizer-portfolio__why" role="status">
-        下方成员与驱动盘按当前仓库资料显示；保存结论是历史记录，不代表当前仓库仍然可用。本页不重新匹配、不重新求解，也不改写这份方案。
+        下方展示保存的驱动盘及当前仓库记录。
       </p>
       <div className="optimizer-portfolio__teams">
         {snapshot.executions.map((execution, index) => {
@@ -49,13 +49,11 @@ export function SavedPortfolioPlanTeams({ plan, warehouse }: SavedPortfolioPlanT
               </p>
               <p>
                 {execution.memberIds.map(getAgentName).join(' · ')} ·{' '}
-                {execution.bangbooId ? playerFacingBangbooLabel(execution.bangbooId) : '未纳入'}
+                {execution.bangbooId ? playerFacingBangbooLabel(execution.bangbooId) : '邦布未记录'}
               </p>
               <p role="status">
                 当前仓库核对：{presentCount}/{savedIds.length} 张可找到
-                {missingCount
-                  ? ` · 缺少 ${missingCount} 张（原记录保留，未自动替换）`
-                  : ' · 未发现缺盘'}
+                {missingCount ? ` · 缺少 ${missingCount} 张` : ' · 未发现缺盘'}
               </p>
               {execution.members.map((member) => {
                 const discIds = [...new Set(member.suggested.discIds)]
@@ -67,22 +65,22 @@ export function SavedPortfolioPlanTeams({ plan, warehouse }: SavedPortfolioPlanT
                     <h3>{getAgentName(member.agentId)}</h3>
                     {member.suggested.wEngine && engineLabel ? (
                       <p>
-                        方案音擎：{engineLabel} · P{member.suggested.wEngine.refinement}
+                        方案音擎：{engineLabel === '音擎资料待补齐' ? '音擎名称未知' : engineLabel}
+                        {typeof member.suggested.wEngine.refinement === 'number'
+                          ? ` · P${member.suggested.wEngine.refinement}`
+                          : ''}
                       </p>
                     ) : (
-                      <p>这份方案未记录该成员使用的音擎；其他已保存内容仍保留。</p>
+                      <p>未记录音擎</p>
                     )}
                     {discIds.length ? (
                       <PublicSavedDiscList
                         discIds={discIds}
                         warehouse={warehouse}
                         label={`${getAgentName(member.agentId)}的已保存驱动盘`}
-                        missingNotice="原记录已保留，未自动缩减或替换。"
                       />
                     ) : (
-                      <p className="team-execution__disc-missing">
-                        这份方案未记录该成员使用哪些驱动盘，其他已保存内容仍保留。
-                      </p>
+                      <p className="team-execution__disc-missing">未记录驱动盘</p>
                     )}
                   </section>
                 )
@@ -94,13 +92,12 @@ export function SavedPortfolioPlanTeams({ plan, warehouse }: SavedPortfolioPlanT
                     discIds={unattributedIds}
                     warehouse={warehouse}
                     label="未记录成员归属的已保存驱动盘"
-                    missingNotice="原记录已保留，未自动缩减或替换。"
                   />
                 </section>
               ) : null}
               {blockerLines.length ? (
                 <details className="team-execution__loadout">
-                  <summary>查看这支队伍保存时的 {blockerLines.length} 项限制</summary>
+                  <summary>保存时的 {blockerLines.length} 项待补条件</summary>
                   <ul>
                     {blockerLines.map((line) => (
                       <li key={line}>{line}</li>

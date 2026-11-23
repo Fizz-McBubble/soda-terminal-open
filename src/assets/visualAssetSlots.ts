@@ -3,6 +3,7 @@ import type { VisualAssetEntityType } from './visualAssets'
 export type VisualAssetConsumer =
   | 'assets.catalog'
   | 'assets.editor'
+  | 'scanner.preparation'
   | 'agent-development.overview'
   | 'agent-development.workbench'
   | 'agent-development.comparison'
@@ -87,7 +88,7 @@ export const visualAssetSlots = {
     entityType: 'agent',
     role: 'selected agent summary portrait',
     variant: 'interknot',
-    fallbackVariants: [],
+    fallbackVariants: ['social_avatar'],
     aspectRatio: '1 / 1',
     objectFit: 'cover',
     objectPosition: 'center',
@@ -108,6 +109,19 @@ export const visualAssetSlots = {
     minimumSize: { width: 280, height: 460 },
     allowedConsumers: ['agent-development.workbench'],
   },
+  'skill.category-icon': {
+    slotId: 'skill.category-icon',
+    entityType: 'illustration',
+    role: 'skill category glyph',
+    variant: 'icon',
+    fallbackVariants: [],
+    aspectRatio: '1 / 1',
+    objectFit: 'contain',
+    objectPosition: 'center',
+    contentScale: 1,
+    minimumSize: { width: 16, height: 16 },
+    allowedConsumers: ['agent-development.workbench'],
+  },
   'wengine.equipment-icon': {
     slotId: 'wengine.equipment-icon',
     entityType: 'wengine',
@@ -119,8 +133,11 @@ export const visualAssetSlots = {
     objectPosition: 'center',
     contentScale: 1,
     minimumSize: { width: 44, height: 44 },
-    minimumSizeByConsumer: { 'agent-development.workbench': { width: 32, height: 32 } },
-    allowedConsumers: ['agent-development.workbench', 'box.team-workspace'],
+    minimumSizeByConsumer: {
+      'agent-development.workbench': { width: 32, height: 32 },
+      'box.team-overview': { width: 32, height: 32 },
+    },
+    allowedConsumers: ['agent-development.workbench', 'box.team-workspace', 'box.team-overview'],
   },
   'wengine.catalog-card': {
     slotId: 'wengine.catalog-card',
@@ -166,6 +183,19 @@ export const visualAssetSlots = {
       'box.team-workspace',
       'warehouse.action-list',
     ],
+  },
+  'bangboo.scanner-guide': {
+    slotId: 'bangboo.scanner-guide',
+    entityType: 'bangboo',
+    role: 'scanner guide illustration',
+    variant: 'icon',
+    fallbackVariants: [],
+    aspectRatio: '1 / 1',
+    objectFit: 'contain',
+    objectPosition: 'center',
+    contentScale: 1,
+    minimumSize: { width: 34, height: 34 },
+    allowedConsumers: ['scanner.preparation'],
   },
   'bangboo.team-icon': {
     slotId: 'bangboo.team-icon',

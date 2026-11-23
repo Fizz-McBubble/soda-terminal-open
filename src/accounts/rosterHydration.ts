@@ -91,9 +91,16 @@ export function hydrateRosterDefaults(
         const observedFacts = normalizeObservedAgentFacts(existing.observedFacts)
         const shouldApplyOwnedBaseline = existing.owned && !progressionIsManual
         const preserveField = (field: ObservedAgentField) =>
-          // Keep legacy repair behavior for older rows, but never repair deliberate manual
-          // progression in a newly provenance-bearing record as if it were a default fingerprint.
-          (progressionIsManual && Boolean(observedFacts)) ||
+          ((existing.source === 'showcase' ||
+            existing.source === 'roster_snapshot' ||
+            existing.source === 'external_export') &&
+            (field === 'mindscape' ||
+              (field.startsWith('skillLevels.') &&
+                existing.skillLevels[
+                  field.slice('skillLevels.'.length) as keyof typeof existing.skillLevels
+                ] != null))) ||
+          // A fingerprint alone cannot establish that an explicit manual value was a default.
+          progressionIsManual ||
           existing.lockedFields?.includes(field) ||
           existing.lockedFields?.includes(field.split('.')[0]) ||
           hasObservedAgentField(existing, field)

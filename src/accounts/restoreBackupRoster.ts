@@ -75,10 +75,21 @@ export function restoreBackupRoster(
           ? { ...saved.wEngineDetails, id: saved.wEngineDetails.id ?? null }
           : agent.wEngineDetails,
         ...('potentialImage' in saved ? { potentialImage: saved.potentialImage } : {}),
+        ...('manualProgression' in saved ? { manualProgression: saved.manualProgression } : {}),
         ...('progressionManuallySet' in saved
           ? { progressionManuallySet: saved.progressionManuallySet }
           : {}),
         ...('lockedFields' in saved ? { lockedFields: [...(saved.lockedFields ?? [])] } : {}),
+      }
+      if (restoredAgent.manualProgression) {
+        const manualProgression = { ...restoredAgent.manualProgression }
+        if (manualProgression.mindscape !== restoredAgent.mindscape)
+          delete manualProgression.mindscape
+        if (manualProgression.potentialImage !== restoredAgent.potentialImage)
+          delete manualProgression.potentialImage
+        restoredAgent.manualProgression = Object.keys(manualProgression).length
+          ? manualProgression
+          : undefined
       }
       // A legacy backup without this field has no lock-state evidence. Do not turn that absence
       // into an explicit empty lock list merely because the temporary restore roster has one.

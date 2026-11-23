@@ -1,31 +1,41 @@
 import { useLayoutEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { ChevronRight, X } from 'lucide-react'
 import { fitFloatingLayer, getEffectiveZoom } from './floatingLayerGeometry'
 import './ExplanationPopover.css'
 
 /** Native top-layer disclosure: outside click, Escape and focus return stay browser-owned. */
 export function ExplanationPopover({
   label,
+  triggerAriaLabel,
   title = label,
   children,
   className = '',
   align = 'end',
+  minimumVisibleHeight,
   closeLabel = '关闭说明',
   showIndicator = true,
   variant = 'text',
   onOpenChange,
+  focusCloseOnOpen = false,
+  disabled = false,
 }: {
   label: string
+  triggerAriaLabel?: string
   title?: string
   children: ReactNode
   className?: string
   align?: 'start' | 'end'
+  minimumVisibleHeight?: number
   closeLabel?: string
   showIndicator?: boolean
   variant?: 'text' | 'button'
   onOpenChange?: (open: boolean) => void
+  focusCloseOnOpen?: boolean
+  disabled?: boolean
 }) {
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
+  const close = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLDivElement>(null)
   const body = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
@@ -52,6 +62,8 @@ export function ExplanationPopover({
         viewportWidth: window.innerWidth,
         viewportHeight: window.innerHeight,
         align,
+        minimumHeight:
+          minimumVisibleHeight === undefined ? undefined : minimumVisibleHeight * scale,
       })
       content.style.left = `${position.left}px`
       content.style.top = `${position.top}px`
@@ -67,6 +79,7 @@ export function ExplanationPopover({
       position()
     }
     position()
+    if (focusCloseOnOpen) close.current?.focus({ preventScroll: true })
     window.addEventListener('resize', position)
     window.addEventListener('scroll', repositionOnPageScroll, true)
     panel.current?.addEventListener('toggle', position, true)
@@ -95,7 +108,7 @@ export function ExplanationPopover({
       observer.disconnect()
       if (resizeFrame !== undefined) window.cancelAnimationFrame(resizeFrame)
     }
-  }, [open, align])
+  }, [open, align, minimumVisibleHeight, focusCloseOnOpen])
 
   return (
     <span className={`explanation ${className}`}>
@@ -106,8 +119,12 @@ export function ExplanationPopover({
         popoverTarget={id}
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-label={triggerAriaLabel}
+        disabled={disabled}
       >
-        {showIndicator ? <span aria-hidden="true">{open ? '▾' : '▸'}</span> : null}
+        {showIndicator ? (
+          <ChevronRight className="explanation__indicator" aria-hidden="true" size={14} />
+        ) : null}
         <span className="explanation__label">{label}</span>
       </button>
       <div
@@ -128,11 +145,12 @@ export function ExplanationPopover({
           <strong>{title}</strong>
           <button
             type="button"
+            ref={close}
             popoverTarget={id}
             popoverTargetAction="hide"
             aria-label={closeLabel}
           >
-            ×
+            <X aria-hidden="true" size={16} strokeWidth={1.8} />
           </button>
         </header>
         <div ref={body} className="explanation-popover__body">

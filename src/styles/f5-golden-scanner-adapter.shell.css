@@ -395,22 +395,6 @@
   display: none;
 }
 
-.f5v-shell
-  .scanner-golden[data-scanner-state='scanning']
-  :is(.scanner-web__interaction-lock, .scanner-web__progress, .scanner-target-mismatch),
-.f5v-shell
-  .scanner-golden[data-scanner-state='paused']
-  :is(.scanner-web__interaction-lock, .scanner-web__progress, .scanner-target-mismatch) {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  margin: -1px !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  clip: rect(0 0 0 0) !important;
-  white-space: nowrap !important;
-}
-
 .f5v-shell .scanner-target-account__frozen {
   max-width: 620px;
   margin: 28px 0 0;

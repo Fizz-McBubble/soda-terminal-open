@@ -108,6 +108,23 @@ export type TeamStrengthMechanicFeatures = {
     lacerationCoverage: number
     attributeConditionalRecipientIds: string[]
   }
+  /** Opt-in audit evidence; never enters model values or runtime ranking. */
+  capabilityProviderEvidence?: Record<string, string[]>
+  capabilityCoverageEvidence?: Array<{
+    capability: string
+    providerAgentId: string
+    recipientAgentId: string
+    effectIdentity: string
+    receiverPath: string
+    damageType: string | null
+  }>
+  capabilitySelfCoverageEvidence?: Array<{
+    capability: string
+    providerAgentId: string
+    effectIdentity: string
+    receiverPath: string
+    damageType: string | null
+  }>
   /** Validation grouping only. Neither identity field enters values. */
   primaryOutputAgentId: string | null
   coreGroup: string

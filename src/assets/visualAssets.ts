@@ -1,4 +1,8 @@
 import {
+  synchronizeVisualAssetPackIntoCache,
+  type VisualAssetSyncResult,
+} from './visualAssetPackSynchronization'
+import {
   createBrowserVisualAssetRuntime,
   readBrowserState,
   sha256,
@@ -65,7 +69,12 @@ import {
 
 export { isCatalogVisualAsset, officialCatalogEntityTypes }
 
-export { getVisualAssetInstallErrorMessage } from './visualAssetCacheRuntimeSupport'
+export {
+  getVisualAssetInstallErrorMessage,
+  isCancellationError,
+  isQuotaExceededError,
+  isTimeoutError,
+} from './visualAssetCacheRuntimeSupport'
 export { getOfficialVisualAssetDownloadUrl, getOfficialWEngineDownloadUrl }
 const cachePrefix = 'soda-terminal-visual-assets'
 
@@ -77,7 +86,7 @@ let verificationByStorage = new WeakMap<
 >()
 let verificationGeneration = 0
 
-function invalidateVisualAssetPackVerification() {
+export function invalidateVisualAssetPackVerification() {
   verificationGeneration += 1
   verificationByStorage = new WeakMap()
 }
@@ -244,79 +253,22 @@ export async function installVisualAssetPack(
   }
 }
 
-/** Fill the complete personal cache without discarding successful entries on an unrelated failure.
- * Offline personal-pack imports retain their separate all-or-nothing installation contract. */
+export type { VisualAssetSyncResult } from './visualAssetPackSynchronization'
+
 export async function synchronizeVisualAssetPack(
   manifest: VisualAssetManifest = visualAssetManifest,
   runtime: VisualAssetCacheRuntime = createBrowserVisualAssetRuntime(),
   onProgress?: (progress: VisualAssetInstallProgress) => void,
   options: VisualAssetInstallOptions = {},
-) {
-  const parsed = visualAssetManifestSchema.parse(manifest)
-  const assets = getCacheableVisualAssets(parsed, 'all')
-  const cacheName = `${cachePrefix}:automatic:${parsed.packVersion}:${parsed.contentHash.slice(-12)}`
-  const cache = await runtime.cacheStorage.open(cacheName)
-  const previousState = runtime.getState()
-  // This pointer makes completed entries visible before the remaining downloads finish.
-  // It does not assert that the full catalog is ready.
-  runtime.setState({ ...previousState, automaticCache: cacheName })
-  const activeCaches = await openActiveVisualAssetCaches(runtime.getState(), runtime)
-  let completed = 0
-  let failed = 0
-  await runBoundedConcurrentTasks(assets, 3, async (asset) => {
-    try {
-      const cached = await findVerifiedCachedAsset(asset, runtime.getState(), runtime, activeCaches)
-      const response =
-        cached ??
-        (options.responseForAsset
-          ? await options.responseForAsset(asset)
-          : await fetchOfficialVisualAsset(asset, runtime))
-      if (!cached) {
-        const actualHash = await runtime.digest(
-          takeFetchedResponseBytes(response) ?? (await response.clone().arrayBuffer()),
-        )
-        if (actualHash !== asset.contentHash) throw new Error(`${asset.name} 内容哈希不一致`)
-      }
-      // Avoid rewriting entries that already match this manifest in the automatic cache.
-      const existing = await cache.match(asset.remoteUrl)
-      if (
-        !existing ||
-        (await runtime.digest(await existing.clone().arrayBuffer())) !== asset.contentHash
-      )
-        await cache.put(asset.remoteUrl, response.clone())
-    } catch {
-      failed += 1
-    }
-    completed += 1
-    onProgress?.({ completed, total: assets.length, failed, asset })
-  })
-  if (failed === 0) {
-    const currentState = runtime.getState()
-    runtime.setState({
-      ...currentState,
-      automaticCache: null,
-      activeCache: cacheName,
-      previousCache:
-        previousState.activeCache !== cacheName
-          ? previousState.activeCache
-          : previousState.previousCache,
-      installedAt: runtime.now(),
-      packVersion: parsed.packVersion,
-      catalogProfile: 'r6-purpose-variants-v2',
-      activeCaches: {
-        ...currentState.activeCaches,
-        ...Object.fromEntries(assets.map((asset) => [asset.entityType, cacheName])),
-      },
-      previousCaches: {
-        ...currentState.previousCaches,
-        ...Object.fromEntries(
-          assets.map((asset) => [asset.entityType, previousState.activeCaches?.[asset.entityType]]),
-        ),
-      },
-    })
-  }
-  invalidateVisualAssetPackVerification()
-  return { installed: assets.length - failed, total: assets.length, failed, cacheName }
+): Promise<VisualAssetSyncResult> {
+  return synchronizeVisualAssetPackIntoCache(
+    manifest,
+    runtime,
+    onProgress,
+    options,
+    cachePrefix,
+    invalidateVisualAssetPackVerification,
+  )
 }
 
 export async function installOfficialWEngineAssetPack(

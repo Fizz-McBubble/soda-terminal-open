@@ -54,6 +54,7 @@ describe('completed scan with rejected OCR records', () => {
     'substat-gap',
   ] as const)(
     'offers useful opt-in diagnostics, retry and persistent receipt for %s without importing',
+    { timeout: 25_000 },
     async (kind) => {
       const user = userEvent.setup()
       const account = await createAccount('诊断回归测试', database, { id: 'account-review-test' })
@@ -194,7 +195,7 @@ describe('completed scan with rejected OCR records', () => {
       await user.click(within(feedbackActions).getByText('查看诊断', { selector: 'summary' }))
       expect(screen.getAllByRole('button', { name: '反馈此问题' })).toHaveLength(1)
       await user.click(screen.getByRole('button', { name: '反馈此问题' }))
-      await screen.findByText('发送失败，请再试一次。')
+      await screen.findByText('反馈发送未完成，请重试。')
       await user.click(screen.getByRole('button', { name: '反馈此问题' }))
       await screen.findByText('反馈已收到，谢谢。')
       expect(requests[1]).toMatchObject({

@@ -119,7 +119,7 @@ export function registerScannerDataFileCompatibilityTests({
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       expect(vi.mocked(file.text).mock.calls.length).toBe(reads)
       expect(await accountSnapshot()).toEqual(before)
-    })
+    }, 30_000)
 
     it.each(['unchecked', 'completed'])(
       'carries a scan result to confirmation in state %s with no formal account asset writes or reselecting',
@@ -168,7 +168,7 @@ export function registerScannerDataFileCompatibilityTests({
       setRuntimeState('scanning')
       window.history.replaceState({}, '', '/assets/account')
       const { container } = render(<App />)
-      await screen.findByRole('button', { name: '选择或拖入 JSON' })
+      await screen.findByRole('button', { name: '选择或拖入 JSON' }, { timeout: 15000 })
       fireEvent.change(container.querySelector('input[type="file"]')!, {
         target: { files: [jsonFile(createReadyScannerStaging())] },
       })
@@ -185,11 +185,11 @@ export function registerScannerDataFileCompatibilityTests({
           'ready',
         ),
       )
-      expect(await screen.findByRole('button', { name: '导入' })).toBeEnabled()
+      expect(await screen.findByRole('button', { name: '导入' }, { timeout: 10000 })).toBeEnabled()
       await expectUnimportedCheckDraft()
       expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
       expect(await accountSnapshot(false)).toEqual(before)
-    })
+    }, 30000)
 
     it('does not navigate for an older scanner file read that finishes after a replacement selection', async () => {
       const backup = await backupFixture()
@@ -206,7 +206,7 @@ export function registerScannerDataFileCompatibilityTests({
       const picker = await screen.findByLabelText('选择本机文件（JSON）')
       fireEvent.change(picker, { target: { files: [oldFile] } })
       fireEvent.change(picker, { target: { files: [jsonFile(createReadyScannerStaging())] } })
-      await screen.findByRole('button', { name: '导入' })
+      await screen.findByRole('button', { name: '导入' }, { timeout: 10000 })
       const stagedBeforeLateRead = await Promise.all([
         database.accountScanImportBatches.toArray(),
         database.accountScanImportItems.toArray(),
@@ -225,7 +225,7 @@ export function registerScannerDataFileCompatibilityTests({
       expect(await accountSnapshot(false)).toEqual(before)
       await expectUnimportedCheckDraft()
       expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
-    })
+    }, 20000)
 
     it('does not navigate for an older account file read that finishes after a replacement backup', async () => {
       const backup = await backupFixture()

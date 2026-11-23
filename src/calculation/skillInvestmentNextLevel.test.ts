@@ -18,6 +18,23 @@ const example = {
 }
 
 describe('source-bound next paid skill level', () => {
+  it.each([
+    { currentLevel: null, targetLevel: 12, reasonCode: 'current_level_unknown' },
+    { currentLevel: 7, targetLevel: null, reasonCode: 'target_level_unknown' },
+    { currentLevel: null, targetLevel: null, reasonCode: 'current_and_target_unknown' },
+  ])('retains the precise missing input without inventing an upgrade: $reasonCode', (missing) => {
+    const result = evaluateSkillInvestmentNextLevel({ ...example, ...missing })
+    expect(result).toMatchObject({
+      status: 'unknown',
+      reasonCode: missing.reasonCode,
+      currentLevel: missing.currentLevel,
+      targetLevel: missing.targetLevel,
+      events: [],
+      materials: null,
+    })
+    expect(result).not.toHaveProperty('toLevel')
+  })
+
   it('separates real same-event damage and daze coefficients at 11 to 12', () => {
     const result = evaluateSkillInvestmentNextLevel(example)
     expect(result.status).toBe('supported')
@@ -73,6 +90,16 @@ describe('source-bound next paid skill level', () => {
     ).toBe('no_upgrade')
   })
   it('never assumes missing bonus is zero, invents +3, or exceeds paid/source cap', () => {
+    expect(
+      evaluateSkillInvestmentNextLevel({ ...example, effectiveLevelBonus: null }),
+    ).toMatchObject({
+      status: 'unknown',
+      reasonCode: 'mindscape_bonus_unknown',
+      currentLevel: 11,
+      targetLevel: 12,
+      events: [],
+      materials: null,
+    })
     expect(
       evaluateSkillInvestmentNextLevel({ ...example, effectiveLevelBonus: undefined }).status,
     ).toBe('unknown')

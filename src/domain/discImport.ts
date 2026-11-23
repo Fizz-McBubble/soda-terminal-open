@@ -1,6 +1,7 @@
 import type { DriveDisc, DriveDiscDataManifest, DriveDiscSet, StatKey } from './schemas'
 import { driveDiscSchema, statKeySchema } from './schemas'
 import { mainSubStatConflictIndices } from './discStatValidity'
+import { matchesSSubStatValue } from './discScoringInput'
 import {
   driveDiscImportFormat,
   driveDiscImportFormatVersion,
@@ -234,13 +235,8 @@ function toDriveDisc(
     if (input.level > maxLevel) {
       issues.push({ index, field: 'level', message: `${input.rarity} 级驱动盘等级超出上限。` })
     }
-    const steps = new Map(
-      rules.subStatStepsByRarity[input.rarity].map((rule) => [rule.stat, rule.baseValue]),
-    )
-    for (const [subIndex, subStat] of subStats.entries()) {
-      const step = steps.get(subStat.stat)
-      const expected = step === undefined ? null : step * (subStat.upgrades + 1)
-      if (expected === null || Math.abs(expected - subStat.value) > 0.051) {
+    for (const [subIndex, subStat] of (input.rarity === 'S' ? subStats : []).entries()) {
+      if (!matchesSSubStatValue(subStat.stat, subStat.value, subStat.upgrades, rules)) {
         issues.push({
           index,
           field: `subStats.${subIndex}.value`,
@@ -305,7 +301,11 @@ function toDriveDisc(
 const standardAdapter: DriveDiscImportAdapter = {
   id: 'soda-terminal-standard',
   canParse(input) {
-    return standardDriveDiscImportSchema.safeParse(input).success
+    return (
+      !!input &&
+      typeof input === 'object' &&
+      (input as Record<string, unknown>).format === driveDiscImportFormat
+    )
   },
   normalize(input) {
     return standardDriveDiscImportSchema.parse(input)
@@ -328,7 +328,7 @@ function normalizeScannerDisc(input: Record<string, unknown>) {
             : undefined,
     slot: Number(input.slot ?? input.position),
     level: Number(input.level ?? input.enhancement ?? 0),
-    rarity: input.rarity === 'A' || input.rarity === 'B' ? input.rarity : 'S',
+    rarity: input.rarity,
     mainStat: String(main ?? ''),
     subStats: Array.isArray(subStats)
       ? subStats.map((subStat) => {
@@ -406,7 +406,26 @@ export function preflightDriveDiscImport(
     }
   }
 
-  const normalized = adapter.normalize(input)
+  let normalized: StandardDriveDiscImport
+  try {
+    normalized = adapter.normalize(input)
+  } catch {
+    return {
+      format: driveDiscImportFormat,
+      formatVersion: driveDiscImportFormatVersion,
+      batchId: context.batchId ?? 'unparsed',
+      sourceAdapter: adapter.id,
+      readyDiscs: [],
+      items: [
+        {
+          index: 0,
+          status: 'failed',
+          issues: [{ index: 0, message: '导入数据格式或稀有度无效，请核对来源。' }],
+        },
+      ],
+      summary: { total: 0, ready: 0, skipped: 0, failed: 1 },
+    }
+  }
   const now = context.now ?? new Date().toISOString()
   const batchId = context.batchId ?? createBatchId(normalized, now)
   const existingFingerprints = new Set(

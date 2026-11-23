@@ -3,6 +3,7 @@ import { currentReleasedIdentityMap } from './currentReleasedIdentityMap'
 import { agentCatalog } from '../assault/catalogData'
 import mechanicCatalog from './generated/current-agent-mechanic-catalog.v1.json'
 import phoenix from './data/reviewed-phoenix-numeric.3.3.json'
+import severian from './data/reviewed-severian-numeric.3.3.json'
 import { currentGameDataSelection } from './currentGameDataSelection'
 
 export type AgentAttackType32 = 'slash' | 'strike' | 'pierce'
@@ -14,6 +15,15 @@ if (
   phoenix.attackType.key !== 'slash'
 )
   throw new Error('Phoenix attack semantic source binding mismatch.')
+if (
+  severian.source.rawSha256 !==
+    '89f3a03b90fca880851352d6d686e6bbe658411d7b4cdf6b78d2a14a97ff5974' ||
+  severian.source.providerManifestSha256 !==
+    '4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029' ||
+  severian.attackType.gameEnum !== 101 ||
+  severian.attackType.key !== 'slash'
+)
+  throw new Error('Severian attack semantic source binding mismatch.')
 const validTypes = new Set<string>(['slash', 'strike', 'pierce'])
 const identities = new Map([
   ...agentCatalog.map(([stableId, , , gameId]) => [stableId, gameId] as const),
@@ -47,6 +57,8 @@ if (
 export function getReviewedAgentAttackTypes32(agentId: string) {
   if (agentId === 'agent-phoenix' && currentGameDataSelection.gameVersion === '3.3')
     return [phoenix.attackType.key] as AgentAttackType32[]
+  if (agentId === 'agent-severian' && currentGameDataSelection.gameVersion === '3.3')
+    return [severian.attackType.key] as AgentAttackType32[]
   return byAgentId.get(agentId) ?? null
 }
 
@@ -59,6 +71,16 @@ export const reviewedPhoenixAttackTypeSource33 = Object.freeze({
   source: phoenix.source,
   locator: phoenix.attackType.locator,
   gameEnum: phoenix.attackType.gameEnum,
+  boundary:
+    'Agent attack semantic only; does not bind source parameter aggregates to executable hits.',
+})
+
+export const reviewedSeverianAttackTypeSource33 = Object.freeze({
+  stableId: severian.stableId,
+  attackTypes: [severian.attackType.key] as readonly AgentAttackType32[],
+  source: severian.source,
+  locator: severian.attackType.locator,
+  gameEnum: severian.attackType.gameEnum,
   boundary:
     'Agent attack semantic only; does not bind source parameter aggregates to executable hits.',
 })

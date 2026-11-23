@@ -84,7 +84,9 @@ export const gameData31CatalogEntities: GameData31CatalogEntity[] = [
       'gachabase-wengine-14158-3.1.12-identity',
       gameEvidenceBoundary,
     ),
-    gaps: ['P2–P4 精炼逐档值待核验；P5仅单源候选，全部不得进入formal伤害。'],
+    gaps: [
+      '现行采用目录已收录全部五档精炼参数与效果文字；历史P2–P4缺失说明已过时，保留真实源版与candidate边界，不得进入formal伤害。',
+    ],
   },
   {
     id: 'candidate-3.1-wengine-knights-extolment',
@@ -156,7 +158,7 @@ export const gameData31CatalogEntities: GameData31CatalogEntity[] = [
     fields: {
       twoPiece: 'anomaly_proficiency +30',
       fourPiece:
-        'enter_or_switch: anomaly_proficiency +50; lumiflux attribute_anomaly_damage +15%; duration 15s; persists_off_field',
+        'enter_or_switch: anomaly_proficiency +50; wearer lumiflux => attribute_anomaly_damage +15%; duration 15s; persists_always_when_inactive',
       localizedName: '谶羽之誓',
       playerFacingLocalizedName: '谶羽之誓（候选）',
     },
@@ -166,7 +168,7 @@ export const gameData31CatalogEntities: GameData31CatalogEntity[] = [
       'gachabase-drive-disc-34100-3.1.4-17256074',
       gameEvidenceBoundary,
     ),
-    gaps: ['中文名与效果为多源candidate，缺官方文字ID映射，不能升级formal。'],
+    gaps: ['中文名按官方新闻稿及3.3原件统一为流明；效果保持candidate，正式计算资格独立核验。'],
   },
   {
     id: 'candidate-3.1-drive-disc-thorned-rose',
@@ -217,3 +219,18 @@ export const gameData31CatalogEntities: GameData31CatalogEntity[] = [
     gaps: ['固定敌人、DEF/RES/失衡、阶段、轮换与增益字段未闭合。'],
   },
 ]
+
+/** Import identities share catalog facts without loading combat/equipment intake. */
+export const scannerDriveDiscCatalog31 = gameData31CatalogEntities
+  .filter((entity) => entity.domain === 'drive_disc_set')
+  .map((entity) => ({
+    id: entity.identity.projectStableId,
+    gameStableId: entity.identity.gameStableId ?? null,
+    name: entity.fields.localizedName ?? entity.displayName,
+    aliases: String(entity.fields.ocrAliases ?? entity.fields.localizedName ?? entity.displayName)
+      .split('|')
+      .filter(Boolean),
+    status: entity.status,
+    version: entity.source.sourceVersion,
+    sourceRefs: [entity.source.id, entity.source.contentHash],
+  }))

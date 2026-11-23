@@ -7,6 +7,96 @@ import {
 import { evaluateSkillInvestmentNextLevel } from '../calculation/skillInvestmentNextLevel'
 
 describe('skillInvestmentProjection unit tests', () => {
+  it.each([
+    {
+      currentLevel: null,
+      targetLevel: 12,
+      reasonCode: 'current_level_unknown',
+      title: '当前等级未记录',
+    },
+    {
+      currentLevel: 7,
+      targetLevel: null,
+      reasonCode: 'target_level_unknown',
+      title: '投入目标待确认',
+    },
+    {
+      currentLevel: null,
+      targetLevel: null,
+      reasonCode: 'current_and_target_unknown',
+      title: '等级与目标待确认',
+    },
+  ])('keeps known inputs and gives a cause-specific next step: $reasonCode', (missing) => {
+    const result = projectSkillNextLevelDisplay(
+      evaluateSkillInvestmentNextLevel({
+        agentId: 'agent-ye-shunguang',
+        skill: 'basic',
+        effectiveLevelBonus: 0,
+        ...missing,
+      }),
+    )
+    expect(result).toMatchObject({
+      status: 'unknown',
+      reasonCode: missing.reasonCode,
+      title: missing.title,
+      fromLevel: missing.currentLevel,
+      toLevel: null,
+      fromBaseLevel: null,
+      toBaseLevel: null,
+      materialsText: '',
+    })
+    expect(result.nextAction).toBeTruthy()
+    expect(result.tooltip).not.toContain('当前等级或来源目标未知')
+    expect(result.tooltip).not.toContain('undefined')
+    if (missing.currentLevel !== null) {
+      expect(result.tooltip).toContain('当前技能 Lv.7')
+      expect(result.tooltip).not.toContain('当前技能等级未记录')
+    }
+  })
+
+  it('distinguishes an unknown mindscape offset from a missing current level', () => {
+    const result = projectSkillNextLevelDisplay(
+      evaluateSkillInvestmentNextLevel({
+        agentId: 'agent-ye-shunguang',
+        skill: 'basic',
+        currentLevel: 15,
+        targetLevel: 16,
+        effectiveLevelBonus: null,
+      }),
+    )
+    expect(result).toMatchObject({
+      status: 'unknown',
+      reasonCode: 'mindscape_bonus_unknown',
+      fromLevel: 15,
+      toLevel: null,
+      materialsText: '',
+    })
+    expect(result.tooltip).toContain('影画技能加成未确认')
+    expect(result.tooltip).not.toContain('当前技能等级未记录')
+  })
+
+  it('retains all missing causes when target and mindscape are both unconfirmed', () => {
+    const result = projectSkillNextLevelDisplay(
+      evaluateSkillInvestmentNextLevel({
+        agentId: 'agent-ye-shunguang',
+        skill: 'basic',
+        currentLevel: 7,
+        targetLevel: null,
+        effectiveLevelBonus: null,
+      }),
+    )
+    expect(result).toMatchObject({
+      status: 'unknown',
+      fromLevel: 7,
+      toLevel: null,
+      missingInputs: ['target_level', 'mindscape_bonus'],
+      materialsText: '',
+    })
+    expect(result.tooltip).toContain('实际投入目标待确认')
+    expect(result.tooltip).toContain('影画技能加成也未确认')
+    expect(result.tooltip).not.toContain('当前技能等级未记录')
+  })
+
   it('correctly maps mindscape rank to skill level bonus', () => {
     expect(resolveSkillInvestmentMindscapeBonus(null)).toBeNull()
     expect(resolveSkillInvestmentMindscapeBonus(-1)).toBeNull()

@@ -44,7 +44,18 @@ const cases = (['A', 'B'] as const).flatMap((rarity) => {
   )
 })
 
-describe('approved A/B retention rule', () => {
+describe('A/B records outside S-only analysis', () => {
+  it('never treats A/B or unknown records as S quality or replacement evidence', () => {
+    const s = warehouseClearAlternative('s-disc')
+    const base = { accountId: 'mixed-rarity', roster: createEmptyRoster(), drafts: [] }
+    const single = analyzeAccountWarehouse({ ...base, discs: [s] })
+    const mixed = analyzeAccountWarehouse({
+      ...base,
+      discs: [s, disc('A', 0, 2), disc('B', 0, 1), { ...s, id: 'unknown', rarity: undefined }],
+    })
+    expect(mixed.decisions).toEqual(single.decisions)
+    expect(mixed.counts).toEqual(single.counts)
+  })
   it.each(['A', 'B'] as const)(
     'preserves %s equipment references even when the roster ownership marker conflicts',
     (rarity) => {
@@ -59,11 +70,8 @@ describe('approved A/B retention rule', () => {
       }
       const before = structuredClone(input)
       const snapshot = analyzeAccountWarehouse(input)
-      const decision = snapshot.decisions[0]!
       expect(input).toEqual(before)
-      expect(decision.category).toBe('current_plan_key')
-      expect(decision.cleanupSafety.equipped).toBe(true)
-      expect(decision.absoluteRetention?.nextAction?.kind).toBe('keep')
+      expect(snapshot.decisions).toEqual([])
       expect(snapshot.referenceIssues?.equipmentNeedsReview).toBe(true)
     },
   )
@@ -88,23 +96,23 @@ describe('approved A/B retention rule', () => {
       }
     },
   )
-  it.each(cases)('cleans legal $id without quality scores or growth trials', (source) => {
+  it.each(cases)('keeps $id outside scoring and cleanup', (source) => {
     const result = assessDisc(source, catalog, policy)
     expect(result).toMatchObject({
-      qualityDisposition: 'cleanup_candidate',
-      reasonKind: 'approved_rarity_cleanup',
-      sourceCoverage: 'complete',
+      qualityDisposition: 'review',
+      reasonKind: 'missing_fact',
+      sourceCoverage: 'partial',
       bestUseScore: null,
       evidence: [],
-      nextAction: { kind: 'manual_cleanup', targetLevel: null },
+      nextAction: { kind: 'keep', targetLevel: null },
     })
-    expect(result.reviewedUseScope).toContain(policy.rarityCleanup!.sourceIds[0])
+    expect(result.reasons).toContain('rarity_outside_analysis_scope')
     expect(result.blockedBy).toEqual([])
   })
 
-  it.each(['A', 'B'] as const)('does not let a functional main reserve %s', (rarity) => {
+  it.each(['A', 'B'] as const)('does not score a functional main on %s', (rarity) => {
     const source = { ...disc(rarity, 0, 2), slot: 6, mainStat: 'energy_regen' }
-    expect(assessDisc(source, catalog, policy).reasonKind).toBe('approved_rarity_cleanup')
+    expect(assessDisc(source, catalog, policy).reasonKind).toBe('missing_fact')
   })
 
   it('is independent of actor ownership, inventory order and unresolved build facts', () => {
@@ -143,9 +151,14 @@ describe('approved A/B retention rule', () => {
     },
   )
 
-  it('requires an approved, attributable rarity rule rather than inferring calibration', () => {
+  it('does not revive a historical A/B cleanup rule', () => {
     const source = disc('A', 0, 2)
-    const rule = policy.rarityCleanup!
+    const rule = {
+      id: 'historical',
+      approval: 'approved' as const,
+      sourceIds: ['historical'],
+      rarities: ['A', 'B'] as const,
+    }
     for (const rarityCleanup of [
       undefined,
       { ...rule, approval: 'candidate' as const },
@@ -160,13 +173,13 @@ describe('approved A/B retention rule', () => {
     }
   })
 
-  it('continues to flag malformed records and duplicate physical identities', () => {
+  it('keeps unassessed records out of cleanup even if malformed or duplicated', () => {
     const source = disc('A', 0, 2)
     const malformed = {
       ...source,
       subStats: source.subStats.map((line) => ({ ...line, value: 999 })),
     }
-    expect(assessDisc(malformed, catalog, policy).reasonKind).toBe('invalid_record')
+    expect(assessDisc(malformed, catalog, policy).qualityDisposition).toBe('review')
     const duplicates = assessWarehouse([source, source], catalog, policy)
     expect(duplicates.every((row) => row.reasonKind === 'invalid_record')).toBe(true)
     expect(duplicates.every((row) => row.nextAction.kind === 'complete_data')).toBe(true)
@@ -193,12 +206,10 @@ describe('approved A/B retention rule', () => {
           protectedDemandCoverageComplete: true,
         }
         const before = structuredClone(input)
-        const result = analyzeAccountWarehouse(input).decisions[0]!
+        const result = analyzeAccountWarehouse(input)
         expect(input).toEqual(before)
-        expect(result.absoluteRetention?.reasonKind).toBe('approved_rarity_cleanup')
-        expect(result.absoluteRetention?.bestUseScore).toBeNull()
-        expect(result.absoluteRetention?.nextAction?.kind).toBe(mask ? 'keep' : 'manual_cleanup')
-        expect(result.category === 'cleanup_candidate').toBe(mask === 0)
+        expect(result.decisions).toEqual([])
+        expect(input.discs[0]).toEqual(source)
       }
     },
   )

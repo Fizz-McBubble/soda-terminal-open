@@ -27,6 +27,7 @@ const KNOWN_INSTALLER_KEYS = [
   'code',
   'durationMs',
   'attempts',
+  'download',
 ]
 
 export function sanitizeInstallerFeedbackPayload(payload) {
@@ -40,17 +41,19 @@ export function sanitizeInstallerFeedbackPayload(payload) {
       : baseContract.assetQuickReadInstaller
   const keys = Object.keys(payload)
   if (
-    keys.length < KNOWN_INSTALLER_KEYS.length ||
-    keys.length > KNOWN_INSTALLER_KEYS.length + 1 ||
-    keys.some((k) => !KNOWN_INSTALLER_KEYS.includes(k) && k !== 'failure')
+    keys.length < KNOWN_INSTALLER_KEYS.length - 1 ||
+    keys.length > KNOWN_INSTALLER_KEYS.length + 2 ||
+    keys.some((k) => !KNOWN_INSTALLER_KEYS.includes(k) && k !== 'failure' && k !== 'download')
   ) {
     return { status: 400 }
   }
   for (const k of KNOWN_INSTALLER_KEYS) {
-    if (!Object.hasOwn(payload, k)) {
+    if (k !== 'download' && !Object.hasOwn(payload, k)) {
       return { status: 400 }
     }
   }
+
+  const downloadRules = baseContract.installerDownload
 
   if (
     payload.schema !== 1 ||
@@ -63,7 +66,13 @@ export function sanitizeInstallerFeedbackPayload(payload) {
     return { status: 400 }
   }
 
-  const versionRx = new RegExp(installerRules.versionPattern, 'u')
+  // Browser download identity follows the manifest, independently of native installer releases.
+  const versionRx = new RegExp(
+    payload.tool === 'asset_quick_read_installer' && Object.hasOwn(payload, 'download')
+      ? downloadRules.versionPattern
+      : installerRules.versionPattern,
+    'u',
+  )
   if (typeof payload.installerVersion !== 'string' || !versionRx.test(payload.installerVersion)) {
     return { status: 400 }
   }
@@ -137,6 +146,8 @@ export function sanitizeInstallerFeedbackPayload(payload) {
     })
   }
 
+  if (payload.code.startsWith('installer_download_') && !Object.hasOwn(payload, 'download'))
+    return { status: 400 }
   let failure
   if (Object.hasOwn(payload, 'failure')) {
     const value = payload.failure
@@ -163,6 +174,56 @@ export function sanitizeInstallerFeedbackPayload(payload) {
     }
   }
 
+  let download
+  if (Object.hasOwn(payload, 'download')) {
+    const value = payload.download
+    const downloadKeys = ['phase', 'bytesReceived', 'attemptCount', 'waitReason', 'expectedRelease']
+    if (
+      payload.stage !== 'prepare' ||
+      !payload.code.startsWith('installer_download_') ||
+      payload.attempts.length !== 0 ||
+      Object.hasOwn(payload, 'failure') ||
+      !value ||
+      typeof value !== 'object' ||
+      Array.isArray(value) ||
+      Object.keys(value).some((key) => !downloadKeys.includes(key) && key !== 'httpStatus') ||
+      downloadKeys.some((key) => !Object.hasOwn(value, key)) ||
+      !downloadRules.phases.includes(value.phase) ||
+      !downloadRules.waitReasons.includes(value.waitReason) ||
+      !Number.isInteger(value.bytesReceived) ||
+      value.bytesReceived < 0 ||
+      value.bytesReceived > downloadRules.maxBytes ||
+      !Number.isInteger(value.attemptCount) ||
+      value.attemptCount < 0 ||
+      value.attemptCount > downloadRules.maxAttempts ||
+      (Object.hasOwn(value, 'httpStatus') &&
+        !downloadRules.httpStatuses.includes(value.httpStatus)) ||
+      !value.expectedRelease ||
+      typeof value.expectedRelease !== 'object' ||
+      Array.isArray(value.expectedRelease) ||
+      Object.keys(value.expectedRelease).length !== 2 ||
+      !Object.hasOwn(value.expectedRelease, 'size') ||
+      !Object.hasOwn(value.expectedRelease, 'sha256') ||
+      !Number.isInteger(value.expectedRelease.size) ||
+      value.expectedRelease.size < 2 ||
+      value.expectedRelease.size > downloadRules.maxBytes ||
+      typeof value.expectedRelease.sha256 !== 'string' ||
+      !/^[a-f0-9]{64}$/u.test(value.expectedRelease.sha256)
+    )
+      return { status: 400 }
+    download = {
+      phase: value.phase,
+      bytesReceived: value.bytesReceived,
+      attemptCount: value.attemptCount,
+      waitReason: value.waitReason,
+      ...(Object.hasOwn(value, 'httpStatus') ? { httpStatus: value.httpStatus } : {}),
+      expectedRelease: {
+        size: value.expectedRelease.size,
+        sha256: value.expectedRelease.sha256,
+      },
+    }
+  }
+
   const record = {
     schema: 1,
     tool: payload.tool,
@@ -173,6 +234,7 @@ export function sanitizeInstallerFeedbackPayload(payload) {
     durationMs: payload.durationMs,
     attempts: sanitizedAttempts,
     ...(failure ? { failure } : {}),
+    ...(download ? { download } : {}),
   }
 
   const serialized = JSON.stringify(record)

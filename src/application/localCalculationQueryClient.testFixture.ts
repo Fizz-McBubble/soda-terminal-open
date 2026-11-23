@@ -37,16 +37,26 @@ export function expectBelionSourceMinimumBangbooOptions(
 ) {
   expect(recommendations).toMatchObject({
     primaryBangbooId: 'bangboo-belion',
+    recommendedBangbooIds: ['bangboo-belion', 'bangboo-miss-esme', 'bangboo-resonaboo'],
     options: expect.arrayContaining([
-      expect.objectContaining({ bangbooId: 'bangboo-belion', defaultStars: 3 }),
-      expect.objectContaining({ bangbooId: 'bangboo-miss-esme', defaultStars: 3 }),
       expect.objectContaining({
-        bangbooId: 'bangboo-exploreboo',
-        defaultStars: 5,
+        bangbooId: 'bangboo-belion',
+        defaultStars: 3,
+        activationStatus: 'active',
+      }),
+      expect.objectContaining({
+        bangbooId: 'bangboo-miss-esme',
+        defaultStars: 3,
+        activationStatus: 'active',
+      }),
+      expect.objectContaining({
+        bangbooId: 'bangboo-resonaboo',
+        defaultStars: 1,
         activationStatus: 'active',
       }),
     ]),
   })
+  expect(recommendations.options).toHaveLength(3)
   expect(
     recommendations.options.map(({ bangbooId, defaultStars }) => ({
       bangbooId,

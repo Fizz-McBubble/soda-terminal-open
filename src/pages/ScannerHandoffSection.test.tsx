@@ -1,10 +1,18 @@
 import type { ComponentProps } from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ScannerHandoffSection } from './ScannerHandoffSection'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 import { createScannerTargetAccountBinding } from '../scanner/targetAccountBinding'
 import { createScannerRuntimeSnapshot } from './scannerAssistantTestFixture'
+import { ScannerCompletedSummary } from './ScannerCompletedSummary'
+import { ScannerAccountGate } from './ScannerAccountHydrationGate'
+import { getPublicFormalImportActiveAccount } from '../application/publicFormalImportAccount'
+import { useState } from 'react'
+
+vi.mock('../application/publicFormalImportAccount', () => ({
+  getPublicFormalImportActiveAccount: vi.fn(),
+}))
 
 vi.mock('./FormalDiscImportPage', () => ({
   FormalDiscImportPage: ({
@@ -63,6 +71,92 @@ function props(): ComponentProps<typeof ScannerHandoffSection> {
 }
 
 describe('OCR card result handoff', () => {
+  it.each([false, true])(
+    'blocks missing-summary import and account binding even with inlineImportOpen=%s',
+    (inlineImportOpen) => {
+      const input = props()
+      input.snapshot = { ...input.snapshot, summary: undefined }
+      input.inlineImportOpen = inlineImportOpen
+      input.onExportResult = vi.fn()
+      render(<ScannerHandoffSection {...input} />)
+      expect(screen.getByRole('alert')).toHaveTextContent('结果摘要缺失')
+      expect(screen.queryByText('一次导入区域')).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: /确认账户|导入|重新检查/ }),
+      ).not.toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: '导出' }))
+      expect(input.onExportResult).toHaveBeenCalledOnce()
+      expect(input.onBindCompletedResult).not.toHaveBeenCalled()
+      expect(input.onHandOffResult).not.toHaveBeenCalled()
+      fireEvent.click(screen.getByRole('button', { name: '放弃' }))
+      expect(input.onReturnToTargetSelection).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('distinguishes a missing completed summary from confirmed zero counts', () => {
+    const snapshot = props().snapshot
+    const view = render(
+      <ScannerCompletedSummary
+        snapshot={{ ...snapshot, summary: undefined }}
+        completedImportCount={null}
+      />,
+    )
+    expect(screen.queryByText('0 张')).not.toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('当前不能导入')
+    view.rerender(
+      <ScannerCompletedSummary
+        snapshot={{
+          ...snapshot,
+          summary: { ...snapshot.summary!, uniqueRecords: 0, reliable: 0, needsReview: 0 },
+        }}
+        completedImportCount={null}
+      />,
+    )
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByText('可直接导入 0 张')).toBeInTheDocument()
+  })
+
+  it('retries failed account hydration without showing empty-account task controls', async () => {
+    vi.mocked(getPublicFormalImportActiveAccount)
+      .mockRejectedValueOnce(new Error('private-path'))
+      .mockResolvedValue(undefined)
+    const child = vi.fn(() => <button>开始测试任务</button>)
+    render(<ScannerAccountGate>{child}</ScannerAccountGate>)
+    expect(screen.getByRole('status')).toHaveTextContent('正在读取本地账户')
+    await screen.findByRole('button', { name: '重试读取' })
+    expect(child).not.toHaveBeenCalled()
+    expect(document.body.textContent).not.toContain('private-path')
+    fireEvent.click(screen.getByRole('button', { name: '重试读取' }))
+    expect(await screen.findByRole('button', { name: '开始测试任务' })).toBeEnabled()
+  })
+
+  it('preserves the mounted task on refresh failure and blocks edits until retry succeeds', async () => {
+    let rejectRefresh!: (reason: Error) => void
+    const held = new Promise<never>((_, reject) => {
+      rejectRefresh = reject
+    })
+    vi.mocked(getPublicFormalImportActiveAccount)
+      .mockReset()
+      .mockResolvedValueOnce(undefined)
+      .mockReturnValueOnce(held)
+      .mockResolvedValue(undefined)
+    function Task({ refresh }: { refresh: () => void }) {
+      const [count, setCount] = useState(0)
+      return (
+        <>
+          <button onClick={() => setCount(count + 1)}>保留任务 {count}</button>
+          <button onClick={refresh}>刷新账户</button>
+        </>
+      )
+    }
+    render(<ScannerAccountGate>{(_, refresh) => <Task refresh={refresh} />}</ScannerAccountGate>)
+    fireEvent.click(await screen.findByRole('button', { name: '保留任务 0' }))
+    fireEvent.click(screen.getByRole('button', { name: '刷新账户' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: '保留任务 1' })).toBeDisabled())
+    await act(async () => rejectRefresh(new Error('read failed')))
+    fireEvent.click(await screen.findByRole('button', { name: '重试读取' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: '保留任务 1' })).toBeEnabled())
+  })
   it('shows account and count while automatic checking runs, without another result-opening step', () => {
     const input = props()
     render(<ScannerHandoffSection {...input} />)
@@ -178,7 +272,7 @@ describe('OCR card result handoff', () => {
       </button>
     )
     render(<ScannerHandoffSection {...input} />)
-    const confirmButton = screen.getByRole('button', { name: '确认账户并继续' })
+    const confirmButton = screen.getByRole('button', { name: '用此账户检查结果' })
     const actionsRow = confirmButton.closest<HTMLElement>('.scanner-target-review__actions')!
     expect(actionsRow).toBeInTheDocument()
     const diagnosticTrigger = screen.getByTestId('target-review-diagnostic-trigger')

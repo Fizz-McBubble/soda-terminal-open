@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import type { DataCenterFileRecognition } from '../accounts/dataCenter'
 import { recognizeAccountBackupFile } from '../accounts/accountBackupRecognition'
@@ -106,7 +107,7 @@ export function ScannerAccountBackupReview({
           scopeKey,
           state: 'error',
           recognition: null,
-          message: `${error instanceof Error ? error.message : '文件无法读取。'} 请检查文件内容，关闭检查后重新选择有效的单账户备份。本地账户数据未改动。`,
+          message: `${playerErrorMessage(error, '文件无法读取。')} 请检查文件内容，关闭检查后重新选择有效的单账户备份。本地账户数据未改动。`,
         })
         callbacks.current.onStateChange?.('error')
       }
@@ -216,7 +217,7 @@ export function ScannerAccountBackupReview({
       setReview({
         ...current,
         state: 'completed',
-        message: `恢复完成：${counts.driveDiscs} 张正式驱动盘、${counts.discEvaluations} 条评价、${counts.scanBatches} 个扫描批次、${counts.scanItems} 条暂存、${counts.optimizationResults} 个配装结果、${counts.planningDrafts} 份规划草稿、${counts.preferences} 项偏好。${mode === 'independent' ? '独立恢复账户' : '备份对应账户'}“${result.account.displayName}”（识别码 …${result.account.id.slice(-6)}）${result.account.status === 'archived' ? '保持归档，未设为当前账户' : '已设为当前账户'}。恢复前副本可在账户与备份下载。`,
+        message: `恢复完成：${counts.driveDiscs} 张驱动盘、${counts.discEvaluations} 条评价、${counts.scanBatches} 个扫描批次、${counts.scanItems} 条暂存、${counts.optimizationResults} 个配装结果、${counts.planningDrafts} 份规划草稿、${counts.preferences} 项偏好。${mode === 'independent' ? '独立恢复账户' : '备份对应账户'}“${result.account.displayName}”（识别码 …${result.account.id.slice(-6)}）${result.account.status === 'archived' ? '保持归档，未设为当前账户' : '已设为当前账户'}。恢复前副本可在账户与备份下载。`,
       })
       callbacks.current.onStateChange?.('completed')
       callbacks.current.onRestored()
@@ -225,7 +226,7 @@ export function ScannerAccountBackupReview({
       setReview({
         ...current,
         state: 'error',
-        message: `${error instanceof Error ? error.message : '恢复失败。'} 本地账户数据未改动；请检查原因后再次明确确认恢复。`,
+        message: `${playerErrorMessage(error, '恢复失败。')} 本地账户数据未改动；请检查原因后再次明确确认恢复。`,
       })
       callbacks.current.onStateChange?.('error')
     } finally {

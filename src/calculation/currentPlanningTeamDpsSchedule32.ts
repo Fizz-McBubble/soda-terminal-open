@@ -12,6 +12,7 @@ import type { SourceBackedEquipmentModifierBucket } from './currentPlanningDamag
 import type { CommonAnomalyEventObservation32 } from './currentCommonAnomalyEffects32'
 import type { PotentialApplicationEvent } from './potentialApplicationBinding'
 import { bindPlanningAnomalyLifecycleReferences32 } from './currentPlanningAnomalyLifecycle32'
+import { bindReviewedAnomalyPartyState32 } from './reviewedAnomalyPartyState32'
 import {
   bindTriggerAftershockWindow32,
   triggerAftershockWindowPolicy32,
@@ -20,6 +21,8 @@ import {
 const unique = (values: readonly string[]) => [...new Set(values)]
 
 export type SourceBackedPlanningTeamDpsInput = {
+  /** Actual occurrence clock; omitted for a legacy fixed packet without observed timing. */
+  settlementAtSeconds?: number
   memberIds: readonly [string, string, string]
   members: readonly PlanningEffectRuntimeMember[]
   eventUsages: readonly PlanningEventUsage[]
@@ -73,6 +76,25 @@ export function evaluatePlanningTeamDpsSchedule32(
       Object.entries(occurrence.referencesByAgentId).map(([id, refs]) => [id, { ...refs }]),
     )
     const triggerState = triggerWindow.states?.[occurrence.occurrenceId]
+    for (const [providerAgentId, state] of Object.entries(
+      occurrence.targetEffectStatesByAgentId32 ?? {},
+    )) {
+      if (!input.memberIds.includes(providerAgentId))
+        return {
+          status: 'unsupported' as const,
+          blockers: ['target_effect_occurrence_provider_not_in_team32'],
+        }
+      const bound = bindReviewedAnomalyPartyState32({
+        providerAgentId,
+        references: {
+          ...occurrenceReferences[providerAgentId],
+          reviewedTargetEffectState32: state,
+        },
+        snapshot: { targetId: input.baseline.enemy.id, atSeconds: occurrence.atSeconds },
+      })
+      if (bound.status !== 'supported') return bound
+      occurrenceReferences[providerAgentId] = bound.references
+    }
     if (triggerState) {
       occurrenceReferences['agent-trigger'] = { ...occurrenceReferences['agent-trigger'] }
       delete occurrenceReferences['agent-trigger'].aftershock_hit
@@ -98,6 +120,7 @@ export function evaluatePlanningTeamDpsSchedule32(
     const result = evaluatePlanningTeamDpsSlice({
       ...input,
       eventSchedule32: undefined,
+      settlementAtSeconds: occurrence.atSeconds,
       eventUsages: [{ ...usage, occurrenceCount: 1, durationSeconds: occurrence.durationSeconds }],
       baselineReferencesByAgentId: occurrenceReferences,
       commonAnomalyEvents: { [key]: occurrence.commonAnomalyObservations },

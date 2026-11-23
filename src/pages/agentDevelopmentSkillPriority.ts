@@ -98,25 +98,26 @@ export function skillPrimaryPriorityWithLegacyFallback(
   legacyPriority: readonly string[],
 ) {
   if (!sourceDirections.length) return legacyPriority.slice(0, 1)
-  if (
-    sourceDirections.every((direction) =>
-      fallbackSkillPriority.some(
-        (key) => direction.trim().toLowerCase() === key || direction.trim() === skillLabels[key],
-      ),
+  const isSkillKey = (direction: string) =>
+    fallbackSkillPriority.some(
+      (key) => direction.trim().toLowerCase() === key || direction.trim() === skillLabels[key],
     )
-  )
-    return skillPriorityFromDirections(sourceDirections).slice(0, 1)
+  // A list of bare skill keys is an ordered list, not a collection of
+  // independent first tiers. It may arrive alongside full-text guidance.
+  const orderedKeys = sourceDirections.filter(isSkillKey)
+  const proseDirections = sourceDirections.filter((direction) => !isSkillKey(direction))
+  if (!proseDirections.length) return skillPriorityFromDirections(orderedKeys).slice(0, 1)
 
   const isPureTargetClause = (direction: string) =>
     /(?:先拉满|全部点满)/u.test(direction) && !/(?:优先升级|加点顺序)/u.test(direction)
 
-  const specificPrimaryClauses = sourceDirections.filter((d) =>
+  const specificPrimaryClauses = proseDirections.filter((d) =>
     /(?:核心技|普攻|特殊技|闪避|支援技|终结技|连携技)(?:推荐)?优先升级/u.test(d),
   )
   const candidateDirections =
-    specificPrimaryClauses.length > 0 && specificPrimaryClauses.length < sourceDirections.length
+    specificPrimaryClauses.length > 0 && specificPrimaryClauses.length < proseDirections.length
       ? specificPrimaryClauses
-      : sourceDirections
+      : proseDirections
 
   const primary = candidateDirections.flatMap((direction) => {
     if (isPureTargetClause(direction)) return []
@@ -133,12 +134,32 @@ export function skillPrimaryPriorityWithLegacyFallback(
         firstTier.trim().toLowerCase() === key,
     )
   })
-  return [...new Set(primary)]
+  if (primary.length) return [...new Set(primary)]
+  // An explicit deferral is not permission to infer a first tier from another list.
+  if (
+    proseDirections.some((direction) =>
+      /(?:技能|核心).{0,12}(?:优先级|等级)?(?:需|需要|仍需|另行).{0,12}(?:独立)?核验/.test(
+        direction,
+      ),
+    )
+  )
+    return []
+  return skillPriorityFromDirections(orderedKeys).slice(0, 1)
+}
+
+/** Author-declared maximums refer to paid training, before cinema-gifted levels. */
+export function skillMaximumTargetsFromDirections(directions: readonly string[]) {
+  return skillTargetFactsFromDirections(directions).maximums
 }
 
 /** Explicit target clauses are independent of investment order (11+ is not a rank). */
 export function skillTargetsFromDirections(directions: readonly string[]) {
+  return skillTargetFactsFromDirections(directions).targets
+}
+
+function skillTargetFactsFromDirections(directions: readonly string[]) {
   const targets: Partial<Record<SkillPriorityKey, string>> = {}
+  const maximums = new Set<SkillPriorityKey>()
   const labels: Record<string, SkillPriorityKey> = {
     普攻: 'basic',
     普通攻击: 'basic',
@@ -159,28 +180,48 @@ export function skillTargetsFromDirections(directions: readonly string[]) {
   for (const direction of directions) {
     // A declared cap is a target, even when several skills share it. Do not
     // downgrade the third/fourth named skill through the ordinal budget bands.
-    const maxClauses = direction
+    const clauses = direction
       .split(/[；。，]/u)
       .filter(
         (clause) =>
           /(?:先拉满|推荐点满)/u.test(clause) && !/(?:不|无需).*(?:拉满|点满)/u.test(clause),
       )
-    const allMax = /所有技能[^。；]*全部点满/u.test(direction)
+    const allMax =
+      /所有技能[^。；]*全部点满/u.test(direction) && !/(?:不|无需)[^。；]*全部点满/u.test(direction)
     for (const key of fallbackSkillPriority) {
       if (
         allMax ||
-        maxClauses.some((clause) =>
-          skillPriorityAliases[key].some((alias) => clause.includes(alias)),
-        )
-      )
+        clauses.some((clause) => skillPriorityAliases[key].some((alias) => clause.includes(alias)))
+      ) {
         targets[key] = key === 'core' ? 'F' : '12'
+        maximums.add(key)
+      }
     }
     const match =
-      /^(普通攻击|普攻|闪避|快速支援|支援技|支援|强化特殊技|强化特殊|特殊技|特殊|终结技|连携技|连携|核心被动|核心技)\s*(?:优先升至\s*)?((?:≥|>=)?\s*(?:F|1[0-6]|[1-9])\+?)$/i.exec(
+      /^(普通攻击|普攻|闪避|快速支援|支援技|支援|强化特殊技|强化特殊|特殊技|特殊|终结技|连携技|连携|核心被动|核心技)\s*(?:优先升至\s*)?((?:≥|>=)?\s*(?:MAX|F|\d{1,3})\+?)$/i.exec(
         direction.trim(),
       )
-    if (!match || (/F/i.test(match[2]!) && labels[match[1]!] !== 'core')) continue
-    targets[labels[match[1]!]!] = match[2]!.replace(/\s+/g, '').toUpperCase()
+    if (!match || (/^F$/i.test(match[2]!) && labels[match[1]!] !== 'core')) continue
+    const value = match[2]!
+      .replace(/\s+/g, '')
+      .toUpperCase()
+      .replace(/^((?:≥|>=)?)0+(?=\d)/u, '$1')
+    const key = labels[match[1]!]!
+    const numeric = Number(value.replace(/^(?:≥|>=)/u, '').replace(/\+$/u, ''))
+    const coreLetter = key === 'core' && /^(?:≥|>=)?F\+?$/u.test(value)
+    if (
+      value !== 'MAX' &&
+      !coreLetter &&
+      (!Number.isInteger(numeric) || numeric < 1 || numeric > (key === 'core' ? 7 : 16))
+    )
+      continue
+    if (value === 'MAX') {
+      targets[key] = key === 'core' ? 'F' : '12'
+      maximums.add(key)
+    } else {
+      targets[key] = value
+      maximums.delete(key)
+    }
   }
-  return targets
+  return { targets, maximums }
 }

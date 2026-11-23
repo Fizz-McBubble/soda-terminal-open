@@ -1,10 +1,15 @@
 import { reviewedPlanningConditionSemanticsIdentity32 } from './reviewedPlanningConditionSemanticsIdentity32'
-import { reviewedWEngineReceiverSemantics32Identity } from './reviewedWEngineReceiverSemanticsIdentity32'
+import {
+  reviewedWEngineReceiverSemantics32Identity,
+  reviewedRoaringFurnaceReceiverSemantics32Identity,
+} from './reviewedWEngineReceiverSemanticsIdentity32'
 import { reviewedRoxyAttributeWindowsIdentity32 } from './reviewedRoxyAttributeWindowsIdentity32'
 import { reviewedDriveDiscSemanticsIdentity32 } from './reviewedDriveDiscSemanticsIdentity32'
 import { reviewedRoxyPreparedTriggersIdentity32 } from './reviewedRoxyPreparedTriggersIdentity32'
 import { currentPlanningConsumerPolicyIdentity32 } from './currentPlanningConsumerPolicyIdentity32'
 import { planningAnomalyLifecycleHash32 } from './currentPlanningAnomalyLifecycleIdentity32'
+import { reviewedYeShunguangEventIdentity32 } from './reviewedYeShunguangEventIdentity32'
+import { reviewedAstraCoreAttackIdentity32 } from './reviewedAstraCoreAttackIdentity32'
 /** Lightweight identities for saved-result invalidation; no expression runtime imports. */
 export const commonAnomalyEffectIdentity32 = Object.freeze({
   revision: 'explicit-common-windswept-single-instance-r1',
@@ -45,7 +50,9 @@ export const reviewedClaretIntrinsicActionIdentity32 = Object.freeze({
 })
 
 export const planningEffectResolutionIdentity32 = Object.freeze({
-  revision: 'same-event-final-stat-dag-roxy-prepared-mindscapes-stun-r9',
+  astraCoreAttack: reviewedAstraCoreAttackIdentity32,
+  reviewedYeShunguangEventIdentity32,
+  revision: 'same-event-final-stat-qualified-team-defense-and-bound-events-r11',
   roxyPrepared: reviewedRoxyPreparedTriggersIdentity32,
   preparedAndFunctionalConsumers: currentPlanningConsumerPolicyIdentity32,
   common: commonAnomalyEffectIdentity32,
@@ -55,6 +62,7 @@ export const planningEffectResolutionIdentity32 = Object.freeze({
   claret: reviewedClaretIntrinsicActionIdentity32,
   conditionSemantics: reviewedPlanningConditionSemanticsIdentity32,
   wEngineRecipients: reviewedWEngineReceiverSemantics32Identity,
+  roaringFurnaceReceivers: reviewedRoaringFurnaceReceiverSemantics32Identity,
   roxyWindows: reviewedRoxyAttributeWindowsIdentity32,
   driveDiscs: reviewedDriveDiscSemanticsIdentity32,
 })

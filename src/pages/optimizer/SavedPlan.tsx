@@ -1,8 +1,7 @@
-import { useContext, useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useLiveQuery } from 'dexie-react-hooks'
+import { useContext, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { CoreWarehouse } from '../../accounts/coreWarehouse'
-import { getAccountPlanningDraft } from '../../accounts/planningDrafts'
+import type { AccountPlanningDraft } from '../../accounts/types'
 import {
   CalculationQueryClientContext,
   useAccountDecisionWorld,
@@ -10,51 +9,32 @@ import {
 } from '../../application/accountDecisionWorldHooks'
 import type { AccountDecisionSnapshot } from '../../application/calculationQueryContract'
 import { savedPlanDisplayName } from '../../application/savedPlanDisplayName'
-import { useF5AccountSummary } from '../../components/f5AccountSummaryContext'
-import { InvalidPlan } from '../InvalidPlan'
 import { PlanEditor } from '../PlanEditor'
 import { PlanningProfileContext } from '../planningProfile'
 import { SavedPortfolioPlan } from '../savedPlanPresentation'
-import { SavedPlanDeleteDialog } from './SavedPlanDeleteDialog'
+import { useSavedPlanDeletion } from './useSavedPlanDeletion'
 import { useSavedPlanReplay } from './useSavedPlanReplay'
+import { SavedPlanAccountAnalysisStatus } from './SavedPlanAccountAnalysisStatus'
 
 export function SavedPlan({
   warehouse,
+  plan,
+  pending,
   decision,
   readOnly = false,
 }: {
   warehouse: CoreWarehouse
+  plan: AccountPlanningDraft
+  pending: ReactNode
   decision?: AccountDecisionSnapshot
   readOnly?: boolean
 }) {
   const decisionWorld = useAccountDecisionWorld()
   const calculationClient = useContext(CalculationQueryClientContext)
-  const accountSummary = useF5AccountSummary()
   const calculateTargetTeamWarehouseFit = useTargetTeamWarehouseFitCalculation()
-  const { planId = '' } = useParams()
   const resolveProfile = useContext(PlanningProfileContext)
-  const plan = useLiveQuery(
-    () =>
-      warehouse.accountId
-        ? getAccountPlanningDraft(warehouse.accountId, planId).then((item) => item ?? null)
-        : Promise.resolve(null),
-    [warehouse.accountId, planId],
-  )
   const navigate = useNavigate()
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const deleteButton = useRef<HTMLButtonElement>(null)
-  const restoreDeleteFocus = useRef(false)
-  useLayoutEffect(() => {
-    if (!confirmDelete && restoreDeleteFocus.current) {
-      deleteButton.current?.focus()
-      restoreDeleteFocus.current = false
-    }
-  }, [confirmDelete])
-  const closeDeleteDialog = () => {
-    restoreDeleteFocus.current = true
-    setConfirmDelete(false)
-  }
+  const { activeDelete, deleteAction, dialog } = useSavedPlanDeletion(warehouse, plan)
 
   const {
     componentsIdentity,
@@ -63,6 +43,7 @@ export function SavedPlan({
     savedReplay,
     restoredTeam,
     restoredPlanStale,
+    restoredPlanPending,
     staleNotice,
     restoredTeamRatingLabel,
     savedTargetCandidateId,
@@ -78,103 +59,92 @@ export function SavedPlan({
     calculateTargetTeamWarehouseFit,
   })
 
-  if (deleting)
-    return (
-      <section className="panel result-empty" role="status">
-        正在更新队伍方案…
-      </section>
+  const content = (() => {
+    if (
+      !activeDelete &&
+      plan.kind === 'team' &&
+      decisionWorld.analysisIssue?.kind !== 'run_lost' &&
+      componentsIdentity &&
+      calculationClient &&
+      savedComponents?.identity !== componentsIdentity
     )
-  if (plan === undefined)
-    return (
-      <section className="panel result-empty" aria-live="polite">
-        <h1>正在读取已保存方案</h1>
-      </section>
+      return pending
+    if (
+      !activeDelete &&
+      plan.kind === 'team' &&
+      decisionWorld.analysisIssue?.kind !== 'run_lost' &&
+      replayIdentity &&
+      calculationClient &&
+      savedReplay?.identity !== replayIdentity
     )
-  if (!plan) return <InvalidPlan back="/loadouts/team" label="方案" />
-  if (
-    plan.kind === 'team' &&
-    componentsIdentity &&
-    calculationClient &&
-    savedComponents?.identity !== componentsIdentity
-  )
-    return (
-      <section className="panel result-empty" role="status">
-        <h1>正在核对已保存方案</h1>
-      </section>
+      return pending
+    if (
+      !activeDelete &&
+      plan.kind === 'team' &&
+      !plan.teamExecutionSnapshot &&
+      restoredTargetFitState === 'loading'
     )
-  if (
-    plan.kind === 'team' &&
-    replayIdentity &&
-    calculationClient &&
-    savedReplay?.identity !== replayIdentity
-  )
+      return pending
+    if (plan.teamPortfolioSnapshot)
+      return (
+        <>
+          <SavedPlanAccountAnalysisStatus world={decisionWorld} />
+          <SavedPortfolioPlan
+            warehouse={warehouse}
+            plan={plan}
+            readOnly={
+              readOnly ||
+              restoredPlanStale ||
+              restoredPlanPending ||
+              decisionWorld.analysisIssue?.kind === 'run_lost'
+            }
+          />
+        </>
+      )
+    const profiles = plan.selection.agentIds.map(resolveProfile)
     return (
-      <section className="panel result-empty" role="status">
-        <h1>正在读取已保存配装</h1>
-      </section>
+      <>
+        {plan.kind === 'team' ? <SavedPlanAccountAnalysisStatus world={decisionWorld} /> : null}
+        <PlanEditor
+          key={`${warehouse.accountId}:saved:${plan.id}`}
+          warehouse={warehouse}
+          kind={plan.kind}
+          profiles={profiles}
+          team={restoredTeam ?? undefined}
+          teamRatingLabel={restoredTeamRatingLabel ?? undefined}
+          back={`/loadouts/${plan.kind}`}
+          restored={{ ...plan, name: savedPlanDisplayName(plan) }}
+          deleteAction={deleteAction}
+          decision={decision}
+          targetTeamFit={restoredTargetTeamFit}
+          readOnly={
+            readOnly ||
+            restoredPlanStale ||
+            restoredPlanPending ||
+            (plan.kind === 'team' && decisionWorld.analysisIssue?.kind === 'run_lost')
+          }
+          restoredExecutionIsFresh={
+            Boolean(savedTargetCandidateId) && !restoredPlanStale && !restoredPlanPending
+          }
+          restoredTargetFitState={restoredTargetFitState}
+          onRetryRestoredTargetFit={() => setRestoredTargetFitRetry((current) => current + 1)}
+          staleNotice={staleNotice}
+          luminizeSettlement32={
+            savedReplay?.identity === replayIdentity
+              ? savedReplay?.presentation?.luminizeSettlement32
+              : undefined
+          }
+          onReanalyze={() =>
+            navigate(`/loadouts/team?reanalyze=1&rematchPlan=${encodeURIComponent(plan.id)}`)
+          }
+        />
+      </>
     )
-  if (plan.kind === 'team' && !plan.teamExecutionSnapshot && restoredTargetFitState === 'loading')
-    return (
-      <section className="panel result-empty" role="status">
-        <h1>正在读取已保存配装</h1>
-      </section>
-    )
-  if (plan.teamPortfolioSnapshot)
-    return (
-      <SavedPortfolioPlan
-        warehouse={warehouse}
-        plan={plan}
-        readOnly={readOnly || restoredPlanStale}
-      />
-    )
-  const profiles = plan.selection.agentIds.map(resolveProfile)
+  })()
   return (
     <>
-      <PlanEditor
-        key={`${warehouse.accountId}:saved:${plan.id}`}
-        warehouse={warehouse}
-        kind={plan.kind}
-        profiles={profiles}
-        team={restoredTeam ?? undefined}
-        teamRatingLabel={restoredTeamRatingLabel ?? undefined}
-        back={`/loadouts/${plan.kind}`}
-        restored={{ ...plan, name: savedPlanDisplayName(plan) }}
-        deleteAction={
-          <button
-            ref={deleteButton}
-            type="button"
-            className="button button--danger"
-            onClick={() => setConfirmDelete(true)}
-          >
-            删除此方案
-          </button>
-        }
-        decision={decision}
-        targetTeamFit={restoredTargetTeamFit}
-        readOnly={readOnly || restoredPlanStale}
-        restoredExecutionIsFresh={Boolean(savedTargetCandidateId)}
-        restoredTargetFitState={restoredTargetFitState}
-        onRetryRestoredTargetFit={() => setRestoredTargetFitRetry((current) => current + 1)}
-        staleNotice={staleNotice}
-        luminizeSettlement32={
-          savedReplay?.identity === replayIdentity
-            ? savedReplay?.presentation?.luminizeSettlement32
-            : undefined
-        }
-        onReanalyze={() =>
-          navigate(`/loadouts/team?reanalyze=1&rematchPlan=${encodeURIComponent(plan.id)}`)
-        }
-      />
-      {confirmDelete ? (
-        <SavedPlanDeleteDialog
-          plan={plan}
-          warehouse={warehouse}
-          accountSummary={accountSummary}
-          decisionWorld={decisionWorld}
-          onClose={closeDeleteDialog}
-          onDeletingChange={setDeleting}
-        />
-      ) : null}
+      {content}
+      {dialog}
     </>
   )
 }

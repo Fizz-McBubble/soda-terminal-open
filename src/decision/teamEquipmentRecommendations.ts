@@ -1,3 +1,4 @@
+import { admittedTeamBangbooOptions } from './admittedTeamBangbooOptions'
 import { currentBangbooDirectory } from '../assault/catalog'
 import type { AccountRoster } from '../assault/types'
 import { stableContentHash } from '../gameDataPacks/types'
@@ -6,7 +7,6 @@ import { defaultWEngineRefinement, resolveWEngine } from './wEngineResolver'
 import {
   maxTargetTeamBangbooRecommendations,
   resolveTargetTeamBangbooOption,
-  targetTeamBangbooOptions,
 } from './targetTeamSourceBangbooOptions'
 import { describeBangbooTeamFit } from './bangbooTeamFit'
 import { describeBangbooConditions } from './bangbooConditionPresentation'
@@ -78,7 +78,7 @@ export function projectTeamEquipmentRecommendations(input: {
   const selectedStars = primaryBangbooId
     ? sourceRequiredBangbooStars(input.bangbooSelection, primaryBangbooId)
     : undefined
-  const reviewedOptions = targetTeamBangbooOptions({
+  const reviewedOptions = admittedTeamBangbooOptions({
     memberIds: input.memberIds,
     ...(primaryBangbooId && selectedStars !== undefined
       ? { bangbooStarsById: { [primaryBangbooId]: selectedStars } }

@@ -2,18 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { listAccountPlanningDrafts, getAccountPlanningDraft } from '../accounts/planningDrafts'
 import type { AccountPlanningDraft } from '../accounts/types'
 import type { SodaDatabase } from '../db/database'
+import { sameSavedTeam } from '../accounts/savedTeamRatingPlayIdentity'
 import { PlanningDialog } from './TeamSolverWorkspaceParts'
 import { savedPlanDisplayName } from '../application/savedPlanDisplayName'
 import { usePageOperationScope } from '../components/usePageOperationScope'
 
-export function sameSavedTeam(plan: AccountPlanningDraft, memberIds: readonly string[]) {
-  return (
-    plan.kind === 'team' &&
-    !plan.teamPortfolioSnapshot &&
-    plan.selection.agentIds.length === memberIds.length &&
-    memberIds.every((id) => plan.selection.agentIds.includes(id))
-  )
-}
+export { sameSavedTeam } from '../accounts/savedTeamRatingPlayIdentity'
 
 export async function verifyTeamSaveChoice(
   db: SodaDatabase,
@@ -23,12 +17,14 @@ export async function verifyTeamSaveChoice(
 ) {
   if (approved) {
     const current = await getAccountPlanningDraft(accountId, approved.id, db)
-    if (!current || current.revision !== approved.revision)
+    if (
+      approved.accountId !== accountId ||
+      !current ||
+      current.revision !== approved.revision ||
+      !sameSavedTeam(current, memberIds, approved.solutionContext?.ratedTeamPlayId)
+    )
       throw new Error('已保存方案发生变化，请重新保存并确认。')
-  } else if (
-    (await listAccountPlanningDrafts(accountId, db)).some((plan) => sameSavedTeam(plan, memberIds))
-  ) {
-    throw new Error('这支队伍已有保存方案，请再次保存并确认是否覆盖。')
+
   }
 }
 
@@ -47,10 +43,10 @@ export function useTeamSaveConfirmation() {
     resolve.current = null
     setTarget(null)
   }
-  const request = async (accountId: string, memberIds: readonly string[], preferredId?: string) => {
+  const request = async (accountId: string, memberIds: readonly string[], preferredId?: string, playId?: string | null) => {
     const isCurrentPage = capturePageScope()
     const matches = (await listAccountPlanningDrafts(accountId)).filter((plan) =>
-      sameSavedTeam(plan, memberIds),
+      sameSavedTeam(plan, memberIds, playId),
     )
     if (!isCurrentPage()) return null
     const existing = matches.find((plan) => plan.id === preferredId) ?? matches.at(-1)

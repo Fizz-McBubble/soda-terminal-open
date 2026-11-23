@@ -58,7 +58,6 @@ describe('warehouse invalid-record isolation', () => {
     ['fractional-level', { level: 3.5 }],
     ['negative-level', { level: -1 }],
     ['excess-level', { level: 16 }],
-    ['unknown-rarity', { rarity: 'C' }],
   ] as const)('keeps %s isolated from cleanup and enhancement evidence', (id, patch) => {
     const disc = { ...warehouseClearAlternative(id), ...patch } as DriveDisc
     const input = { accountId: 'isolated-records', discs: [disc], roster: roster(), drafts: [] }
@@ -70,6 +69,20 @@ describe('warehouse invalid-record isolation', () => {
     expect(decision.useAssessment).toMatchObject({ status: 'verify', basis: 'invalid_record' })
     expect(decision.enhancementPotential.potentialEvaluated).toBe(false)
     expect(decision.cleanupSafety.cleanupEvidenceComplete).toBe(false)
+  })
+
+  it('keeps an unknown rarity in the account while excluding it from enhancement and cleanup decisions', () => {
+    const disc = {
+      ...warehouseClearAlternative('unknown-rarity'),
+      rarity: 'C',
+    } as unknown as DriveDisc
+    const input = { accountId: 'isolated-records', discs: [disc], roster: roster(), drafts: [] }
+    const before = structuredClone(input)
+    expect(hasReliableWarehouseDiscRecord(disc)).toBe(false)
+    const result = analyzeAccountWarehouse(input)
+    expect(result.decisions).toEqual([])
+    expect(Object.values(result.counts).every((count) => count === 0)).toBe(true)
+    expect(input).toEqual(before)
   })
 
   it('does not evaluate an invalid main as a generic replacement objective', () => {

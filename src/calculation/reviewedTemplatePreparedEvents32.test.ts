@@ -145,7 +145,19 @@ describe('reviewed template per-event comparison preparation', () => {
     )
   })
   it('consumes Sunna through ordinary three-member compilation; explicit false/null retain authority', () => {
-    const input = teamFixture()
+    const input = {
+      ...teamFixture(),
+      eventConditionDeclarationsByAgentId: {
+        'agent-ye-shunguang': {
+          sourceRefs: ['test:explicit-enhanced-event-state'],
+          ye: {
+            yeShunguangEnlightenedMind32: true,
+            yeShunguangVerdictActive32: true,
+            yeShunguangVerdictTargetInside32: false,
+          },
+        },
+      },
+    }
     const ids: [string, string, string] = ['agent-sunna', 'agent-ye-shunguang', 'agent-billy']
     input.fit.memberIds = ids
     input.candidate.memberIds = ids
@@ -166,6 +178,15 @@ describe('reviewed template per-event comparison preparation', () => {
       })
     })
     const before = JSON.stringify(input)
+    const undeclared = compileTargetTeamPlanningContext({
+      ...input,
+      eventConditionDeclarationsByAgentId: undefined,
+    })
+    expect(undeclared.status).toBe('unsupported')
+    if (undeclared.status === 'unsupported')
+      expect(undeclared.blockers.join(';')).toContain(
+        'ye_enlightened_event_state_missing_or_inactive32',
+      )
     const on = compileTargetTeamPlanningContext(input)
     const off = compileTargetTeamPlanningContext({
       ...input,

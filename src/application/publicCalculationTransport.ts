@@ -167,6 +167,7 @@ export function projectPublicCalculationResult(
         ratingAnalysis,
         recommendationScore,
         teamRatingLabel,
+        ratedTeamPlayId,
         alternativeTeams,
         mechanicDiagnostic,
       } = view
@@ -184,6 +185,7 @@ export function projectPublicCalculationResult(
         ratingAnalysis,
         recommendationScore,
         teamRatingLabel,
+        ...(ratedTeamPlayId === undefined ? {} : { ratedTeamPlayId }),
         alternativeTeams,
         ...(mechanicDiagnostic === undefined ? {} : { mechanicDiagnostic }),
       }
@@ -236,7 +238,7 @@ export function projectPublicCalculationResult(
     case 'development_candidate_alternatives':
       return projectPublicDevelopmentAlternatives(
         result as DevelopmentCandidateAlternativesQueryResult,
-      )
+      ) as RemoteCalculationResult
     case 'development_workbench_route': {
       const view = result as DevelopmentWorkbenchRoutePresentation
       const {
@@ -254,6 +256,7 @@ export function projectPublicCalculationResult(
         discFacts,
         workbench,
         graduationPanel,
+        equipment,
         currentRecordBinding,
       } = view
       return {
@@ -271,9 +274,14 @@ export function projectPublicCalculationResult(
         discFacts,
         workbench,
         graduationPanel,
+        ...(equipment === undefined ? {} : { equipment }),
         ...(currentRecordBinding ? { currentRecordBinding } : {}),
       }
     }
+    case 'warehouse_actions':
+      return packPublicWarehouseActions(
+        result as import('./warehouseActionContract').WarehouseActionProjection,
+      )
     case 'warehouse_disc_transition_uses': {
       const view = result as WarehouseDiscTransitionUsesResult
       const { runId, inputFingerprint, discId, accountId, sideEffect, checkedAgentCount, uses } =

@@ -1,8 +1,39 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { posix } from 'node:path'
+import { currentPlanningConsumerPolicyIdentity32 } from '../../src/calculation/currentPlanningConsumerPolicyIdentity32.ts'
+import { stableContentHash } from '../../src/domain/stableContentHash.ts'
 import { searchTeamAssignments } from '../../src/optimizer/searchTeamAssignments.ts'
 import { selectTeamObjectiveAssignment } from '../../src/optimizer/selectTeamObjectiveAssignment.ts'
 import { selectPriorityBuilds } from '../../src/optimizer/selectPriorityAccountBuilds.ts'
+
+test('algorithm loader retains every installed consumer-policy source hash', () => {
+  const sourceUrl = new URL(
+    '../../src/calculation/currentPlanningConsumerPolicySourceClosure.v1.json',
+    import.meta.url,
+  )
+  const { selectors } = JSON.parse(readFileSync(sourceUrl, 'utf8'))
+  const paths = selectors.map((selector) => {
+    const path = posix.relative('src/calculation', posix.join('src/calculation', selector))
+    return path.startsWith('.') ? path : './' + path
+  })
+  assert.ok(paths.includes('../application/localTargetTeamFitQuery.ts'))
+  assert.ok(paths.includes('./reviewedTemplatePreparedEvents32.ts'))
+  assert.equal(new Set(paths).size, paths.length)
+  assert.equal(
+    currentPlanningConsumerPolicyIdentity32.contract,
+    'installed-prepared-and-functional-consumer-policy/v1',
+  )
+  const hashes = currentPlanningConsumerPolicyIdentity32.sourceHashes
+  assert.deepEqual(Object.keys(hashes).sort(), [...paths].sort())
+  for (const path of paths)
+    assert.equal(
+      hashes[path],
+      stableContentHash(readFileSync(new URL(path, sourceUrl), 'utf8').replaceAll('\r\n', '\n')),
+      path,
+    )
+})
 
 function fixture() {
   const domains = ['a', 'b', 'c'].map((agentId, member) => {

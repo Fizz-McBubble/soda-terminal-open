@@ -1,4 +1,7 @@
 import sourceData from './skillInvestmentMaterials32.data.json'
+import phoenixData from './skillInvestmentMaterials33.phoenix.json'
+import severianData from './skillInvestmentMaterials33.severian.json'
+import { stableContentHash } from '../domain/stableContentHash'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import type { SkillKey } from './skillInvestmentPolicy'
 
@@ -14,8 +17,12 @@ type MaterialSourceRow = {
   combatTableBySkill?: Record<string, string>
   source: { url: string; sourceVersion: string; sha256?: string }
 }
-const sources = new Map(
-  (sourceData.rows as unknown as readonly MaterialSourceRow[]).map((row) => [row.agentId, row]),
+const sources = new Map<string, MaterialSourceRow>(
+  [
+    ...(sourceData.rows as unknown as readonly MaterialSourceRow[]),
+    phoenixData as MaterialSourceRow,
+    severianData as MaterialSourceRow,
+  ].map((row) => [row.agentId, row]),
 )
 // Resource attribute belongs to the chip ID, not to a special-attribute owner.
 // Wind/Lumiflux chip IDs are independently present in their own source tables.
@@ -30,9 +37,13 @@ const chipAttributeBySuffix: Record<string, string> = {
 }
 
 export const skillInvestmentMaterialsIdentity = Object.freeze({
-  revision: 'fixed-3.2-exact-agent-paid-level-materials-r2',
-  sourceVersion: sourceData.sourceVersion,
-  contentHash: sourceData.contentHash,
+  revision: 'exact-agent-paid-level-materials-32-33-r4',
+  sourceVersion: '3.2+3.3',
+  contentHash: stableContentHash({
+    source32: sourceData.contentHash,
+    phoenix33: phoenixData,
+    severian33: severianData,
+  }),
   agentCount: sources.size,
   supportedAgentCount: [...sources.values()].filter((row) => row.status === 'supported').length,
   locator: 'passive.materials[currentBaseLevel];skill[skillKey].material[currentBaseLevel]',
@@ -54,7 +65,7 @@ export function resolveSkillInvestmentMaterials(input: {
     actor.status !== 'supported' ||
     actor.gameId !== contract.externalId ||
     actor.attribute !== contract.identity.attribute ||
-    actor.source.sourceVersion !== '3.2' ||
+    !['3.2', '3.3'].includes(actor.source.sourceVersion) ||
     !/^[A-F0-9]{64}$/u.test(actor.source.sha256 ?? '')
   )
     return unknown(actor?.reason ?? '该主体未建立身份匹配的已锁定材料表。')

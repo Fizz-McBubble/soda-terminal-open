@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../../application/playerErrorMessage'
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useSearchParams } from 'react-router-dom'
@@ -172,7 +173,7 @@ export function useScanStagingManagement({
         if (active && changed > 0) setScanRevision((current) => current + 1)
       })
       .catch((error: unknown) => {
-        if (active) setMessage(error instanceof Error ? error.message : '暂存重算失败。')
+        if (active) setMessage(playerErrorMessage(error, '暂存重算失败。'))
       })
     return () => {
       active = false

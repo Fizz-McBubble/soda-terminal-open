@@ -1,0 +1,113 @@
+.f5v-shell .status-banner {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid rgba(103, 90, 144, 0.18);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.f5v-shell .status-banner :is(strong, p) {
+  margin: 0;
+}
+
+.f5v-shell .status-banner p {
+  color: var(--f5-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.f5v-shell .status-banner--error {
+  border-color: rgba(142, 53, 75, 0.24);
+  background: rgba(249, 235, 239, 0.78);
+}
+
+.f5v-shell .status-banner--success {
+  border-color: rgba(73, 111, 101, 0.24);
+  background: rgba(234, 243, 240, 0.8);
+}
+
+/* The existing two feedback consumers share tones and hierarchy. Icons remain
+   optional; a missing icon must not leave an empty column in the plain family. */
+:root .f5v-shell[data-slice-theme='bright-muted'] :is(.status-banner, .sea-status-banner) {
+  --feedback-ink: var(--soda-accent);
+  --feedback-wash: var(--soda-surface-raised);
+  border: 1px solid color-mix(in srgb, var(--feedback-ink) 24%, transparent);
+  border-radius: var(--soda-radius-control);
+  padding: 12px 14px;
+  color: var(--soda-text);
+  background: var(--feedback-wash);
+  box-shadow: none;
+}
+
+:root .f5v-shell[data-slice-theme='bright-muted'] .sea-status-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+
+:root .f5v-shell[data-slice-theme='bright-muted'] .sea-status-banner > svg {
+  margin-top: 1px;
+  color: var(--feedback-ink);
+}
+
+:root
+  .f5v-shell[data-slice-theme='bright-muted']
+  :is(.status-banner, .sea-status-banner)
+  :is(p, strong) {
+  margin: 0;
+  color: inherit;
+  font-size: var(--soda-type-body);
+  line-height: var(--soda-leading-body);
+}
+
+:root .f5v-shell[data-slice-theme='bright-muted'] :is(.status-banner, .sea-status-banner) p {
+  margin-top: 4px;
+  color: var(--soda-text-2);
+}
+
+:root
+  .f5v-shell[data-slice-theme='bright-muted']
+  :is(.status-banner--success, .sea-status-banner--success) {
+  --feedback-ink: var(--soda-green);
+  --feedback-wash: #f0f7f3;
+  background-image: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgb(255 255 255 / 72%) 48%,
+    transparent 61%
+  );
+  background-size: 250% 100%;
+  background-position: 0 0;
+  animation: soda-feedback-settle 420ms var(--soda-ease-out);
+}
+
+@keyframes soda-feedback-settle {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+:root
+  .f5v-shell
+  :is(
+    .status-banner--warning,
+    .status-banner--stale,
+    .sea-status-banner--warning,
+    .sea-status-banner--stale
+  ) {
+  --feedback-ink: var(--soda-amber);
+  --feedback-wash: #faf7ef;
+}
+
+:root
+  .f5v-shell[data-slice-theme='bright-muted']
+  :is(.status-banner--error, .sea-status-banner--error) {
+  --feedback-ink: var(--soda-coral);
+  --feedback-wash: #fbf1f3;
+}

@@ -18,12 +18,6 @@
   line-height: 1.6;
 }
 
-@container soda-viewport (max-width: 760px) {
-  /* The narrow drawer grows with the page, so wheel input must reach the page scroll. */
-  .f5v-shell .warehouse-action-drawer {
-    overscroll-behavior-y: auto;
-  }
-}
 .f5v-shell .warehouse-action-drawer > header {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
@@ -34,7 +28,7 @@
   width: 40px;
   height: 40px;
   border-radius: var(--soda-radius-control);
-  background: var(--f5-wash);
+  background: radial-gradient(circle at 42% 38%, var(--soda-surface), var(--f5-wash) 76%);
 }
 .f5v-shell .warehouse-action-drawer__heading {
   min-width: 0;
@@ -70,9 +64,9 @@
 }
 .f5v-shell .warehouse-action-drawer > .warehouse-action-drawer__decision {
   margin-top: 14px;
-  padding: 12px;
+  padding: 14px;
   border-radius: var(--soda-radius-control);
-  background: var(--f5-wash);
+  background: color-mix(in srgb, var(--f5-accent) 7%, var(--f5-paper));
 }
 .f5v-shell .warehouse-action-drawer > .warehouse-action-drawer__decision + section {
   border-top: 0;
@@ -110,6 +104,43 @@
 .f5v-shell .warehouse-action-drawer__section-heading h3 {
   margin: 0;
 }
+.f5v-shell .warehouse-action-drawer__decision-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+.f5v-shell .warehouse-action-drawer__decision-heading > span {
+  color: var(--f5-accent);
+  font-size: var(--soda-type-meta);
+  font-weight: 750;
+}
+.f5v-shell .warehouse-action-drawer__decision-facts {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.f5v-shell .warehouse-action-drawer__decision-facts > div {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.f5v-shell .warehouse-action-drawer__decision-facts dt {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+  font-weight: 650;
+}
+.f5v-shell .warehouse-action-drawer__decision-facts dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--soda-text);
+  overflow-wrap: anywhere;
+}
+.f5v-shell .warehouse-action-drawer__decision-facts + .button {
+  margin-top: 10px;
+}
 .f5v-shell .warehouse-action-drawer p + p,
 .f5v-shell .warehouse-action-drawer p + ul,
 .f5v-shell .warehouse-action-drawer ul + p {
@@ -125,6 +156,56 @@
   display: grid;
   gap: 4px;
   margin: 0;
+}
+.f5v-shell .warehouse-action-drawer__key-facts {
+  margin-top: 4px;
+  padding-inline: 2px;
+}
+.f5v-shell .warehouse-action-drawer__key-facts .warehouse-action-drawer__main-stat-list {
+  display: block;
+}
+.f5v-shell .warehouse-action-drawer__main-stat-list > .warehouse-action-drawer__main-stat {
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  min-height: 38px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  background: var(--f5-wash);
+}
+.f5v-shell .warehouse-action-drawer__main-stat-list dd {
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.f5v-shell .warehouse-action-drawer__main-stat-list dd::-webkit-scrollbar {
+  display: none;
+}
+.f5v-shell .warehouse-action-drawer__substats {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: 4px 16px;
+  margin-top: 8px;
+}
+.f5v-shell .warehouse-action-drawer__substats > .warehouse-action-drawer__substat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: baseline;
+  column-gap: 10px;
+  min-width: 0;
+  min-height: 27px;
+  padding: 3px 0;
+  border: 0;
+}
+.f5v-shell .warehouse-action-drawer__substats dt,
+.f5v-shell .warehouse-action-drawer__substats dd {
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-action-drawer__empty-substats {
+  margin-top: 6px !important;
+  padding: 6px 2px;
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
 }
 .f5v-shell .warehouse-action-drawer__stats div {
   display: grid;
@@ -148,6 +229,7 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .f5v-shell .warehouse-action-drawer__development {
   margin-top: 6px;
@@ -159,7 +241,24 @@
 .f5v-shell .warehouse-action-drawer__usage {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+}
+.f5v-shell .warehouse-action-drawer__relation-tags {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none;
+}
+.f5v-shell .warehouse-action-drawer__relation-tags li {
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--f5-accent) 20%, transparent);
+  border-radius: 999px;
+  background: var(--f5-wash);
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
 }
 .f5v-shell .warehouse-action-drawer__comparison-picker > summary {
   min-height: var(--soda-control-height, 42px);
@@ -187,6 +286,12 @@
   overscroll-behavior: contain;
   padding: 0 4px 0 0;
   list-style: none;
+}
+@container soda-viewport (max-width: 760px) {
+  .f5v-shell .warehouse-action-drawer,
+  .f5v-shell .warehouse-action-drawer .warehouse-alternatives {
+    overscroll-behavior-y: auto;
+  }
 }
 .f5v-shell .warehouse-alternatives > li {
   min-width: 0;
@@ -254,6 +359,36 @@
   gap: 8px;
   padding: 4px 0;
   border-bottom: 1px solid color-mix(in srgb, var(--soda-line) 70%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell .warehouse-disc-comparison__row [role='rowheader'] small {
+  display: block;
+  margin-top: 2px;
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  line-height: 1.4;
+}
+
+.f5v-shell .warehouse-disc-comparison__row[data-comparison-change='changed'] {
+  background: var(--soda-surface-raised);
+  animation: soda-disc-difference var(--soda-motion-emphasis) var(--soda-ease-out);
+}
+
+.f5v-shell
+  .warehouse-disc-comparison__row[data-comparison-change='changed']
+  > [role='cell']:last-child {
+  color: var(--soda-accent-ink);
+  font-weight: 700;
+}
+
+@keyframes soda-disc-difference {
+  from {
+    background-color: color-mix(in srgb, var(--soda-accent) 15%, var(--soda-surface));
+  }
+  to {
+    background-color: var(--soda-surface-raised);
+  }
 }
 .f5v-shell .warehouse-disc-comparison__row:last-child {
   border-bottom: 0;
@@ -411,5 +546,524 @@
   .f5v-shell .r6-golden .section-head__actions .disc-workspace-switch button {
     padding-inline: 10px;
     font-size: inherit;
+  }
+}
+
+/* Final warehouse detail hierarchy: one decision surface followed by quiet,
+   aligned reading groups. Keep capability visible without stacking card walls. */
+.f5v-shell .warehouse-action-drawer {
+  container: warehouse-action-drawer / inline-size;
+  padding: 18px;
+  line-height: 1.55;
+  scrollbar-color: var(--soda-line-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.f5v-shell .warehouse-action-drawer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.f5v-shell .warehouse-action-drawer::-webkit-scrollbar-thumb {
+  border: 2px solid var(--f5-paper);
+  border-radius: 999px;
+  background: var(--soda-line-strong);
+}
+
+.f5v-shell .warehouse-action-drawer__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--soda-line);
+}
+
+.f5v-shell .warehouse-action-drawer__toolbar {
+  order: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.f5v-shell .warehouse-action-drawer__toolbar > .button,
+.f5v-shell .warehouse-action-drawer__toolbar .warehouse-disc-stepper .button {
+  min-height: 34px;
+  height: 34px;
+  padding-inline: 10px;
+  font-size: var(--soda-type-body);
+}
+
+.f5v-shell .warehouse-action-drawer__toolbar .warehouse-disc-stepper {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0;
+}
+
+.f5v-shell .warehouse-action-drawer__toolbar .warehouse-disc-stepper > span {
+  min-width: 54px;
+  padding-inline: 8px;
+  border-radius: 3px;
+  background: var(--soda-accent-ink);
+  color: var(--soda-surface);
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell .warehouse-action-drawer__identity {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  order: 1;
+  flex: 1 1 180px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-shell .warehouse-action-drawer__identity {
+    animation: soda-disc-identity-in var(--soda-motion-overlay) var(--soda-ease-out);
+  }
+}
+
+@keyframes soda-disc-identity-in {
+  from {
+    opacity: 0.7;
+    transform: translateX(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.f5v-shell .warehouse-action-drawer__identity h2 {
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.f5v-shell .warehouse-action-drawer__content,
+.f5v-shell .warehouse-action-drawer__decision-stack {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.f5v-shell .warehouse-action-drawer__decision-stack {
+  gap: 8px;
+}
+
+.f5v-shell .warehouse-action-drawer__decision {
+  margin: 0;
+  padding: 13px 14px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  background: color-mix(in srgb, var(--f5-accent) 7%, var(--f5-paper));
+}
+
+.f5v-shell .warehouse-action-drawer__decision-heading {
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.f5v-shell .warehouse-action-drawer__decision-heading > span {
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  font-weight: 650;
+}
+
+.f5v-shell .warehouse-action-drawer__decision .warehouse-action-drawer__action {
+  font-size: var(--soda-type-section);
+  line-height: 1.4;
+}
+
+.f5v-shell .warehouse-action-drawer__decision > p {
+  color: var(--soda-text-2);
+}
+
+.f5v-shell .warehouse-action-drawer__decision > p + p,
+.f5v-shell .warehouse-action-drawer__decision .warehouse-action-drawer__development {
+  margin-top: 5px;
+}
+
+.f5v-shell .warehouse-action-drawer__section {
+  min-width: 0;
+  padding: 0;
+}
+
+.f5v-shell .warehouse-action-drawer > section + section,
+.f5v-shell .warehouse-action-drawer__section + .warehouse-action-drawer__section {
+  border-top: 0;
+}
+
+.f5v-shell .warehouse-action-drawer__section-heading {
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0 0 9px;
+}
+
+.f5v-shell .warehouse-action-drawer__section-heading > span {
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell .warehouse-action-drawer__section-heading h3 {
+  line-height: 1.4;
+}
+
+.f5v-shell .warehouse-action-drawer__key-facts {
+  margin: 0;
+  padding-inline: 0;
+}
+
+.f5v-shell .warehouse-action-drawer__set-effects p {
+  display: grid;
+  grid-template-columns: 2.5em minmax(0, 1fr);
+  gap: 8px;
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+.f5v-shell .warehouse-action-drawer__main-stat-list > .warehouse-action-drawer__main-stat {
+  min-height: 36px;
+  padding: 6px 9px;
+}
+
+.f5v-shell .warehouse-action-drawer__substats {
+  gap: 0 16px;
+  margin-top: 5px;
+}
+
+.f5v-shell .warehouse-action-drawer__substats > .warehouse-action-drawer__substat {
+  min-height: 25px;
+  padding: 2px 0;
+}
+
+.f5v-shell .warehouse-action-drawer__substats > .warehouse-action-drawer__substat > dd {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 5px;
+  font-weight: 400;
+}
+
+.f5v-shell .warehouse-action-drawer__substat-value {
+  color: var(--soda-text);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell .warehouse-action-drawer__substat-enhancement {
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.f5v-shell .warehouse-action-drawer__usage {
+  align-items: flex-start;
+  gap: 7px 10px;
+}
+
+.f5v-shell .warehouse-action-drawer__usage > p {
+  flex: 1 1 170px;
+}
+
+.f5v-shell .warehouse-action-drawer__relation-tags {
+  gap: 4px !important;
+}
+
+.f5v-shell .warehouse-action-drawer__relation-tags li {
+  padding: 2px 8px;
+  border: 0;
+  background: var(--f5-wash);
+  color: var(--soda-text-2);
+}
+
+.f5v-shell .warehouse-action-drawer__team-impact {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--soda-line);
+}
+
+.f5v-shell .warehouse-action-drawer__team-impact h4,
+.f5v-shell .warehouse-disc-comparison h4 {
+  margin: 0;
+  color: var(--soda-text);
+  font-size: var(--soda-type-body);
+  font-weight: 750;
+}
+
+.f5v-shell .warehouse-action-drawer__team-impact ul {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.f5v-shell .warehouse-disc-comparison {
+  display: grid;
+  gap: 7px;
+}
+
+.f5v-shell .warehouse-disc-comparison__row {
+  padding: 5px 0;
+  border-bottom-color: color-mix(in srgb, var(--soda-line) 60%, transparent);
+}
+
+.f5v-shell .warehouse-action-drawer__comparison-picker > summary {
+  min-height: 40px;
+  padding: 7px 0;
+  color: var(--soda-text);
+  font-weight: 650;
+}
+
+.f5v-shell .warehouse-action-drawer__comparison-picker {
+  display: grid;
+  gap: 7px;
+}
+
+.f5v-shell .warehouse-action-drawer__comparison-picker[open] > summary {
+  margin-bottom: 2px;
+}
+
+.f5v-shell .warehouse-action-drawer__comparison-picker > p {
+  margin-bottom: 2px;
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+}
+
+.f5v-shell .warehouse-alternative__row {
+  padding: 8px 9px;
+  border: 0;
+  background: color-mix(in srgb, var(--f5-accent) 3%, transparent);
+}
+
+.f5v-shell .warehouse-alternative__item {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.f5v-shell .warehouse-alternative__summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  background: color-mix(in srgb, var(--f5-accent) 3%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.f5v-shell .warehouse-alternative__summary:is(:hover, :focus-visible, [aria-expanded='true']) {
+  background: color-mix(in srgb, var(--f5-accent) 9%, var(--f5-paper));
+}
+
+.f5v-shell .warehouse-alternative__summary:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 2px;
+}
+
+.f5v-shell .warehouse-alternative__summary[aria-current='true'] {
+  color: var(--soda-accent-ink);
+}
+
+.f5v-shell .warehouse-alternative__expand {
+  color: var(--soda-accent-ink);
+  font-size: var(--soda-type-meta);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.f5v-shell .warehouse-alternative__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.f5v-shell .warehouse-alternative__actions .button {
+  min-height: 32px;
+  height: 32px;
+  padding-inline: 10px;
+  font-size: var(--soda-type-meta);
+  text-decoration: none;
+}
+
+.f5v-shell .warehouse-alternative__card {
+  width: 100%;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+:is(.f5v-shell, .warehouse-action-drawer) .warehouse-alternative__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+:is(.f5v-shell, .warehouse-action-drawer) .warehouse-alternative__summary {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  background: color-mix(in srgb, var(--soda-accent) 4%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+:is(.f5v-shell, .warehouse-action-drawer) .warehouse-alternative__info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+:is(.f5v-shell, .warehouse-action-drawer) .warehouse-alternative__chevron {
+  flex: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.f5v-shell, .warehouse-action-drawer) .warehouse-alternative__chevron {
+    transition: transform var(--soda-motion-fast) var(--soda-ease-out);
+  }
+}
+:is(.f5v-shell, .warehouse-action-drawer)
+  .warehouse-alternative__summary[aria-expanded='true']
+  .warehouse-alternative__chevron {
+  transform: rotate(180deg);
+}
+:is(.f5v-shell, .warehouse-action-drawer) .warehouse-alternative__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
+.f5v-shell .warehouse-alternative__card .development-disc-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.f5v-shell .warehouse-alternative__card > .button {
+  margin-top: 8px;
+}
+
+.f5v-shell button.warehouse-alternative__row:hover {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--f5-accent) 9%, var(--f5-paper));
+}
+
+.f5v-shell .warehouse-action-drawer__notice,
+.f5v-shell .warehouse-action-drawer__other-uses {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: var(--soda-radius-control);
+  background: var(--f5-wash);
+  color: var(--soda-text-2);
+}
+
+.f5v-shell .warehouse-action-drawer__notice details {
+  margin-top: 4px;
+}
+
+.f5v-shell .warehouse-action-drawer__notice summary {
+  color: var(--soda-accent-ink);
+}
+
+@container warehouse-action-drawer (max-width: 340px) {
+  .f5v-shell .warehouse-action-drawer {
+    padding: 14px;
+  }
+
+  .f5v-shell .warehouse-action-drawer__toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .f5v-shell .warehouse-action-drawer__toolbar .warehouse-disc-stepper {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .f5v-shell .warehouse-action-drawer__toolbar > .button {
+    align-self: flex-start;
+  }
+
+  .f5v-shell .warehouse-action-drawer__identity {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .f5v-shell .warehouse-action-drawer__image {
+    width: 36px;
+    height: 36px;
+  }
+
+  .f5v-shell .warehouse-action-drawer__content {
+    gap: 15px;
+  }
+
+  .f5v-shell .warehouse-action-drawer__decision {
+    padding: 11px 12px;
+  }
+
+  .f5v-shell .warehouse-action-drawer__decision-heading,
+  .f5v-shell .warehouse-action-drawer__section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .f5v-shell .warehouse-action-drawer__usage {
+    display: grid;
+  }
+
+  .f5v-shell .warehouse-action-drawer__usage .warehouse-used-agents {
+    max-width: none;
+  }
+
+  .f5v-shell .warehouse-alternative__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .f5v-shell .warehouse-alternative__summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .f5v-shell .warehouse-alternative__actions {
+    justify-content: flex-start;
+  }
+
+  .f5v-shell .warehouse-alternative__status {
+    white-space: normal;
+  }
+
+  .f5v-shell .warehouse-disc-comparison__row {
+    grid-template-columns: minmax(64px, 0.7fr) repeat(2, minmax(0, 1fr));
+    gap: 6px;
   }
 }

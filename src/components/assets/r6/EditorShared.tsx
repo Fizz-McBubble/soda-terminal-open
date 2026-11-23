@@ -26,6 +26,7 @@ export function Field({
         min={min}
         max={max}
         value={rawValue}
+        onBlur={() => setEditing(null)}
         onChange={(event) => {
           const raw = event.target.value.trim()
           if (!raw) {
@@ -78,14 +79,22 @@ export function Identity(item: CatalogItem, meta: string, scopeLabel = '当前�
   )
 }
 
-export function Save({ label, onSave }: { label: string; onSave: () => void | Promise<void> }) {
+export function Save({
+  label,
+  onSave,
+  disabled = false,
+}: {
+  label: string
+  onSave: () => void | Promise<void>
+  disabled?: boolean
+}) {
   const [saving, setSaving] = useState(false)
   return (
     <footer className="editor-action">
       <small>只更新当前账户</small>
       <button
         className="primary"
-        disabled={saving}
+        disabled={saving || disabled}
         onClick={() => {
           setSaving(true)
           void Promise.resolve(onSave()).finally(() => setSaving(false))

@@ -1,0 +1,81 @@
+{
+  "schema": "soda-reviewed-rupture-resource-base/v1",
+  "gameVersion": "3.3",
+  "records": [
+    {
+      "stableId": "agent-yixuan",
+      "base": {
+        "adrenalineRegen": 2,
+        "maxAdrenaline": 120,
+        "adrenalineGenerationRate": 0
+      },
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1371.json",
+        "sourceVersion": "3.3",
+        "sha256": "681227bf50f86772db8771d89a88fdf8ae268404b6b5d376abd89201ff26e8ea",
+        "locator": "stats.rp_recover / 100; stats.rp_max"
+      },
+      "efficiencySource": {
+        "url": "https://www.miyoushe.com/zzz/article/73100348",
+        "sourceVersion": "2.6",
+        "sha256": "094cfc2bc9be3f2105c42e8d83c211737ad57c592ffcfc1192cc307ae0fe2a04",
+        "locator": "image 017 / 闪能获得效率",
+        "applicability": "out_of_combat_base_reference",
+        "reviewedFor": "3.3",
+        "boundary": "Base reference only; does not project in-combat or unmodeled equipment modifiers. Never extrapolate to other agents."
+      }
+    },
+    {
+      "stableId": "agent-banyue",
+      "base": {
+        "adrenalineRegen": 2,
+        "maxAdrenaline": 120
+      },
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1471.json",
+        "sourceVersion": "3.3",
+        "sha256": "494bbb166f876a1004e7b503ec75d85c88ef903aa1590b76f9d818ccf1846339",
+        "locator": "stats.rp_recover / 100; stats.rp_max"
+      }
+    },
+    {
+      "stableId": "agent-yidhari",
+      "base": {
+        "adrenalineRegen": 2,
+        "maxAdrenaline": 120
+      },
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1051.json",
+        "sourceVersion": "3.3",
+        "sha256": "c539b3c8814d1b76beb5788d3d05fed28dad1e2c4f91cb6dcc4744b9a0f850ea",
+        "locator": "stats.rp_recover / 100; stats.rp_max"
+      }
+    },
+    {
+      "stableId": "agent-starlight-billy",
+      "base": {
+        "adrenalineRegen": 2,
+        "maxAdrenaline": 120
+      },
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1531.json",
+        "sourceVersion": "3.3",
+        "sha256": "9f9756b69cfc57053f7b2c357d7f782be670af9edee62eb59b435376308abd45",
+        "locator": "stats.rp_recover / 100; stats.rp_max"
+      }
+    },
+    {
+      "stableId": "agent-manato",
+      "base": {
+        "adrenalineRegen": 0,
+        "maxAdrenaline": 120
+      },
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1441.json",
+        "sourceVersion": "3.3",
+        "sha256": "364c0691b50611f25788651bd922ddb35b178e2bc33403746f6287c7700100c6",
+        "locator": "stats.rp_recover / 100; stats.rp_max"
+      }
+    }
+  ]
+}

@@ -244,20 +244,52 @@ export function resolveReviewedContextualTargetPanel<T extends Target | null>(
   ) {
     const conditions = [
       '作者60级培养参考：防御力2300–2600+；仅对照该攻略参考，不是机制满档线或全局最优。',
-      context.engineId === 'wengine-14161'
-        ? `当前使用猩红渴望${context.engineRefinement ?? '未记录'}阶；攻略128.9%暴击属于专武作者方案，不能不分精炼套用。`
-        : '当前不是猩红渴望配置；攻略专武128.9%暴击不作为当前初始暴击目标。',
+      ...(context.engineId == null
+        ? []
+        : [
+            context.engineId === 'wengine-14161'
+              ? `当前使用猩红渴望${context.engineRefinement ?? '未记录'}阶；攻略128.9%暴击属于专武作者方案，不能不分精炼套用。`
+              : '当前不是猩红渴望配置；攻略专武128.9%暴击不作为当前初始暴击目标。',
+          ]),
       `局内接近200%暴击的来源建议包含核心技${context.coreLevel ?? '未录入'}级对应战斗增益、音擎和实际队友增益；不能把200%当初始面板或自动假定增益生效。`,
       '初始暴伤按0.35转换为初始暴击；锐暴伤害不直接使用普通暴伤倍率。核心状态下的战斗暴击另算，不能重复算入初始面板。',
       ...(context.agentLevel !== undefined && context.agentLevel !== 60
         ? ['当前等级不同于作者60级参考，差值仅作培养方向，不作同条件装备收益。']
         : []),
     ]
+    const reference = panel.value as {
+      conditionalReferences?: { signatureCritRate?: number }
+      targetSemantics?: TargetPanelSemantics
+    }
+    const signatureCritRate =
+      context.engineId === 'wengine-14161' &&
+      context.engineRefinement === 1 &&
+      context.agentLevel === 60
+        ? reference.conditionalReferences?.signatureCritRate
+        : undefined
     return {
       ...panel,
       value: {
         ...(panel.value as object),
-        cultivationReference: { keys: ['def'], conditions, sourceVersion: '3.2', level: 60 },
+        ...(typeof signatureCritRate === 'number'
+          ? {
+              critRate: { min: signatureCritRate },
+              targetSemantics: {
+                ...reference.targetSemantics,
+                critRate: {
+                  requirement: 'required',
+                  boundary: 'minimum',
+                  observation: 'reference',
+                },
+              } satisfies TargetPanelSemantics,
+            }
+          : {}),
+        cultivationReference: {
+          keys: typeof signatureCritRate === 'number' ? ['def', 'critRate'] : ['def'],
+          conditions,
+          sourceVersion: '3.2',
+          level: 60,
+        },
       },
       conditions: [...new Set([...(panel.conditions ?? []), ...conditions])],
     } as T

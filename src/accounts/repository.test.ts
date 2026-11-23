@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createEmptyRoster } from '../assault/catalog'
 import { SodaDatabase } from '../db/database'
 import { sampleDiscs } from '../evaluation/fixtures'
@@ -26,6 +26,28 @@ afterEach(async () => {
 })
 
 describe('account-scoped repository', () => {
+  it('does not rewrite the active pointer when the same account is selected again', async () => {
+    const name = `soda-account-same-active-${crypto.randomUUID()}`
+    names.push(name)
+    const db = new SodaDatabase(name)
+    const first = await createAccount('账号 A', db, {
+      id: 'account-same-active-a',
+      makeDefault: true,
+    })
+    const second = await createAccount('账号 B', db, { id: 'account-same-active-b' })
+    const put = vi.spyOn(db.settings, 'put')
+
+    expect(await setActiveAccount(first.id, db)).toEqual(first)
+    expect(put).not.toHaveBeenCalled()
+
+    await setActiveAccount(second.id, db)
+    expect(put).toHaveBeenCalledTimes(1)
+    put.mockClear()
+
+    expect(await setActiveAccount(second.id, db)).toEqual(second)
+    expect(put).not.toHaveBeenCalled()
+  })
+
   it.each(['legacy-id', 'account-missing', 42, null])(
     'reads a valid default without rewriting an unusable saved selection %s',
     async (selectedId) => {

@@ -69,7 +69,8 @@ describe('InstallerFeedbackPage component', () => {
   it('renders safe fallback when no fragment or report is provided', () => {
     render(<InstallerFeedbackPage initialReport={null} />)
     expect(screen.getByText('安装问题反馈')).toBeInTheDocument()
-    expect(screen.getByText(/未检测到有效的安装诊断信息/)).toBeInTheDocument()
+    expect(screen.getByText('请从安装器中的“反馈安装问题”打开本页。')).toBeInTheDocument()
+    expect(screen.getByText('未传输任何系统或个人信息。')).toBeInTheDocument()
     // Does not render send/copy buttons when no report is present
     expect(screen.queryByText('发送反馈')).not.toBeInTheDocument()
     expect(screen.getByText('下载、拦截或连接失败怎么处理')).toBeInTheDocument()
@@ -101,7 +102,9 @@ describe('InstallerFeedbackPage component', () => {
           <InstallerFeedbackPage />
         </StrictMode>,
       )
-      expect(screen.getByText(/上次已提交的安装诊断/)).toBeInTheDocument()
+      const heading = tool === 'screen_scanner_installer' ? '画面扫描' : '资产快读'
+      expect(screen.getByRole('heading', { name: `${heading}安装问题反馈` })).toBeInTheDocument()
+      expect(screen.getByRole('status')).toHaveTextContent('反馈已成功接收')
       expect(screen.getByRole('button', { name: '已发送' })).toBeDisabled()
       expect(screen.getByText(`回执编号：${report.reportId}`)).toBeInTheDocument()
       expect(screen.getByText(`代码：${report.code}`)).toBeInTheDocument()
@@ -117,8 +120,8 @@ describe('InstallerFeedbackPage component', () => {
     const current = { ...mockReport, reportId: crypto.randomUUID(), durationMs: 100 }
     render(<InstallerFeedbackPage initialReport={current} />)
     expect(screen.getByRole('button', { name: '发送反馈' })).toBeEnabled()
-    expect(screen.queryByText(/上次已提交/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/回执编号/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByText(`回执编号：${mockReport.reportId}`)).not.toBeInTheDocument()
   })
 
   it('rejects poisoned history instead of displaying or posting it', () => {
@@ -132,7 +135,8 @@ describe('InstallerFeedbackPage component', () => {
     const fetchMock = vi.fn()
     global.fetch = fetchMock
     render(<InstallerFeedbackPage />)
-    expect(screen.getByText(/未检测到有效的安装诊断信息/)).toBeInTheDocument()
+    expect(screen.getByText('请从安装器中的“反馈安装问题”打开本页。')).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '发送反馈' })).not.toBeInTheDocument()
     expect(fetchMock).not.toHaveBeenCalled()
   })
@@ -256,18 +260,41 @@ describe('InstallerFeedbackPage component', () => {
   })
 
   it('preserves the report and retry action when submission fails', async () => {
-    const fetchMock = vi.fn().mockRejectedValue(new Error('synthetic network failure'))
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('synthetic network failure'))
+      .mockResolvedValueOnce(
+        Response.json({
+          status: 'received',
+          reportId: mockReport.reportId,
+          receivedAt: '2026-10-12T14:30:00.000Z',
+        }),
+      )
     global.fetch = fetchMock
     render(<InstallerFeedbackPage initialReport={mockReport} />)
     const details = screen.getByText('查看下载诊断记录').closest('details')!
     expect(details).not.toHaveAttribute('open')
     expect(fetchMock).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: '发送反馈' }))
-    await screen.findByText('暂未收到回执，请重试或复制诊断。')
+    await screen.findByText('反馈发送未完成，请重试。')
     expect(screen.getByRole('button', { name: '发送反馈' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '复制诊断' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '下载诊断' })).toBeEnabled()
     expect(screen.queryByText('反馈已成功接收')).not.toBeInTheDocument()
     expect(screen.getByText('代码：protocol_download_timeout')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledOnce()
+    fireEvent.click(screen.getByRole('button', { name: '发送反馈' }))
+    expect(await screen.findByText(`回执编号：${mockReport.reportId}`)).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    for (const [endpoint, request] of fetchMock.mock.calls) {
+      expect(endpoint).toBe('/_soda/scan-feedback')
+      expect(request).toMatchObject({
+        method: 'POST',
+        credentials: 'omit',
+        body: JSON.stringify(mockReport),
+      })
+    }
+    expect(fetchMock.mock.calls[1]?.[1].signal).not.toBe(fetchMock.mock.calls[0]?.[1].signal)
   })
 
   it('downloads diagnostic report upon user click', () => {

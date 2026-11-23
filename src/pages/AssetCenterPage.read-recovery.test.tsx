@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AssetCenterPage } from './AssetCenterPage'
-import { loadAssetAccountOptions, loadAssetData } from './assetCenterData'
+import { loadAssetAccountIdentity, loadAssetAccountOptions, loadAssetData } from './assetCenterData'
 import { createPublicScannerEmptyRoster } from '../accounts/publicScannerAccountCreation'
+import { useLocalDataFileHandoff } from '../application/useLocalDataFileHandoff'
 import { useAssetCenterData } from './useAssetCenterData'
 
 vi.mock('./assetCenterData', async (original) => ({
   ...(await original<typeof import('./assetCenterData')>()),
   loadAssetData: vi.fn(),
   loadAssetAccountOptions: vi.fn(),
-  loadAssetAccountIdentity: async () => 'synthetic-asset-read',
+  loadAssetAccountIdentity: vi.fn(),
 }))
 vi.mock('../application/accountDecisionWorld', () => ({
   useOptionalAccountDecisionWorld: () => null,
@@ -27,10 +28,12 @@ vi.mock('../components/assets/r6/AssetMaintenanceGolden', () => ({
   AssetMaintenanceGolden: ({
     accountName,
     accountOptions,
+    incomingBackupFile,
     onSelectAccount,
   }: {
     accountName: string
     accountOptions: { id: string; displayName: string }[]
+    incomingBackupFile?: File | null
     onSelectAccount: (id: string) => Promise<void>
   }) => {
     const [selection, setSelection] = useState('原选择')
@@ -38,6 +41,7 @@ vi.mock('../components/assets/r6/AssetMaintenanceGolden', () => ({
       <section aria-label="保留资产页面">
         <h1>{accountName}</h1>
         <p>{accountOptions.map((account) => account.displayName).join('、')}</p>
+        <span data-testid="handed-off-backup">{incomingBackupFile?.name ?? ''}</span>
         <button onClick={() => setSelection('已选代理人')}>{selection}</button>
         <button onClick={() => void onSelectAccount('second')}>模拟切换账户</button>
       </section>
@@ -45,11 +49,11 @@ vi.mock('../components/assets/r6/AssetMaintenanceGolden', () => ({
   },
 }))
 
-function confirmedData() {
+function confirmedData(id = 'synthetic-asset-read', displayName = '合成资产账户') {
   return {
     account: {
-      id: 'synthetic-asset-read',
-      displayName: '合成资产账户',
+      id,
+      displayName,
       createdAt: '2026-10-10T00:00:00.000Z',
       updatedAt: '2026-10-10T00:00:00.000Z',
       isDefault: true,
@@ -61,6 +65,15 @@ function confirmedData() {
     planningDrafts: [],
     lastSelectedAgentId: null,
   }
+}
+
+function HandoffLauncher({ file }: { file: File }) {
+  const forward = useLocalDataFileHandoff('scan-result', () => undefined)
+  return (
+    <button type="button" onClick={() => forward(file, 'account-backup')}>
+      触发备份移交
+    </button>
+  )
 }
 
 function showPage() {
@@ -78,6 +91,7 @@ function ReadProbe({ revision }: { revision: number }) {
 
 describe('asset page local read recovery', () => {
   beforeEach(() => {
+    vi.mocked(loadAssetAccountIdentity).mockReset().mockResolvedValue('synthetic-asset-read')
     vi.mocked(loadAssetData).mockReset().mockResolvedValue(confirmedData())
     vi.mocked(loadAssetAccountOptions)
       .mockReset()
@@ -145,5 +159,24 @@ describe('asset page local read recovery', () => {
     rejectOld(new Error('late synthetic failure'))
     await waitFor(() => expect(screen.getByText('合成资产账户')).toBeInTheDocument())
     expect(screen.queryByText('失败')).toBeNull()
+  })
+
+  it('delivers a retained handed-off backup after the same account recovers from a blocked read', async () => {
+    const file = new File(['{}'], 'same-account-backup.json', { type: 'application/json' })
+    vi.mocked(loadAssetData).mockRejectedValueOnce(new Error('temporary read failure'))
+    render(
+      <MemoryRouter initialEntries={['/system/scanner']}>
+        <Routes>
+          <Route path="/system/scanner" element={<HandoffLauncher file={file} />} />
+          <Route path="/assets/:assetType" element={<AssetCenterPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: '触发备份移交' }))
+    await screen.findByRole('alert')
+    expect(screen.queryByTestId('handed-off-backup')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '重试读取' }))
+    await screen.findByRole('heading', { name: '合成资产账户' })
+    expect(screen.getByTestId('handed-off-backup')).toHaveTextContent('same-account-backup.json')
   })
 })

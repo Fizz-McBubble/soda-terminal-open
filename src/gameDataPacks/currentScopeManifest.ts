@@ -11,7 +11,7 @@ import {
 import { type GameData31CatalogEntity } from './gameData31CatalogIntake'
 import { catalogEntities32, catalogEntities33 } from './currentCatalogIntake'
 import { currentGameDataSelection } from './currentGameDataSelection'
-import { gameData33CatalogCheckedAt } from './gameData33CatalogEntities'
+import { gameData33ScopeEffectiveAsOf } from './gameData33CatalogEntities'
 import { stableContentHash } from './types'
 
 export type CurrentScopeDomain = 'agent' | 'wengine' | 'bangboo' | 'drive_disc_set'
@@ -257,7 +257,7 @@ function buildScope(
 }
 
 const scope32 = buildScope(catalogEntities32, '3.2', 'phase_ii', '2026-09-30')
-const scope33 = buildScope(catalogEntities33, '3.3', 'phase_i', gameData33CatalogCheckedAt)
+const scope33 = buildScope(catalogEntities33, '3.3', 'phase_ii', gameData33ScopeEffectiveAsOf)
 /** Historical package identity never depends on the installed selection. */
 export const currentScopeManifest32 = scope32.manifest
 export const currentScopeManifest33 = scope33.manifest

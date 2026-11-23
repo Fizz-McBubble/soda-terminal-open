@@ -26,7 +26,11 @@ export function FormalCompactImportResult({
   onRetry: () => void
 }) {
   return (
-    <section className="scanner-inline-import scanner-dialog-import" aria-label="扫描结果与导入">
+    <section
+      className="scanner-inline-import scanner-dialog-import"
+      aria-label="扫描结果与导入"
+      aria-busy={busy}
+    >
       <div className="scanner-dialog-import__impact">
         <div>
           <span>目标账户</span>
@@ -35,7 +39,9 @@ export function FormalCompactImportResult({
         <b>{count} 张 S 级驱动盘</b>
       </div>
       <p>
-        仓库 {baselineCount} → {count} 张；匹配的旧盘保留标签和方案引用，其他账户与代理人资料不变。
+        当前账户已记录 {baselineCount} 张驱动盘。本次结果包含 {count} 张 S
+        级驱动盘；检查通过并确认后，只替换该账户已确认的 S 级记录，A/B
+        级和品质未确认记录保留。匹配到的旧盘会保留本地标记和方案引用，其他账户与代理人资料不变。
       </p>
       {error ? (
         <p className="danger-note" role="alert">
@@ -62,7 +68,9 @@ export function FormalCompactImportResult({
             重新检查
           </button>
         ) : null}
-        {secondaryAction}
+        <fieldset disabled={busy} style={{ border: 0, margin: 0, padding: 0, display: 'contents' }}>
+          {secondaryAction}
+        </fieldset>
       </div>
     </section>
   )

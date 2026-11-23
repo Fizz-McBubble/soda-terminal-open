@@ -1,5 +1,6 @@
 import type { AgentDiscProfile } from '../assault/engine'
 import type { DriveDisc } from '../domain/schemas'
+import { isRecommendableDisc } from './recommendableDisc'
 import { currentDriveDiscFormulaCatalog } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { getCurrentScopeEntry } from '../gameDataPacks/currentScopeManifest'
 import {
@@ -47,6 +48,11 @@ export function dynamicLegalInventory(discs: readonly DriveDisc[]) {
       return false
     }
   })
+}
+
+/** Search is narrower than historical replay, which must retain recorded assignments. */
+export function dynamicRecommendableInventory(discs: readonly DriveDisc[]) {
+  return dynamicLegalInventory(discs).filter(isRecommendableDisc)
 }
 
 /** Compile the exact six physical records, including 4+1+1 and scattered inventory.

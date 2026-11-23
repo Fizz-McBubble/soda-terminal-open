@@ -1,5 +1,6 @@
 import type { BuildIntent } from '../decision/buildIntent'
 import { contentHash } from './contentHash'
+import { developmentDiscScoreVersion } from './publicDevelopmentDiscScore'
 
 /** Version identities are shared by the private solver and local backup integrity checks. */
 export const actualDiscScoreVersion = 'actual-disc-values-s-standard-r1'
@@ -12,6 +13,9 @@ export function computeBuildIntentFingerprint<T extends Omit<BuildIntent, 'finge
     ...intent,
     discScoring: actualDiscScoreVersion,
     branchPolicy: candidateSetPlanPolicyVersion,
+    ...(intent.scope === 'agent_independent'
+      ? { personalDiscScoring: developmentDiscScoreVersion }
+      : {}),
   })
 }
 
@@ -26,6 +30,7 @@ export function buildIntentFingerprintMatches(
   return (
     allowHistoricalSnapshot &&
     [
+      candidateSetPlanPolicyVersion,
       'raw-dynamic-six-eighteen-disc-objective-swap-tie-r9',
       'raw-dynamic-six-eighteen-disc-objective-r8',
       'dynamic-marginal-source-compatible-guarded-exchange-r7',

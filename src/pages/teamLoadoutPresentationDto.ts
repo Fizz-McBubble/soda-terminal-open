@@ -43,6 +43,29 @@ function matchesIdentity(value: Record<string, unknown>, expected: TeamPresentat
   )
 }
 
+function matchesTeamMemberIdentities(
+  memberIds: readonly unknown[],
+  members: readonly unknown[],
+  expectedMemberIds: readonly string[],
+) {
+  if (
+    memberIds.length !== 3 ||
+    expectedMemberIds.length !== 3 ||
+    new Set(memberIds).size !== 3 ||
+    new Set(expectedMemberIds).size !== 3 ||
+    memberIds.some((id, index) => id !== expectedMemberIds[index])
+  )
+    return false
+  const presentedMemberIds = members.flatMap((member) =>
+    record(member) && typeof member.agentId === 'string' ? [member.agentId] : [],
+  )
+  return (
+    presentedMemberIds.length === 3 &&
+    new Set(presentedMemberIds).size === 3 &&
+    presentedMemberIds.every((id) => memberIds.includes(id))
+  )
+}
+
 /** Older or foreign results have no trusted presentation. Recompute through a current Query. */
 export function acceptTeamOverviewPresentation(
   value: unknown,
@@ -84,6 +107,7 @@ export function acceptTeamExecutionPresentation(
     !record(value.view) ||
     !Array.isArray(value.view.members) ||
     value.view.members.length !== 3 ||
+    !matchesTeamMemberIdentities(value.memberIds, value.view.members, expected.memberIds) ||
     !value.view.members.every(
       (member: unknown) =>
         record(member) && Array.isArray(member.discIds) && Array.isArray(member.discFacts),

@@ -4,6 +4,12 @@ import { inspectSavedLuminizeReplay32 } from './savedLuminizeReplay32'
 const savedTeamFingerprintPrefix = 'saved-team/v2:'
 const savedTeamPortfolioFingerprintPrefix = 'saved-team-portfolio/v1:'
 
+/** A changed historical result can be recalculated after its captured conditions
+ * are revalidated. Missing/expired declarations remain blocked. */
+export function canRecalculateSavedTeamPlan(freshness: SavedTeamPlanSnapshotFreshness | undefined) {
+  return freshness !== undefined && (!freshness.stale || freshness.reason === 'unmatched')
+}
+
 export type SavedTeamPlanSnapshotFreshness =
   | { stale: false; format: 'saved-team/v2' | 'current-input' | 'legacy-matched' }
   | {
@@ -15,6 +21,7 @@ export type SavedTeamPlanSnapshotFreshness =
         | 'unmatched'
         | 'luminize-declaration-invalid'
         | 'luminize-source-stale'
+        | 'disc-rarity-outside-scope'
     }
 
 export type SavedTeamPortfolioSnapshotFreshness =
@@ -28,6 +35,7 @@ export type SavedTeamPortfolioSnapshotFreshness =
         | 'unmatched'
         | 'luminize-declaration-invalid'
         | 'luminize-source-stale'
+        | 'disc-rarity-outside-scope'
     }
 
 export function inspectSavedTeamPortfolioPlanSnapshotFreshness(

@@ -5,16 +5,7 @@ export function FormalDamageWhitebox({ result }: { result: FormalDamageWhiteboxR
     return (
       <section className="optimizer-formal-gate" aria-label="精确伤害状态" role="status">
         <strong>精确伤害暂不可生成</strong>
-        <span>
-          {result.reason}。补齐同版本敌人、循环、Buff 与玩家最终属性后，才会在这里显示伤害、DPS
-          与展开白盒。
-        </span>
-        <details>
-          <summary>资料与计算条件</summary>
-          <p>
-            正式白盒会绑定角色/音擎/邦布、敌人与玩法、Buff、技能事件、循环时长、版本来源、方案条件与资产快照；候选仓库分不会越过这道门。
-          </p>
-        </details>
+        <span>{result.reason}</span>
       </section>
     )
   }

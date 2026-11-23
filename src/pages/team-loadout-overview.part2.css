@@ -116,9 +116,6 @@
   margin-top: 5px !important;
   color: var(--soda-text-3) !important;
 }
-.f5v-box-team-preview__impact {
-  padding-bottom: 12px !important;
-}
 .f5v-box-team-preview details {
   border: 0;
 }
@@ -207,6 +204,13 @@
   --box-overview-space-card: 18px;
   --box-overview-space-section: 24px;
   padding: 20px 0 36px;
+}
+.f5v-box-team-overview__scope-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--soda-space-2);
+  margin-bottom: 12px;
 }
 .f5v-box-team-overview__heading {
   margin-bottom: 12px;
@@ -453,13 +457,4 @@
   .f5v-box-team-decision-card > svg {
     display: none;
   }
-}
-
-.f5v-box-team-preview__impact ul {
-  grid-template-columns: minmax(0, 1fr);
-}
-.f5v-box-team-preview__impact li {
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
 }

@@ -40,12 +40,22 @@ export function authorityPortfolioCandidates(input: {
   const needsBangbooChoice: string[] = []
   for (const item of authorityConsumerRecommendations(input.authority)) {
     if (!adoptedTrios.has(trioKey(item.memberIds))) continue
-    if (item.teamRating.status !== 'rated' || item.teamRating.ratingBand === 'Experimental')
-      continue
     if (!item.memberIds.every((id) => owned.has(id))) continue
+    if (item.featureVector.hardPrunes.length) continue
     const confirmed = input.confirmedDirections?.find(
-      (candidate) => candidate.candidateId === item.candidateId,
+      (candidate) =>
+        candidate.candidateId === item.candidateId &&
+        trioKey(candidate.memberIds) === trioKey(item.memberIds),
     )
+    const hasRating =
+      item.teamRating.status === 'rated' && item.teamRating.ratingBand !== 'Experimental'
+    // A player-confirmed fit can allocate equipment without a strength claim.
+    // Unrated directions must not enter the automatically selected portfolio.
+    const confirmedSelection =
+      input.requestedCandidateIds?.includes(item.candidateId) &&
+      confirmed?.bangbooId &&
+      confirmed.bangbooStar
+    if (!hasRating && !confirmedSelection) continue
     const direction = confirmed?.bangbooId
       ? { ...confirmed, bangbooId: confirmed.bangbooId }
       : authorityTargetBuildDirection(item)
@@ -58,10 +68,12 @@ export function authorityPortfolioCandidates(input: {
         trioKey(candidate.memberIds) === trioKey(item.memberIds) &&
         candidate.bangbooId === item.bangbooId,
     )
-    const band =
-      item.teamRating.ratingBand === 'S+' || item.teamRating.ratingBand === 'S'
+    const ratingBand = item.teamRating.status === 'rated' ? item.teamRating.ratingBand : null
+    const band = !hasRating
+      ? null
+      : ratingBand === 'S+' || ratingBand === 'S'
         ? 'apex'
-        : item.teamRating.ratingBand === 'A+' || item.teamRating.ratingBand === 'A'
+        : ratingBand === 'A+' || ratingBand === 'A'
           ? 'meta'
           : 'viable'
     const existingIndex = equivalent
@@ -124,7 +136,13 @@ export function authorityPortfolioCandidates(input: {
         evidenceLocator: `authority-exact:${item.candidateId}`,
         sourceRevision: '3.1',
       },
-      strength: { status: 'candidate', band, boundary: '来源评级用于选队；配装不代表精确伤害。' },
+      strength: {
+        status: hasRating ? 'candidate' : 'limited',
+        band,
+        boundary: hasRating
+          ? '参考评级用于选队；配装不代表精确伤害。'
+          : '已选队伍用于分配装备；尚无可用的整队强度评级。',
+      },
     })
     executionCandidates.push({ ...direction, bangbooStar })
   }

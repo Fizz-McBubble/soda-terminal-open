@@ -11,7 +11,7 @@ export async function loadAssetAccountIdentity() {
   return (await getActiveAccount())?.id ?? null
 }
 
-export async function loadAssetData() {
+export async function loadAssetData(rosterOnly = false) {
   const account = await getActiveAccount()
   if (!account)
     return {
@@ -21,19 +21,29 @@ export async function loadAssetData() {
       planningDrafts: [] as AccountPlanningDraft[],
       lastSelectedAgentId: null,
     }
-  const [roster, discs, planningDrafts, preferredAgent] = await Promise.all([
+  // The three catalogs show a count in their navigation. Only disc management needs the rows.
+  const discRecords = database.accountDriveDiscs.where('accountId').equals(account.id)
+  const [roster, discRead, planningDrafts, preferredAgent] = await Promise.all([
     getAccountRoster(account.id),
-    database.accountDriveDiscs.where('accountId').equals(account.id).toArray(),
-    listAccountPlanningDrafts(account.id),
+    rosterOnly ? discRecords.count() : discRecords.toArray(),
+    rosterOnly ? [] : listAccountPlanningDrafts(account.id),
     getAccountPreference(account.id, lastSelectedAgentPreference),
   ])
   return {
     account,
     roster,
-    discs: discs as DriveDisc[],
+    discs: typeof discRead === 'number' ? [] : discRead,
+    ...(typeof discRead === 'number' ? { discCount: discRead } : {}),
     planningDrafts,
     lastSelectedAgentId: typeof preferredAgent === 'string' ? preferredAgent : null,
   }
+}
+
+export async function loadAssetLastSelectedAgentPreference() {
+  const account = await getActiveAccount()
+  if (!account) return null
+  const preferredAgent = await getAccountPreference(account.id, lastSelectedAgentPreference)
+  return typeof preferredAgent === 'string' ? preferredAgent : null
 }
 
 export async function loadAssetAccountOptions() {

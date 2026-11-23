@@ -1,12 +1,16 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
 import { getAccountRoster, getAccountPreference } from '../accounts/repository'
 import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
 import { resetDatabase, seed } from './assetCenterR6TestFixture'
 
 describe('explicit asset catalogue URL selection', () => {
+  beforeAll(async () => {
+    await import('./AssetCenterPage')
+  })
+
   beforeEach(async () => {
     sessionStorage.clear()
     await resetDatabase()
@@ -24,7 +28,9 @@ describe('explicit asset catalogue URL selection', () => {
     )!.playerName
     window.history.pushState({}, '', `/assets/agents?selected=${target!.agentId}`)
     const first = render(<App />)
-    const cachedOption = await screen.findByRole('option', { name: cachedName }, { timeout: 5000 })
+    const cachedOptionName = (name: string) =>
+      name === cachedName || name.startsWith(cachedName + '，')
+    const cachedOption = await screen.findByRole('option', { name: cachedOptionName })
     await userEvent.click(cachedOption)
     expect(cachedOption).toHaveAttribute('aria-selected', 'true')
     await waitFor(async () =>
@@ -42,7 +48,7 @@ describe('explicit asset catalogue URL selection', () => {
         }),
       ).toHaveAttribute('aria-selected', 'true'),
     )
-    expect(screen.getByRole('option', { name: cachedName })).toHaveAttribute(
+    expect(screen.getByRole('option', { name: cachedOptionName })).toHaveAttribute(
       'aria-selected',
       'false',
     )

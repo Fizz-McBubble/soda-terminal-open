@@ -4,8 +4,10 @@ import { AppHealthProvider } from './appHealth'
 import type { initializeDatabase } from './db/database'
 import { localCalculationQueryClient } from './application/localCalculationQueryClient'
 import { createRemoteCalculationQueryClient } from './application/remoteCalculationQueryClient'
-import { readCurrentGameDataRuntimeSelection } from './gameDataPacks/runtimeSelection'
-import { repairBundledCurrentGameData } from './gameDataPacks/repository'
+import {
+  readCurrentGameDataRuntimeSelection,
+  repairCurrentGameDataOnDemand,
+} from './gameDataPacks/runtimeSelection'
 
 /** Local desktop composition and the existing isolated public-mode test adapter. */
 export default function App({
@@ -23,7 +25,7 @@ export default function App({
           })
         : localCalculationQueryClient,
       runtimeSelectionReader: readCurrentGameDataRuntimeSelection,
-      repairRuntimeSelection: onlineMode ? null : repairBundledCurrentGameData,
+      repairRuntimeSelection: onlineMode ? null : repairCurrentGameDataOnDemand,
     }),
     [onlineMode],
   )

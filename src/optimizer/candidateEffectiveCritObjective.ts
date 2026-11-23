@@ -4,7 +4,7 @@ import type { PlanningBaseline } from '../calculation/planningDpsContract'
 import type { CurrentWEngineFormulaRuntime } from '../calculation/currentWEnginePersonalPlanningEffects'
 import { compileCurrentWEnginePersonalPlanningEffects } from '../calculation/currentWEnginePersonalPlanningEffects'
 import { compileCurrentDriveDiscPlanningEffects } from '../calculation/currentDriveDiscPlanningEffects'
-import { evaluateSourceBackedPersonalPlanningDps } from '../calculation/currentPlanningTeamDpsRuntime'
+import { createPersonalPlanningSolveEvaluator } from '../calculation/currentPlanningTeamDpsRuntime'
 import { projectNormalizedAccountFinalStatsDetailed } from '../decision/normalizedAccountFinalStats'
 import {
   getCurrentAgentEventContract,
@@ -14,6 +14,8 @@ import type { RosterAgent } from '../assault/types'
 import type { PlanningEffectRuntimeMember } from '../calculation/currentPlanningEffectDomain'
 import { contentHash } from '../evaluation/contentHash'
 import { matchesEventScope } from '../calculation/currentPlanningDamageModifiers'
+import { bindReviewedYeShunguangEventEffects32 } from '../calculation/reviewedYeShunguangEventEffects32'
+import { isDamageFormula32Version } from '../calculation/sharpDamageCore'
 import { prepareReviewedPotentialEvents32 } from '../calculation/reviewedPotentialPreparedEvents32'
 import { createLevel60NeutralEffectRuntimeMember } from '../calculation/currentPlanningEffectDomain'
 import type { CommonAnomalyEventObservation32 } from '../calculation/currentCommonAnomalyEffects32'
@@ -104,14 +106,108 @@ export function compareCandidateEffectiveCritObjective(
   return right.totalDamage - left.totalDamage
 }
 
+/** A rejected Ye binding depends only on declared event and cultivation, not disc stats. */
+export function hasEquipmentInvariantEventBlocker32(
+  objective: CandidateEffectiveCritObjective,
+  panelInput: CandidatePanelInput | undefined,
+) {
+  if (
+    panelInput?.agentId !== 'agent-ye-shunguang' ||
+    !Number.isInteger(panelInput.mindscape) ||
+    panelInput.mindscape! < 0 ||
+    panelInput.mindscape! > 6 ||
+    objective.preparedPotentialPolicy ||
+    typeof objective.id !== 'string' ||
+    !objective.id.trim() ||
+    !Array.isArray(objective.sourceRefs) ||
+    !objective.sourceRefs.length ||
+    objective.sourceRefs.some((ref) => typeof ref !== 'string' || !ref.trim()) ||
+    !Array.isArray(objective.events) ||
+    !objective.events.length ||
+    !isDamageFormula32Version(objective.baseline.gameVersion)
+  )
+    return false
+  const contract = getCurrentAgentEventContract(panelInput.agentId)
+  if (!contract) return false
+  let blocked = false
+  for (const event of objective.events) {
+    if (
+      !event ||
+      !Array.isArray(event.sourceRefs) ||
+      !event.sourceRefs.length ||
+      event.sourceRefs.some((ref: unknown) => typeof ref !== 'string' || !ref.trim()) ||
+      !Number.isFinite(event.occurrenceCount) ||
+      event.occurrenceCount <= 0 ||
+      (event.durationSeconds !== undefined &&
+        (!Number.isFinite(event.durationSeconds) || event.durationSeconds < 0))
+    )
+      return false
+    const source = contract.eventContract.events.find((row) => row.eventId === event.eventId)
+    if (
+      !source ||
+      resolveCurrentAgentEvent({
+        stableId: panelInput.agentId,
+        eventId: event.eventId,
+        skillLevel: event.skillLevel,
+      }).status !== 'supported'
+    )
+      return false
+    const member = {
+      agentId: panelInput.agentId,
+      mindscape: panelInput.mindscape!,
+      skillLevels: { [source.skill]: event.skillLevel, core: panelInput.core + 2 },
+    }
+    blocked ||=
+      bindReviewedYeShunguangEventEffects32({
+        ownerAgentId: panelInput.agentId,
+        members: [member],
+        event: {
+          eventId: source.eventId,
+          actionId: source.actionId,
+          skill: source.skill,
+          skillLevel: event.skillLevel,
+        },
+        baselineReferencesByAgentId: { [panelInput.agentId]: event.baselineReferences ?? {} },
+      }).status === 'unsupported'
+  }
+  return blocked
+}
+
 /** Share the account's exact growth/static projection and existing event formula.
  * Each event rebuilds conditional equipment and self effects independently. */
+/** Synchronous solve only: objective and panel context must remain unchanged for its lifetime.
+ * The standalone projector prepares anew and always observes its current inputs; callers cannot inject a hash. */
+export function prepareCandidateEffectiveCritProjector(
+  objective: CandidateEffectiveCritObjective,
+  panelInput: CandidatePanelInput | undefined,
+) {
+  const objectiveHash = contentHash(objective)
+  const createProjectionEvaluator = createPersonalPlanningSolveEvaluator()
+  return (discs: DriveDisc[]) =>
+    projectPreparedCandidateEffectiveCritObjective(
+      objective,
+      panelInput,
+      discs,
+      objectiveHash,
+      createProjectionEvaluator,
+    )
+}
+
 export function projectCandidateEffectiveCritObjective(
   objective: CandidateEffectiveCritObjective,
   panelInput: CandidatePanelInput | undefined,
   discs: DriveDisc[],
 ): CandidateEffectiveCritProjection {
-  const objectiveHash = contentHash(objective)
+  return prepareCandidateEffectiveCritProjector(objective, panelInput)(discs)
+}
+
+function projectPreparedCandidateEffectiveCritObjective(
+  objective: CandidateEffectiveCritObjective,
+  panelInput: CandidatePanelInput | undefined,
+  discs: DriveDisc[],
+  objectiveHash: string,
+  createProjectionEvaluator: ReturnType<typeof createPersonalPlanningSolveEvaluator>,
+): CandidateEffectiveCritProjection {
   const reasons: string[] = []
   const sourceRefs = new Set(objective.sourceRefs)
   const events: CandidateEffectiveCritProjection['events'] = []
@@ -131,7 +227,7 @@ export function projectCandidateEffectiveCritObjective(
     !objective.events.length
   )
     return unsupported('固定事件目标缺少身份、来源或事件。')
-  if (!panelInput || panelInput.mindscape === undefined)
+  if (!panelInput || panelInput.mindscape == null)
     return unsupported('固定事件目标缺少实际成长、影画或音擎输入。')
   const agent: RosterAgent = {
     agentId: panelInput.agentId,
@@ -169,6 +265,23 @@ export function projectCandidateEffectiveCritObjective(
     discs,
   })
   if (projection.status !== 'supported') return unsupported(projection.reasons.join('；'))
+  // All caches live inside this one physical six-disc projection.
+  const members = new Map<string, Map<number, PlanningEffectRuntimeMember>>()
+  const discEffectsByMember = new Map<
+    PlanningEffectRuntimeMember,
+    Map<
+      CandidateEffectiveCritEvent['whiteWaterBallad'],
+      ReturnType<typeof compileCurrentDriveDiscPlanningEffects>
+    >
+  >()
+  const engineEffectsByMember = new Map<
+    PlanningEffectRuntimeMember,
+    Map<
+      CandidateEffectiveCritEvent['wEngineRuntime'],
+      ReturnType<typeof compileCurrentWEnginePersonalPlanningEffects>
+    >
+  >()
+  const evaluatePersonal = createProjectionEvaluator()
   let totalDamage = 0
   for (const event of objective.events) {
     if (
@@ -188,35 +301,64 @@ export function projectCandidateEffectiveCritObjective(
     const sourceEvent = sourceContract.eventContract.events.find(
       (row) => row.eventId === event.eventId,
     )!
-    const member: PlanningEffectRuntimeMember = {
-      agentId: agent.agentId,
-      level: agent.level,
-      mindscape: agent.mindscape,
-      potential: agent.potentialImage,
-      coreLevel: panelInput.core + 2,
-      skillLevels: { [sourceEvent.skill]: event.skillLevel, core: panelInput.core + 2 },
-      statBasis32: 'out_of_combat',
-      initialStats: projection.stats.initialStats,
-      finalStats: projection.stats.finalStats,
+    const skillMembers =
+      members.get(sourceEvent.skill) ?? new Map<number, PlanningEffectRuntimeMember>()
+    let member = skillMembers.get(event.skillLevel)
+    if (!member) {
+      member = {
+        agentId: agent.agentId,
+        level: agent.level,
+        mindscape: agent.mindscape,
+        potential: agent.potentialImage,
+        coreLevel: panelInput.core + 2,
+        skillLevels: { [sourceEvent.skill]: event.skillLevel, core: panelInput.core + 2 },
+        statBasis32: 'out_of_combat',
+        initialStats: projection.stats.initialStats,
+        finalStats: projection.stats.finalStats,
+      }
+      skillMembers.set(event.skillLevel, member)
+      members.set(sourceEvent.skill, skillMembers)
     }
-    const discEffects = compileCurrentDriveDiscPlanningEffects({
-      members: [member],
-      loadouts: [{ agentId: member.agentId, discs }],
-      ...(event.whiteWaterBallad
-        ? {
-            preparedWhiteWaterByAgentId: {
-              [member.agentId]: event.whiteWaterBallad,
-            },
-          }
-        : {}),
-    })
-    const engineEffects = compileCurrentWEnginePersonalPlanningEffects({
-      agentId: member.agentId,
-      engineId: panelInput.wEngine.id,
-      refinement: panelInput.wEngine.refinement,
-      member,
-      runtime: event.wEngineRuntime,
-    })
+    const discByWindow =
+      discEffectsByMember.get(member) ??
+      new Map<
+        CandidateEffectiveCritEvent['whiteWaterBallad'],
+        ReturnType<typeof compileCurrentDriveDiscPlanningEffects>
+      >()
+    let discEffects = discByWindow.get(event.whiteWaterBallad)
+    if (!discEffects) {
+      discEffects = compileCurrentDriveDiscPlanningEffects({
+        members: [member],
+        loadouts: [{ agentId: member.agentId, discs }],
+        ...(event.whiteWaterBallad
+          ? {
+              preparedWhiteWaterByAgentId: {
+                [member.agentId]: event.whiteWaterBallad,
+              },
+            }
+          : {}),
+      })
+      discByWindow.set(event.whiteWaterBallad, discEffects)
+      discEffectsByMember.set(member, discByWindow)
+    }
+    const engineByRuntime =
+      engineEffectsByMember.get(member) ??
+      new Map<
+        CandidateEffectiveCritEvent['wEngineRuntime'],
+        ReturnType<typeof compileCurrentWEnginePersonalPlanningEffects>
+      >()
+    let engineEffects = engineByRuntime.get(event.wEngineRuntime)
+    if (!engineEffects) {
+      engineEffects = compileCurrentWEnginePersonalPlanningEffects({
+        agentId: member.agentId,
+        engineId: panelInput.wEngine.id,
+        refinement: panelInput.wEngine.refinement,
+        member,
+        runtime: event.wEngineRuntime,
+      })
+      engineByRuntime.set(event.wEngineRuntime, engineEffects)
+      engineEffectsByMember.set(member, engineByRuntime)
+    }
     if (discEffects.blockers.length || engineEffects.status !== 'supported')
       return unsupported([...discEffects.blockers, ...engineEffects.blockers].join('；'))
     const eventUsages = [
@@ -241,7 +383,7 @@ export function projectCandidateEffectiveCritObjective(
         potentialPreparation.identity !== objective.preparedPotentialPolicy.sourceHash)
     )
       return unsupported('潜能事件准备协议或来源已变化，需重新生成比较目标。')
-    const result = evaluateSourceBackedPersonalPlanningDps({
+    const result = evaluatePersonal({
       member,
       baseline: objective.baseline,
       eventUsages,
