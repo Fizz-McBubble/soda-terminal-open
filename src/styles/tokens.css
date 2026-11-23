@@ -46,10 +46,27 @@
   --soda-control-height: 42px;
   --soda-focus: rgba(85, 69, 128, 0.42);
   --soda-motion-fast: 160ms;
-  --soda-motion-route: 200ms;
-  --soda-motion-overlay: 180ms;
-  --soda-motion-emphasis: 320ms;
+  --soda-motion-route: 220ms;
+  --soda-motion-overlay: 190ms;
+  --soda-motion-emphasis: 360ms;
+  --soda-motion-enter: 340ms;
   --soda-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --soda-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --soda-scrollbar-thumb: #7c6ba6;
+  --soda-scrollbar-thumb-hover: #5f4b91;
+  --soda-scrollbar-track: transparent;
+  --soda-shadow-card:
+    0 2px 10px rgba(74, 58, 118, 0.055),
+    0 1px 2px rgba(45, 36, 69, 0.04);
+  --soda-shadow-card-hover:
+    0 12px 28px rgba(74, 58, 118, 0.11),
+    0 2px 6px rgba(45, 36, 69, 0.05);
+  --soda-shadow-float:
+    0 18px 42px rgba(52, 41, 88, 0.14),
+    0 4px 12px rgba(45, 36, 69, 0.06);
+  --soda-shadow-accent:
+    0 8px 22px rgba(96, 73, 152, 0.28),
+    0 2px 6px rgba(62, 45, 108, 0.16);
   --f5-canvas: var(--soda-shell);
   --f5-rail: var(--soda-canvas);
   --f5-paper: var(--soda-surface);
@@ -60,26 +77,6 @@
   --f5-wash: var(--soda-surface-raised);
   --f5-info: var(--soda-info);
   --f5-danger: var(--soda-coral);
-  --sea-bg-950: #041524;
-  --sea-bg-900: #072238;
-  --sea-bg-800: #0b3048;
-  --sea-glass-1: rgba(14, 49, 70, 0.76);
-  --sea-glass-2: rgba(18, 61, 84, 0.86);
-  --sea-glass-3: rgba(27, 77, 101, 0.94);
-  --sea-line: rgba(91, 205, 229, 0.34);
-  --sea-line-strong: rgba(80, 221, 239, 0.72);
-  --sea-cyan: #4bd8e9;
-  --sea-cyan-strong: #65ecf5;
-  --sea-purple: #aa91ff;
-  --sea-gold: #f3d78a;
-  --sea-success: #69d7aa;
-  --sea-warning: #f2bf6b;
-  --sea-danger: #ff8e9b;
-  --sea-text-1: #f6f1e8;
-  --sea-text-2: #c9dce5;
-  --sea-text-3: #93afbd;
-  --sea-shadow: 0 18px 48px rgba(0, 9, 20, 0.28);
-  --sea-glow: 0 0 0 1px rgba(75, 216, 233, 0.18), 0 0 28px rgba(75, 216, 233, 0.12);
   --radius-card: var(--soda-radius-surface);
   --radius-control: var(--soda-radius-control);
   --radius-pill: 999px;

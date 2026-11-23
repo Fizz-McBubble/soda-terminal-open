@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { usePointerSpotlight } from '../motion/usePointerSpotlight'
 import { SponsorSupport } from './SponsorSupport'
 import { HomeHeroScene } from './HomeHeroScene'
 
@@ -59,10 +60,13 @@ export function F5HomeGoldenView({
   journey,
 }: F5HomeGoldenViewProps) {
   const signalState = nextSignal.alert ? 'alert' : nextSignal.busy ? 'busy' : 'idle'
+  const heroFocusRef = useRef<HTMLElement>(null)
+  usePointerSpotlight(heroFocusRef)
 
   return (
     <div className="soda-home soda-home--golden">
       <section
+        ref={heroFocusRef}
         className="home-focus"
         aria-labelledby="home-next-action-title"
         data-signal-state={signalState}

@@ -15,13 +15,12 @@ export type TeamOutputSystemOption = {
   count: number
 }
 
-const orderedSystems: readonly Exclude<TeamOutputSystemFilter, 'all'>[] = [
+const orderedSystems: readonly TeamPrimaryOutputKind[] = [
   'direct_damage',
   'attribute_anomaly',
   'rupture',
   'aftershock',
   'sharp',
-  'unclassified',
 ]
 
 function classifiedModuleSystem(item: TeamLoadoutOverviewItem) {
@@ -57,7 +56,7 @@ function labelForSystem(system: Exclude<TeamOutputSystemFilter, 'all'>) {
 export function normalizeTeamOutputSystemFilter(
   value: string | null | undefined,
 ): TeamOutputSystemFilter {
-  return value === 'all' || orderedSystems.includes(value as (typeof orderedSystems)[number])
+  return value === 'all' || orderedSystems.includes(value as TeamPrimaryOutputKind)
     ? (value as TeamOutputSystemFilter)
     : 'all'
 }
@@ -91,6 +90,7 @@ export function teamOutputSystemOptionsForFamilies(
   const matchingFamilies = (filter: Exclude<TeamOutputSystemFilter, 'all'>) =>
     families.filter((family) => family.variants.some((item) => systemForItem(item) === filter))
       .length
+  const unclassifiedCount = matchingFamilies('unclassified')
   return [
     { value: 'all', label: '全部体系', count: families.length },
     ...orderedSystems.map((system) => ({
@@ -98,5 +98,8 @@ export function teamOutputSystemOptionsForFamilies(
       label: labelForSystem(system),
       count: matchingFamilies(system),
     })),
+    ...(unclassifiedCount > 0
+      ? [{ value: 'unclassified' as const, label: labelForSystem('unclassified'), count: unclassifiedCount }]
+      : []),
   ]
 }

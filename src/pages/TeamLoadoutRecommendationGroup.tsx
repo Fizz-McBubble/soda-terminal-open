@@ -24,8 +24,6 @@ export const TeamGroup = memo(function TeamGroup({
   onRecommendedPageChange,
   onlyFavorites = false,
   onOnlyFavoritesChange,
-  includeReferenceDirections = false,
-  onIncludeReferenceDirectionsChange,
   outputSystem = 'all',
   outputSystemOptions = [],
   onOutputSystemChange,
@@ -48,8 +46,6 @@ export const TeamGroup = memo(function TeamGroup({
   onRecommendedPageChange?: (page: number) => void
   onlyFavorites?: boolean
   onOnlyFavoritesChange?: (checked: boolean) => void
-  includeReferenceDirections?: boolean
-  onIncludeReferenceDirectionsChange?: (checked: boolean) => void
   outputSystem?: TeamOutputSystemFilter
   outputSystemOptions?: readonly TeamOutputSystemOption[]
   onOutputSystemChange?: (value: TeamOutputSystemFilter) => void
@@ -74,17 +70,17 @@ export const TeamGroup = memo(function TeamGroup({
               showIndicator={false}
               className="f5v-box-team-recommendation-explanation"
             >
-              <p>先比较标准成型队伍，再匹配已拥有角色。选队后查看培养与装备差距。</p>
+              <p>
+                按统一标准成型配置（60级、A级6影、S级关键影画、核心技7级及毕业装备）比较整队理论表现，再匹配你已拥有的角色；选队后可直接查看培养与装备差距。
+              </p>
               <p>
                 {genericTeamRatingBands.map(([band, meaning]) => `${band}：${meaning}`).join('；')}
                 。
               </p>
-              <p>同档队伍并列；具体选择结合敌人、增益和已拥有角色。</p>
               <p>
-                默认列表也可能包含有搭配依据但暂无评级的队伍；暂无评级表示目前缺少适用的强弱结论。
+                评分已按输出体系校准：全部体系下可横向参考，切入具体体系后展示体系内位次；实战选择仍需结合关卡环境、敌人弱点与现有配装。
               </p>
-              <p>“更多配队”可查看其他搭配与待验证方向。</p>
-              <p>补强建议列出补齐一名角色可解锁的搭配。</p>
+              <p>补强建议列出补齐一名角色即可解锁的搭配。</p>
             </ExplanationPopover>
           ) : null}
         </div>
@@ -126,16 +122,6 @@ export const TeamGroup = memo(function TeamGroup({
               onChange={(event) => onOnlyFavoritesChange?.(event.target.checked)}
             />
             收藏角色
-          </label>
-        ) : null}
-        {isRecommended ? (
-          <label className="f5v-box-team-favorites-filter">
-            <input
-              type="checkbox"
-              checked={includeReferenceDirections}
-              onChange={(event) => onIncludeReferenceDirectionsChange?.(event.target.checked)}
-            />
-            更多配队
           </label>
         ) : null}
         {isRecommended ? scopeActions : null}

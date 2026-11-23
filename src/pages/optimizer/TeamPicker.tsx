@@ -25,7 +25,7 @@ import { browserCalculationInputFingerprint } from '../../application/browserCal
 import { preloadVisualEntityImages } from '../../assets/visualEntityImageSource'
 import { useF5AccountSummary } from '../../components/f5AccountSummaryContext'
 import { AppLoadingState } from '../../components/AppEntryState'
-import { TeamConstraintResetPanel } from '../TeamLoadoutOverviewParts'
+import { TeamConstraintResetPanel } from '../TeamConstraintResetPanel'
 import {
   canRestoreCurrentTeamAnalysisSession,
   currentDecisionWorldForRecovery,

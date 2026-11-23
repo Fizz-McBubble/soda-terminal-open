@@ -180,3 +180,52 @@
   list-style: none;
   grid-column: auto !important;
 }
+
+.f5v-shell .journey-list--five > li > a {
+  transition:
+    transform var(--soda-motion-fast) var(--soda-ease-spring),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    background-color var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-shell .journey-list--five > li {
+    animation: soda-journey-step-rise 360ms var(--soda-ease-spring) both;
+  }
+
+  .f5v-shell .journey-list--five > li:nth-child(1) {
+    animation-delay: 160ms;
+  }
+  .f5v-shell .journey-list--five > li:nth-child(2) {
+    animation-delay: 205ms;
+  }
+  .f5v-shell .journey-list--five > li:nth-child(3) {
+    animation-delay: 250ms;
+  }
+  .f5v-shell .journey-list--five > li:nth-child(4) {
+    animation-delay: 295ms;
+  }
+  .f5v-shell .journey-list--five > li:nth-child(5) {
+    animation-delay: 340ms;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .f5v-shell .journey-list--five > li > a:hover {
+      transform: translateY(-2.5px);
+      box-shadow: var(--soda-shadow-card-hover);
+      border-color: color-mix(in srgb, var(--soda-accent) 40%, transparent);
+    }
+  }
+}
+
+@keyframes soda-journey-step-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}

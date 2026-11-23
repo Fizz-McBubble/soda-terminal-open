@@ -63,12 +63,37 @@
   border-radius: var(--soda-radius-surface);
   transition:
     border-color var(--soda-motion-fast) var(--soda-ease-out),
-    background-color var(--soda-motion-fast) var(--soda-ease-out);
+    background-color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    transform var(--soda-motion-fast) var(--soda-ease-spring);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .f5v-shell :is(.f5v-box-team-row, .f5v-box-team-decision-card):hover {
+    border-color: color-mix(in srgb, var(--soda-accent) 34%, transparent);
+    box-shadow: var(--soda-shadow-card);
+    transform: translateY(-1px);
+  }
+
+  .f5v-shell :is(.f5v-box-team-row, .f5v-box-team-decision-card):hover .f5v-box-team-portrait-frame img {
+    transform: scale(1.05);
+  }
+}
+
+.f5v-shell .f5v-box-team-portrait-frame {
+  overflow: hidden;
+}
+
+.f5v-shell .f5v-box-team-portrait-frame img {
+  transition: transform 260ms var(--soda-ease-spring);
 }
 
 .f5v-shell :is(.f5v-box-team-row, .f5v-box-team-decision-card).is-selected {
   border-color: var(--soda-accent);
-  background: color-mix(in srgb, var(--soda-accent) 10%, var(--soda-surface));
+  background: color-mix(in srgb, var(--soda-accent) 9%, var(--soda-surface));
+  box-shadow:
+    inset 3px 0 0 var(--soda-accent),
+    var(--soda-shadow-card);
   animation: soda-choice-confirm 220ms var(--soda-ease-out);
 }
 
@@ -124,7 +149,7 @@
 }
 
 .f5v-shell [data-f5-scroll-owner] {
-  scrollbar-color: var(--soda-line-strong) transparent;
+  scrollbar-color: var(--soda-scrollbar-thumb, #7c6ba6) transparent;
 }
 
 .f5v-shell .f5v-page-frame:has(.workbench--single-page) {

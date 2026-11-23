@@ -1,9 +1,9 @@
 import { Database, RefreshCw, ScanLine, ShieldCheck, Sparkles, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
+import { hasRecordedCurrentWEngine } from './dashboardCurrentWEngine'
 import type { useAccountDecisionWorld } from '../application/accountDecisionWorld'
-import { inspectSkillInvestments } from '../decision/accountDecisionBands'
-import { resolveWEngine } from '../decision/wEngineResolver'
+import { inspectSkillInvestments } from '../decision/accountSkillInvestmentSummary'
 
 export type PendingStagingRead =
   | { status: 'ready'; accountId: string | null; count: number }
@@ -67,7 +67,7 @@ export function deriveDashboardDevelopmentGap(
     return (
       agent.level !== 60 ||
       agent.completeness !== 'complete' ||
-      resolveWEngine({ agent, legacyWEngines: home.roster?.wEngines }).current === null ||
+      !hasRecordedCurrentWEngine(agent, home.roster?.wEngines) ||
       skills.knownGapCount > 0 ||
       skills.unknownCount > 0 ||
       !hasKnownApplicablePotential(agent) ||

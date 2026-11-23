@@ -73,10 +73,20 @@
   text-align: left;
   transition:
     background-color var(--soda-motion-fast) var(--soda-ease-out),
-    box-shadow var(--soda-motion-fast) var(--soda-ease-out);
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    transform var(--soda-motion-fast) var(--soda-ease-spring);
 }
 .f5v-shell .warehouse-action-row:hover {
   background-color: var(--soda-surface-raised);
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--f5-accent) 42%, transparent);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .f5v-shell .warehouse-action-row:hover .warehouse-action-row__image {
+    transform: scale(1.06);
+  }
+}
+.f5v-shell .warehouse-action-row__image {
+  transition: transform 220ms var(--soda-ease-spring);
 }
 .f5v-shell .warehouse-action-row.is-selected {
   background-color: color-mix(in srgb, var(--f5-accent) 12%, var(--f5-paper));

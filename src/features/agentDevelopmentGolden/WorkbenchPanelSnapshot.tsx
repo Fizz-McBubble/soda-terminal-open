@@ -1,11 +1,12 @@
+import { useMemo, useRef, type ReactNode } from 'react'
 import type { GoldenWorkbenchData } from './types'
-import type { ReactNode } from 'react'
 import {
   workbenchPanelPresentation,
   workbenchTargetPresentation,
 } from './workbenchPanelPresentation'
 import { DecisionConditions } from '../../components/DecisionConditions'
 import { ExplanationPopover } from '../../components/ExplanationPopover'
+import { useChangedValueHighlight } from '../../motion/useChangedValueHighlight'
 import './WorkbenchPanelSnapshot.css'
 import { formatDevelopmentEntityText } from '../../application/publicRosterNames'
 
@@ -19,6 +20,19 @@ export function WorkbenchPanelSnapshot({
   const refreshState = subject.currentPanel.refreshState
   const facts = workbenchPanelPresentation(subject)
   const available = subject.currentPanel.availability === 'available'
+  const mainGridRef = useRef<HTMLDListElement>(null)
+  const highlightedValues = useMemo(
+    () =>
+      Object.fromEntries(
+        facts.main.map((fact) => [fact.key ?? fact.name, `${subject.agentId}:${fact.value}`]),
+      ),
+    [facts.main, subject.agentId],
+  )
+  useChangedValueHighlight({
+    scope: mainGridRef,
+    values: highlightedValues,
+    enabled: available,
+  })
   const contextKey = JSON.stringify([
     subject.panelScopeKey ?? subject.agentId,
     subject.discSource,
@@ -36,7 +50,11 @@ export function WorkbenchPanelSnapshot({
   )
   const renderFacts = (items: typeof subject.panelFacts) =>
     items.map((fact) => (
-      <div className={fact.focus ? 'focus' : undefined} key={fact.key ?? fact.name}>
+      <div
+        className={fact.focus ? 'focus' : undefined}
+        data-motion-value-key={fact.key ?? fact.name}
+        key={fact.key ?? fact.name}
+      >
         <dt>{fact.name}</dt>
         <dd>{fact.value}</dd>
       </div>
@@ -70,7 +88,9 @@ export function WorkbenchPanelSnapshot({
         </ExplanationPopover>
       </header>
       <div className="panel-snapshot__body">
-        <dl className="stat-grid panel-snapshot__main-grid">{renderFacts(facts.main)}</dl>
+        <dl className="stat-grid panel-snapshot__main-grid" ref={mainGridRef}>
+          {renderFacts(facts.main)}
+        </dl>
         <div className="panel-snapshot__status-slot">
           {refreshState ? (
             <span

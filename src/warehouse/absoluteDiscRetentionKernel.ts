@@ -37,14 +37,17 @@ function relevant(disc: Disc, profile: Profile, set: SetFacts | undefined) {
   const fourPieceFit = profile.fourPieceUses?.[disc.setId] ?? 'incompatible'
   return recommendationSetFit(profile, disc.setId, twoPieceFit, fourPieceFit) !== 'incompatible'
 }
-function coverageBlockers(
-  disc: Disc,
-  catalog: Catalog,
-  set: SetFacts | undefined,
-): RetentionBlocker[] {
-  const blockers: RetentionBlocker[] = []
+type PreparedCatalog = {
+  readonly releasedProfiles: readonly { readonly profile: Profile; readonly valid: boolean }[]
+  readonly profileById: ReadonlyMap<string, Profile>
+  readonly setById: ReadonlyMap<string, SetFacts | null>
+  readonly staticBlockers: readonly RetentionBlocker[]
+}
+
+function prepareCatalogContext(catalog: Catalog): PreparedCatalog {
+  const staticBlockers: RetentionBlocker[] = []
   const add = (field: string, detail: string) =>
-    blockers.push({
+    staticBlockers.push({
       kind: 'missing_fact',
       field,
       predicateId: `coverage:${field}`,
@@ -73,21 +76,45 @@ function coverageBlockers(
   const released = new Set(catalog.releasedAgentIds)
   if (!released.size || released.size !== catalog.releasedAgentIds.length)
     add('releasedAgentIds', '已发布角色范围缺失或重复。')
-  if (new Set(catalog.profiles.map((row) => row.id)).size !== catalog.profiles.length)
-    add('profileIds', '构筑分支身份重复。')
+  const profileById = new Map<string, Profile>()
+  const coveredAgents = new Set<string>()
+  let duplicateProfileId = false
+  const releasedProfiles: { profile: Profile; valid: boolean }[] = []
+  for (const row of catalog.profiles) {
+    if (profileById.has(row.id)) duplicateProfileId = true
+    else profileById.set(row.id, row)
+    coveredAgents.add(row.agentId)
+    if (released.has(row.agentId)) {
+      releasedProfiles.push({ profile: row, valid: profileValid(row, catalog.rules) })
+    }
+  }
+  if (duplicateProfileId) add('profileIds', '构筑分支身份重复。')
+  const gapAgentIds = new Set((catalog.coverageGaps ?? []).map((gap) => gap.agentId).filter(Boolean))
   for (const agentId of released) {
-    if (catalog.profiles.some((row) => row.agentId === agentId)) continue
-    if (!catalog.coverageGaps?.some((gap) => gap.agentId === agentId))
-      add(`profiles.${agentId}`, '该已发布角色缺少构筑分支。')
+    if (coveredAgents.has(agentId)) continue
+    if (!gapAgentIds.has(agentId)) add(`profiles.${agentId}`, '该已发布角色缺少构筑分支。')
   }
   if (!catalog.branchCoverageComplete && !catalog.coverageGaps?.length)
     add('branchCoverage', '缺少已发布构筑范围的覆盖证明。')
+  const setById = new Map<string, SetFacts | null>()
+  for (const row of catalog.sets) {
+    setById.set(row.id, setById.has(row.id) ? null : row)
+  }
+  return { releasedProfiles, profileById, setById, staticBlockers }
+}
+
+function coverageBlockers(
+  disc: Disc,
+  catalog: Catalog,
+  set: SetFacts | undefined,
+  prepared: PreparedCatalog,
+): RetentionBlocker[] {
+  const blockers: RetentionBlocker[] = [...prepared.staticBlockers]
   for (const gap of catalog.coverageGaps ?? []) {
     if (gap.setIds?.length && !gap.setIds.includes(disc.setId)) continue
     if (gap.slots?.length && !gap.slots.includes(disc.slot)) continue
     if (gap.mainStats?.length && !gap.mainStats.includes(disc.mainStat)) continue
-    const affectedProfile =
-      gap.profileId && catalog.profiles.find((row) => row.id === gap.profileId)
+    const affectedProfile = gap.profileId ? prepared.profileById.get(gap.profileId) : undefined
     if (affectedProfile && !relevant(disc, affectedProfile, set)) continue
     blockers.push({ ...gap, kind: 'missing_fact', predicateId: `coverage:${gap.field}` })
   }
@@ -97,7 +124,13 @@ function coverageBlockers(
     !set.twoPieceEffects.length ||
     set.twoPieceEffects.some((effect) => !Number.isFinite(effect.value) || effect.value <= 0)
   )
-    add(`sets.${disc.setId}`, '该套装身份或两件效果尚未闭合。')
+    blockers.push({
+      kind: 'missing_fact',
+      field: `sets.${disc.setId}`,
+      predicateId: `coverage:sets.${disc.setId}`,
+      detail: '该套装身份或两件效果尚未闭合。',
+      sourceIds: [],
+    })
   return blockers
 }
 const ordered = (rows: readonly QualityEvidence[]) =>
@@ -125,7 +158,11 @@ export function assessDisc(
     catalog,
     policy,
     createRetentionProfileScorer(catalog.rules),
-    annotation,
+    prepareCatalogContext(catalog),
+    {
+      protected: annotation.protected,
+      ownedSet: new Set(annotation.ownedAgentIds ?? []),
+    },
   )
 }
 
@@ -134,7 +171,8 @@ function assessPreparedDisc(
   catalog: Catalog,
   policy: QualityPolicy,
   prepareScoring: ReturnType<typeof createRetentionProfileScorer>,
-  annotation: { readonly protected?: boolean; readonly ownedAgentIds?: readonly string[] },
+  prepared: PreparedCatalog,
+  annotation: { readonly protected?: boolean; readonly ownedSet: ReadonlySet<string> },
 ): Decision {
   if (disc.rarity !== 'S') {
     return {
@@ -174,13 +212,11 @@ function assessPreparedDisc(
   )
   try {
     const score = prepareScoring(disc)
-    const released = new Set(catalog.releasedAgentIds)
-    const sets = catalog.sets.filter((row) => row.id === disc.setId)
-    const set = sets.length === 1 ? sets[0] : undefined
-    const gaps = coverageBlockers(disc, catalog, set)
-    for (const profile of catalog.profiles.filter((row) => released.has(row.agentId))) {
+    const set = prepared.setById.get(disc.setId) ?? undefined
+    const gaps = coverageBlockers(disc, catalog, set, prepared)
+    for (const { profile, valid } of prepared.releasedProfiles) {
       if (profile.restrictedSlots && !profile.restrictedSlots.includes(disc.slot)) continue
-      if (!profileValid(profile, catalog.rules)) {
+      if (!valid) {
         if (relevant(disc, profile, set))
           gaps.push({
             kind: 'missing_fact',
@@ -499,7 +535,7 @@ function assessPreparedDisc(
       (row.functionalMain ||
         (row.cutoffs && row.possibleFinalScore.upper + EPS >= row.cutoffs.cleanupBelow)),
   )
-  const owned = new Set(annotation.ownedAgentIds ?? [])
+  const owned = annotation.ownedSet
   const agentIds = [...new Set(useful.map((row) => row.agentId))].sort()
   return {
     discId: disc.id,
@@ -537,11 +573,13 @@ export function assessWarehouse(
   const counts = new Map<string, number>()
   for (const disc of discs) counts.set(disc.id, (counts.get(disc.id) ?? 0) + 1)
   const protectedIds = new Set(annotations.protectedIds ?? [])
+  const ownedSet = new Set(annotations.ownedAgentIds ?? [])
   const prepareScoring = createRetentionProfileScorer(catalog.rules)
+  const preparedCatalog = prepareCatalogContext(catalog)
   return discs.map((disc) => {
-    const decision = assessPreparedDisc(disc, catalog, policy, prepareScoring, {
+    const decision = assessPreparedDisc(disc, catalog, policy, prepareScoring, preparedCatalog, {
       protected: protectedIds.has(disc.id),
-      ownedAgentIds: annotations.ownedAgentIds,
+      ownedSet,
     })
     return counts.get(disc.id) === 1
       ? decision

@@ -1,0 +1,23 @@
+/* Retired dark tactical (--sea-*) tokens preserved strictly for DEV-only legacy routes. */
+:root {
+  --sea-bg-950: #041524;
+  --sea-bg-900: #072238;
+  --sea-bg-800: #0b3048;
+  --sea-glass-1: rgba(14, 49, 70, 0.76);
+  --sea-glass-2: rgba(18, 61, 84, 0.86);
+  --sea-glass-3: rgba(27, 77, 101, 0.94);
+  --sea-line: rgba(91, 205, 229, 0.34);
+  --sea-line-strong: rgba(80, 221, 239, 0.72);
+  --sea-cyan: #4bd8e9;
+  --sea-cyan-strong: #65ecf5;
+  --sea-purple: #aa91ff;
+  --sea-gold: #f3d78a;
+  --sea-success: #69d7aa;
+  --sea-warning: #f2bf6b;
+  --sea-danger: #ff8e9b;
+  --sea-text-1: #f6f1e8;
+  --sea-text-2: #c9dce5;
+  --sea-text-3: #93afbd;
+  --sea-shadow: 0 18px 48px rgba(0, 9, 20, 0.28);
+  --sea-glow: 0 0 0 1px rgba(75, 216, 233, 0.18), 0 0 28px rgba(75, 216, 233, 0.12);
+}

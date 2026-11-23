@@ -1,5 +1,4 @@
-@import './team-loadout-overview.part1.css';
-@import './team-loadout-overview.part2.css';
+@import './team-loadout-overview.core.css';
 @import './team-loadout-overview.variants.css';
 @import './team-loadout-overview.actions.css';
 @import './team-loadout-reference-badges.css';

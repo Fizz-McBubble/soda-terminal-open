@@ -3,28 +3,6 @@ Package notices are copied from the installed runtime packages named below.
 Versions are fixed to the public-build dependency tree at preparation time.
 Type-only packages and the private calculation server are outside this file.
 
-===== @gsap/react@2.1.2 =====
-Declared license: SEE LICENSE AT https://gsap.com/standard-license
-
------ src/index.js package banner (verbatim) -----
-/*!
- * @gsap/react 2.1.2
- * https://gsap.com
- *
- * Copyright 2008-2025, GreenSock. All rights reserved.
- * Subject to the terms at https://gsap.com/standard-license or for
- * Club GSAP members, the agreement issued with that membership.
- * @author: Jack Doyle, jack@greensock.com
-*/
-
------ README.md License section (verbatim) -----
-### License
-GreenSock's standard "no charge" license can be viewed at <a href="https://gsap.com/standard-license">https://gsap.com/standard-license</a>. <a href="https://gsap.com/pricing/">Club GSAP</a> members are granted additional rights. See <a href="https://gsap.com/licensing/">https://gsap.com/licensing/</a> for details. Why doesn't GSAP use an MIT (or similar) open source license, and why is that a **good** thing? This article explains it all: <a href="https://gsap.com/why-license/" target="_blank">https://gsap.com/why-license/</a>
-
-Copyright (c) 2008-2025, GreenSock. All rights reserved. 
-
-The installed package does not contain a standalone full license file; its own metadata and README point to https://gsap.com/standard-license.
-
 ===== clsx@2.1.1 =====
 Declared license: MIT
 
@@ -503,27 +481,6 @@ Apache License
    limitations under the License.
 
 
-
-===== gsap@3.15.0 =====
-Declared license: Standard 'no charge' license: https://gsap.com/standard-license.
-
------ gsap-core.js package banner (verbatim) -----
-/*!
- * GSAP 3.15.0
- * https://gsap.com
- *
- * @license Copyright 2008-2026, GreenSock. All rights reserved.
- * Subject to the terms at https://gsap.com/standard-license
- * @author: Jack Doyle, jack@greensock.com
-*/
-
------ README.md License section (verbatim) -----
-### License
-GreenSock's standard "no charge" license can be viewed at <a href="https://gsap.com/standard-license">https://gsap.com/standard-license</a>.
-
-Copyright (c) 2008-2026, GreenSock. All rights reserved.
-
-The installed package does not contain a standalone full license file; its own metadata and README point to https://gsap.com/standard-license.
 
 ===== lucide-react@1.17.0 =====
 Declared license: ISC
