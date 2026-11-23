@@ -178,10 +178,7 @@ export function TeamAnalysisOverviewView({
         key={`${result.appSessionId}:${result.warehouse.accountId}:${result.analysisRunId}:${result.capturedAt.getTime()}`}
         initialUiState={result.overviewUiState}
         onUiStateChange={(overviewUiState) => {
-          setOverviewSelection(
-            overviewUiState.recommendedQuery,
-            overviewUiState.includeReferenceDirections ?? false,
-          )
+          setOverviewSelection(overviewUiState.recommendedQuery)
           const session = currentTeamAnalysisSession
           if (
             session?.result.appSessionId !== result.appSessionId ||

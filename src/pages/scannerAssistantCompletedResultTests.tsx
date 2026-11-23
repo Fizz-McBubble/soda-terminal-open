@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentType } from 'react'
 import { expect, it } from 'vitest'
@@ -28,7 +28,7 @@ export function registerScannerCompletedResultTests({
     const beta = await createAccount('Beta', database, { id: 'account-beta' })
     await setActiveAccount(alpha.id, database)
     setRuntimeState('ready')
-    const rendered = render(<App />)
+    render(<App />)
     await screen.findByRole('combobox', { name: '目标账户' })
     const start = screen.getByRole('button', { name: '开始扫描' })
     await waitFor(() => expect(start).toBeEnabled())
@@ -36,16 +36,11 @@ export function registerScannerCompletedResultTests({
     await waitFor(() => expect(runtimeMock.commands.startScan).toHaveBeenCalledTimes(1))
 
     // A real start acknowledges an active attempt before its terminal result.
-    setRuntimeState('scanning')
-    // The mock is a plain object, not a subscribing hook. Publish a live-query update
-    // so the stable router subtree reads the new snapshot, as in the rescan cases.
-    await setActiveAccount(alpha.id, database)
-    rendered.rerender(<App />)
+    act(() => setRuntimeState('scanning'))
     await screen.findByRole('progressbar', { name: '已处理 128，共 384' })
 
     await setActiveAccount(beta.id, database)
-    setRuntimeState('completed')
-    rendered.rerender(<App />)
+    act(() => setRuntimeState('completed'))
     const handoff = await screen.findByRole('button', { name: '用此账户检查结果' })
     expect(handoff).toBeEnabled()
     expect(screen.getByText(/本次结果.*平均 230 张\/分钟/)).toBeInTheDocument()

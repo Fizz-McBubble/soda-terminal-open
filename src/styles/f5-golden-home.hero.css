@@ -385,21 +385,21 @@
 @keyframes soda-home-orbit-breathe {
   0%,
   100% {
-    transform: translate3d(0, 0, 0) scale(1);
+    scale: 1;
     opacity: 0.92;
   }
   50% {
-    transform: translate3d(-4px, -6px, 0) scale(1.022);
+    scale: 1.022;
     opacity: 1;
   }
 }
 
 @keyframes soda-home-orbit-spin {
   from {
-    transform: rotate(0deg);
+    rotate: 0deg;
   }
   to {
-    transform: rotate(-360deg);
+    rotate: -360deg;
   }
 }
 

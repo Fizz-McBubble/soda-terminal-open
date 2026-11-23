@@ -24,8 +24,6 @@ export const TeamGroup = memo(function TeamGroup({
   onRecommendedPageChange,
   onlyFavorites = false,
   onOnlyFavoritesChange,
-  includeReferenceDirections = false,
-  onIncludeReferenceDirectionsChange,
   outputSystem = 'all',
   outputSystemOptions = [],
   onOutputSystemChange,
@@ -48,8 +46,6 @@ export const TeamGroup = memo(function TeamGroup({
   onRecommendedPageChange?: (page: number) => void
   onlyFavorites?: boolean
   onOnlyFavoritesChange?: (checked: boolean) => void
-  includeReferenceDirections?: boolean
-  onIncludeReferenceDirectionsChange?: (checked: boolean) => void
   outputSystem?: TeamOutputSystemFilter
   outputSystemOptions?: readonly TeamOutputSystemOption[]
   onOutputSystemChange?: (value: TeamOutputSystemFilter) => void
@@ -83,7 +79,6 @@ export const TeamGroup = memo(function TeamGroup({
               <p>
                 默认列表也可能包含有搭配依据但暂无评级的队伍；暂无评级表示目前缺少适用的强弱结论。
               </p>
-              <p>“更多配队”可查看其他搭配与待验证方向。</p>
               <p>补强建议列出补齐一名角色可解锁的搭配。</p>
             </ExplanationPopover>
           ) : null}
@@ -126,16 +121,6 @@ export const TeamGroup = memo(function TeamGroup({
               onChange={(event) => onOnlyFavoritesChange?.(event.target.checked)}
             />
             收藏角色
-          </label>
-        ) : null}
-        {isRecommended ? (
-          <label className="f5v-box-team-favorites-filter">
-            <input
-              type="checkbox"
-              checked={includeReferenceDirections}
-              onChange={(event) => onIncludeReferenceDirectionsChange?.(event.target.checked)}
-            />
-            更多配队
           </label>
         ) : null}
         {isRecommended ? scopeActions : null}
