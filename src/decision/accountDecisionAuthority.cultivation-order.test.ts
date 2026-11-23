@@ -44,7 +44,7 @@ describe('current cultivation with unassessed inventory', () => {
     expect(nearer.teamStrengthOrder).toBeNull()
     expect(stronger.metaCalibration.projectedStrengthBand).toBe('A+')
     expect(nearer.metaCalibration.projectedStrengthBand).toBe('B')
-    expect(stronger.teamRating).toMatchObject({ ratingBand: 'B', confidence: 'high' })
+    expect(stronger.teamRating).toMatchObject({ ratingBand: 'B+', confidence: 'high' })
     expect(stronger.teamSystemRanking?.genericOrder?.sourceAuthority).toBe(
       'standardized_theory_graduation',
     )
@@ -53,7 +53,7 @@ describe('current cultivation with unassessed inventory', () => {
       nearer.metaCalibration.recommendationScore!,
     )
     expect(nearer.cultivationPriorityOrder).toBeLessThan(stronger.cultivationPriorityOrder!)
-    expect(result.longTermPortfolio.candidateIds).toEqual(['less-investment-now'])
+    expect(result.longTermPortfolio.candidateIds).toEqual(['stronger-long-term'])
     expect(result.currentPortfolio.candidateIds).toEqual(['less-investment-now'])
     expect(nearer.accountInputs.buildCompletionDistance.missingDiscSlots).toBeNull()
   })

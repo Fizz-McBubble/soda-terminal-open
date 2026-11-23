@@ -11,17 +11,14 @@ export function useBoxOverviewSelection(
   result: TeamAnalysisResult,
   enabled: boolean,
 ) {
-  const [selection, setSelection] = useState(() => ({
-    text: result.overviewUiState?.recommendedQuery.trim() ?? '',
-    includeReference: result.overviewUiState?.includeReferenceDirections ?? false,
-  }))
+  const [selection, setSelection] = useState(() => result.overviewUiState?.recommendedQuery.trim() ?? '')
   const [expanded, setExpanded] = useState<{
     key: string
     model: TeamAnalysisResult['overviewModel']
   } | null>(null)
   const key = JSON.stringify([result.analysisRunId, result.inputFingerprint, selection])
   useEffect(() => {
-    if (!client || !enabled || (!selection.text && !selection.includeReference)) return
+    if (!client || !enabled || !selection) return
     let active = true
     const timer = setTimeout(() => {
       const context = result.presentationContext ?? { agentId: null, planId: null, discId: null }
@@ -38,7 +35,7 @@ export function useBoxOverviewSelection(
             ({ candidateId }) => candidateId,
           ),
           context,
-          selection,
+          selection: { text: selection, includeReference: false },
         })
         .then((view) => {
           const accepted = acceptTeamOverviewPresentation(view, {
@@ -59,12 +56,8 @@ export function useBoxOverviewSelection(
 
   return {
     selectedModel: enabled && expanded?.key === key ? expanded.model : null,
-    setOverviewSelection(text: string, includeReference: boolean) {
-      setSelection((previous) =>
-        previous.text === text.trim() && previous.includeReference === includeReference
-          ? previous
-          : { text: text.trim(), includeReference },
-      )
+    setOverviewSelection(text: string) {
+      setSelection(text.trim())
     },
   }
 }

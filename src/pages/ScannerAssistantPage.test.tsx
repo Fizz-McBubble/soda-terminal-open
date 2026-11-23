@@ -4,6 +4,7 @@ import { registerScannerCompletedResultTests } from './scannerAssistantCompleted
 import { registerScannerAssistantAccountCases } from './ScannerAssistantPage.testCases'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useSyncExternalStore } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 import { createAccount, setActiveAccount } from '../accounts/repository'
@@ -24,6 +25,7 @@ import {
 } from './scannerAssistantPageTestSupport'
 
 const runtimeState = vi.hoisted(() => ({
+  listeners: new Set<() => void>(),
   hookCalls: 0,
   snapshot: {} as Record<string, unknown>,
 }))
@@ -52,16 +54,26 @@ const runtimeMock = {
   },
   set snapshot(value: Record<string, unknown>) {
     runtimeState.snapshot = value
+    for (const listener of runtimeState.listeners) listener()
   },
   commands: createScannerRuntimeCommands(vi.fn),
 }
 
+function subscribeRuntimeSnapshot(listener: () => void) {
+  runtimeState.listeners.add(listener)
+  return () => {
+    runtimeState.listeners.delete(listener)
+  }
+}
+
+const readRuntimeSnapshot = () => runtimeState.snapshot
 let uuidCounter = 0
 
 vi.mock('../scanner/runtime', () => ({
   useScannerAssistantRuntime: () => {
     runtimeMock.hookCalls += 1
-    return runtimeMock
+    const snapshot = useSyncExternalStore(subscribeRuntimeSnapshot, readRuntimeSnapshot)
+    return { commands: runtimeMock.commands, snapshot }
   },
 }))
 
