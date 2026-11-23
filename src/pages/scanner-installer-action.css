@@ -9,7 +9,10 @@
 .f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) {
   align-items: flex-start;
 }
-.f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) > button {
+.f5v-shell
+  .scanner-task
+  .scanner-prepare__actions:has(> .scanner-installer)
+  > button {
   width: 168px;
   min-width: 168px;
   flex: 0 0 168px;
@@ -40,10 +43,19 @@
 .f5v-shell .scanner-task .scanner-installer .scanner-prepare__download > svg {
   display: none;
 }
-.f5v-shell .scanner-task .scanner-installer .is-complete .scanner-prepare__download > svg {
+.f5v-shell
+  .scanner-task
+  .scanner-installer
+  .is-complete
+  .scanner-prepare__download
+  > svg {
   display: block;
 }
-.f5v-shell .scanner-task .scanner-installer .is-pending .scanner-prepare__download {
+.f5v-shell
+  .scanner-task
+  .scanner-installer
+  .is-pending
+  .scanner-prepare__download {
   padding-right: 34px;
   color: var(--soda-accent, #705a9e);
   background: var(--soda-lavender, #f1edf7);
@@ -108,6 +120,10 @@
 .scanner-installer__notice {
   color: var(--f5-muted);
 }
+.scanner-installer__mirrors {
+  flex-basis: 100%;
+  grid-column: 1 / -1;
+}
 .scanner-installer__fallback {
   color: var(--soda-accent, #705a9e);
   text-underline-offset: 3px;
@@ -120,7 +136,10 @@
     gap: 12px;
     width: 100%;
   }
-  .f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) > button {
+  .f5v-shell
+    .scanner-task
+    .scanner-prepare__actions:has(> .scanner-installer)
+    > button {
     width: 168px;
     min-width: 0;
     padding-inline: 8px;
@@ -137,7 +156,11 @@
   .f5v-shell .scanner-task .scanner-installer .scanner-prepare__download {
     padding-inline: 8px;
   }
-  .f5v-shell .scanner-task .scanner-installer .is-pending .scanner-prepare__download {
+  .f5v-shell
+    .scanner-task
+    .scanner-installer
+    .is-pending
+    .scanner-prepare__download {
     padding-right: 34px;
   }
 }

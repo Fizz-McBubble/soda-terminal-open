@@ -1,0 +1,24 @@
+{
+  "quickRead": {
+    "name": "资产快读",
+    "version": "1.2.1",
+    "sha256": "9e4c878f5edb1b96b14e05eb9b1f3a1429718bb3babbf8a7ab83533e4e4e12fd",
+    "sources": [
+      {
+        "label": "CNB",
+        "url": "https://cnb.cool/soda-terminal/tool-downloads/-/releases/download/asset-quick-read-v1.2.1/SodaTerminal-AssetReader-Setup-1.2.1.exe"
+      }
+    ]
+  },
+  "scanner": {
+    "name": "画面扫描",
+    "version": "1.3.1",
+    "sha256": "d92a8e4333194a76b2e7c0ca512ea5dab98609e82afadf06a483036bb8c8c53c",
+    "sources": [
+      {
+        "label": "CNB",
+        "url": "https://cnb.cool/soda-terminal/tool-downloads/-/releases/download/scanner-installer-v1.3.1/Soda-Scanner-Setup.exe"
+      }
+    ]
+  }
+}
