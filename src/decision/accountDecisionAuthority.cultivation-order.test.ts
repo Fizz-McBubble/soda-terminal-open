@@ -44,7 +44,7 @@ describe('current cultivation with unassessed inventory', () => {
     expect(nearer.teamStrengthOrder).toBeNull()
     expect(stronger.metaCalibration.projectedStrengthBand).toBe('A+')
     expect(nearer.metaCalibration.projectedStrengthBand).toBe('B')
-    expect(stronger.teamRating).toMatchObject({ ratingBand: 'B', confidence: 'high' })
+    expect(stronger.teamRating).toMatchObject({ ratingBand: 'B+', confidence: 'high' })
     expect(stronger.teamSystemRanking?.genericOrder?.sourceAuthority).toBe(
       'standardized_theory_graduation',
     )
