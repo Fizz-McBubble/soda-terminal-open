@@ -72,7 +72,9 @@ function forbidden(path, isDirectory = false) {
 }
 async function inventory(root, base = '', allowAssetQuickReadInstaller = false) {
   const result = []
-  for (const item of await readdir(resolve(root, base), { withFileTypes: true })) {
+  for (const item of await readdir(resolve(root, base), {
+    withFileTypes: true,
+  })) {
     const path = base ? `${base}/${item.name}` : item.name
     const full = resolve(root, path)
     const info = await lstat(full)
@@ -300,7 +302,11 @@ export async function prepare({
   }
   config.observability = {
     enabled: usageStatistics,
-    logs: { enabled: usageStatistics, invocation_logs: false, head_sampling_rate: 1 },
+    logs: {
+      enabled: usageStatistics,
+      invocation_logs: false,
+      head_sampling_rate: 1,
+    },
     traces: { enabled: false },
   }
   await mkdir(dirname(output), { recursive: true })
@@ -352,6 +358,8 @@ export async function prepare({
       'deploy/cloudflare/scan-feedback.mjs',
       'deploy/cloudflare/scanner-installer.mjs',
       'deploy/cloudflare/installer-chunk-cache.mjs',
+      'deploy/cloudflare/installer-mirrors.mjs',
+      'deploy/cloudflare/installer-mirrors.json',
       'deploy/cloudflare/asset-quick-read-installer.mjs',
       'deploy/cloudflare/asset-quick-read-release.mjs',
       'src/assetQuickRead/releaseManifest.json',

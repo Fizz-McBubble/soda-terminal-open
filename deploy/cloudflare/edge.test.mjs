@@ -8,6 +8,7 @@ import {
 } from './asset-quick-read-release.mjs'
 import { installerChunkSize } from './installer-chunk-cache.mjs'
 import { createInstallerDownload } from './scanner-installer.mjs'
+import { installerMirrorRelease } from './installer-mirrors.mjs'
 
 const origin = 'https://sodaterminal.com'
 
@@ -42,12 +43,12 @@ test('edge forwards waitUntil for both pinned published installer chunk caches a
     ['/downloads/Soda-Scanner-Setup.exe', scannerRelease],
     [assetQuickReadInstallerPath, assetQuickReadInstallerRelease],
   ]) {
-    let calls = 0
+    const calls = []
     const start = Math.floor((release.size - 1) / installerChunkSize) * installerChunkSize
     const data = new Uint8Array(release.size - start)
     const edge = createEdge({
-      fetcher: async () => {
-        calls++
+      fetcher: async (target) => {
+        calls.push(target)
         return new Response(data, {
           status: 206,
           headers: {
@@ -73,7 +74,11 @@ test('edge forwards waitUntil for both pinned published installer chunk caches a
       assert.equal((await response.arrayBuffer()).byteLength, data.length)
       await Promise.all(pending)
     }
-    assert.equal(calls, 1)
+    const mirror = installerMirrorRelease(release)
+    const primary =
+      release.assetUrl ??
+      `https://github.com/${release.repo}/releases/download/${release.releaseTag}/${release.fileName}`
+    assert.deepEqual(calls, [...(mirror?.sources.map(({ url }) => url) ?? []), primary])
   }
   assert.equal(entries.size, 2)
 

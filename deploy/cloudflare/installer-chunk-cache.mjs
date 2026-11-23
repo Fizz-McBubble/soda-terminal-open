@@ -2,8 +2,8 @@ export const installerChunkSize = 4 * 1024 * 1024
 let bufferedChunks = 0
 
 /** Shared by both installer handlers in this isolate; streaming slots remain independent. */
-export function acquireInstallerChunkBuffer() {
-  if (bufferedChunks >= 4) return null
+export function acquireInstallerChunkBuffer(limit = 4) {
+  if (bufferedChunks >= limit) return null
   bufferedChunks++
   let released = false
   return () => {
@@ -15,7 +15,7 @@ export function acquireInstallerChunkBuffer() {
 }
 
 // Only the finite, manifest-sized chunk grid is cacheable, never arbitrary ranges.
-export function installerChunkKey(request, manifest, range) {
+export function installerChunkKey(request, manifest, range, cacheVersion = 'v1') {
   if (
     request.method !== 'GET' ||
     !range.partial ||
@@ -24,7 +24,7 @@ export function installerChunkKey(request, manifest, range) {
   )
     return null
   const url = new URL(request.url)
-  url.pathname = `/__soda-installer-chunks/v1${url.pathname}/${manifest.size}/${manifest.sha256}/${range.start}-${range.end}`
+  url.pathname = `/__soda-installer-chunks/${cacheVersion}${url.pathname}/${manifest.size}/${manifest.sha256}/${range.start}-${range.end}`
   url.search = ''
   return new Request(url.href)
 }

@@ -6,12 +6,21 @@ import {
   putInstallerChunk,
   readInstallerChunk,
 } from './installer-chunk-cache.mjs'
+import {
+  installerMirrorChunkPin,
+  installerMirrorRelease,
+  matchesInstallerChunk,
+  readVerifiedInstallerMirror,
+} from './installer-mirrors.mjs'
 
 export const installerPath = '/downloads/Soda-Scanner-Setup.exe'
 const unavailable = () =>
   new Response('下载暂时不可用，请稍后重试。', {
     status: 503,
-    headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+    },
   })
 
 function rangeFor(header, size) {
@@ -57,11 +66,16 @@ export function createPinnedInstallerDownload({
   concurrency = 32,
   cache,
   cacheWriteTimeoutMs = 5000,
+  mirrorRelease = installerMirrorRelease(manifest),
 } = {}) {
   let active = 0
+  const mirrorCooldowns = new Map()
   return async (request, ctx) => {
     if (!['GET', 'HEAD'].includes(request.method))
-      return new Response(null, { status: 405, headers: { allow: 'GET, HEAD' } })
+      return new Response(null, {
+        status: 405,
+        headers: { allow: 'GET, HEAD' },
+      })
     if (new URL(request.url).search) return new Response(null, { status: 400 })
     if (
       !validateManifest(manifest) ||
@@ -80,7 +94,10 @@ export function createPinnedInstallerDownload({
         headers: { 'content-range': `bytes */${manifest.size}` },
       })
     if (active >= concurrency)
-      return new Response(null, { status: 429, headers: { 'retry-after': '3' } })
+      return new Response(null, {
+        status: 429,
+        headers: { 'retry-after': '3' },
+      })
     active += 1
     let reader,
       upstream,
@@ -124,6 +141,60 @@ export function createPinnedInstallerDownload({
             : null
       } catch {
         chunkKey = null
+      }
+      const mirrorPin =
+        request.method === 'GET' && installerMirrorChunkPin(mirrorRelease, range, manifest.size)
+      let releaseMirror = mirrorPin ? acquireInstallerChunkBuffer(8) : null
+      if (releaseMirror) {
+        try {
+          const verifiedKey = chunkKey && installerChunkKey(request, manifest, range, 'v2')
+          const cached = verifiedKey
+            ? await matchInstallerChunk(chunkCache, verifiedKey, length, signal)
+            : null
+          signal.throwIfAborted()
+          if (cached && (await matchesInstallerChunk(cached, mirrorPin))) {
+            finish()
+            return new Response(cached, {
+              status: 206,
+              headers: {
+                ...headers,
+                'x-soda-download-source': 'verified-cache',
+              },
+            })
+          }
+          const mirrored = await readVerifiedInstallerMirror({
+            release: mirrorRelease,
+            range,
+            size: manifest.size,
+            sha256: mirrorPin,
+            fetcher,
+            signal,
+            cooldowns: mirrorCooldowns,
+          })
+          if (mirrored) {
+            if (verifiedKey) {
+              void putInstallerChunk(
+                chunkCache,
+                ctx,
+                verifiedKey,
+                mirrored.bytes,
+                releaseMirror,
+                cacheWriteTimeoutMs,
+              )
+              releaseMirror = null
+            }
+            finish()
+            return new Response(mirrored.bytes, {
+              status: 206,
+              headers: {
+                ...headers,
+                'x-soda-download-source': mirrored.source,
+              },
+            })
+          }
+        } finally {
+          releaseMirror?.()
+        }
       }
       if (chunkKey) {
         releaseChunkBuffer = acquireInstallerChunkBuffer()
@@ -172,7 +243,10 @@ export function createPinnedInstallerDownload({
         throw new Error('installer_upstream')
       if (request.method === 'HEAD') {
         finish()
-        return new Response(null, { status: range.partial ? 206 : 200, headers })
+        return new Response(null, {
+          status: range.partial ? 206 : 200,
+          headers,
+        })
       }
       if (!upstream.body) throw new Error('installer_body')
       if (chunkKey) {
@@ -240,7 +314,10 @@ export function createPinnedInstallerDownload({
             cacheAbort?.abort()
           })
           .finally(finish)
-        return new Response(readable, { status: range.partial ? 206 : 200, headers })
+        return new Response(readable, {
+          status: range.partial ? 206 : 200,
+          headers,
+        })
       }
       reader = upstream.body.getReader()
       let size = 0
