@@ -3,7 +3,7 @@
   z-index: 6;
   left: 48px;
   bottom: 20px;
-  width: min(630px, 48%);
+  width: min(580px, calc(100% - 376px));
   box-sizing: border-box;
   padding: 12px 14px;
   border: 1px solid rgba(103, 90, 144, 0.16);
@@ -48,15 +48,17 @@
 .sponsor-amounts button {
   min-width: 0;
   min-height: 28px;
-  padding: 4px 3px;
+  padding: 4px 5px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: #f3f0f9;
   color: #62547e;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-align: center;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
@@ -73,6 +75,7 @@
 
 .f5v-shell .sponsor-support__cards {
   display: flex;
+  flex: 0 0 auto;
   gap: 7px;
 }
 
@@ -274,14 +277,24 @@
   }
 }
 
+.f5v-shell .sponsor-support--home .sponsor-qr {
+  width: 80px;
+}
+
 @media (min-width: 961px) and (max-width: 1400px) {
   .f5v-shell .sponsor-support--home {
     left: 36px;
-    width: 50%;
+    width: min(560px, calc(100% - 324px));
   }
 
   .f5v-shell .sponsor-support--home .sponsor-qr {
-    width: 76px;
+    width: 72px;
+  }
+}
+
+@media (min-width: 961px) and (max-width: 1180px) {
+  .f5v-shell .sponsor-support--home .sponsor-amounts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

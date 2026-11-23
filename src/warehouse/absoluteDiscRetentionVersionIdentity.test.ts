@@ -5,6 +5,7 @@ import {
   absoluteDiscRetentionCatalog as catalog,
   absoluteDiscRetentionCatalogHash,
   absoluteDiscRetentionPolicy as policy,
+  calibratedCutoffsBySlot,
   hashAbsoluteDiscRetentionCatalog,
   toAbsoluteRetentionDisc,
 } from './absoluteDiscRetentionCatalog'
@@ -58,7 +59,7 @@ describe('retention analysis and historical source identities', () => {
     expect(catalog.assessmentGameVersion).toBe(currentVersionProjection.gameVersion)
     expect(catalog.versionIdentity).toMatchObject({
       analysisTargetVersion: currentVersionProjection.gameVersion,
-      policyCalibrationVersion: '3.1',
+      policyCalibrationVersion: '3.3',
       adoption: {
         id: currentVersionProjection.adoptionId,
         contentHash: currentVersionProjection.adoptionContentHash,
@@ -72,11 +73,11 @@ describe('retention analysis and historical source identities', () => {
     expect(catalog.releasedAgentIds).toEqual(expect.arrayContaining(['agent-claret', 'agent-roxy']))
     expect(getCandidateWarehouseConstraint('agent-billy')).toEqual(source)
     expect(policy.id).toContain(
-      'absolute-disc-retention-3.2-stage-r6-quality-dependency-lifecycle:',
+      'absolute-disc-retention-3.3-stage-r7-slot-scarcity-weapon-atk:',
     )
     for (const slots of Object.values(policy.byProfile))
-      for (const cutoffs of Object.values(slots))
-        expect(cutoffs).toEqual({ cleanupBelow: 48, keepFrom: 60, premiumFrom: 67 })
+      for (const [slot, cutoffs] of Object.entries(slots))
+        expect(cutoffs).toEqual(calibratedCutoffsBySlot[slot as keyof typeof calibratedCutoffsBySlot])
   })
 
   it('binds the adopted provider independently of historical GO source commits', () => {

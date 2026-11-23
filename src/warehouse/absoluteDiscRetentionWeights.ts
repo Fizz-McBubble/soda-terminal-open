@@ -7,9 +7,15 @@ import { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 
 export { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 
-export const retentionWeightPolicyId = 'retention-goal-roll-quality-r3-promoted-base'
-/** Calibrated roll-quality proxies. These are not damage ratios or exact marginal DPS. */
-export const retentionWeightParameters = Object.freeze({ scaling: 0.75, secondaryPen: 0.3 })
+export const retentionWeightPolicyId = 'retention-goal-roll-quality-r4-weapon-atk-base'
+/** Calibrated roll-quality proxies. These are not damage ratios or exact marginal DPS.
+ * referenceWEngineBaseAtk models a standard Lv.60 S-rank W-Engine base ATK so atk_flat
+ * is not overestimated by ~40-55% relative to atk_percent. */
+export const retentionWeightParameters = Object.freeze({
+  scaling: 0.75,
+  secondaryPen: 0.3,
+  referenceWEngineBaseAtk: 713,
+})
 
 export function resolveRetentionQualityWeights(
   constraint: CandidateWarehouseConstraint,
@@ -70,10 +76,13 @@ export function resolveRetentionQualityWeights(
     const base =
       !mechanic || promotion === undefined
         ? null
-        : mechanic.baseStats[`${kind}_base`] + mechanic.baseStats[`${kind}_growth`] * 59 + promotion
-    // The fixed level60 character reference includes its five promotions, as in
-    // the shared panel projection. It excludes weapons, core and account state.
-    // The reference has no account equipment/ownership or inventory-relative normalization.
+        : mechanic.baseStats[`${kind}_base`] +
+          mechanic.baseStats[`${kind}_growth`] * 59 +
+          promotion +
+          (kind === 'atk' ? retentionWeightParameters.referenceWEngineBaseAtk : 0)
+    // The fixed level60 character reference includes its five promotions plus a
+    // fixed Lv.60 S-rank W-Engine reference base ATK for ATK% scaling (W-Engines
+    // do not add base HP or DEF). It never reads account equipment or ownership.
     const percentRoll = base === null ? null : (base * step(percent)) / 100
     if (percentRoll !== null && Number.isFinite(percentRoll) && percentRoll > 0)
       weights[flat] = Math.min(

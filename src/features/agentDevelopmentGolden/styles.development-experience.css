@@ -5,8 +5,24 @@
   min-width: 0;
 }
 
+.f5v-shell .overview .agent-tile-link {
+  transition:
+    transform var(--soda-motion-fast) var(--soda-ease-spring),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    background-color var(--soda-motion-fast) var(--soda-ease-out);
+}
+
 .f5v-shell .overview .agent-tile-link[aria-current='true'] {
   background: linear-gradient(145deg, #ffffff 0%, #f3ecfb 100%);
+  box-shadow: var(--soda-shadow-card);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .f5v-shell .overview .agent-tile-link:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--soda-shadow-card-hover);
+  }
 }
 
 .f5v-shell .overview .agent-tile > .agent-tile-identity-icons {
@@ -84,6 +100,8 @@
 .f5v-shell .overview .next-panel {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 255, 0.98) 100%), #fff;
+  box-shadow: var(--soda-shadow-card);
+  transition: box-shadow var(--soda-motion-fast) var(--soda-ease-out);
 }
 
 .f5v-shell .overview .next-panel .next-agent {

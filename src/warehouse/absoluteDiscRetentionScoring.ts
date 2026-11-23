@@ -101,8 +101,8 @@ function validateRules(rules: GameRules): void {
       throw new Error('invalid_rarity_rules')
   }
 }
-export function history(disc: Disc, rules: GameRules) {
-  validateRules(rules)
+export function history(disc: Disc, rules: GameRules, rulesValidated = false) {
+  if (!rulesValidated) validateRules(rules)
   const native = rules.rarities[disc.rarity]
   if (
     !disc.id ||
@@ -193,6 +193,7 @@ function scorePreparedProfile(
   h: ReturnType<typeof history>,
   possibleUnlocks: readonly string[][],
   normalization: ReturnType<typeof fixedQualityNormalization>,
+  cachedTwoPiece?: Applicability,
 ): QualityEvidence {
   const standard = rules.rarities[rules.standardRarity]!
   // Fixed per role/slot rules, never adjusted to this disc's initial 3/4 lines or the inventory.
@@ -202,34 +203,57 @@ function scorePreparedProfile(
     profile.weightEvidence?.method === 'source_proven_no_functional_substat_goal' &&
     Object.keys(profile.weights).length === 0
   if (maximumRaw <= 0 && !noSubstatGoal) throw new Error('no_scoreable_legal_substats')
-  const asScore = (raw: number) =>
-    noSubstatGoal ? 0 : Math.min(100, Math.max(0, (raw / maximumRaw) * 100))
-  const contributors = disc.subStats.map((line) => {
-    const standardRollUnits = line.value / standard.steps[line.stat]!
+  const asScore = (rawValue: number) =>
+    noSubstatGoal ? 0 : Math.min(100, Math.max(0, (rawValue / maximumRaw) * 100))
+  const contributors = new Array<{
+    stat: string
+    standardRollUnits: number
+    weight: number
+    points: number
+  }>(disc.subStats.length)
+  let raw = 0
+  let existingMinInc = Infinity
+  let existingMaxInc = -Infinity
+  for (let i = 0; i < disc.subStats.length; i++) {
+    const line = disc.subStats[i]!
+    const stdStep = standard.steps[line.stat]!
+    const standardRollUnits = line.value / stdStep
     const weight = profile.weights[line.stat] ?? 0
-    return {
+    raw += standardRollUnits * weight
+    const inc = (h.native.steps[line.stat]! / stdStep) * weight
+    if (inc < existingMinInc) existingMinInc = inc
+    if (inc > existingMaxInc) existingMaxInc = inc
+    contributors[i] = {
       stat: line.stat,
       standardRollUnits: round(standardRollUnits),
       weight,
       points: round(asScore(standardRollUnits * weight)),
     }
-  })
-  const raw = disc.subStats.reduce(
-    (sum, line) =>
-      sum + (line.value / standard.steps[line.stat]!) * (profile.weights[line.stat] ?? 0),
-    0,
-  )
+  }
   if (!possibleUnlocks.length) throw new Error('incomplete_legal_substat_pool')
   let lower = Infinity,
     upper = -Infinity
-  const increment = (stat: string) =>
-    (h.native.steps[stat]! / standard.steps[stat]!) * (profile.weights[stat] ?? 0)
-  for (const unlocks of possibleUnlocks) {
-    const afterUnlock = raw + unlocks.reduce((sum, stat) => sum + increment(stat), 0)
-    const finalStats = [...disc.subStats.map((line) => line.stat), ...unlocks]
-    const values = finalStats.map(increment)
-    lower = Math.min(lower, afterUnlock + h.upgradesRemaining * Math.min(...values))
-    upper = Math.max(upper, afterUnlock + h.upgradesRemaining * Math.max(...values))
+  if (h.unlocks === 0) {
+    lower = raw + h.upgradesRemaining * existingMinInc
+    upper = raw + h.upgradesRemaining * existingMaxInc
+  } else {
+    for (let u = 0; u < possibleUnlocks.length; u++) {
+      const unlocks = possibleUnlocks[u]!
+      let afterUnlock = raw
+      let minInc = existingMinInc
+      let maxInc = existingMaxInc
+      for (let j = 0; j < unlocks.length; j++) {
+        const stat = unlocks[j]!
+        const inc = (h.native.steps[stat]! / standard.steps[stat]!) * (profile.weights[stat] ?? 0)
+        afterUnlock += inc
+        if (inc < minInc) minInc = inc
+        if (inc > maxInc) maxInc = inc
+      }
+      const candLow = afterUnlock + h.upgradesRemaining * minInc
+      const candHigh = afterUnlock + h.upgradesRemaining * maxInc
+      if (candLow < lower) lower = candLow
+      if (candHigh > upper) upper = candHigh
+    }
   }
   const mainFit = allFit([
     disc.slot <= 3
@@ -237,7 +261,7 @@ function scorePreparedProfile(
       : (profile.mainStatsBySlot[String(disc.slot)]?.[disc.mainStat] ?? 'conditional'),
     profile.mainAvailability ?? 'valid',
   ])
-  const twoPieceFit = set ? twoPieceApplicability(set, profile) : 'conditional'
+  const twoPieceFit = set ? (cachedTwoPiece ?? twoPieceApplicability(set, profile)) : 'conditional'
   const fourPieceFit = profile.fourPieceUses?.[disc.setId] ?? 'incompatible'
   // Effect utility only: setFit does not prove a complete six-disc composition,
   // a second copy of this set, or that any set effect is currently active.
@@ -288,16 +312,32 @@ function scorePreparedProfile(
 
 /** Scope normalization reuse to one assessment's rule and profile objects. */
 export function createRetentionProfileScorer(rules: GameRules) {
+  let rulesValid = false
+  let rulesError: Error | null = null
+  try {
+    validateRules(rules)
+    rulesValid = true
+  } catch (err) {
+    rulesError = err instanceof Error ? err : new Error('invalid_game_rules')
+  }
   const normalizations = new Map<
     Profile,
     Map<string, ReturnType<typeof fixedQualityNormalization>>
   >()
+  const twoPieceCache = new Map<SetFacts, Map<Profile, Applicability>>()
   return (disc: Disc) => {
-    const enhancementHistory = history(disc, rules)
-    const unseenStats = Object.keys(enhancementHistory.native.steps).filter(
-      (stat) => stat !== disc.mainStat && !disc.subStats.some((line) => line.stat === stat),
-    )
-    const possibleUnlocks = combinations(unseenStats, enhancementHistory.unlocks)
+    if (!rulesValid) throw rulesError ?? new Error('invalid_game_rules')
+    const enhancementHistory = history(disc, rules, true)
+    const unseenStats =
+      enhancementHistory.unlocks === 0
+        ? []
+        : Object.keys(enhancementHistory.native.steps).filter(
+            (stat) => stat !== disc.mainStat && !disc.subStats.some((line) => line.stat === stat),
+          )
+    const possibleUnlocks =
+      enhancementHistory.unlocks === 0
+        ? [[]]
+        : combinations(unseenStats, enhancementHistory.unlocks)
     return (profile: Profile, set: SetFacts | undefined, policy: QualityPolicy) => {
       let byMain = normalizations.get(profile)
       if (!byMain) {
@@ -309,6 +349,19 @@ export function createRetentionProfileScorer(rules: GameRules) {
         normalization = fixedQualityNormalization(profile, rules, disc.mainStat)
         byMain.set(disc.mainStat, normalization)
       }
+      let cachedTwoPiece: Applicability | undefined
+      if (set) {
+        let byProfile = twoPieceCache.get(set)
+        if (!byProfile) {
+          byProfile = new Map()
+          twoPieceCache.set(set, byProfile)
+        }
+        cachedTwoPiece = byProfile.get(profile)
+        if (cachedTwoPiece === undefined) {
+          cachedTwoPiece = twoPieceApplicability(set, profile)
+          byProfile.set(profile, cachedTwoPiece)
+        }
+      }
       return scorePreparedProfile(
         disc,
         profile,
@@ -318,6 +371,7 @@ export function createRetentionProfileScorer(rules: GameRules) {
         enhancementHistory,
         possibleUnlocks,
         normalization,
+        cachedTwoPiece,
       )
     }
   }

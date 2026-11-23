@@ -1,9 +1,10 @@
-import { useRef, type RefObject } from 'react'
-import { gsap, useGSAP } from './gsapRuntime'
+import { useLayoutEffect, useRef, type RefObject } from 'react'
+import { waapiMotion } from './waapiRuntime'
 import { prefersReducedMotion, subscribeMotionPreference } from './motionPreference'
 
 const TEAM_MEMBER_SELECTOR = '[data-team-member-id]'
-const OWNED_STYLE_PROPERTIES = 'clipPath,transform,opacity'
+const OWNED_STYLE_PROPERTIES = ['clip-path', 'transform', 'opacity'] as const
+const SPRING_OUT_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 type TeamSelectionMotionOptions = {
   scope: RefObject<HTMLElement | null>
@@ -12,16 +13,7 @@ type TeamSelectionMotionOptions = {
 }
 
 function clearTeamMemberMotion(targets: Iterable<HTMLElement>) {
-  const elements = [...new Set(targets)]
-  if (!elements.length) return
-  gsap.getTweensOf(elements).forEach((tween) => tween.progress(1))
-  gsap.killTweensOf(elements)
-  gsap.set(elements, { clearProps: OWNED_STYLE_PROPERTIES })
-  elements.forEach((element) => {
-    element.style.removeProperty('clip-path')
-    element.style.removeProperty('transform')
-    element.style.removeProperty('opacity')
-  })
+  waapiMotion.cancel(targets, OWNED_STYLE_PROPERTIES)
 }
 
 export function newlySelectedTeamMemberIds(
@@ -64,60 +56,56 @@ export function useTeamSelectionMotion({
   const activeTargets = useRef<Set<HTMLElement>>(new Set())
   const memberSignature = JSON.stringify(memberIds)
 
-  useGSAP(
-    () => {
-      const scopeElement = scope.current
-      if (!scopeElement) return
+  useLayoutEffect(() => {
+    const scopeElement = scope.current
+    if (!scopeElement) return
 
-      const stopActiveMotion = () => {
-        clearTeamMemberMotion(activeTargets.current)
-        activeTargets.current.clear()
+    const stopActiveMotion = () => {
+      clearTeamMemberMotion(activeTargets.current)
+      activeTargets.current.clear()
+    }
+    stopActiveMotion()
+
+    const currentMemberIds = [...memberIds]
+    const previousMembers = previousMemberIds.current
+    previousMemberIds.current = new Set(currentMemberIds)
+    const shouldAnimate = previousMembers !== null && !prefersReducedMotion()
+
+    if (shouldAnimate) {
+      const addedMemberIds = newlySelectedTeamMemberIds(previousMembers, currentMemberIds)
+      const targets = teamSelectionMemberTargets(scopeElement, addedMemberIds)
+      if (targets.length) {
+        targets.forEach((target) => activeTargets.current.add(target))
+        waapiMotion.fromTo(
+          targets,
+          {
+            clipPath: 'inset(0 0 10% 0)',
+            opacity: 0.72,
+            transform: 'translate3d(0, 8px, 0) scale(0.985)',
+          },
+          {
+            clipPath: 'inset(0 0 0% 0)',
+            opacity: 1,
+            transform: 'translate3d(0, 0, 0) scale(1)',
+          },
+          {
+            durationMs: 250,
+            easing: SPRING_OUT_EASING,
+            staggerTotalMs: 50,
+            ownedProperties: OWNED_STYLE_PROPERTIES,
+          },
+        )
       }
+    }
+
+    const unsubscribe = subscribeMotionPreference(() => {
+      if (prefersReducedMotion()) stopActiveMotion()
+    })
+
+    return () => {
+      unsubscribe()
       stopActiveMotion()
-
-      const currentMemberIds = [...memberIds]
-      const previousMembers = previousMemberIds.current
-      previousMemberIds.current = new Set(currentMemberIds)
-      const shouldAnimate = previousMembers !== null && !prefersReducedMotion()
-
-      if (shouldAnimate) {
-        const addedMemberIds = newlySelectedTeamMemberIds(previousMembers, currentMemberIds)
-        const targets = teamSelectionMemberTargets(scopeElement, addedMemberIds)
-        if (targets.length) {
-          targets.forEach((target) => activeTargets.current.add(target))
-          gsap.fromTo(
-            targets,
-            {
-              clipPath: 'inset(0 0 8% 0)',
-              opacity: 0.86,
-              y: 6,
-            },
-            {
-              clipPath: 'inset(0 0 0% 0)',
-              opacity: 1,
-              y: 0,
-              duration: 0.22,
-              ease: 'power3.out',
-              overwrite: 'auto',
-              clearProps: OWNED_STYLE_PROPERTIES,
-            },
-          )
-        }
-      }
-
-      const unsubscribe = subscribeMotionPreference(() => {
-        if (prefersReducedMotion()) stopActiveMotion()
-      })
-
-      return () => {
-        unsubscribe()
-        stopActiveMotion()
-      }
-    },
-    {
-      dependencies: [selectionKey, memberSignature],
-      scope,
-      revertOnUpdate: true,
-    },
-  )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope, selectionKey, memberSignature])
 }

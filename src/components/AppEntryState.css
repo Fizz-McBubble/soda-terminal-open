@@ -100,3 +100,43 @@
   width: auto;
   white-space: nowrap;
 }
+
+.app-loading-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 24px;
+  padding: 10px 16px;
+  border: 1px solid var(--soda-line);
+  border-radius: 999px;
+  background: rgba(255, 254, 255, 0.86);
+  box-shadow: var(--soda-shadow-card);
+  backdrop-filter: blur(10px);
+}
+
+.app-loading-status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--soda-accent);
+  flex: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-loading-status::before {
+    animation: soda-loading-dot-pulse 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes soda-loading-dot-pulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}

@@ -9,6 +9,7 @@ import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
 import { getCurrentDriveDiscRecommendation } from '../gameDataPacks/currentDriveDiscRecommendationCatalog'
 import { getRemielleEquipmentField } from '../gameDataPacks/gameData31RemielleEquipmentIntake'
 import { l3TeamRecommendationSeeds } from '../gameDataPacks/l3TeamRecommendationSeedProjection'
+import graduatedTeamScores from '../gameDataPacks/generated/graduated-team-scores.v1.json'
 import { getCandidateStatLabels } from '../application/publicCandidateLabels'
 import { authorityConsumerRecommendations } from '../application/authorityConsumerRecommendations'
 import { presentDiscFactFromChoice } from './discFactPresentation'
@@ -202,13 +203,36 @@ type AuthorityTeamRecommendation = Pick<
   mainstreamRecognition?: { historicalReferenceOnly?: boolean; conditions?: readonly string[] }
 }
 
+const defaultGraduatedTeams = (() => {
+  const rowsByPlayId = new Map(graduatedTeamScores.rows.map((row) => [row.playId, row]))
+  const byMembers = new Map<
+    string,
+    { members: string; memberIds: string[]; band: string; score: number; group: number }
+  >()
+  for (const entry of graduatedTeamScores.defaultPlays ?? []) {
+    const row = rowsByPlayId.get(entry.playId)
+    if (!row || row.members !== entry.members) continue
+    byMembers.set(entry.members, {
+      members: entry.members,
+      memberIds: entry.members.split('|'),
+      band: row.band,
+      score: row.score,
+      group: row.group,
+    })
+  }
+  const ordered = [...byMembers.values()].sort(
+    (left, right) => left.group - right.group || left.members.localeCompare(right.members),
+  )
+  return { byMembers, ordered }
+})()
+
 function teamDirectionsFromAuthority(
   agentId: string,
   recommendations: readonly AuthorityTeamRecommendation[],
 ) {
   const { agentsById, bangboosById } = knownTeamEntities()
   const seenExactTeams = new Set<string>()
-  return recommendations
+  const deduped = recommendations
     .filter((recommendation) => recommendation.memberIds.includes(agentId))
     .filter((recommendation) => {
       const exactKey = `${[...recommendation.memberIds].toSorted().join('|')}:${recommendation.bangbooId ?? ''}`
@@ -222,44 +246,96 @@ function teamDirectionsFromAuthority(
         recommendation.memberIds.every((memberId) => agentsById.has(memberId)) &&
         (!recommendation.bangbooId || bangboosById.has(recommendation.bangbooId)),
     )
+    .map((recommendation, originalIndex) => ({
+      recommendation,
+      originalIndex,
+      calibrated: defaultGraduatedTeams.byMembers.get(
+        [...recommendation.memberIds].toSorted().join('|'),
+      ),
+    }))
+    .sort(
+      (left, right) =>
+        (left.calibrated?.group ?? Number.POSITIVE_INFINITY) -
+          (right.calibrated?.group ?? Number.POSITIVE_INFINITY) ||
+        left.originalIndex - right.originalIndex,
+    )
+  return deduped.slice(0, 3).map(({ recommendation, calibrated }, index) => {
+    const members = recommendation.memberIds.map((memberId) => agentsById.get(memberId)!)
+    const bangboo = recommendation.bangbooId
+      ? bangboosById.get(recommendation.bangbooId)!
+      : undefined
+    const explicitBand =
+      recommendation.teamRating?.ratingBand &&
+      recommendation.teamRating.ratingBand !== 'Experimental' &&
+      recommendation.teamRating.confidence !== 'experimental'
+        ? recommendation.teamRating.ratingBand
+        : null
+    const calibratedNote =
+      !recommendation.mainstreamRecognition?.historicalReferenceOnly &&
+      calibrated &&
+      explicitBand === calibrated.band
+        ? `队伍参考评级 ${calibrated.band} · ${calibrated.score} 分。`
+        : explicitBand
+          ? `队伍参考评级 ${explicitBand}。`
+          : '强度尚未验证，不参与强弱比较。'
+    return {
+      label: `当前账户配队 ${index + 1}`,
+      note: [
+        calibratedNote,
+        recommendation.mainstreamRecognition?.historicalReferenceOnly
+          ? '该搭配源自较早版本参考，当前适用性需要重新核对。'
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join(' '),
+      conditions: [...new Set(recommendation.mainstreamRecognition?.conditions ?? [])],
+      members: [
+        ...members.map((member) => member.playerName),
+        bangboo ? `邦布：${bangboo.playerName}` : undefined,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      visuals: [
+        ...members.map((member) => ({
+          entityType: 'agent' as const,
+          entityId: member.stableId,
+          name: member.playerName,
+        })),
+        ...(bangboo
+          ? [
+              {
+                entityType: 'bangboo' as const,
+                entityId: bangboo.stableId,
+                name: bangboo.playerName,
+              },
+            ]
+          : []),
+      ],
+    }
+  })
+}
+
+function teamDirectionsFromGraduatedCatalog(agentId: string) {
+  const { agentsById } = knownTeamEntities()
+  return defaultGraduatedTeams.ordered
+    .filter(
+      (team) =>
+        team.memberIds.includes(agentId) &&
+        team.memberIds.every((memberId) => agentsById.has(memberId)),
+    )
     .slice(0, 3)
-    .map((recommendation, index) => {
-      const members = recommendation.memberIds.map((memberId) => agentsById.get(memberId)!)
-      const bangboo = recommendation.bangbooId
-        ? bangboosById.get(recommendation.bangbooId)!
-        : undefined
+    .map((team, index) => {
+      const members = team.memberIds.map((memberId) => agentsById.get(memberId)!)
       return {
-        label: `当前账户配队 ${index + 1}`,
-        note: [
-          !recommendation.teamRating?.ratingBand ||
-          recommendation.teamRating.ratingBand === 'Experimental' ||
-          recommendation.teamRating.confidence === 'experimental'
-            ? '强度尚未验证，不参与强弱比较。'
-            : `队伍参考评级 ${recommendation.teamRating.ratingBand}。`,
-        ].join(' '),
-        conditions: [...new Set(recommendation.mainstreamRecognition?.conditions ?? [])],
-        members: [
-          ...members.map((member) => member.playerName),
-          bangboo ? `邦布：${bangboo.playerName}` : undefined,
-        ]
-          .filter(Boolean)
-          .join(' · '),
-        visuals: [
-          ...members.map((member) => ({
-            entityType: 'agent' as const,
-            entityId: member.stableId,
-            name: member.playerName,
-          })),
-          ...(bangboo
-            ? [
-                {
-                  entityType: 'bangboo' as const,
-                  entityId: bangboo.stableId,
-                  name: bangboo.playerName,
-                },
-              ]
-            : []),
-        ],
+        label: `3.3 主流配队 ${index + 1}`,
+        note: `标准成型评级 ${team.band} · ${team.score} 分。`,
+        conditions: [],
+        members: members.map((member) => member.playerName).join(' · '),
+        visuals: members.map((member) => ({
+          entityType: 'agent' as const,
+          entityId: member.stableId,
+          name: member.playerName,
+        })),
       }
     })
 }
@@ -306,7 +382,9 @@ function graduationTeamDirections(
   profileDirections: readonly string[],
 ): GoldenWorkbenchData['graduation']['teams'] {
   const accountTeams = teamDirectionsFromAuthority(agentId, authorityRecommendations)
-  return accountTeams.length ? accountTeams : teamDirectionsFromProfile(agentId, profileDirections)
+  if (accountTeams.length) return accountTeams
+  const catalogTeams = teamDirectionsFromGraduatedCatalog(agentId)
+  return catalogTeams.length ? catalogTeams : teamDirectionsFromProfile(agentId, profileDirections)
 }
 
 function discSetRecommendation(setId: string) {

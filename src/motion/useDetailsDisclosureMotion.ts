@@ -1,6 +1,9 @@
-import type { RefObject } from 'react'
-import { gsap, useGSAP } from './gsapRuntime'
+import { useLayoutEffect, type RefObject } from 'react'
+import { waapiMotion } from './waapiRuntime'
 import { prefersReducedMotion, subscribeMotionPreference } from './motionPreference'
+
+const OWNED_STYLE_PROPERTIES = ['opacity', 'visibility', 'transform'] as const
+const SPRING_OUT_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 type DetailsDisclosureMotionOptions = {
   scope: RefObject<HTMLElement | null>
@@ -43,119 +46,122 @@ function reconcileDisclosure(details: HTMLDetailsElement, entry: DisclosureEntry
   if (!entry.bindings.size) disclosureEntries.delete(details)
 }
 
-/** Adds brief feedback after the browser has already committed a details state. */
+const FLOATING_CHILD_SELECTOR =
+  '[data-motion-floating], [popover], .explanation-popover, .f5v-select-menu-popover, [role="menu"], [role="listbox"], [role="dialog"]'
+
+/** Declarative floating-panel check — avoids forcing layout via getComputedStyle inside MutationObserver. */
+export function isFloatingDisclosure(details: HTMLDetailsElement) {
+  if (details.hasAttribute('data-motion-floating') || details.classList.contains('source-details'))
+    return true
+  return detailsDisclosureTargets(details).some(
+    (child) =>
+      child.style.position === 'absolute' ||
+      child.style.position === 'fixed' ||
+      child.matches(FLOATING_CHILD_SELECTOR),
+  )
+}
+
+/** Adds brief compositor feedback after the browser has already committed a details state. */
 export function useDetailsDisclosureMotion({
   scope,
   selector = 'details',
 }: DetailsDisclosureMotionOptions) {
-  useGSAP(
-    () => {
-      const scopeElement = scope.current
-      if (!scopeElement) return
-      const managed = new Map<
-        HTMLDetailsElement,
-        {
-          binding: DisclosureBinding
-          entry: DisclosureEntry
-        }
-      >()
-      const bind = (details: HTMLDetailsElement) => {
-        if (managed.has(details) || details.hasAttribute('data-motion-static')) return
-        if (
-          detailsDisclosureTargets(details).some((child) =>
-            ['absolute', 'fixed'].includes(getComputedStyle(child).position),
-          )
-        )
-          return
-        const entry = disclosureEntries.get(details) ?? {
-          bindings: new Set<DisclosureBinding>(),
-        }
-        const binding: DisclosureBinding = {
-          scope: scopeElement,
-          start: () => {
-            const markedHere = !details.hasAttribute('data-motion-details')
-            if (markedHere) details.setAttribute('data-motion-details', '')
-            const onToggle = () => {
-              const targets = detailsDisclosureTargets(details)
-              if (!targets.length) return
-              gsap.killTweensOf(targets)
-              const nativeTransition =
-                typeof CSS !== 'undefined' &&
-                typeof CSS.supports === 'function' &&
-                CSS.supports('interpolate-size', 'allow-keywords') &&
-                CSS.supports('selector(details::details-content)')
-              if (!details.open || prefersReducedMotion() || nativeTransition) {
-                gsap.set(targets, { clearProps: 'opacity,visibility,transform' })
-                return
-              }
-              gsap.fromTo(
-                targets,
-                { autoAlpha: 0.74, y: -4 },
-                {
-                  autoAlpha: 1,
-                  y: 0,
-                  duration: 0.18,
-                  ease: 'power3.out',
-                  overwrite: 'auto',
-                  clearProps: 'opacity,visibility,transform',
-                },
-              )
+  useLayoutEffect(() => {
+    const scopeElement = scope.current
+    if (!scopeElement) return
+    const managed = new Map<
+      HTMLDetailsElement,
+      {
+        binding: DisclosureBinding
+        entry: DisclosureEntry
+      }
+    >()
+    const bind = (details: HTMLDetailsElement) => {
+      if (managed.has(details) || details.hasAttribute('data-motion-static')) return
+      if (isFloatingDisclosure(details)) return
+      const entry = disclosureEntries.get(details) ?? {
+        bindings: new Set<DisclosureBinding>(),
+      }
+      const binding: DisclosureBinding = {
+        scope: scopeElement,
+        start: () => {
+          const markedHere = !details.hasAttribute('data-motion-details')
+          if (markedHere) details.setAttribute('data-motion-details', '')
+          const onToggle = () => {
+            const targets = detailsDisclosureTargets(details)
+            if (!targets.length) return
+            waapiMotion.cancel(targets, OWNED_STYLE_PROPERTIES)
+            const nativeTransition =
+              typeof CSS !== 'undefined' &&
+              typeof CSS.supports === 'function' &&
+              CSS.supports('interpolate-size', 'allow-keywords') &&
+              CSS.supports('selector(details::details-content)')
+            if (!details.open || prefersReducedMotion() || nativeTransition) {
+              waapiMotion.clearStyles(targets, OWNED_STYLE_PROPERTIES)
+              return
             }
-            details.addEventListener('toggle', onToggle)
-            return () => {
-              details.removeEventListener('toggle', onToggle)
-              const targets = detailsDisclosureTargets(details)
-              if (targets.length) {
-                gsap.killTweensOf(targets)
-                gsap.set(targets, { clearProps: 'opacity,visibility,transform' })
-              }
-              if (markedHere) details.removeAttribute('data-motion-details')
+            waapiMotion.fromTo(
+              targets,
+              { opacity: 0.65, transform: 'translate3d(0, -6px, 0)' },
+              { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+              {
+                durationMs: 210,
+                easing: SPRING_OUT_EASING,
+                ownedProperties: OWNED_STYLE_PROPERTIES,
+              },
+            )
+          }
+          details.addEventListener('toggle', onToggle)
+          return () => {
+            details.removeEventListener('toggle', onToggle)
+            const targets = detailsDisclosureTargets(details)
+            if (targets.length) {
+              waapiMotion.cancel(targets, OWNED_STYLE_PROPERTIES)
             }
-          },
-        }
-        managed.set(details, { binding, entry })
-        entry.bindings.add(binding)
-        disclosureEntries.set(details, entry)
-        reconcileDisclosure(details, entry)
+            if (markedHere) details.removeAttribute('data-motion-details')
+          }
+        },
       }
-      const release = (details: HTMLDetailsElement) => {
-        const claim = managed.get(details)
-        if (!claim) return
-        managed.delete(details)
-        claim.entry.bindings.delete(claim.binding)
-        reconcileDisclosure(details, claim.entry)
-      }
-      const bindWithin = (root: ParentNode) =>
-        root.querySelectorAll<HTMLDetailsElement>(selector).forEach(bind)
-      bindWithin(scopeElement)
-      const observer = new MutationObserver((records) => {
-        managed.forEach((_claim, details) => {
-          if (!scopeElement.contains(details)) release(details)
-        })
-        records.forEach((record) =>
-          record.addedNodes.forEach((node) => {
-            if (!(node instanceof HTMLElement) || !scopeElement.contains(node)) return
-            if (node.matches(selector) && node instanceof HTMLDetailsElement) bind(node)
-            bindWithin(node)
-          }),
-        )
+      managed.set(details, { binding, entry })
+      entry.bindings.add(binding)
+      disclosureEntries.set(details, entry)
+      reconcileDisclosure(details, entry)
+    }
+    const release = (details: HTMLDetailsElement) => {
+      const claim = managed.get(details)
+      if (!claim) return
+      managed.delete(details)
+      claim.entry.bindings.delete(claim.binding)
+      reconcileDisclosure(details, claim.entry)
+    }
+    const bindWithin = (root: ParentNode) =>
+      root.querySelectorAll<HTMLDetailsElement>(selector).forEach(bind)
+    bindWithin(scopeElement)
+    const observer = new MutationObserver((records) => {
+      managed.forEach((_claim, details) => {
+        if (!scopeElement.contains(details)) release(details)
       })
-      observer.observe(scopeElement, { childList: true, subtree: true })
-      const unsubscribe = subscribeMotionPreference(() => {
-        if (!prefersReducedMotion()) return
-        managed.forEach(({ binding, entry }, details) => {
-          if (entry.owner !== binding) return
-          const targets = detailsDisclosureTargets(details)
-          gsap.killTweensOf(targets)
-          gsap.set(targets, { clearProps: 'opacity,visibility,transform' })
-        })
+      records.forEach((record) =>
+        record.addedNodes.forEach((node) => {
+          if (!(node instanceof HTMLElement) || !scopeElement.contains(node)) return
+          if (node.matches(selector) && node instanceof HTMLDetailsElement) bind(node)
+          bindWithin(node)
+        }),
+      )
+    })
+    observer.observe(scopeElement, { childList: true, subtree: true })
+    const unsubscribe = subscribeMotionPreference(() => {
+      if (!prefersReducedMotion()) return
+      managed.forEach(({ binding, entry }, details) => {
+        if (entry.owner !== binding) return
+        const targets = detailsDisclosureTargets(details)
+        waapiMotion.cancel(targets, OWNED_STYLE_PROPERTIES)
       })
-      return () => {
-        unsubscribe()
-        observer.disconnect()
-        managed.forEach((_claim, details) => release(details))
-      }
-    },
-    { scope, dependencies: [selector], revertOnUpdate: true },
-  )
+    })
+    return () => {
+      unsubscribe()
+      observer.disconnect()
+      managed.forEach((_claim, details) => release(details))
+    }
+  }, [scope, selector])
 }

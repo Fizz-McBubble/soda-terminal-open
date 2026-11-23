@@ -193,9 +193,6 @@ export function TeamLoadoutOverview({
   }, [previewRequest, selectedId, showPreview])
   const [recommendedQuery, setRecommendedQuery] = useState(initialUiState?.recommendedQuery ?? '')
   const [onlyFavorites, setOnlyFavorites] = useState(initialUiState?.onlyFavorites ?? false)
-  const [includeReferenceDirections, setIncludeReferenceDirections] = useState(
-    initialUiState?.includeReferenceDirections ?? false,
-  )
   const [outputSystem, setOutputSystem] = useState<TeamOutputSystemFilter>(() =>
     normalizeTeamOutputSystemFilter(initialUiState?.outputSystem),
   )
@@ -218,14 +215,6 @@ export function TeamLoadoutOverview({
     (checked: boolean) => {
       onPreviewSelectionChange?.()
       setOnlyFavorites(checked)
-      setRecommendedPage(1)
-    },
-    [onPreviewSelectionChange],
-  )
-  const updateIncludeReferenceDirections = useCallback(
-    (checked: boolean) => {
-      onPreviewSelectionChange?.()
-      setIncludeReferenceDirections(checked)
       setRecommendedPage(1)
     },
     [onPreviewSelectionChange],
@@ -300,26 +289,33 @@ export function TeamLoadoutOverview({
   const outputSystemOptions = useMemo(
     () =>
       teamOutputSystemOptionsForFamilies(
-        visibleRecommendationFamilies(recommendedSourceFamilies, includeReferenceDirections),
+        visibleRecommendationFamilies(recommendedSourceFamilies, false),
       ),
-    [includeReferenceDirections, recommendedSourceFamilies],
+    [recommendedSourceFamilies],
+  )
+  const effectiveOutputSystem = useMemo<TeamOutputSystemFilter>(
+    () =>
+      outputSystem !== 'all' && !outputSystemOptions.some((option) => option.value === outputSystem)
+        ? 'all'
+        : outputSystem,
+    [outputSystem, outputSystemOptions],
   )
   const visibleRecommendationItems = useMemo(
     () =>
       visibleRecommendationFamilies(
         recommendedMatchingItems,
-        includeReferenceDirections,
+        false,
         Boolean(recommendedQuery.trim()),
       ),
-    [includeReferenceDirections, recommendedMatchingItems, recommendedQuery],
+    [recommendedMatchingItems, recommendedQuery],
   )
   const orderedRecommendationItems = useMemo(
     () =>
       orderVisibleFamilies(
-        filterTeamFamiliesByOutputSystem(visibleRecommendationItems, outputSystem),
+        filterTeamFamiliesByOutputSystem(visibleRecommendationItems, effectiveOutputSystem),
         activeVariants,
       ),
-    [activeVariants, outputSystem, visibleRecommendationItems],
+    [activeVariants, effectiveOutputSystem, visibleRecommendationItems],
   )
   const recommendationOrdinalById = useMemo(
     () => new Map(orderedRecommendationItems.map((family, index) => [family.id, index + 1])),
@@ -359,14 +355,14 @@ export function TeamLoadoutOverview({
       selectableFamilies.find((family) => family.id === selectedId) ??
       orderedRecommendationItems[0] ??
       (recommendationsBlocked ||
-      (!onlyFavorites && !recommendedQuery.trim() && outputSystem === 'all')
+      (!onlyFavorites && !recommendedQuery.trim() && effectiveOutputSystem === 'all')
         ? selectableFamilies[0]
         : null) ??
       null,
     [
       onlyFavorites,
       orderedRecommendationItems,
-      outputSystem,
+      effectiveOutputSystem,
       recommendedQuery,
       recommendationsBlocked,
       selectableFamilies,
@@ -374,7 +370,9 @@ export function TeamLoadoutOverview({
     ],
   )
   const selectedRecommendationOrdinal =
-    outputSystem !== 'all' && selected ? (recommendationOrdinalById.get(selected.id) ?? null) : null
+    effectiveOutputSystem !== 'all' && selected
+      ? (recommendationOrdinalById.get(selected.id) ?? null)
+      : null
   const selectedVariantTeamId = selected?.id
   const visibleVariantId =
     selected?.variants.find((variant) => variant.id === activeVariants[selectedVariantTeamId ?? ''])
@@ -405,8 +403,7 @@ export function TeamLoadoutOverview({
       selectedId: selected?.id ?? null,
       recommendedQuery,
       onlyFavorites,
-      includeReferenceDirections,
-      outputSystem,
+      outputSystem: effectiveOutputSystem,
       activeVariants,
       selectedBangboos,
       recommendedPage: currentRecommendedPage,
@@ -415,8 +412,7 @@ export function TeamLoadoutOverview({
     selected?.id,
     recommendedQuery,
     onlyFavorites,
-    includeReferenceDirections,
-    outputSystem,
+    effectiveOutputSystem,
     activeVariants,
     selectedBangboos,
     currentRecommendedPage,
@@ -588,13 +584,11 @@ export function TeamLoadoutOverview({
                 onRecommendedQueryChange={updateRecommendedQuery}
                 onlyFavorites={onlyFavorites}
                 onOnlyFavoritesChange={updateOnlyFavorites}
-                includeReferenceDirections={includeReferenceDirections}
-                onIncludeReferenceDirectionsChange={updateIncludeReferenceDirections}
-                outputSystem={outputSystem}
+                outputSystem={effectiveOutputSystem}
                 outputSystemOptions={outputSystemOptions}
                 onOutputSystemChange={updateOutputSystem}
                 recommendationOrdinalById={recommendationOrdinalById}
-                showRecommendationOrdinal={outputSystem !== 'all'}
+                showRecommendationOrdinal={effectiveOutputSystem !== 'all'}
                 recommendedPage={currentRecommendedPage}
                 recommendedPageCount={recommendedPageCount}
                 onRecommendedPageChange={setRecommendedPage}

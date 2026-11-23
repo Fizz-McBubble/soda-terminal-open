@@ -38,8 +38,18 @@ import type {
   UtilityEvidence,
 } from './absoluteDiscRetentionKernel'
 
-const policyVersion = 'absolute-disc-retention-3.2-stage-r6-quality-dependency-lifecycle'
-const calibratedCutoffs = { cleanupBelow: 48, keepFrom: 60, premiumFrom: 67 } as const
+const policyVersion = 'absolute-disc-retention-3.3-stage-r7-slot-scarcity-weapon-atk'
+const fixedMainSlotCutoffs = { cleanupBelow: 50, keepFrom: 62, premiumFrom: 70 } as const
+const slot4Cutoffs = { cleanupBelow: 46, keepFrom: 58, premiumFrom: 66 } as const
+const scarceMainSlotCutoffs = { cleanupBelow: 42, keepFrom: 55, premiumFrom: 64 } as const
+export const calibratedCutoffsBySlot = Object.freeze({
+  '1': fixedMainSlotCutoffs,
+  '2': fixedMainSlotCutoffs,
+  '3': fixedMainSlotCutoffs,
+  '4': slot4Cutoffs,
+  '5': scarceMainSlotCutoffs,
+  '6': scarceMainSlotCutoffs,
+})
 const calibratedRarities = ['S'] as const
 
 const released = currentAgentDirectory.filter(
@@ -390,7 +400,7 @@ const catalog: Catalog = {
   assessmentGameVersion: currentVersionProjection.gameVersion,
   versionIdentity: {
     analysisTargetVersion: currentVersionProjection.gameVersion,
-    policyCalibrationVersion: '3.1',
+    policyCalibrationVersion: '3.3',
     sourceOriginalVersions: [
       ...new Set([
         ...releasedAgentIds.flatMap((id) => {
@@ -455,9 +465,9 @@ export const absoluteDiscRetentionPolicy: QualityPolicy = {
   calibration: 'approved',
   calibratedRarities,
   investment: {
-    id: 'source-goal-stage-investment-r1',
+    id: 'source-goal-stage-investment-r2',
     calibration: 'approved',
-    meaningfulWeightFrom: 0.5,
+    meaningfulWeightFrom: 0.25,
     leftSlotMinimumLines: 2,
     rightSlotMinimumLines: 1,
     minimumCoreLines: 1,
@@ -467,7 +477,12 @@ export const absoluteDiscRetentionPolicy: QualityPolicy = {
   byProfile: Object.fromEntries(
     catalog.profiles.map((item) => [
       item.id,
-      Object.fromEntries([1, 2, 3, 4, 5, 6].map((slot) => [String(slot), calibratedCutoffs])),
+      Object.fromEntries(
+        (['1', '2', '3', '4', '5', '6'] as const).map((slot) => [
+          slot,
+          calibratedCutoffsBySlot[slot],
+        ]),
+      ),
     ]),
   ),
 }

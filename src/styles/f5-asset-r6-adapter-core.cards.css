@@ -11,6 +11,28 @@
   aspect-ratio: auto;
 }
 
+.r6-golden .object-card {
+  transition:
+    transform var(--soda-motion-fast) var(--soda-ease-spring),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.r6-golden .object-card img {
+  transition: transform 280ms var(--soda-ease-spring);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .r6-golden .object-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--soda-shadow-card-hover);
+  }
+
+  .r6-golden .object-card:hover img {
+    transform: scale(1.045);
+  }
+}
+
 .r6-golden .object-card::after {
   height: 42px;
   background: linear-gradient(transparent, rgba(31, 27, 44, 0.9));

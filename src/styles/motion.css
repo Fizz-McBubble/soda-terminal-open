@@ -83,22 +83,34 @@
 }
 
 /* Only action controls move. Selection rows and tabs retain their hit geometry. */
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   :root
     .f5v-shell
     :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):not(:disabled):not(
       [aria-disabled='true']
     ):hover {
-    transform: translateY(-0.5px);
+    transform: translateY(-1.5px);
+    box-shadow: var(--soda-shadow-card);
+  }
+
+  :root
+    .f5v-shell
+    :is(.button--primary, .home-primary-action, .f5v-box-team-primary):not(:disabled):not(
+      [aria-disabled='true']
+    ):hover {
+    transform: translateY(-1.5px);
+    box-shadow: var(--soda-shadow-accent);
   }
 }
 
-:root
-  .f5v-shell
-  :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):not(:disabled):not(
-    [aria-disabled='true']
-  ):active {
-  transform: scale(0.985);
+@media (prefers-reduced-motion: no-preference) {
+  :root
+    .f5v-shell
+    :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):not(:disabled):not(
+      [aria-disabled='true']
+    ):active {
+    transform: scale(0.982);
+  }
 }
 
 /* A focus ring is immediate, including menus portalled outside the shell. */
@@ -108,19 +120,55 @@
   outline-offset: 2px;
 }
 
-:root .f5v-shell .scanner-account-picker__options,
-:root .f5v-select-menu-popover,
-:root .f5v-shell dialog.soda-asset-dialog[open],
-:root .f5v-shell [role='tabpanel']:not([hidden]),
-:root .f5v-shell :is(.warehouse-calculation-status, .app-loading-status) {
-  animation: soda-local-content-enter var(--soda-motion-fast) var(--soda-ease-out);
-}
+@media (prefers-reduced-motion: no-preference) {
+  :root .f5v-shell .scanner-account-picker__options,
+  :root .f5v-select-menu-popover,
+  :root .f5v-shell dialog.soda-asset-dialog[open],
+  :root .f5v-shell [role='tabpanel']:not([hidden]),
+  :root .f5v-shell :is(.warehouse-calculation-status, .app-loading-status) {
+    animation: soda-local-content-enter var(--soda-motion-overlay) var(--soda-ease-out);
+  }
 
-:root .explanation-popover[popover] {
-  transition:
-    opacity var(--soda-motion-fast) var(--soda-ease-out),
-    display var(--soda-motion-fast) allow-discrete,
-    overlay var(--soda-motion-fast) allow-discrete;
+  :root .f5v-shell dialog.soda-asset-dialog[open] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition:
+      opacity var(--soda-motion-overlay) var(--soda-ease-out),
+      transform var(--soda-motion-overlay) var(--soda-ease-out),
+      display var(--soda-motion-overlay),
+      overlay var(--soda-motion-overlay);
+    transition-behavior: allow-discrete;
+  }
+
+  @starting-style {
+    :root .f5v-shell dialog.soda-asset-dialog[open] {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0) scale(0.985);
+    }
+  }
+
+  :root .explanation-popover[popover] {
+    opacity: 0;
+    transform: translate3d(0, 5px, 0) scale(0.99);
+    transition:
+      opacity var(--soda-motion-fast) var(--soda-ease-out),
+      transform var(--soda-motion-fast) var(--soda-ease-out),
+      display var(--soda-motion-fast),
+      overlay var(--soda-motion-fast);
+    transition-behavior: allow-discrete;
+  }
+
+  :root .explanation-popover[popover]:popover-open {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  @starting-style {
+    :root .explanation-popover[popover]:popover-open {
+      opacity: 0;
+      transform: translate3d(0, 5px, 0) scale(0.99);
+    }
+  }
 }
 
 /* Keep pending images quiet and their existing slot size intact. Never pulse
@@ -130,16 +178,51 @@
   background-color: var(--soda-surface-raised);
 }
 
+/* Progressive native View Transitions: smooth cross-fade with crisp editorial settle. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: soda-vt-fade-out 160ms var(--soda-ease-out) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: soda-vt-fade-in 220ms var(--soda-ease-out) both;
+  }
+}
+
+@keyframes soda-vt-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes soda-vt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Portals do not inherit shell selectors, so the system preference must cover
-   them explicitly as well as the shell animation surface. */
+   them explicitly as well as the shell animation surface. Preserve non-motion
+   color/border transitions while removing spatial movement and looping motion. */
 @media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
   :root .f5v-shell *,
   :root .f5v-shell *::before,
   :root .f5v-shell *::after,
   :root :is(.f5v-select-menu-popover, .explanation-popover, dialog, [popover]),
   :root :is(.f5v-select-menu-popover, .explanation-popover, dialog, [popover]) * {
     animation: none !important;
-    transition: none !important;
     scroll-behavior: auto !important;
   }
 

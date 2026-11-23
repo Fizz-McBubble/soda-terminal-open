@@ -163,9 +163,9 @@ describe('production absolute-retention adapter', () => {
     expect(absoluteDiscRetentionPolicy.calibration).toBe('approved')
     expect(absoluteDiscRetentionPolicy.calibratedRarities).toEqual(['S'])
     expect(assessment.evidence[0]?.cutoffs).toEqual({
-      cleanupBelow: 48,
-      keepFrom: 60,
-      premiumFrom: 67,
+      cleanupBelow: 50,
+      keepFrom: 62,
+      premiumFrom: 70,
     })
     expect(assessment.evidence.length).toBeGreaterThan(0)
     expect(assessment.evidence.every((row) => row.expectedScore === null)).toBe(true)
