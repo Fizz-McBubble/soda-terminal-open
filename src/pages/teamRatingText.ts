@@ -3,12 +3,17 @@ import {
   teamReferenceIntervalSchema,
   type GenericReferenceInterval,
 } from '../decision/teamReferenceInterval'
+import { graduatedTeamRatingBands } from '../decision/graduatedTeamRatingBands'
 
 /** One player-facing label for a concrete trio, regardless of its evidence route. */
 export function formatGraduatedTeamScore(
   value: import('../decision/graduatedTeamScoreIndex').GraduatedTeamScore,
 ) {
-  if (value.unconfirmedBuildAgentIds) return formatTeamRating(value.band)
+  if (value.unconfirmedBuildAgentIds) {
+    return graduatedTeamRatingBands.some((band) => band === value.band)
+      ? `评级 ${value.band}`
+      : '暂无评级'
+  }
   return `评级 ${value.band} · ${value.score} 分`
 }
 

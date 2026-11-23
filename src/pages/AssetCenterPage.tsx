@@ -101,7 +101,6 @@ function asDiscItem(disc: DriveDisc, relations: { equipped: boolean; planned: bo
     favorite: disc.favorite,
     tags: disc.tags,
     protections: [
-      ...(disc.locked ? (['locked'] as const) : []),
       ...(relations.equipped ? (['equipped'] as const) : []),
       ...(relations.planned ? (['planned'] as const) : []),
     ],

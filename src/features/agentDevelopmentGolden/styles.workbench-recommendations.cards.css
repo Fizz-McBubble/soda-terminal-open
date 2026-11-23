@@ -2,10 +2,13 @@
   position: relative;
   min-width: 0;
   padding: 10px 12px;
-  border: 1px solid rgba(93, 79, 130, 0.1);
+  border: 1px solid rgba(93, 79, 130, 0.13);
   border-radius: var(--soda-radius-surface);
   background: #fff;
-  box-shadow: 0 5px 10px rgba(61, 48, 96, 0.05);
+  box-shadow: var(--soda-shadow-card);
+  transition:
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out);
 }
 
 .loadout-recommendations > header {

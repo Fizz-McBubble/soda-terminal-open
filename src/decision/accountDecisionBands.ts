@@ -5,7 +5,8 @@ import { reviewedTeamDiscDirections } from '../gameDataPacks/reviewedTeamDiscCon
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import type { scoreCurrent31ExhaustiveAccountCandidates } from './exhaustiveAccountCandidateScoring'
 import type { assetConflictBands, CultivationPriorityInput } from './teamDecisionAuthority'
-import { developmentSkillRecommendations } from '../application/developmentSkillRecommendations'
+import { inspectSkillInvestments } from './accountSkillInvestmentSummary'
+export { inspectSkillInvestments } from './accountSkillInvestmentSummary'
 
 export type RankedFormation = ReturnType<
   typeof scoreCurrent31ExhaustiveAccountCandidates
@@ -28,28 +29,6 @@ export type AccountBandContext = {
   globalById: Map<string, AccountBuildResult['global'][number]>
   independentById: Map<string, AccountBuildResult['independent'][number]>
   potentialDirectionsByMembers: Map<string, (typeof reviewedTeamDiscDirections)[number][]>
-}
-
-export function inspectSkillInvestments(
-  agent:
-    | (Pick<RosterAgent, 'agentId' | 'level' | 'skillLevels' | 'lockedFields'> & {
-        mindscape?: number | null
-      })
-    | undefined,
-) {
-  if (!agent) return { knownGapCount: 7, unknownCount: 0 }
-  const skills = developmentSkillRecommendations(agent).skills
-  let knownGapCount = agent.level >= 60 ? 0 : 1
-  let unknownCount = 0
-  for (const skill of skills) {
-    const current = agent.skillLevels[skill.key]
-    if (current === null || current === undefined || skill.targetLevel === null) {
-      unknownCount++
-      continue
-    }
-    if (current < skill.targetLevel) knownGapCount++
-  }
-  return { knownGapCount, unknownCount }
 }
 
 export function missingSkillInvestments(agent: RosterAgent | undefined) {

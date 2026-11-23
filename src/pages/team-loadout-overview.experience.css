@@ -20,13 +20,8 @@
   .f5v-box-team-overview .f5v-box-team-overview__workspace > .f5v-box-team-preview {
     max-height: max(240px, calc(var(--soda-viewport-height, 100dvh) - 150px));
     overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .f5v-box-team-overview .f5v-box-team-list::-webkit-scrollbar,
-  .f5v-box-team-overview .f5v-box-team-preview::-webkit-scrollbar {
-    display: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--soda-scrollbar-thumb, #7c6ba6) transparent;
   }
 
   .f5v-box-team-overview .f5v-box-team-preview {
@@ -34,10 +29,27 @@
   }
 }
 .f5v-box-team-overview .f5v-box-team-preview {
-  border: 1px solid var(--soda-line);
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--soda-accent) 16%, var(--soda-line));
   background: var(--soda-panel, #fff);
   border-radius: var(--soda-radius-surface);
+  box-shadow: var(--soda-shadow-card);
   overflow: visible;
+  transition:
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .f5v-box-team-overview .f5v-box-team-preview[data-spotlight-active='true'] {
+    background:
+      radial-gradient(
+        340px circle at var(--spot-x, 50%) var(--spot-y, 20%),
+        rgba(112, 90, 158, 0.065),
+        transparent 68%
+      ),
+      var(--soda-panel, #fff);
+  }
 }
 .f5v-box-team-overview .f5v-box-team-preview__scroll {
   gap: 20px;
@@ -109,15 +121,30 @@
   max-width: 100%;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   background: var(--soda-surface);
   border: 1px solid var(--soda-line);
   border-radius: var(--soda-radius-control);
+  box-shadow: 0 2px 6px rgba(60, 48, 96, 0.06);
+  transition:
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out);
 }
 .f5v-box-team-member-visual > :is(img, .visual-asset-fallback) {
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: inherit;
+  transition: transform 280ms var(--soda-ease-spring);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .f5v-box-team-member-lineup > li:hover .f5v-box-team-member-visual {
+    border-color: color-mix(in srgb, var(--soda-accent) 40%, transparent);
+    box-shadow: var(--soda-shadow-card);
+  }
+  .f5v-box-team-member-lineup > li:hover .f5v-box-team-member-visual > img {
+    transform: scale(1.055);
+  }
 }
 .f5v-box-team-preview .f5v-box-team-member-lineup h3 {
   margin: 0;
