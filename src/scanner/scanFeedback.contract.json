@@ -699,7 +699,7 @@
     "maxAttempts": 0,
     "maxItemIndex": 0,
     "durationMaxMs": 3600000,
-    "versionPattern": "^(?:1\\.[12]\\.\\d{1,3}|1\\.3\\.0)$"
+    "versionPattern": "^(?:1\\.[12]\\.\\d{1,3}|1\\.3\\.[01])$"
   },
   "installerDownload": {
     "versionPattern": "^(?:0|[1-9]\\d{0,2})\\.(?:0|[1-9]\\d{0,2})\\.(?:0|[1-9]\\d{0,2})$",

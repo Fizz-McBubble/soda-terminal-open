@@ -28,7 +28,9 @@ describe('AssetQuickReadGuide component', () => {
     expect(
       screen.getByText(new RegExp(`资产快读 ${assetQuickReadRelease.version}`)),
     ).toBeInTheDocument()
-    expect(screen.getAllByText(/支持国服 3\.2/).length).toBeGreaterThanOrEqual(2)
+    if (assetQuickReadRelease.version === '1.2.0')
+      expect(screen.getAllByText(/支持国服 3\.2/).length).toBeGreaterThanOrEqual(2)
+    else expect(screen.queryByText(/官网下载版.*仅支持国服 3\.2/)).not.toBeInTheDocument()
     expect(screen.getAllByText(new RegExp(assetQuickReadRelease.fileName)).length).toBeGreaterThan(
       0,
     )

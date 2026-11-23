@@ -105,7 +105,8 @@ it('connects a newer reviewed Helper without downgrading against the historical 
 })
 
 it('admits published 2.3.20 and reviewed successor Helpers while requiring outdated ones to update', () => {
-  expect(scannerDistributionManifest.helper.version).toBe('2.3.20')
+  expect(scannerDistributionManifest.helper.version).toBe('2.4.4')
+  minimumFixture.version = '2.3.20'
   for (const version of ['2.3.20', '2.3.21', '2.4.0', '2.4.1', '2.4.2', '2.4.3', '2.4.4']) {
     expect(() => requireCurrentScannerHelper(version)).not.toThrow()
   }

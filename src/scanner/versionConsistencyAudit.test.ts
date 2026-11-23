@@ -157,7 +157,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     expect('1.0.9').not.toMatch(screenInstallerPattern)
   })
 
-  it('preserves published 1.2.3/2.3.20/r37 and candidate 1.3.0/2.4.4/r42 diagnostic identities through browser and receiver validation', () => {
+  it('accepts current 1.3.1 and preserves candidate 1.3.0 scanner diagnostics through browser and receiver validation', () => {
     const report = {
       schema: 1,
       reportId: '10f44460-1234-4123-8123-abc123abc123',
@@ -208,24 +208,26 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     attempts: [],
   }
 
-  it('accepts published 1.2.3 installer feedback and preserved 1.3.0 candidate diagnostics through browser and receiver validation', () => {
-    expect(installerReport.installerVersion).toBe('1.2.3')
+  it('accepts published 1.3.1 and earlier reviewed scanner installer feedback through browser and receiver validation', () => {
+    expect(installerReport.installerVersion).toBe('1.3.1')
     expect(sanitizeInstallerFeedback(installerReport)).toEqual(installerReport)
     expect(sanitizeScanFeedbackPayload(installerReport)).toEqual({
       ok: true,
       record: installerReport,
     })
-    const candidateInstallerReport = { ...installerReport, installerVersion: '1.3.0' }
-    expect(sanitizeInstallerFeedback(candidateInstallerReport)).toEqual(candidateInstallerReport)
-    expect(sanitizeScanFeedbackPayload(candidateInstallerReport)).toEqual({
-      ok: true,
-      record: candidateInstallerReport,
-    })
+    for (const installerVersion of ['1.2.3', '1.3.0']) {
+      const previousReport = { ...installerReport, installerVersion }
+      expect(sanitizeInstallerFeedback(previousReport)).toEqual(previousReport)
+      expect(sanitizeScanFeedbackPayload(previousReport)).toEqual({
+        ok: true,
+        record: previousReport,
+      })
+    }
   })
 
   it.each([
     { installerVersion: '1.0.9' },
-    { installerVersion: '1.3.1' },
+    { installerVersion: '1.3.2' },
     { installerVersion: '1.4.0' },
     { installerVersion: '2.0.0' },
     { installerVersion: '01.3.0' },
@@ -252,7 +254,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     expect(scannerInstallerManifest.helperVersion).not.toBe('1.0.49')
     expect(scannerRuntimeManifest.captureVersion).toMatch(/1\.0\.49/)
     expect(scannerInstallerManifest.version).toMatch(/^\d+\.\d+\.\d+$/)
-    expect(scannerInstallerManifest.helperVersion).toBe('2.3.20')
+    expect(scannerInstallerManifest.helperVersion).toBe('2.4.4')
     expect(scannerRuntimeManifest.captureVersion).toBe(
       scannerDistributionManifest.runtime.nativeCapture.componentVersion,
     )

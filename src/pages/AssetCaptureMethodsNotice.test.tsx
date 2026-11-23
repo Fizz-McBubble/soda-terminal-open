@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { expect, it } from 'vitest'
+import { assetQuickReadRelease } from '../assetQuickRead/distribution'
 import {
   AssetCaptureMethodsNotice,
   AssetCaptureRiskNotice,
@@ -32,7 +33,9 @@ it('compares only the scope, prerequisites and limits players need to choose a m
   expect(scan).toHaveTextContent('代理人养成与音擎沿用你在资产中填写的信息')
   expect(quick).toHaveTextContent('从当前装备出发，对比换装后的面板和近似输出')
   expect(quick).toHaveTextContent('未读到的潜能保留原值')
-  expect(quick).toHaveTextContent('当前公开安装包（1.2.0）支持国服 3.2')
+  if (assetQuickReadRelease.version === '1.2.0')
+    expect(quick).toHaveTextContent('当前公开安装包（1.2.0）支持国服 3.2')
+  else expect(quick).toHaveTextContent('游戏更新后可能需等待适配')
   expect(quick).not.toHaveTextContent('游戏面板校对')
   expect(within(quick).queryByRole('button', { name: '测试版' })).not.toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: '能帮你做什么' })).not.toBeInTheDocument()
