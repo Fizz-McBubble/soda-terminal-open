@@ -51,7 +51,6 @@ export type TeamLoadoutOverviewUiState = {
   activeVariants: Record<string, string>
   selectedBangboos?: Record<string, string>
   recommendedPage: number
-  includeReferenceDirections?: boolean
   outputSystem?: TeamOutputSystemFilter
 }
 
@@ -193,9 +192,6 @@ export function TeamLoadoutOverview({
   }, [previewRequest, selectedId, showPreview])
   const [recommendedQuery, setRecommendedQuery] = useState(initialUiState?.recommendedQuery ?? '')
   const [onlyFavorites, setOnlyFavorites] = useState(initialUiState?.onlyFavorites ?? false)
-  const [includeReferenceDirections, setIncludeReferenceDirections] = useState(
-    initialUiState?.includeReferenceDirections ?? false,
-  )
   const [outputSystem, setOutputSystem] = useState<TeamOutputSystemFilter>(() =>
     normalizeTeamOutputSystemFilter(initialUiState?.outputSystem),
   )
@@ -218,14 +214,6 @@ export function TeamLoadoutOverview({
     (checked: boolean) => {
       onPreviewSelectionChange?.()
       setOnlyFavorites(checked)
-      setRecommendedPage(1)
-    },
-    [onPreviewSelectionChange],
-  )
-  const updateIncludeReferenceDirections = useCallback(
-    (checked: boolean) => {
-      onPreviewSelectionChange?.()
-      setIncludeReferenceDirections(checked)
       setRecommendedPage(1)
     },
     [onPreviewSelectionChange],
@@ -300,18 +288,18 @@ export function TeamLoadoutOverview({
   const outputSystemOptions = useMemo(
     () =>
       teamOutputSystemOptionsForFamilies(
-        visibleRecommendationFamilies(recommendedSourceFamilies, includeReferenceDirections),
+        visibleRecommendationFamilies(recommendedSourceFamilies, false),
       ),
-    [includeReferenceDirections, recommendedSourceFamilies],
+    [recommendedSourceFamilies],
   )
   const visibleRecommendationItems = useMemo(
     () =>
       visibleRecommendationFamilies(
         recommendedMatchingItems,
-        includeReferenceDirections,
+        false,
         Boolean(recommendedQuery.trim()),
       ),
-    [includeReferenceDirections, recommendedMatchingItems, recommendedQuery],
+    [recommendedMatchingItems, recommendedQuery],
   )
   const orderedRecommendationItems = useMemo(
     () =>
@@ -405,7 +393,6 @@ export function TeamLoadoutOverview({
       selectedId: selected?.id ?? null,
       recommendedQuery,
       onlyFavorites,
-      includeReferenceDirections,
       outputSystem,
       activeVariants,
       selectedBangboos,
@@ -415,7 +402,6 @@ export function TeamLoadoutOverview({
     selected?.id,
     recommendedQuery,
     onlyFavorites,
-    includeReferenceDirections,
     outputSystem,
     activeVariants,
     selectedBangboos,
@@ -588,8 +574,6 @@ export function TeamLoadoutOverview({
                 onRecommendedQueryChange={updateRecommendedQuery}
                 onlyFavorites={onlyFavorites}
                 onOnlyFavoritesChange={updateOnlyFavorites}
-                includeReferenceDirections={includeReferenceDirections}
-                onIncludeReferenceDirectionsChange={updateIncludeReferenceDirections}
                 outputSystem={outputSystem}
                 outputSystemOptions={outputSystemOptions}
                 onOutputSystemChange={updateOutputSystem}
