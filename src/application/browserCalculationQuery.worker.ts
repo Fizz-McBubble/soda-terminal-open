@@ -207,11 +207,7 @@ export async function calculateBrowserQueryResponse(
     const query = request.query
     if (
       query.kind === 'saved_team_solution_components' ||
-      query.kind === 'decision_portfolio' ||
-      (query.kind === 'team_overview_presentation' &&
-        (query.selection?.text?.trim() ||
-          query.selection?.includeReference ||
-          query.fitCandidateIds?.length))
+      query.kind === 'decision_portfolio'
     )
       await loadCompleteRankings()
     const assertCurrent = () => {
