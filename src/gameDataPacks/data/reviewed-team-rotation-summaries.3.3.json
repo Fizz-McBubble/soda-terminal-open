@@ -2398,6 +2398,4020 @@
         "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
         "productionReportSha256": "7b4384edb862e3c0de6c93090dedb8d56cbeb463d646344e4d49e2dc7fc01cc6"
       }
+    },
+    {
+      "playId": "sha256:7d480c8062c8845915e0e133ecbe4edab54ab404673dcd23ce8d0d43e33771ce",
+      "memberIds": [
+        "agent-aria",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "蕾米埃尔、柚叶先用普攻攒能。蕾米埃尔放强化特殊技后切爱芮打一套普攻，柚叶接强化特殊技。",
+      "handoff": "柚叶打完强化特殊技即交回爱芮。蕾米埃尔的支援攻击接短普攻，随后回到爱芮的站场循环。",
+      "loop": "爱芮用普攻衔接加速蓄力，能量就绪时穿插强化特殊技。蕾米埃尔与柚叶轮流补强化特殊技。",
+      "burst": "蕾米埃尔有终结技时先释放再交回爱芮。爱芮的终结技后接加速强化蓄力，出现连携机会时由爱芮接连携。",
+      "evidence": {
+        "axisSha256": "cf5dc55cd620f34285f1236359148218ba5ea4bf2309067303d9521e8bc49d98",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "draftSha256": "235c563f60c2139c4da7b0f8f47275d46ac6381a4b6cb6d117b0289b86f341a2"
+      }
+    },
+    {
+      "playId": "sha256:a4e7a9d5234bedae31be976ad5be3711f88409ac0c4cab482537d46b8e127256",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "蕾米埃尔、柚叶先用普攻攒能。蕾米埃尔放强化特殊技后切菲欧妮过渡，柚叶接强化特殊技。",
+      "handoff": "柚叶放完强化特殊技后交回菲欧妮。蕾米埃尔的支援攻击接短普攻后也交回菲欧妮。",
+      "loop": "菲欧妮以普攻衔接强化特殊技和燔焰普攻，蕾米埃尔与柚叶间歇切入补强化特殊技。",
+      "burst": "蕾米埃尔与菲欧妮在喧响就绪时各自施放终结技。菲欧妮回到普攻与强化特殊技连段，并使用可发动的后续强化段。",
+      "evidence": {
+        "axisSha256": "78c82ac2fd8001839766c015987dd00cc5c7470e6ce7eb51e93b58c50047233a",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "draftSha256": "28e2538880ba44e0a69777a6046ea91307f99404b80b4af687e9fcc7b2beb051"
+      }
+    },
+    {
+      "playId": "sha256:91d2aba8b4033fcbf54fb8cba816a69316f86b85bd84cd61e12e9a782ca453af",
+      "memberIds": [
+        "agent-aria",
+        "agent-yuzuha",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "柚叶和照依次用普攻攒能。柚叶放强化特殊技后切爱芮打一套普攻，再由照补强化特殊技。",
+      "handoff": "照放完强化特殊技或打完入场支援就切回爱芮。柚叶接到连携时，把后续站场交给爱芮。",
+      "loop": "爱芮以普攻衔接加速蓄力，穿插强化特殊技。柚叶和照分开补强化特殊技，照有入场支援时补入。",
+      "burst": "爱芮释放终结技后接加速强化蓄力。照的终结技就绪时释放，随后切回爱芮继续输出。",
+      "evidence": {
+        "axisSha256": "867896820c5256e680efd18558d8c47fe662a3d7e247c3128bf9a8b87b130835",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "draftSha256": "97093a0cdb9510e3dc542a326f67df6c929f5516e00ac39525ae2ddfbb971a2c"
+      }
+    },
+    {
+      "playId": "sha256:09ffcd4098650d8457935e8467bed107919578f7f60f4cf90794de1ea430ef56",
+      "memberIds": [
+        "agent-claret",
+        "agent-sunna",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "千夏用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "克拉蕾用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "823cb02a7bb23b3bf277d00b9df0976384b0070d83d2838de26e08199122fcce",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "84b9bb3b16b9b15cbde947beb90a26fe8dad1bbadc803869ef1bbc3562c172f0"
+      }
+    },
+    {
+      "playId": "sha256:b89214c9558df03d41611a7279ceb909b7599f19dcaf8d260800639564e82263",
+      "memberIds": [
+        "agent-aria",
+        "agent-nangong",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "南宫羽用普攻，换到维琳娜用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "17627f80f660dd42dfad995d845d73a4c60e5bc157c47a13812a566641034c41",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "854e44ebe2f475584d82342cbdb104524d92218ac684cff620090e1d82a15bb6"
+      }
+    },
+    {
+      "playId": "sha256:bf63772277993157b4573b8aa3360dc2ffb4dbf8cc5a66c725eb31e93df9302a",
+      "memberIds": [
+        "agent-aria",
+        "agent-phoenix",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "菲欧妮用普攻，换到千夏用普攻，换到菲欧妮用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "8ab6ec0104e4f950e0340c0dbc0a69a65a94587a1cdd170f9af917f6dfdecbb2",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "1f9825aa4a9a6556a862fad533b53b02a846687b48bae3f9aa3f9c40db00fcdd"
+      }
+    },
+    {
+      "playId": "sha256:84f8a8d1f1dc770e80cf3794f467e795b5aaf98754f89a189e4eaf6702c30c48",
+      "memberIds": [
+        "agent-nangong",
+        "agent-phoenix",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "南宫羽用普攻，换到柚叶用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着菲欧妮用普攻。",
+      "loop": "菲欧妮用长按普攻「焚罪」接普攻，循环中重复该段。",
+      "burst": "菲欧妮用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "90c38e6a2864162a75ee942b991984a41a760dfe9b098a6f00f54ddd5bb727e3",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f921b2d0d4eadb9ef280053e991b76cbaeed63b6a8f99edcdf55cdc3d0018d8d"
+      }
+    },
+    {
+      "playId": "sha256:31201be64c1dc13ec4823c37d219bf3b6c21bda55c5f1e53ca680abcce78b457",
+      "memberIds": [
+        "agent-aria",
+        "agent-sunna",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "千夏用普攻，换到维琳娜用普攻，换到千夏用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用普攻接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "8e7131cc1c26c75071c439c54609a28e7738aaa2e5b59f5cd315943a9d590110",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "9b8eab5f325806f72e84941b76413c20b7959852c839a550815c412adcfa9e1a"
+      }
+    },
+    {
+      "playId": "sha256:876b8ef3ad34f7d99e7829a369a48d002fb6e0fc2cfd1686efa837ad1ca4b14d",
+      "memberIds": [
+        "agent-nangong",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "南宫羽用普攻，换到柚叶用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻。",
+      "loop": "维琳娜用普攻接强化特殊技，循环中重复该段。",
+      "burst": "维琳娜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "84516218fc640deaba6981c5b183b220f9e7d85d62156f4569b07a3f292820d0",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c56f6c1b62189ee4d33fe74d9d3157e8e73694ee8df24f9d72926c97a4a999c7"
+      }
+    },
+    {
+      "playId": "sha256:a1936e54d8785739f30d5c7c50b27435615dd6193177dcdfcb5915a571070b18",
+      "memberIds": [
+        "agent-aria",
+        "agent-phoenix",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "爱芮用普攻接加速蓄力攻击，换到维琳娜用强化特殊技起手。",
+      "handoff": "接着菲欧妮用普攻接强化特殊技接普攻。",
+      "loop": "菲欧妮用长按普攻「焚罪」接普攻，循环中重复该段。",
+      "burst": "菲欧妮用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "09826256093d24520dc5e0d106db06263435b30fecd0f81a9e2f504ccaa2ed4a",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "db00beee572f787caab6e4bfc9ffadd011eef1ad497fe566c9b91eb7a88d36b5"
+      }
+    },
+    {
+      "playId": "sha256:8d18ffd0c1a068ecbb922fd231ca981fb66b3337c1db4bf88a9c1a8f96596587",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-remielle",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-vivian",
+      "opening": "菲欧妮用普攻，换到蕾米埃尔·丹用普攻，换到菲欧妮用强化特殊技起手。",
+      "handoff": "接着薇薇安用普攻。",
+      "loop": "薇薇安用普攻接特殊技，循环中重复该段。",
+      "burst": "薇薇安用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "0339c8dcdb93fab2ec7d9c583982056630390bb446a526399fae3a041997a071",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "08c8b46239cf54373f7af76b70ef9887c4a7a68bfd53eccc7ffa9aa93c2a23ae"
+      }
+    },
+    {
+      "playId": "sha256:bf4ca12c9706183137040196201ec7eb1a1a0e691aeaaa071b1faedbb5eaf472",
+      "memberIds": [
+        "agent-nangong",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "南宫羽用普攻，换到蕾米埃尔·丹用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻。",
+      "loop": "维琳娜用强化特殊技接普攻，循环中重复该段。",
+      "burst": "蕾米埃尔·丹用终结技，换到维琳娜用普攻。",
+      "evidence": {
+        "axisSha256": "89bbbf74cd401301fb9f11a0f0deb4716b1d12c010ab68b404515b6b59e81c38",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "175725f23305420eeb3870b76e31f90ea27bfe7826f7da0bd7622e96cb35d6ec"
+      }
+    },
+    {
+      "playId": "sha256:a0af380a9d639b1d09a5eec08813257a2c78c74897ee38883fe0b071715fa18b",
+      "memberIds": [
+        "agent-aria",
+        "agent-astra",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "耀嘉音用特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "06fccd6e5ac4706e0b517b9af9030eb3d4bbc5ccc7ebc3b135b997579e7b8358",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f789c46f481feb8f5b5d1f5c4a71915384648de112b761b2fd45ba7d04af97a0"
+      }
+    },
+    {
+      "playId": "sha256:97955a22483178a79ab6ba195e4d29d681f9dff049895b436f128c0ed93ff5fd",
+      "memberIds": [
+        "agent-aria",
+        "agent-nangong",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "南宫羽用普攻，换到千夏用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "84adfc30efdf31fda4e3be92881ea81cd53ba15b1adfb4479c65aac112c3e31e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a86dd8bd004affc1979544de371b03662f1366e15c64c93be1a358fd3e2d800e"
+      }
+    },
+    {
+      "playId": "sha256:d3cd9d891de91b362d0a56429dc250d30edccee3a4139bebfac7709ad63c555e",
+      "memberIds": [
+        "agent-aria",
+        "agent-nangong",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "南宫羽用普攻，换到柚叶用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "79fd89177aa744336b21364af980eadb2af00abe84546df610a5975d151e3526",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c36bf860f3b2f7a21bd14ae9ae3e7c11662f85e14de4574fa8d8dc50e3e7518e"
+      }
+    },
+    {
+      "playId": "sha256:54076d556dd97edde9218fdde8241b308672261b17bf7176392b3c25fc0d0d5a",
+      "memberIds": [
+        "agent-cissia",
+        "agent-roxy",
+        "agent-seed"
+      ],
+      "primaryAgentId": "agent-seed",
+      "opening": "希希芙用普攻，换到洛克茜用普攻，换到希希芙用普攻起手。",
+      "handoff": "接着「席德」用普攻。",
+      "loop": "洛克茜用特殊技，换到「席德」用强化特殊技，循环中重复该段。",
+      "burst": "「席德」用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "f5670b25008c1eb513e16003df9bbf308f5cdedf9a44ab4ba72f398a6a68a0cb",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "213fb463bee32d92f79993155dd25f270d4f5d3f38665e692b5ab305046b8cc2"
+      }
+    },
+    {
+      "playId": "sha256:e37e9c762902e68e97ce6d1bd1c922b8bdc750f596d360acbe72de237192cd16",
+      "memberIds": [
+        "agent-claret",
+        "agent-koleda",
+        "agent-rina"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "珂蕾妲用普攻，换到丽娜用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "克拉蕾用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "d0a67b50694968e8a14cefc0cb83533eccb23ce4efe360c33404cbd2011d1849",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c01b9cd24b70dea4aba2aaa5a6c8b7e6f3ba2c2d8b3548209ef8de17cd780c77"
+      }
+    },
+    {
+      "playId": "sha256:2179e4a90f14f17363ae02d4723907f6b166e0e59f71a2db426f20d76fe6295f",
+      "memberIds": [
+        "agent-astra",
+        "agent-cissia",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-cissia",
+      "opening": "耀嘉音用特殊技起手。",
+      "handoff": "接着希希芙用普攻。",
+      "loop": "希希芙用强化特殊技接普攻，循环中重复该段。",
+      "burst": "希希芙用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "b0ce84b981361b6689edba2c367efcfaa304fd0267c3bf2ab10e5afb42c81415",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "875ceab3739800ec64ab19674d74ccbabf7a2553b7891807806ad62087f03990"
+      }
+    },
+    {
+      "playId": "sha256:51abbee8a714318f6819fe186fe7fa232c130b3ab26a4464e1a7175ce70450b0",
+      "memberIds": [
+        "agent-cissia",
+        "agent-orphie-magus",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-cissia",
+      "opening": "洛克茜用普攻起手。",
+      "handoff": "接着希希芙用强化特殊技接普攻。",
+      "loop": "希希芙用强化特殊技接普攻，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "希希芙用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "1972f5becb6f82006122452ef02b3922a8dbbaf97f74af7ceefc47f9ad10ab7a",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6ae473a00d40b82c21eda99e579664c003244b82979d307830f60f43eb24a751"
+      }
+    },
+    {
+      "playId": "sha256:6389e12e8efa1611e989c58bf1092baee66ade1bba4d127cb6b09990886d6436",
+      "memberIds": [
+        "agent-claret",
+        "agent-rina",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "丽娜用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "丽娜用连携技，换到克拉蕾用特殊技。",
+      "evidence": {
+        "axisSha256": "db460e84782cdb39b70e7b0e8bacf73ff7db5feb2bb192f06385b76e79069e97",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "7527b09612b95d994f1b81e7bcfa63a93d4fb10865146dfe947238e249bc08b8"
+      }
+    },
+    {
+      "playId": "sha256:30be459d12e235e8faefc7ac4389df070036f748acdc0c6ea8c0392441fca369",
+      "memberIds": [
+        "agent-cissia",
+        "agent-rina",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-cissia",
+      "opening": "丽娜用普攻，换到洛克茜用普攻起手。",
+      "handoff": "接着希希芙用强化特殊技接普攻。",
+      "loop": "希希芙用强化特殊技接普攻，循环中重复该段。",
+      "burst": "丽娜用连携技，换到希希芙用连携技。",
+      "evidence": {
+        "axisSha256": "9af3b33bb2530350d0873d95eeb18529df9e34014b4b46fed1a7216069f667d3",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "1939efc64f439eaf409b6dfe695ff1836329ef86500a33973e56b55c8a236526"
+      }
+    },
+    {
+      "playId": "sha256:94742271971b828fbdb1261206313fe6faac0bc8a5b7fecd3e98e11c12f2bf50",
+      "memberIds": [
+        "agent-cissia",
+        "agent-roxy",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "希希芙用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着洛克茜用普攻接强化特殊技接特殊技。",
+      "loop": "洛克茜用普攻接强化特殊技，循环中重复该段。",
+      "burst": "洛克茜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "f25a7b52a48d356b77a7375d56842c4c93cd27d6d9ca2630ee25aaf0e3340ca4",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a4305c4444c93927d040f4d2e01dc85ada575bb1492fea0fef9748c4c90fbc53"
+      }
+    },
+    {
+      "playId": "sha256:5ae39f840b0f96d32a6ad1e024f71a637973ba0adb195572d091805d1f4add3f",
+      "memberIds": [
+        "agent-norma",
+        "agent-orphie-magus",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-norma",
+      "opening": "洛克茜用普攻起手。",
+      "handoff": "接着诺姆用普攻。",
+      "loop": "诺姆用强化特殊技接普攻，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "洛克茜用终结技，换到诺姆用普攻。",
+      "evidence": {
+        "axisSha256": "3c690dd1122727edbdd5c82cae6a05cfd4c2278912da2f02e0019d9998f524a4",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "da9b49f0c16447425327eadeafcdc76cda4ca8fb37e2df4d24ba589c8995c350"
+      }
+    },
+    {
+      "playId": "sha256:5ec8b62a2fb3eea86de328e726958dbf50c2167d0cf7e4067220387523afd732",
+      "memberIds": [
+        "agent-norma",
+        "agent-orphie-magus",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-orphie-magus",
+      "opening": "诺姆用普攻，换到洛克茜用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着奥菲丝&「鬼火」用普攻。",
+      "loop": "诺姆用强化特殊技，换到奥菲丝&「鬼火」用普攻，循环中重复该段。",
+      "burst": "洛克茜用终结技，换到奥菲丝&「鬼火」用普攻。",
+      "evidence": {
+        "axisSha256": "ccd6265b3d250eb3cebd234283950103d4d7a0ba8b79be9c73837641872bd51e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d62b91e66bd74f0b0bbf1b5f26165335275f7dd2660630cf27c1622263af5406"
+      }
+    },
+    {
+      "playId": "sha256:1f67bc0c748452b9aa23790eb98ae4bbaea7011675fceb776ab70bff16ccd17f",
+      "memberIds": [
+        "agent-claret",
+        "agent-norma",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "诺姆用普攻，换到洛克茜用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "克拉蕾用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "455a6e73e833d9044b4f3391c403c385475acb86248cebf1cb977fbaaa5208d7",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "fc93f0b525b8d47fb8a01e1bad1b6f73f01c674d02b7183db7baf6983a9895a4"
+      }
+    },
+    {
+      "playId": "sha256:dcc4f3e39b0b731dcc11a999012fc781d8196c22026c5b22781dd63fdcf73664",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-phoenix",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "琉音用普攻，换到蕾米埃尔·丹用普攻，换到琉音用强化特殊技起手。",
+      "handoff": "接着菲欧妮用普攻。",
+      "loop": "菲欧妮用普攻接长按普攻「焚罪」，循环中重复该段。",
+      "burst": "菲欧妮用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "9c0c4b461c9d0f7263a20a90a91594cf67602f02600ea01b11abbeb8b98192c3",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "4b1c5b870a67fd598abf7d90a0bd3b7d81701ab39622941343963f662fac68a2"
+      }
+    },
+    {
+      "playId": "sha256:adea8ab1a12b75bf078e583485ae81f84d90605a7e42bbce5173e3ad7d952476",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-norma",
+      "opening": "洛克茜用普攻接特殊技，换到柚叶用强化特殊技起手。",
+      "handoff": "接着诺姆用普攻接强化特殊技接普攻。",
+      "loop": "诺姆用强化特殊技接普攻，循环中重复该段。",
+      "burst": "诺姆用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "c4a33b20a8a48d3646c90aee14c97b7d2b8022ce128678bd5128dc5301c83be0",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "8e9c540e6f14e8fe92a5159afa64602b0cfa0d4e05a2438fffc5a5e681839cb6"
+      }
+    },
+    {
+      "playId": "sha256:61160db77a32b39d1e4048d3685e8b8de0b0a24e3eb9d8ae7121ab12fe1d170e",
+      "memberIds": [
+        "agent-cissia",
+        "agent-orphie-magus",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "希希芙用普攻起手。",
+      "handoff": "接着洛克茜用强化特殊技接特殊技。",
+      "loop": "洛克茜用强化特殊技接特殊技，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "洛克茜用连携技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "c7d0fa61c0d0a0c8ca2ab8b9798c2ff4fb56603318eaf0ecbc6dd94dc3688dc3",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "4858fe2d5ec764dfa1a615bff0bc267aebd2146bc3f9241ca91c8acdd11d2869"
+      }
+    },
+    {
+      "playId": "sha256:dbe5076469f41dead6ddc3220dabf875b91ea29c84382ee6417797d10b881a6c",
+      "memberIds": [
+        "agent-cissia",
+        "agent-roxy",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-cissia",
+      "opening": "洛克茜用普攻接特殊技，换到千夏用强化特殊技起手。",
+      "handoff": "接着希希芙用普攻。",
+      "loop": "希希芙用普攻，换到洛克茜用强化特殊技，循环中重复该段。",
+      "burst": "希希芙用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "9c0ebc5949b6cbeab07033b717aea98d18a4a34656ad9689189cb3d3b4fca108",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "58f4c441b1bf3f21bb9ff7949b31f105ccb6ac917bd9ee2fa0332c5fb3335983"
+      }
+    },
+    {
+      "playId": "sha256:680984a57b6f8beaefdd9256c150c8d297998640ef340cf47192c9a33ba97e99",
+      "memberIds": [
+        "agent-claret",
+        "agent-roxy",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "洛克茜用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "洛克茜用连携技，换到克拉蕾用特殊技。",
+      "evidence": {
+        "axisSha256": "a4c216fd5c9759e28c437dcec7a053a0585048aecde7b33992b81966aad59d3e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6074b7f6d9cab6690b1580fa125a09fe16cae9b5de0c5239cb4b62d7b204594e"
+      }
+    },
+    {
+      "playId": "sha256:252cb47e9e22b9f9a895140c08346f7cd689a979387be3d77c3b7478c7c04eb7",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-orphie-magus",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "琉音用普攻起手。",
+      "handoff": "接着洛克茜用强化特殊技接特殊技。",
+      "loop": "洛克茜用强化特殊技接特殊技，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "琉音用连携技，换到洛克茜用强化特殊技。",
+      "evidence": {
+        "axisSha256": "f3e8fae77d3332648ec518dbab10e6909f7cbdc89212879229efb782652f667f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "74430aee4e84d0b4a0a1fb2444cc5d9651104740af07cdbbd97cc99a62f46969"
+      }
+    },
+    {
+      "playId": "sha256:0f7dc4b687be7612b931bd08d2280851f87e67bb7590957bfe495c1a1e38440b",
+      "memberIds": [
+        "agent-nangong",
+        "agent-phoenix",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "南宫羽用普攻，换到维琳娜用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着菲欧妮用普攻。",
+      "loop": "菲欧妮用长按普攻「焚罪」接普攻，循环中重复该段。",
+      "burst": "菲欧妮用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "c7bf6d3cc4a0aa12fe00d916922078f26921d0ab6fe9248a2cbd99ae29ae511d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "3fd31398ef4bdad12b067e04b3ac85b7171a852bca30498b238a6a97034fbe2e"
+      }
+    },
+    {
+      "playId": "sha256:88631624312fd35b4834da5f44909f2179d37ab9d8ffeb13abc15e8f0ee0ce63",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "诺姆用普攻，换到千夏用普攻起手。",
+      "handoff": "接着洛克茜用强化特殊技。",
+      "loop": "洛克茜用强化特殊技接特殊技，循环中重复该段。",
+      "burst": "诺姆用连携技，换到洛克茜用强化特殊技。",
+      "evidence": {
+        "axisSha256": "bc6208f9f7742757fb5a31a9637b70f725159708687db20337b40686d7862533",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6f51c1403c7154a203d6114c8c381da6c24c4c58d790d013c01613ef83a1d8d4"
+      }
+    },
+    {
+      "playId": "sha256:9280ee90807858499415f3e8b33727427bb649007cbc806702b266092c67afec",
+      "memberIds": [
+        "agent-norma",
+        "agent-orphie-magus",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-orphie-magus",
+      "opening": "诺姆用普攻，换到洛克茜用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着奥菲丝&「鬼火」用普攻。",
+      "loop": "诺姆用强化特殊技，换到奥菲丝&「鬼火」用普攻，循环中重复该段。",
+      "burst": "洛克茜用终结技，换到奥菲丝&「鬼火」用普攻。",
+      "evidence": {
+        "axisSha256": "1e6e879a41bdac24fdad5e67697f5e354fdfdc199002f3202c6574ee43d8ac3f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "872647707c97103148014b858ef6501a3b849e66119fd56b4286e57c7977e8b6"
+      }
+    },
+    {
+      "playId": "sha256:4251a80e57583cae745d1e8a83e57b3d87e0edb5b526ba0233a66743e44784d5",
+      "memberIds": [
+        "agent-claret",
+        "agent-trigger",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "薇薇安用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "「扳机」用连携技，换到克拉蕾用特殊技。",
+      "evidence": {
+        "axisSha256": "6784ba1c11ed7fa4a994cce3d2db195aa0b08b86d43ec619211b85e24975cceb",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "23c57561d12a35b2e6167c6ad5f8cd71f6281ce9b1a0756cede90f95b5c2cca3"
+      }
+    },
+    {
+      "playId": "sha256:b2a67cda714ab0d388954431bf4131d12d539ad51821556f3f759cfa5416259d",
+      "memberIds": [
+        "agent-aria",
+        "agent-nangong",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "南宫羽用普攻，换到蕾米埃尔·丹用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "50f541b5a9eb57dcf622d86c917930bfe55fb81c9aa8bceac32b9428fb8f0657",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f88fc27548292c7ad1d8f71d9c119176a1e897d5d228111907f9c183dd93f00e"
+      }
+    },
+    {
+      "playId": "sha256:358b35930a3428bfc42c7e4b23f480fcce4698911dfe21513bd18727c223b902",
+      "memberIds": [
+        "agent-claret",
+        "agent-koleda",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "珂蕾妲用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "珂蕾妲用连携技，换到克拉蕾用强化特殊技。",
+      "evidence": {
+        "axisSha256": "89d3369be5c81d9983181cead93ad007590c86a49694edc78d8002a13fefddf3",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "91c64805c43e119fb42f4831d26ac113c0cdc401ac799c014af40988d5d8f780"
+      }
+    },
+    {
+      "playId": "sha256:3a300e62bbf876f6843380c7756489145693a9773779a71fa86a2ce869301bb5",
+      "memberIds": [
+        "agent-norma",
+        "agent-rina",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "诺姆用普攻，换到丽娜用普攻起手。",
+      "handoff": "接着洛克茜用强化特殊技。",
+      "loop": "洛克茜用强化特殊技接特殊技，循环中重复该段。",
+      "burst": "诺姆用连携技，换到洛克茜用强化特殊技。",
+      "evidence": {
+        "axisSha256": "de168d0a8eb47ed6f863ad3769ac93d8282b727cd0ac9920490612d3c3eb2015",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "168663a17e4a77978fef59a769f24097b5fb9ebf60f07c2deb2f41dc51e322af"
+      }
+    },
+    {
+      "playId": "sha256:afd9260b8cf7156146216deae36fdeb0eca8379e2524ba00c096f524499712e7",
+      "memberIds": [
+        "agent-norma",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "诺姆用普攻，换到柚叶用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻。",
+      "loop": "维琳娜用普攻接强化特殊技，循环中重复该段。",
+      "burst": "维琳娜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "7df6afe95af0c3cf924c0855fdd062e51f6700f76b0301bab557083efe68f3c1",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a73810f28176aac6ff00bc841f6a2bd08ba0c3c44ac8f695aff6cef71926afcd"
+      }
+    },
+    {
+      "playId": "sha256:0fa8bbf3cdec60fd1cc9730500a17bdfdd51cda4818bbcc82cbaf3016b8f11d0",
+      "memberIds": [
+        "agent-orphie-magus",
+        "agent-roxy",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "千夏用普攻起手。",
+      "handoff": "接着洛克茜用强化特殊技接特殊技接普攻。",
+      "loop": "洛克茜用强化特殊技接特殊技，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "洛克茜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "118c1794e64d2f87e847b10f76f7efb83554043faaec7f29020ecd6432dfc81c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "5153bdce41c7b798473026007cc08c22add5426e5b36442361ac6d3938400d2b"
+      }
+    },
+    {
+      "playId": "sha256:4d9ab7193f352215a9a0cb3859afd76746d3b5c6aff009c9d3ae6c3e5b64fa03",
+      "memberIds": [
+        "agent-aria",
+        "agent-sunna",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "千夏用普攻，换到照用普攻，换到千夏用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "91b983c5c60b349a51b9ab1f3cfd7e52bd4a0c0a070b35c5a126b467480f8ff9",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "2d5da04a73c0c04abe57ca4d8c41d22b8f436dbf379dc86028e94beb8218b850"
+      }
+    },
+    {
+      "playId": "sha256:37f0c929b05efd6efd00961f24de89cd2d8f8d811d9a573d9851a745cb1c3aa7",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "诺姆用普攻，换到照用普攻起手。",
+      "handoff": "接着洛克茜用强化特殊技。",
+      "loop": "洛克茜用强化特殊技接特殊技，循环中重复该段。",
+      "burst": "照用连携技，换到洛克茜用强化特殊技。",
+      "evidence": {
+        "axisSha256": "473129683ffebc074f1927251fd655b75dc0b90e4ce4b4af941ec5dccf5ac57d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "eaeeac29667813f9fc0058b1b386254cba8e6b22703b32ca57ca7b67bd95e8e0"
+      }
+    },
+    {
+      "playId": "sha256:84abc52fc48574104f4596b71b481fc20aa21a1ea2fa54d0461d65e0983e232f",
+      "memberIds": [
+        "agent-claret",
+        "agent-nicole",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "妮可用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "「扳机」用连携技，换到克拉蕾用特殊技。",
+      "evidence": {
+        "axisSha256": "e9e449393b64af8b9d42b903719566423c3b08d525ef5540b5e359113d71fc9d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f244617ec6fafb64dc264b17436161f0289199edfa8bf2f2e9bf8dce86d5f600"
+      }
+    },
+    {
+      "playId": "sha256:4f18a62421f28dd03feff27b8bd2e71c448f3592bf3eb56ec08613417bffcab3",
+      "memberIds": [
+        "agent-claret",
+        "agent-nicole",
+        "agent-norma"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "妮可用普攻，换到诺姆用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "诺姆用连携技，换到克拉蕾用特殊技。",
+      "evidence": {
+        "axisSha256": "c3a95ce2216d83f34a502a86265d08ef984a2d55c6b7b13ca6c144638a4b4fcf",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "21223872c3a1af51e0baa53e1853d66819a68c58b49ca07e9ff006bf47b30550"
+      }
+    },
+    {
+      "playId": "sha256:1ee9a0aa031cd3a46460858a60b0f49966c4e1229e436e1dcf85448a4e2d2266",
+      "memberIds": [
+        "agent-claret",
+        "agent-nicole",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "妮可用普攻，换到洛克茜用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "克拉蕾用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "5652b97eb163c9c110dcdb5f6cbe5b0b26cb92dcaaaca75e13c96d14f116039c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "91ab920ea938c9f73cab5c26e2958c201e5bced16166c418ef6af9f5a52449e7"
+      }
+    },
+    {
+      "playId": "sha256:be397e6e9d3e2e8e9f9658043d33545852282cd53a0d1ecbbc5b3fdbac941e69",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-trigger",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "「扳机」用普攻起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "61d2346179122ab17d22df40b7422fe2ef73125ec0b85cbb74e9d7d56dfaca70",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "b7d1de37f8acb5c106fed1fe8af9578c2a8fe04210b86da69fba07ec432a5a3b"
+      }
+    },
+    {
+      "playId": "sha256:f72960249b50e335e785413f25aa762f2e03645afd67f85909576790f7bc814d",
+      "memberIds": [
+        "agent-astra",
+        "agent-roxy",
+        "agent-soldier-0-anby"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "耀嘉音用特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "2162acc45d1a63af6b9a80044919a2e6ede4537b4e0f9602b6b9c8f4c782dd6d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "0a66eadd68a0a5021aae103e05749fa1fa06b121948cf7a9dc4601b7a07a6fcd"
+      }
+    },
+    {
+      "playId": "sha256:c0a0810072cc52a921f588b12f959b5d7f53a373a1f8361d4e9432fd4088f1e9",
+      "memberIds": [
+        "agent-norma",
+        "agent-orphie-magus",
+        "agent-soldier-0-anby"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "诺姆用普攻接强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻接强化特殊技接特殊技。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "afa5ee295447b8b60ca78d21d2caebc61d48495c5d9540062a48e37f42bab8b4",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "07a8e3673af4f6dc1db7067d0ae161c7c8e38c2e3b679a6fbadd11635735d0df"
+      }
+    },
+    {
+      "playId": "sha256:838bf5b1f20e5eeee5cf57c5493431b8f1ededcda6c3eb4b631fd4998f1a372e",
+      "memberIds": [
+        "agent-norma",
+        "agent-soldier-0-anby",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "诺姆用普攻，换到千夏用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "7c9dccada6bf961a976e5150b43a3b4891556a50e6d7c6bd82783278756451eb",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "e9a1ae54ce4e3ee395a9cc04d2c51f139da4062161f12aafa36824f01f66464e"
+      }
+    },
+    {
+      "playId": "sha256:57bbc8535848d952a2d7c15b29466f9c97dea5334a63c2109b718095bd204d27",
+      "memberIds": [
+        "agent-orphie-magus",
+        "agent-roxy",
+        "agent-soldier-0-anby"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "洛克茜用普攻起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "156caa26e710e1be41454c28e0bbb4d813ddb5aa696d6236860687923c3ff9b1",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "965892f211d9edf46419979ef4916ad4358e3b2cb4afd56e936050fdec43b43f"
+      }
+    },
+    {
+      "playId": "sha256:304620a6eb61c932faeafc701b6b2ad88ac8c079ce12fb4cdbe3f514773e8135",
+      "memberIds": [
+        "agent-roxy",
+        "agent-soldier-0-anby",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "洛克茜用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "6c5ee45d1f5ecf61af877c0312230e6ee9003c3a84ebf9920322f882365990d6",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "2a1d63571bba06ac628e0124bd6535f2f5b16fbab4dd667b45daab904181ea33"
+      }
+    },
+    {
+      "playId": "sha256:b091c369fbfccb4ee2a2a7af55d2871bc36e67a23c741d9cd767ffe7d3450417",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-sunna",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "千夏用普攻，换到照用普攻，换到千夏用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "875c907d9de8cba3e2eceba61396159a9eb251018cb5611627d3f6c30cd3bb37",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "92b9b3a87f4184ac160935ff765b0eb7f5206ed827c13a56c906536b94dede52"
+      }
+    },
+    {
+      "playId": "sha256:23c392c019bd37d84a6a0fbc5a117c6360a87ae3be92e03990cea5b2a0e91235",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-sunna",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "千夏用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "千夏用连携技，换到零号·安比用强化特殊技。",
+      "evidence": {
+        "axisSha256": "7e56871f1831ed131731f01e2104830c685b9bfc2c1d04f72bc3a145edef34ea",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "24d1a80e10dbf25cb587ddd17ec81442a01d5780f0acf29398a41313bd862003"
+      }
+    },
+    {
+      "playId": "sha256:10a7ba4230be1161da9a926e74db993a102823b9f806346881a5164b6a206a0e",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-soldier-0-anby"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "诺姆用普攻，换到洛克茜用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "73c9409fe2005214996f490cecb74c1f3b8be4821249f224be4bcdbb8b96579c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "687b929ef3d1cbbd9fa449ac730ac15f45392c3ec18ea414535dcd96e94494aa"
+      }
+    },
+    {
+      "playId": "sha256:9a448def0c51f8c01e0ac5c378c0a2c7de29b620b37c9380d01fdd0d8278eaa6",
+      "memberIds": [
+        "agent-norma",
+        "agent-soldier-0-anby",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "诺姆用普攻，换到千夏用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "39f3e77f6b3caf95a8540c8f73ec6a408f2b4d7e883321e002da54756b9a31da",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "7d2d534ca62ca174a07b87b0618e2b2835268468bf627f5e510606a65a04127f"
+      }
+    },
+    {
+      "playId": "sha256:7fee1aeede25629079e9f73d110a5cd8a83a4bb57a8e85682ae939b601178758",
+      "memberIds": [
+        "agent-roxy",
+        "agent-soldier-0-anby",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "洛克茜用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "345a11f61528fe7dede143d96fff9d98c7205ac672c429d377312768442e521d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "009437c1bbc270b00dddfc5d7103cc743e761826602e58fc3a57ec27bce33f0f"
+      }
+    },
+    {
+      "playId": "sha256:321576560951165e16eccf6c340e8bfa008d399b291ae00bdbec57936469cd97",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-trigger",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "「扳机」用普攻起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "2ad2b5652daf6f8b0f5b25953e0cb4d898acdbb896115359623b7024fb38b5d0",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "7912725a6fd190072a6fb3d077c9c0c6bd18a9b80ccf19e2e36f7d6e2f4e239b"
+      }
+    },
+    {
+      "playId": "sha256:5f5c132427f7c98069ca50ea6f4ce0c3b24586fa40b8b835d06d9c060f2e7f66",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-soldier-0-anby"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "诺姆用普攻，换到洛克茜用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "5327d0b524307867bb259f700a3bc33cc9162267a5b9aedc6877b1b9b137e143",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "21286b946ad95b0152f7ced3126c89e8cee62fc51ed5cec1d8c3a6816ad5b87d"
+      }
+    },
+    {
+      "playId": "sha256:052c9053a327a415e93800966cdec299362da4a131716de1d60823cb7d8f91a6",
+      "memberIds": [
+        "agent-norma",
+        "agent-soldier-0-anby",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "诺姆用普攻，换到照用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "335674fc647add9523f9c52b08cb9194e2e7a42a3c28295daafc01a742725ffd",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a5d0414beb1596f8cc3d858351b2ac3dac5c1e61c8587447fa9736c7aab7a5a7"
+      }
+    },
+    {
+      "playId": "sha256:ee6899e97cc523a3166db48dce1a27a69797036f5b10e91bb79bd6e522aee8ed",
+      "memberIds": [
+        "agent-orphie-magus",
+        "agent-roxy",
+        "agent-soldier-0-anby"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "洛克茜用普攻起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "0f5a3b5e138f6fbcfa42b14d8cf337f4b0276acfab6c5184cf5d88a7f1a2fb33",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "dddb41ed6647922f950f5c259d33e5a66e1eb60ae7134ccaac95fc486cd96412"
+      }
+    },
+    {
+      "playId": "sha256:6840afe01c40388b4578f7e48391a6adf1ccf7623b857aba4f3af1cca615d524",
+      "memberIds": [
+        "agent-roxy",
+        "agent-soldier-0-anby",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "洛克茜用普攻接特殊技，换到照用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻接强化特殊技接特殊技。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "cb8e4b340c670b6b4916b30313a3aa899d749d868a834da72afc483a7b5fe744",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "cd21250061533f039ab44344013f6735326f96751094972a9327e9da69d920a6"
+      }
+    },
+    {
+      "playId": "sha256:8a04fd21213c2ed562c5de28f92c37f0745332ea106404b6324bc0c35ba72898",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-sunna",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "千夏用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "千夏用连携技，换到零号·安比用强化特殊技。",
+      "evidence": {
+        "axisSha256": "3f365fa4c48e5c675d1941ac3c0d29ef88b5d9d750277a5bd921d0441e1e128c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "089f6688864008a0e4b3d886bf6061851b99a4866242234b47a89eaba24c2e64"
+      }
+    },
+    {
+      "playId": "sha256:b03527dfa388ce2ebdcdf75e7c87ee5684239df8286af40ea8774943d614cda6",
+      "memberIds": [
+        "agent-astra",
+        "agent-roxy",
+        "agent-soldier-0-anby"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "耀嘉音用特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "50a4e745e735b6fa28cd573bb18f35ac001cbe78981d485506f3634e357341ca",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "4e0acc9a6c38c54d56bdf82d0cf700b95a2f5692b695161fc9a013ae06e6f35b"
+      }
+    },
+    {
+      "playId": "sha256:4d5b17fafa93ad7a3fdc437c1ccc0c931eb44bf5e6b92099b89d63594dcbd50a",
+      "memberIds": [
+        "agent-norma",
+        "agent-orphie-magus",
+        "agent-soldier-0-anby"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "诺姆用普攻接强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻接强化特殊技接特殊技。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "4ec4ed1569a1cfea13bde1ff007e7c465e9ca8a2c7dfd337b690542470ae4472",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "add2f09ab12c2010c402343dbb15133c97c5e4ef962db12cca886dd8d02bb794"
+      }
+    },
+    {
+      "playId": "sha256:c27396aee9bdf4fd53c1c8dde4c77b370be1d3ce881aa739688ab00bce0dcb38",
+      "memberIds": [
+        "agent-norma",
+        "agent-soldier-0-anby",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "诺姆用普攻，换到照用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "9cb55b43adf4d96007d37af895b2fb0382db7598a4f27e6bec7a4c88be55983b",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a039b2490b75dbcd35029ed1e54309d504f7851775cf85b055712c62d8bc539e"
+      }
+    },
+    {
+      "playId": "sha256:9364191cdeaa7f35cb0b0279149c4fc7dd975986e89a10bf62e309b428e286e2",
+      "memberIds": [
+        "agent-roxy",
+        "agent-soldier-0-anby",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "洛克茜用普攻接特殊技，换到照用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻接强化特殊技接特殊技。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "4b66981f8f1bad8ff8961b1aca2d85ea4fa7dd32365aecd81ff9bca31bc31895",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "e0e1d14c3387a503bc2afabd3defd256fdcd81719e2bda08161c14df1a44e015"
+      }
+    },
+    {
+      "playId": "sha256:89c4f4b12a0fb1fa03579ea5f980c5c7b8062d8441c2d8bf249f7a97925fd10a",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-sunna",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "千夏用普攻，换到照用普攻，换到千夏用强化特殊技起手。",
+      "handoff": "接着零号·安比用普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "0257314dfcb4ff4287dc8979eb20c593906fac497736681029de35ea2e82a988",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "b596d9492239ba8cdb7c7b083bd90be962272bcfc954128abbefce7d41c21909"
+      }
+    },
+    {
+      "playId": "sha256:1d88e53261903ac6938897634aba6ed35c85716766df1afb9bd3096aec46a5eb",
+      "memberIds": [
+        "agent-grace",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "格莉丝用普攻，换到蕾米埃尔·丹用普攻，换到格莉丝用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻。",
+      "loop": "维琳娜用普攻接强化特殊技，循环中重复该段。",
+      "burst": "维琳娜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "a470c6f792905fe3fd4db24dd6c6ae96eba4487890cde63fbd144bea908ef68f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "76d1c922e8ce87627518871c313ed924aeca87a2975c8a9b98726502658966bf"
+      }
+    },
+    {
+      "playId": "sha256:464e5e18357c6169b463d14efe3b6a2add4c895bfe68737fb8893554864a901e",
+      "memberIds": [
+        "agent-grace",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "格莉丝用普攻，换到柚叶用普攻，换到格莉丝用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻。",
+      "loop": "维琳娜用普攻接强化特殊技，循环中重复该段。",
+      "burst": "维琳娜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "c26259658d94fd8a3d8b395df537a743734fbee0c76a35be52c4eaf5f3501222",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "fe3d654c28f3dfd4f734650f96be1a3804d65327134764347de436f04be0999e"
+      }
+    },
+    {
+      "playId": "sha256:ee2d7deb6b39ad396fd385b5a7a2dbab0ddfebd1616b4defb61550efe3be89d2",
+      "memberIds": [
+        "agent-grace",
+        "agent-nangong",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-grace",
+      "opening": "南宫羽用普攻，换到维琳娜用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着格莉丝用普攻。",
+      "loop": "格莉丝用强化特殊技接普攻，循环中重复该段。",
+      "burst": "南宫羽用终结技，换到格莉丝用普攻。",
+      "evidence": {
+        "axisSha256": "1e2ecf8607e1701e5b364f6fd6361da22743f29ae3b8c1973feb2a9bbb79e816",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "85d8e5d62ca204d35746d928ab19a58bc7bbab41017df4d9e09e48d75c13db8e"
+      }
+    },
+    {
+      "playId": "sha256:70e5ed8c4f6a6ebee6dab999f112a9898aac42eb348753a4290c436e371a6751",
+      "memberIds": [
+        "agent-grace",
+        "agent-nangong",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-grace",
+      "opening": "南宫羽用普攻，换到柚叶用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着格莉丝用普攻。",
+      "loop": "格莉丝用普攻接强化特殊技，循环中重复该段。",
+      "burst": "格莉丝用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "8ac4f2a19cf2c7595249ba5584e32836337da80f04d0c411284533a0c3ea2d6f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "2cb57ea5a5edc26b27c87e4bdb7673eb3f27763662d919db80edf4f8ff9624b7"
+      }
+    },
+    {
+      "playId": "sha256:0af52df6bb4044db5ba0ea878d05e5b57c8120c07d23219fb5ddd679c624bcff",
+      "memberIds": [
+        "agent-piper",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "派派用普攻接强化特殊技，换到柚叶用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻接强化特殊技接普攻。",
+      "loop": "维琳娜用强化特殊技接普攻，循环中重复该段。",
+      "burst": "维琳娜用连携技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "e11fdda60c7a9e570560c74da2079859c35fd34bb4c69857dd9af2c3b551d980",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "47526db0e2702fe59c3146d923323e617ac8ba06ecf88bd62b1c3284918e9fa4"
+      }
+    },
+    {
+      "playId": "sha256:eb06c993f521dafb76ba04cb9ec3a7744cbd88b81a1a8213aa20676ec412e493",
+      "memberIds": [
+        "agent-piper",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-piper",
+      "opening": "维琳娜用普攻，换到柚叶用普攻，换到维琳娜用强化特殊技起手。",
+      "handoff": "接着派派用普攻。",
+      "loop": "派派用普攻接特殊技，循环中重复该段。",
+      "burst": "派派用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "c58929183026b1232ece1316cc170f9e04079423eed6e068a88d569402b67a98",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "5be016c578e03d616f16c2714e85d35fea865ce6877ab1974bfb14d89f2f05f1"
+      }
+    },
+    {
+      "playId": "sha256:b3c0190e0531f4591b218a5119cbe9ca64dd336a8b199ff49427ec509f1976ee",
+      "memberIds": [
+        "agent-lighter",
+        "agent-norma",
+        "agent-orphie-magus"
+      ],
+      "primaryAgentId": "agent-lighter",
+      "opening": "诺姆用强化特殊技起手。",
+      "handoff": "接着莱特用普攻接强化特殊技接普攻。",
+      "loop": "莱特用强化特殊技接普攻，循环中重复该段。奥菲丝&「鬼火」穿插追加攻击。",
+      "burst": "诺姆用终结技，换到莱特用普攻。",
+      "evidence": {
+        "axisSha256": "ac35f51a8a4c68045cfc7a185cc51d16ef2db9772f63b6f06f10a07797869564",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "bdc5ecd41fd98d307311b79db91b4c1e8e9a08b83593d921d3f737642311d07e"
+      }
+    },
+    {
+      "playId": "sha256:19ee0aee5b8773342be45fd86af93bb2d1bca34e1eede0a7067ec8b33984a4c5",
+      "memberIds": [
+        "agent-aria",
+        "agent-piper",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-piper",
+      "opening": "爱芮用普攻接加速蓄力攻击，换到柚叶用强化特殊技起手。",
+      "handoff": "接着派派用普攻接特殊技接强化特殊技。",
+      "loop": "派派用特殊技接强化特殊技，循环中重复该段。",
+      "burst": "爱芮用连携技，换到派派用特殊技。",
+      "evidence": {
+        "axisSha256": "5d82dc62695cc7657048ef5cb22b22bb0df6c18a6c8cb0766ad73c4b5e5d25a9",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "3b0492242a81a807ecfddf778d8e3af7b6748951a407b08b9f58e9b2d954abde"
+      }
+    },
+    {
+      "playId": "sha256:e8fa1c8602941e8442c8648053051aeffa2e46d2c212a680b197c6186477714a",
+      "memberIds": [
+        "agent-piper",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-piper",
+      "opening": "蕾米埃尔·丹用普攻，换到柚叶用普攻，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着派派用普攻。",
+      "loop": "派派用特殊技接强化特殊技，循环中重复该段。",
+      "burst": "蕾米埃尔·丹用连携技，换到派派用特殊技。",
+      "evidence": {
+        "axisSha256": "9e9a034dd5f08e307a07c75f456def7a1e793f0a3450f3e691face20d23afbd7",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "8c29e9aa52cf2d2f68577ff6eea99356c37a735592158c92326d792ff063f708"
+      }
+    },
+    {
+      "playId": "sha256:939cbcce198de2fe7917ce8fb24a3a85311daa783455bd4185bb70587f0a08d0",
+      "memberIds": [
+        "agent-anby",
+        "agent-claret",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "安比用普攻，换到「扳机」用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "克拉蕾用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "28700453811bbf3fa7aa26b7e79f8b71eef895feefb3caf98bd8e77985c44b75",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "1258c673c4dc5b0525cbb0d9eafb9afb3efc4ec06e9099dad28f28b1e9d32e43"
+      }
+    },
+    {
+      "playId": "sha256:de74c9894288289d3e7aac23ee987fb298463202846bab40962f11fc4b6726e9",
+      "memberIds": [
+        "agent-burnice",
+        "agent-phoenix",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "柏妮思用普攻接强化特殊技，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着菲欧妮用普攻接强化特殊技接普攻。",
+      "loop": "菲欧妮用长按普攻「焚罪」接普攻，循环中重复该段。",
+      "burst": "菲欧妮用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "99b3de95a4b313f8f691d95ee78086cbe756d9baf864a11096359655c909838e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "177c558bca84a6a0da835a23a922a7ff441aee2008702443e50c0a332ca0ade3"
+      }
+    },
+    {
+      "playId": "sha256:0dc3fb19075f47f04b533f995cd6091281d59f89731e428dc1188eef089c026a",
+      "memberIds": [
+        "agent-burnice",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-burnice",
+      "opening": "蕾米埃尔·丹用普攻接强化特殊技（相变），换到维琳娜用强化特殊技起手。",
+      "handoff": "接着柏妮思用强化特殊技接普攻。",
+      "loop": "柏妮思用强化特殊技接普攻，循环中重复该段。",
+      "burst": "蕾米埃尔·丹用连携技，换到柏妮思用强化特殊技。",
+      "evidence": {
+        "axisSha256": "a345971898cd29ef064ee01841bae8b9ce9551ec8e3ccd7ba9c130675a13bef4",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "8b2dfabac28eb6a8e9078d9d38db67594d5b0008bf68811617adb48ef0155aed"
+      }
+    },
+    {
+      "playId": "sha256:4bc7fe96b56e47c48cb12166f7ce4c6fdbc1a63e2f79801412c06f87832d713e",
+      "memberIds": [
+        "agent-burnice",
+        "agent-piper",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-piper",
+      "opening": "柏妮思用普攻接强化特殊技，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着派派用普攻接特殊技接强化特殊技。",
+      "loop": "派派用特殊技接强化特殊技，循环中重复该段。",
+      "burst": "派派用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "e49b9659da61f2e3cbe60b35464fba614e8b11a1deb8141303e017ba09a9cca6",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a198f1506a820e728ce70a2e71db83d2eb431acab011b5128ef1760baa2b2c60"
+      }
+    },
+    {
+      "playId": "sha256:46bf36ec0f7a76d357f5f9c498082649cac7aabcfcf3fa5b04b00d3b8c8973d8",
+      "memberIds": [
+        "agent-burnice",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "柏妮思用普攻接强化特殊技，换到柚叶用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻接强化特殊技接普攻。",
+      "loop": "维琳娜用强化特殊技接普攻，循环中重复该段。",
+      "burst": "维琳娜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "32954c17d79d6ec3e588714e286317a628e5d708863bf43e041a60d55cb7a94d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "86ea99216f958fb42108b6a9f41539882fc2041a711525951af57d0eb495f515"
+      }
+    },
+    {
+      "playId": "sha256:d1e4ad1d2ac832588dcd941d1fd9206dc41d108fa9e1bc032bbd254fd93f12e6",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-velina",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "维琳娜用普攻，换到照用普攻，换到维琳娜用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用强化特殊技接普攻，循环中重复该段。",
+      "burst": "照用连携技，换到星见雅用强化特殊技。",
+      "evidence": {
+        "axisSha256": "6b935c00593f10bd5e5b06a5730c54b0ea0753b07ffd6b4d0678e61e93713ff7",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "ddf72003fc00c1f0557644320f8894562a61ff8fd6546b1f5abe888785414e98"
+      }
+    },
+    {
+      "playId": "sha256:4c807c24c00d983cecee598578f1d2edf766de33c6d01c8646e71c0f9f59d8b1",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nangong",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽用普攻，换到蕾米埃尔·丹用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "蕾米埃尔·丹用连携技，换到星见雅用强化特殊技。",
+      "evidence": {
+        "axisSha256": "bed2329f4eab8647e20476f3bf3fae80775ce78e31b9ff0d5de638d397eeb5d6",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "10ec2ff1d49a69598260c828324600c5f6455678ff57967476786ef99431a09d"
+      }
+    },
+    {
+      "playId": "sha256:ef970c041801dd09b35dcb388fbed06d70e18dc10a9ac1ab0fe62507aaf5b928",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "维琳娜用普攻，换到柚叶用普攻，换到维琳娜用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "851cc92c9a4b23eecd6b0a0b28f0cb2095ead8feb305e56c11c844d1c0aee68d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "bfdb532b9f6fc989f470daa51e4948f8a1b2c4d4e663ee5fa409eefe5fbab029"
+      }
+    },
+    {
+      "playId": "sha256:09a2a167d48f486156c5eae16d0da469afb7bbc8d82d3480703777b8e69a1d75",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nangong",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽用普攻，换到柚叶用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "d20fc5263863ad497aaf68b91b62a0c050c37b0880d5a16bbc37d3681080c182",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "040a1a3dd5be85c49d67a372c3852a057fb7ac7f7ae789415e5953ad1d068391"
+      }
+    },
+    {
+      "playId": "sha256:48d31072d12b1da8a7e5d0f9a88554f9b916d6c41a2368209b4b6f32a4f1ea6f",
+      "memberIds": [
+        "agent-burnice",
+        "agent-miyabi",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "柏妮思用普攻接强化特殊技，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着星见雅用普攻接强化特殊技。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "434ac18854d4452d6f28c1e51cf5ce545909cc24d820cb9ae878d30f0a336ba4",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "3012f27a0d424e57c60a5df5610e39c9522628df25bd5f74492442d1abb429b2"
+      }
+    },
+    {
+      "playId": "sha256:eb51eb44d41e5c3201fccbe04be3dd1681627e6118ccba180b3be062a0eb5574",
+      "memberIds": [
+        "agent-jane",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "简用普攻，换到蕾米埃尔·丹用普攻，换到简用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻。",
+      "loop": "维琳娜用强化特殊技接普攻，循环中重复该段。",
+      "burst": "简用连携技，换到维琳娜用强化特殊技。",
+      "evidence": {
+        "axisSha256": "86b33fd7327de892f6fb74da858573e48f4a016192a18f940631c2782f88c211",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "01abe2673ea37bf905c88876deb3048e1b225a038e7cf06558ce9b2cd252b4af"
+      }
+    },
+    {
+      "playId": "sha256:44b8bf67f09d980e9ec977026a0da5ff9765eb1fee2dbcaeb9f4b009d5a9205d",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-velina",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "维琳娜用普攻，换到照用普攻，换到维琳娜用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用强化特殊技接普攻，循环中重复该段。",
+      "burst": "照用连携技，换到星见雅用强化特殊技。",
+      "evidence": {
+        "axisSha256": "6571880dcc9b2f91ba731db4398f8394bb3a59dddc37a288ccb6dca527a7ec8c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c4809b284891694277bb23296718c9ad5d70d18d2cc0eee5b8908e151d6e3c8c"
+      }
+    },
+    {
+      "playId": "sha256:2de33dbcfab039612fb8aa33b4642058098e613f6f1eecc4d4629395d2ba7f9f",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nangong",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽用普攻，换到蕾米埃尔·丹用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "蕾米埃尔·丹用连携技，换到星见雅用强化特殊技。",
+      "evidence": {
+        "axisSha256": "c2c17310ba4da79cf066129d81a0a2b1f0bad9e6e5f25ea68ec1b163f2a4d6d7",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "21f71d906abb2b37122a8f4861061614d59b2e350c625aee13c28c20626bc768"
+      }
+    },
+    {
+      "playId": "sha256:161f875c5c62e6a2978cd3ed6b9b9ca231e5787f35b689b9fec28108c7b71059",
+      "memberIds": [
+        "agent-jane",
+        "agent-nangong",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "南宫羽用普攻，换到柚叶用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "c78f025ff059bee4abe0f77ef9979135b3a3c1f2b5b0b9682b31faac5b231c1a",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "eb78d1beda369be9f18d2b4d9897a61f32652cb965840b063bdebb16f9cf7653"
+      }
+    },
+    {
+      "playId": "sha256:d516cf7ef34fe335cccd86a35127d667f76d355f35470e6820a528f4b589798a",
+      "memberIds": [
+        "agent-jane",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "简用普攻，换到柚叶用普攻，换到简用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻。",
+      "loop": "维琳娜用普攻接强化特殊技，循环中重复该段。",
+      "burst": "维琳娜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "5bff7b5869f8274d892e70e6719ecc940b8035cbe57befd459e07e882b9c69c7",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "5c611f9ba3887d2445ec0acd7802578695e775a5dd504de46b06093666f363d3"
+      }
+    },
+    {
+      "playId": "sha256:0688e1c5f6423ddc819bf374a40483ddb550326e5fe5f8b6e4a0dd43f2090c5d",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nangong",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽用普攻，换到柚叶用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "df9ff3572852894bf262928af7dee50c3986ee122f141bbcff495744128635e6",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "79a06acb52ff85a64d3fc7871991de3279df1e6eb3a9903cf504e87bc59d3494"
+      }
+    },
+    {
+      "playId": "sha256:4e2baa4100b2ee92905d026a4ece1c60234db9126519ced89779bcbd686366f8",
+      "memberIds": [
+        "agent-burnice",
+        "agent-miyabi",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "柏妮思用普攻接强化特殊技，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着星见雅用普攻接强化特殊技。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "8a6fa26ad5b4cfe02678217ca751b53e0ccc4b3eaaa887eebefa3a338e40bd11",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "8a6c08b85230c5bc4cf64ad93a58bce9bc486c844933272ba9e558126fc9bd3e"
+      }
+    },
+    {
+      "playId": "sha256:e10c79c5abda564e7a90160654a6339d56a441c2bb34314681faecfa991828ed",
+      "memberIds": [
+        "agent-burnice",
+        "agent-jane",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "柏妮思用普攻接强化特殊技，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着简用普攻接强化特殊技接普攻。",
+      "loop": "简用强化特殊技接普攻，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "30f7de459a507b2a89dc3fb7433998d4a00b03cd35362aef44ed357f5450ef7e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "228cc7c3f04872b39eefe3664413ec6a0def3f42730c3478327e0f3e8d27ed30"
+      }
+    },
+    {
+      "playId": "sha256:ed75aa760ef2cc73fb49071f65683efd04fedb9b4a1c7e8971ebc725d1511086",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nangong",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽用普攻，换到维琳娜用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "40b9569240147e3df3b8af61a4ea961eb53a3addf89d9eb0348cdc65f2bc4fce",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6458b6ff17366d23f66af8d3148cfe36cb4fd49e03a1ed8c1b85063172eb6e47"
+      }
+    },
+    {
+      "playId": "sha256:88ada4678ba2d79848603b5692720a7b03fc07efefd2275f14e1520af00e9e73",
+      "memberIds": [
+        "agent-jane",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "维琳娜用普攻，换到柚叶用普攻，换到维琳娜用强化特殊技起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "1b31cafea76c7fe7deb50d15a0c0e9fe336230fb246af7c20714b91883dd8fbd",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f927e9c838f9214d6933080f23f0794cb41cd9c8cb7582fe321abcabbf4b7d5d"
+      }
+    },
+    {
+      "playId": "sha256:f7ef3725264ff41943f50cfe7cf33eef9a0188fc99be51b58114480a591ffe0d",
+      "memberIds": [
+        "agent-jane",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "蕾米埃尔·丹用普攻，换到维琳娜用普攻，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用强化特殊技接普攻，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "c4b064938bce7956ae4e25e8ade1c734552be1087ed3de37918f52fd7ed503a6",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "9bcf15e7189aa55aead634e918dd4b408404037d0169a28ff5a593c61c20f72d"
+      }
+    },
+    {
+      "playId": "sha256:a350e99122b124dfcb8d2ecd97322e8dced2278e64f6714f1f7391b44c8a4500",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nangong",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽用普攻，换到维琳娜用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "7ef24d6237fb873a6e2cf15612792a8b25dc7d28d7b3296757ce68f26395c327",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c5c886e453c97246ca8b5f972708251ea3064b6ef2f61166bcdfdce5bb1fc81f"
+      }
+    },
+    {
+      "playId": "sha256:69d3aa72649070bf8c5934bc230340ca546cf594d2c1176fc65af51dc0bed85e",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-piper",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "派派用特殊技接强化特殊技，换到柚叶用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "派派用终结技，换到星见雅用普攻。",
+      "evidence": {
+        "axisSha256": "a4eee0ffac50c233c7ead77721a5c942a3363140500bb21be1c1713ed1d7c7a7",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "b158694fe0f0193004049805c71d97cf7ea6aa3b80f0223b2006d7a8b59edc82"
+      }
+    },
+    {
+      "playId": "sha256:bf6c63879fac0fbca0cc3711b3b57d62f0ecf6e016628bea7db75ac30abd15a5",
+      "memberIds": [
+        "agent-jane",
+        "agent-remielle",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "蕾米埃尔·丹用普攻，换到薇薇安用普攻，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用强化特殊技接普攻，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "a48108b7bfabc13a07218cfc3b78cd2858a581ee41d4e1870238d0e05b9119e1",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "47528361edccaf31e433818fadcc8f7cdc10ee6600ebbd81dac26b30d8be6ec6"
+      }
+    },
+    {
+      "playId": "sha256:bce6fd60f5a7da8885e777de175420818717a6322ceed920f6a2ae6c0f478f61",
+      "memberIds": [
+        "agent-jane",
+        "agent-nangong",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "南宫羽用普攻，换到蕾米埃尔·丹用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "a4ca7b9c8227ac92e7b3b842c710d2583011cfb6d6e2e0e1b45b6ca1054dd508",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "83ea21e07a59729d80da5a15e3db7181c19576500dafa721cde62744cee82a1a"
+      }
+    },
+    {
+      "playId": "sha256:66f682d588f9252830a507df0ac4bf22691d95343f6eaaeb738f35de350838c5",
+      "memberIds": [
+        "agent-jane",
+        "agent-nangong",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "南宫羽用普攻，换到维琳娜用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用强化特殊技接普攻，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "c092402dd8cedd38eebd62a3bdc0b12be7ce5db7bf16d8da6696b3d69c8cf4eb",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "7c7370b332a901d8af8251c60d86076dec596a8b8ed966cd3416630383ebf8f3"
+      }
+    },
+    {
+      "playId": "sha256:a940c05d2c523587d514e6a7e1924705abe4f916637a47464063bde327f727f3",
+      "memberIds": [
+        "agent-jane",
+        "agent-trigger",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "「扳机」用普攻起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "维琳娜用强化特殊技，换到简用普攻，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "426ad1504f8c9e0e6c49f7f7ee91fa189c65ca2ad5ceb8389dc831261bfd86b8",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "428f81199ad5a877afb44c8e3df9ca115c5ee666e73be03c0e6421d5278f3326"
+      }
+    },
+    {
+      "playId": "sha256:e41eba41b3afc5222523af930383d1aaa193c8bfd912bc477e5d79d4628f7255",
+      "memberIds": [
+        "agent-alice",
+        "agent-aria",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "爱丽丝用普攻，换到蕾米埃尔·丹用普攻，换到爱丽丝用普攻起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用普攻接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "7843f72a46d7aeb99e8a719ec42d47e405fd169519e61013e6198519a5c8e636",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c779b1af87635e277647192c0ebdae54b0b1bf52d83180c2c4ec21a7fc63a81b"
+      }
+    },
+    {
+      "playId": "sha256:8ebcf2a2bfc3ae7aa978de2ba56d67d33951bc25621f66fbf1077cfff6e83be1",
+      "memberIds": [
+        "agent-alice",
+        "agent-phoenix",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "爱丽丝用普攻，换到蕾米埃尔·丹用普攻，换到爱丽丝用普攻起手。",
+      "handoff": "接着菲欧妮用普攻。",
+      "loop": "菲欧妮用普攻接强化特殊技，循环中重复该段。",
+      "burst": "菲欧妮用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "bc11fb6cecc774b644e3e395e20801338463baff56a769d7824c4820b04c5f0d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "9b769184424614417c432e9ab8b8c9ba43ef9ed0d17f678613d4f824fa624c53"
+      }
+    },
+    {
+      "playId": "sha256:eb6c2d3c403267d350c474c3cc4849bb6a5335d87dfce23f4d19dce4c7d9ed95",
+      "memberIds": [
+        "agent-alice",
+        "agent-jane",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "爱丽丝用普攻，换到蕾米埃尔·丹用普攻，换到爱丽丝用普攻起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "c43c9f4aa8bfd96ead0889c5deac9a26485fe134c9f2e29cbfe17e9de4d56b2a",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "996d4cae2bc20a46038efecd3ec96232e178d25aa2b1be6620845ded76a6c1cf"
+      }
+    },
+    {
+      "playId": "sha256:edd345494d7503c90a3d98687abf3bf9cb48f5ff94ddbb0ca68e55909e05cc56",
+      "memberIds": [
+        "agent-alice",
+        "agent-phoenix",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-alice",
+      "opening": "菲欧妮用普攻，换到蕾米埃尔·丹用普攻，换到菲欧妮用强化特殊技起手。",
+      "handoff": "接着爱丽丝用普攻。",
+      "loop": "爱丽丝用强化特殊技接普攻，循环中重复该段。",
+      "burst": "爱丽丝用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "846e4c1c94edccdb488fc502aa591c545019084caf959015a111dcb066685d70",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "277b198ed61f2ce0ea4d859af3369cf15daaeca052e7c88d873595eea362359d"
+      }
+    },
+    {
+      "playId": "sha256:82d9d28388dbd4919eb960e30cfa66bcae612f8125f21ed7391641004ea2f8c2",
+      "memberIds": [
+        "agent-alice",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-alice",
+      "opening": "蕾米埃尔·丹用普攻，换到柚叶用普攻，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着爱丽丝用普攻。",
+      "loop": "爱丽丝用普攻接强化特殊技，循环中重复该段。",
+      "burst": "爱丽丝用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "ba39609e3eef5eb2e017eda94267bf4bf037dedad872f49575c1ca1a7f5892bf",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "b532dbc1c10969ce76a1de79824f36be3ce124ae2cce029693f43abb3f1b4a39"
+      }
+    },
+    {
+      "playId": "sha256:340c79fd1ed6f2e9e952cb427a8076a9eded1ee5b0ce70bfcbdc4dd7286bfbe9",
+      "memberIds": [
+        "agent-nangong",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "南宫羽用强化特殊技起手。",
+      "handoff": "接着柳用普攻。",
+      "loop": "柳用普攻接强化特殊技，循环中重复该段。",
+      "burst": "柳用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "5f15cef95000cafa848e62c897cb6f6193ccb2bc383f548bca158ddce96befc2",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d938cad214b8f64941a3aba1c917d7eeae70fe5e1854b5ef641ce209f5355956"
+      }
+    },
+    {
+      "playId": "sha256:973e49941c9e49998b2e91979f593b4439133a52e29a9e0fc9b2826f10640b40",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-remielle",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "蕾米埃尔·丹用普攻，换到柳用普攻，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用强化特殊技接普攻，循环中重复该段。",
+      "burst": "蕾米埃尔·丹用连携技，换到星见雅用强化特殊技。",
+      "evidence": {
+        "axisSha256": "ed41110286f3506259cb4c94a84c6c2f2e521f4e20260b1a3b327cd132745143",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d3e54796f4039f1790a1ef2042b61b5104dd6b6bfd0d19e7d814153c797090b5"
+      }
+    },
+    {
+      "playId": "sha256:19ab7f7716dfaffbc613fb7349724b6d5b4bdb1087354d06a968b9ca131274be",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-remielle",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "蕾米埃尔·丹用普攻，换到柳用普攻，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用强化特殊技接普攻，循环中重复该段。",
+      "burst": "蕾米埃尔·丹用连携技，换到星见雅用强化特殊技。",
+      "evidence": {
+        "axisSha256": "460d3c6b8b321a65bc239938e4a05c55141dcd9ca66e11cb8c52054a95e8f4ed",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d94588da22dd6e4b8e547cb9309500c5f494d2b4b52196a4491d14bb77952c69"
+      }
+    },
+    {
+      "playId": "sha256:d8ff41b85934c4c5d24741a58aa1422e85cd1c116c0b7a6ee8cc71e3bd72a91b",
+      "memberIds": [
+        "agent-claret",
+        "agent-pulchra",
+        "agent-rina"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "波可娜用普攻，换到丽娜用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "克拉蕾用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "763313a4197e6d8e35d3b7aee559d85b19c7346731e87f4ec87c888f7db7a8a2",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "bbf6aaa18397b4788c099a40eef26b1a831c00132a6d3ee723efec942967a8e3"
+      }
+    },
+    {
+      "playId": "sha256:40cf129f916a3bedcffd39e964f59625ee344a3d67e0d7ea2c437844a20153e3",
+      "memberIds": [
+        "agent-nangong",
+        "agent-remielle",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "南宫羽用普攻，换到蕾米埃尔·丹用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着柳用普攻。",
+      "loop": "柳用普攻接强化特殊技，循环中重复该段。",
+      "burst": "柳用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "5b1a8faa6ffc38541ec7233c80650d3083cca3efbaef4090cd87b71169827231",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "1feaae5e9fd7261677c4e15d703c4108d41c0e52213c4943435f4c69ab52e7d6"
+      }
+    },
+    {
+      "playId": "sha256:29c2193fcebab1e950d1d427486bb817630673031063836b94dc609f44f8da3d",
+      "memberIds": [
+        "agent-aria",
+        "agent-promeia",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "普罗米娅用普攻，换到千夏用普攻，换到普罗米娅用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "ba280c965bf4d1047787c0ae4c717d0ad186453e47dbeb9b3945602fb0be8dea",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "4a90fcc5a747f9c45aa5570645af66826512fb8817a9f4a85c142dd3c34a8e02"
+      }
+    },
+    {
+      "playId": "sha256:bdb54eaeba8980025ba2c001e1bcba260bb9efd2c52cf05da7ae012a6c637fba",
+      "memberIds": [
+        "agent-jane",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "普罗米娅用普攻，换到维琳娜用普攻，换到普罗米娅用强化特殊技起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用强化特殊技接普攻，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "b0cf0df246eea94a4eb76b9adda7eab37c34a21b8fa7a0d27b3acf5ad6c27943",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f6651f21f4d9d86ecc8347bd133419c635fb8e241e93c68e258250702ae11b64"
+      }
+    },
+    {
+      "playId": "sha256:90998c6481cd2e16814ad07feb4b5de88dca0e8c83f94575595e526b00c8b291",
+      "memberIds": [
+        "agent-promeia",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "普罗米娅用普攻，换到柚叶用普攻，换到普罗米娅用强化特殊技起手。",
+      "handoff": "接着维琳娜用普攻。",
+      "loop": "维琳娜用普攻接强化特殊技，循环中重复该段。",
+      "burst": "维琳娜用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "5b7d9d2066e000bc76cdafcf95f78cb598c295864b2a9627b1c147b2d8b5682c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c72c3f8be142b74edda7f90358ee8dd994425d00d9ab29fcc0df8ef889244fb1"
+      }
+    },
+    {
+      "playId": "sha256:f58c0aa0885508cda6a44b273015caf42e10c0c1b69536864638e59423c7f144",
+      "memberIds": [
+        "agent-grace",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "格莉丝用普攻，换到蕾米埃尔·丹用普攻，换到格莉丝用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "7f8ecc0800fad1cffe0847c2c16b8d40f8b59df56b175271dff4ba77ca3b4af9",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "411a89c927392f17c98ee1a50a5e83f375ef4c30868f0f53abce002752358130"
+      }
+    },
+    {
+      "playId": "sha256:e4d77cb9f690a50b6b8eb6166966308445ab1dc2c54d30dc555e1bfd0daab886",
+      "memberIds": [
+        "agent-nangong",
+        "agent-promeia",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "南宫羽用普攻，换到柚叶用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "f7d5ebe1df9935028314c06ca6556da49dcebf1e9e7e1768f4293c6ea7f13ca0",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "b8480f46e13f490646f500b9316dabcab4acde9b56e4fcd3d99f7977d3ed4f1d"
+      }
+    },
+    {
+      "playId": "sha256:c4db09a3226286f407cb70f8485ef9d8b535e903ebec7b18d1cb75ed530b3c8c",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "普罗米娅用普攻，换到蕾米埃尔·丹用普攻，换到普罗米娅用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "f2a7fa9baaf3675dbcb2e0c4a92ff2e37a9be9164ea73b5a66355f46a9376757",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "3ec70e4a5e9e8cc753fd2329ca70c8a72b20c91d7d606f9b95e47b074a7a1fd3"
+      }
+    },
+    {
+      "playId": "sha256:f6154a88f45baea19670980b025275359c65f2c796aa293897d458c8213139f9",
+      "memberIds": [
+        "agent-burnice",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-burnice",
+      "opening": "普罗米娅用普攻接强化特殊技，换到维琳娜用强化特殊技起手。",
+      "handoff": "接着柏妮思用强化特殊技接普攻。",
+      "loop": "柏妮思用强化特殊技接普攻，循环中重复该段。",
+      "burst": "维琳娜用终结技，换到柏妮思用普攻。",
+      "evidence": {
+        "axisSha256": "cffbd581c0c3cbc2943e99aaafc39bc895b7a1f44246c3074fa7d3ce2a20502e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "4867229a2903d3ecb16824a740f369eebe448b918efc72496c62d2c9cf5248d0"
+      }
+    },
+    {
+      "playId": "sha256:58e107ca83ccf8a7f041663fa8286d2b22f8a7653588082ac91950e9274db823",
+      "memberIds": [
+        "agent-nangong",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "南宫羽用普攻，换到维琳娜用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用强化特殊技，换到维琳娜用终结技。",
+      "evidence": {
+        "axisSha256": "9de4019f4c04420b195ad061a3e72e0c2ee47e737e787766e48e8f90e0dd0045",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "2ef24e4177f66a310b1d4faf443787b4e452c1743a26b10a737de2503c8dcf78"
+      }
+    },
+    {
+      "playId": "sha256:ece45efcc633cb0f1a36532608dffe4a3176b025bae0ba90d5ebf7c58fa48d70",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "普罗米娅用普攻，换到蕾米埃尔·丹用普攻，换到普罗米娅用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "ad8d49a80c13f8914da456bdc5ee9f18b5499ae39754ca492bf6a69b5c1c3dd6",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "db96589348322825b934550b56a629f8223a09ed732f091a60e7dd714baf8fef"
+      }
+    },
+    {
+      "playId": "sha256:e3372abe95e8fd664017b9ec5a860bbb374d26c1bc722a3156c89b8f53311727",
+      "memberIds": [
+        "agent-promeia",
+        "agent-trigger",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "「扳机」用普攻起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "15855c6aa06b945985a01cbf4c5406d00c7a2f8557629844fad877fa2b46e641",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "002e745a932ac54f39f2b1e3718a716b787bac76bfaf844acacb3b68b839c70f"
+      }
+    },
+    {
+      "playId": "sha256:2a36ab3af66864522df44a4692e188f534c32567e58d35bfa0decd80937ee720",
+      "memberIds": [
+        "agent-burnice",
+        "agent-promeia",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "柏妮思用普攻接强化特殊技，换到柚叶用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技接普攻。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "6e281caec3b53cdd6907583f15772a7f3ed4e5ee97bd67d1a0857bde515d301f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "88c2849447d7b1ef156845902702f7813e2c6f3ea8d2782e57b8d4f40b79d158"
+      }
+    },
+    {
+      "playId": "sha256:4a261316cc0cc89e973dc3d06d55d3a6e71431db34b97ae4398aa128f2f8f826",
+      "memberIds": [
+        "agent-promeia",
+        "agent-remielle",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "蕾米埃尔·丹用普攻，换到薇薇安用普攻，换到蕾米埃尔·丹用强化特殊技（相变）起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "ceb1636867e79cf1794231145c560a48a6504a505b226e40f73bebeff1ee964b",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "58bd9a1471dc66e2c24cc28924762b36debaf6ec111e720a1694b7b570d4eb91"
+      }
+    },
+    {
+      "playId": "sha256:28c4ba3084174f7f6143e667f849df801db4501dd8c9f985b83eb29a5f64927d",
+      "memberIds": [
+        "agent-jane",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "简用普攻，换到维琳娜用普攻，换到简用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "09db7627b6a811f6ea4be1657ea933ac745ab531dbe18694b3a2edfee9881d42",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "71508db8af34c550d9ad0d988ac53f809fb13991ea785ef4b81183cb9f693bed"
+      }
+    },
+    {
+      "playId": "sha256:6e1373524c6c8e7033b2e94f7f0ca1989a1f629c4bb28315370c85dde2d91b09",
+      "memberIds": [
+        "agent-grace",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "格莉丝用普攻，换到维琳娜用普攻，换到格莉丝用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "f65c05c09d8554c212c5481c85d03b7d53426e9ac2a160476d7ea3787b837081",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f1a58f858dd2f1410382257777fef18b956ada7f0a0993a6a28b6d77cc3b9f99"
+      }
+    },
+    {
+      "playId": "sha256:5963996d01047cd97eaedd16fc9d1945dc3d7df3e25e04f796ed9309bb84cb5e",
+      "memberIds": [
+        "agent-nangong",
+        "agent-promeia",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "南宫羽用普攻，换到千夏用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "b1eb096900038eb2a07f2f436e3881bdc8ff2a5bb2c40e971547dc0c704eab58",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "90863eb17caae2ca91673b3b417b93c71bdb1fff5ad1c34269675bdccea484c1"
+      }
+    },
+    {
+      "playId": "sha256:35a5c00de7ea0e05a69b41543a0493520bcb418b2e1d0fe904d9e8f6875f1cca",
+      "memberIds": [
+        "agent-nekomata",
+        "agent-norma",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-nekomata",
+      "opening": "诺姆用强化特殊技起手。",
+      "handoff": "接着猫又用普攻接闪避反击接普攻。",
+      "loop": "猫又用普攻接强化特殊技，循环中重复该段。",
+      "burst": "猫又用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "0d4a4649e85b95bca9d5fb3436406b798ffda21fe770faa0d7411ce569d38eff",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "ce6e2e731c1adcf7c14fc63623194c262bbf6924788515cd78a0debbaef5dfb1"
+      }
+    },
+    {
+      "playId": "sha256:ca1013db75e8ca3d3f1afd220fc3e3c68b17da1e2bd757561a07b3136ed85117",
+      "memberIds": [
+        "agent-nekomata",
+        "agent-norma",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-nekomata",
+      "opening": "诺姆用普攻，换到柚叶用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着猫又用普攻。",
+      "loop": "猫又用普攻接强化特殊技，循环中重复该段。",
+      "burst": "猫又用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "5724f70fe067f1f37067401aab72e1ee57b8c62257da5c29b587f41f3018d9bf",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d9dfe189129d76cc73c292ed012afe5f5cab0d99f79973cddee1098ccb80d3ae"
+      }
+    },
+    {
+      "playId": "sha256:9db5a0573362eae0479ac1a314262033c3c420ecffb5e17f28f3c13fcf6f4764",
+      "memberIds": [
+        "agent-norma",
+        "agent-pyrois",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-pyrois",
+      "opening": "诺姆用普攻，换到洛克茜用普攻起手。",
+      "handoff": "接着佩洛伊斯用终结技接普攻。",
+      "loop": "佩洛伊斯用强化特殊技接普攻，循环中重复该段。",
+      "burst": "佩洛伊斯用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "f06bcddf4c2e5209d2cb0a88a79321ec0042b5e07fda181a7a0f55ffb72fcf07",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c8a9ae3e44396f55ae40c54f82249976f103a71384c8745be79e599ee5ef06f2"
+      }
+    },
+    {
+      "playId": "sha256:217727e78a4911dc7558c6410b4d61827db7f139ac2deeefe491813ecc3c7d7a",
+      "memberIds": [
+        "agent-norma",
+        "agent-pyrois",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-pyrois",
+      "opening": "诺姆用普攻，换到柚叶用普攻起手。",
+      "handoff": "接着佩洛伊斯用终结技接普攻。",
+      "loop": "佩洛伊斯用普攻接强化特殊技，循环中重复该段。",
+      "burst": "佩洛伊斯用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "b2e38c65b3f4c5485dd60de41c1d9477b28c231c18532403e696401eeff00f1d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "9ee98a963fefd40d9cb3c3103e5fc37b00e6aaf42fd40a75311a170d7046373e"
+      }
+    },
+    {
+      "playId": "sha256:4ede09304de2773e28efc9a92537f64e73e8b3c08764fd2756aa081f936ef1c1",
+      "memberIds": [
+        "agent-pyrois",
+        "agent-roxy",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-pyrois",
+      "opening": "洛克茜用普攻，换到柚叶用普攻起手。",
+      "handoff": "接着佩洛伊斯用终结技接普攻。",
+      "loop": "佩洛伊斯用强化特殊技接普攻，循环中重复该段。",
+      "burst": "佩洛伊斯用连携技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "51873d09e7d17d546e78d543cb7bc7a72e74e84a4853bbc88ebc0c91d1761f2b",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "0d9747ccf8ed45a55aa9372466a1e0ffd528af4e5e649fba2b8f12737f501d1d"
+      }
+    },
+    {
+      "playId": "sha256:3c005d3c5c46c4f7a48c649a85ede98bc054280572a79079e033c12d8020b8cc",
+      "memberIds": [
+        "agent-promeia",
+        "agent-pulchra",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "波可娜用普攻，换到柚叶用普攻，换到波可娜用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "2d4170113ad6f62d33cee083102852e9458db81d25cb9ff60c665dd8c585912e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "387a910ceab3593662a2bffd2c9319e6b5b8bcc52877fefbafccaf3d2550671b"
+      }
+    },
+    {
+      "playId": "sha256:71e1e2bd95f1a39943220d44e144c00b49b91da0abc5bab05bbc2b73fb636109",
+      "memberIds": [
+        "agent-nangong",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "南宫羽用普攻，换到蕾米埃尔·丹用普攻，换到南宫羽用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "675942e8a55e2baf245e42d6e93dd490b9b4b552a3c553e0be4856b91bc7d2ab",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "e7878fa5b759edf63bb54ae2d7b1968c76b65c2c4d1b275d1769dfeaeea6c968"
+      }
+    },
+    {
+      "playId": "sha256:c555d120089dfe7e5cfd0be275688025e67c0fa837b87252310726299d15d9a7",
+      "memberIds": [
+        "agent-nicole",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "妮可用普攻，换到维琳娜用普攻，换到妮可用强化特殊技起手。",
+      "handoff": "接着普罗米娅用普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "0aed86b887b0b8218dbaed8ea1b89e9e5128b2ee6c8ed48b6e94eea76ffb304f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "e4bf86ff94b7e835b1453630d2de8a4cca6396a0215139998b2d9986675d38b7"
+      }
+    },
+    {
+      "playId": "sha256:06c9f84ece1d594ed7efd229515abd17f0df499316e634233003e3d8cfe5a24c",
+      "memberIds": [
+        "agent-anby",
+        "agent-dialyn",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "安比用普攻接强化特殊技，换到琉音用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "希格莉德·德拉叙尔用连携技，换到安比用连携技。",
+      "evidence": {
+        "axisSha256": "f99b3857e8c72b4f427754ab10cb4c28f77b9963f7d407c08bf9788bc73daf5d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "65010e2a50feba91f45a1dddc031b8d9feab462b8e831de58d3abfec70e4b75c"
+      }
+    },
+    {
+      "playId": "sha256:15fc544873e04cf03cb0f41f6e896bb21db655a5b2885b07a771b20bcec54729",
+      "memberIds": [
+        "agent-rina",
+        "agent-sigrid",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "丽娜用普攻，换到「扳机」用普攻，换到丽娜用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用强化特殊技接普攻，循环中重复该段。",
+      "burst": "丽娜用连携技，换到希格莉德·德拉叙尔用连携技。",
+      "evidence": {
+        "axisSha256": "8fe576336cde7d24a4bc6dca29d08698a4ee01e2b1f64e94ed8236f94e3eb95f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "63ac198fa38ee8d2108367b67fc6bea1468b1f6f632299d55f2a4117d5779c2f"
+      }
+    },
+    {
+      "playId": "sha256:81c7be91c4cbe04c517d8f10ed0cf039c036ef3786e222acb8f92a64e89ac2cc",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-rina",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "琉音用普攻，换到丽娜用强化特殊技，换到琉音用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技。",
+      "loop": "希格莉德·德拉叙尔用强化特殊技，换到琉音用强化特殊技，循环中重复该段。",
+      "burst": "希格莉德·德拉叙尔用终结技，换到琉音用连携技。",
+      "evidence": {
+        "axisSha256": "d911695edfd3f7215166825b49208d379fe21572f20e423504538fcc1f84a18b",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "3fb469716e2e3ea04c10d4aa739a980d79dce817e4450767baa8a77303c1bb4a"
+      }
+    },
+    {
+      "playId": "sha256:33a53663534b78b503d58513ad0c93f03d5545bef7caf0addc693d71b869a2b9",
+      "memberIds": [
+        "agent-astra",
+        "agent-dialyn",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "耀嘉音用特殊技，换到琉音用普攻接强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "耀嘉音用终结技，换到希格莉德·德拉叙尔用强化特殊技。",
+      "evidence": {
+        "axisSha256": "119395138defd81137180571e930a717a46dcb535497db20150c9b967889dc20",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "ab3948a55e1de48886165fb2af999361bf3e65b3ff531666cf82e8a7e9b7506f"
+      }
+    },
+    {
+      "playId": "sha256:e5f2081d3251b8e9e51295bf8d6c6533b49931ec61dec20853eaf27066f450c3",
+      "memberIds": [
+        "agent-astra",
+        "agent-norma",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "诺姆用普攻，换到耀嘉音用特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用快速支援。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "耀嘉音用终结技，换到希格莉德·德拉叙尔用普攻。",
+      "evidence": {
+        "axisSha256": "5e37fbeaa6597e5bef8cc319a091513afb1e5f153d96d08f482a670cc2a7cf2d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d936989004afd17d4e9217fe193954151bde2a99dd6c25baa43cbebfe1fa873b"
+      }
+    },
+    {
+      "playId": "sha256:35129dcf7b5de2e55fd9deb813ad537688b7e2c3796bc1eb0afd36e38aeb02ed",
+      "memberIds": [
+        "agent-ellen",
+        "agent-norma",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-ellen",
+      "opening": "诺姆用普攻，换到洛克茜用强化特殊技接特殊技起手。",
+      "handoff": "接着艾莲用强化特殊技接冲刺攻击接普攻。",
+      "loop": "艾莲用强化特殊技接冲刺攻击，循环中重复该段。",
+      "burst": "艾莲用终结技，换到诺姆用强化特殊技。",
+      "evidence": {
+        "axisSha256": "67f302866e394dc8cc0686fe40a292dd7010338cd72828584f6e54e9d7565265",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "177de802ab7b1178d40e27505f5bfbd00a9a37b874cdd3b550b66997c71a7cf6"
+      }
+    },
+    {
+      "playId": "sha256:605b09cdff2967801725e3d7bf3f0cfe04200806bd009988a8b7a78db4e002e3",
+      "memberIds": [
+        "agent-norma",
+        "agent-sigrid",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "诺姆用普攻接强化特殊技，换到千夏用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "希格莉德·德拉叙尔用终结技，换到诺姆用强化特殊技。",
+      "evidence": {
+        "axisSha256": "628472362bc00aee4a55e23cc9eaecb92625fd7b3846727bf4b8b15d9a7ffe0f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "af552cfbde5eb011421cde8cba0ad2fc4d920f2b62ae843a7ecfd01e83d6cf6d"
+      }
+    },
+    {
+      "playId": "sha256:d36a80738dbc437fa22ed1710ee4d8376c80b419c077720d891e399a2842bbc9",
+      "memberIds": [
+        "agent-ellen",
+        "agent-roxy",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-ellen",
+      "opening": "洛克茜用普攻接特殊技，换到千夏用强化特殊技起手。",
+      "handoff": "接着艾莲用强化特殊技接冲刺攻击接普攻。",
+      "loop": "艾莲用强化特殊技接冲刺攻击，循环中重复该段。",
+      "burst": "洛克茜用连携技，换到艾莲用强化特殊技。",
+      "evidence": {
+        "axisSha256": "1947fa36c4f43da90b3155a19883104972a6672eff92a07996c79d65152343e3",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a952a9a915c6fd68fea556e62e7aef9812b69529860c4cdd0b78b290b2bf775b"
+      }
+    },
+    {
+      "playId": "sha256:a7bab7cfcc2a53819ebfc9b9b4099921ca77fdbe0ff525c31cf4663317ff60b9",
+      "memberIds": [
+        "agent-norma",
+        "agent-rina",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "诺姆用普攻接强化特殊技，换到丽娜用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "诺姆用连携技，换到希格莉德·德拉叙尔用连携技。",
+      "evidence": {
+        "axisSha256": "5720f5457c3cdc0e73e4bf1e13f28093e6a301128a048958747da3c0a1888c4d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "7707fe58e85c4b7130982cc84f0f0b61f154dedc0a279e77ae22a02fcd0bc67b"
+      }
+    },
+    {
+      "playId": "sha256:09e870f85c7d4e39c2c8bdbf150c1d753c691be2b37e1f4d5011d42088c9738c",
+      "memberIds": [
+        "agent-astra",
+        "agent-lighter",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "耀嘉音用特殊技，换到莱特用普攻接强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "耀嘉音用终结技，换到希格莉德·德拉叙尔用强化特殊技。",
+      "evidence": {
+        "axisSha256": "a1c398290b10a535af01476f57e7a522a4e2a0527513412de95bc57f4b4a8f33",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "98f7370d02b4cdca88129485def970c750d1e7b91c66bb8e2842c656fefc7567"
+      }
+    },
+    {
+      "playId": "sha256:cfbb9434a89e95a66869372613b1f690d26ffbd4c408e38505a043fb80bfe2ba",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-sigrid",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "琉音用普攻，换到千夏用强化特殊技，换到琉音用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "琉音用连携技，换到希格莉德·德拉叙尔用连携技。",
+      "evidence": {
+        "axisSha256": "c2e1a18baa1d4d9d275c46a2164abb8f722a136b4237f9de7fa6708222774768",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "02d3b5993dfbf3e6825a688d266c7f0ef9a20a848c798212e9b4683d1f099887"
+      }
+    },
+    {
+      "playId": "sha256:5710d16d4d6153084f5ae1fa44b589586a40136088782d948bc42145eaebf3da",
+      "memberIds": [
+        "agent-ellen",
+        "agent-norma",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-ellen",
+      "opening": "诺姆用普攻接强化特殊技，换到千夏用强化特殊技起手。",
+      "handoff": "接着艾莲用强化特殊技接冲刺攻击接普攻。",
+      "loop": "艾莲用普攻接强化特殊技，循环中重复该段。",
+      "burst": "诺姆用连携技，换到艾莲用强化特殊技。",
+      "evidence": {
+        "axisSha256": "6c13792c1247e9625a2e1082449dc88d9d28f4d153c09864d1e9bf0c03198f2f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d9cb057be594287b94463ff2f17af75025c5865a99a9dccaeea46cb0b66537e7"
+      }
+    },
+    {
+      "playId": "sha256:ec3dac59b1769d076af0343ea021115c4d0cf9d2439947df3797831d81669c60",
+      "memberIds": [
+        "agent-astra",
+        "agent-roxy",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "希格莉德·德拉叙尔用普攻起手。",
+      "handoff": "接着耀嘉音用特殊技，换到洛克茜用普攻接强化特殊技。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "耀嘉音用连携技，换到希格莉德·德拉叙尔用连携技。",
+      "evidence": {
+        "axisSha256": "05011199bd76fd821f24a69e4a6d0a6d23af027d59e1599195787804442b0726",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "7b99cca4ac7e9c1f2e0f8831bcd20ecd4d02b263fcbda4d8d0d2f354b414558b"
+      }
+    },
+    {
+      "playId": "sha256:68f44946f834cda8a171fdeab4e162ce5025706156310602019536276a98556b",
+      "memberIds": [
+        "agent-roxy",
+        "agent-sigrid",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "洛克茜用普攻接特殊技，换到千夏用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用强化特殊技接普攻，循环中重复该段。",
+      "burst": "希格莉德·德拉叙尔用终结技，换到洛克茜用终结技。",
+      "evidence": {
+        "axisSha256": "eb39a8d916de45590418090dda04d97ff940aba44525900557f144113c56891a",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a1e35c20e672eac57a962555061480c7a6c9f715c1e30fd3fbfdc8d0fc9e88e8"
+      }
+    },
+    {
+      "playId": "sha256:8eb4d3a13768c7f4f10b675984b49119a5f4eec0ad7b217ff4898274985aa529",
+      "memberIds": [
+        "agent-rina",
+        "agent-roxy",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "丽娜用普攻，换到洛克茜用强化特殊技接特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "丽娜用连携技，换到希格莉德·德拉叙尔用连携技。",
+      "evidence": {
+        "axisSha256": "33075cdfa251f943aacc8a076ea8feb340da779e66b1fa430b746c73cacdce8c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "321343306668c9c131f81c603758be5ce0d814b2ca24723abc06759f6cec06ff"
+      }
+    },
+    {
+      "playId": "sha256:a619dee6d4d1149e76ec4f9ca4a60bbe3a46771904333257cb78b9aee8afa6e5",
+      "memberIds": [
+        "agent-aria",
+        "agent-lycaon",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "莱卡恩用蓄力攻击，换到千夏用普攻，换到莱卡恩用强化特殊技起手。",
+      "handoff": "接着爱芮用普攻。",
+      "loop": "爱芮用强化特殊技接加速蓄力攻击，循环中重复该段。",
+      "burst": "爱芮用终结技接加速蓄力攻击。",
+      "evidence": {
+        "axisSha256": "d9979f976009193e8c01025351377a02e018793f62167e2bcc236bdfbb844389",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "4ea742112b62e9ca1663fe59f9a9ebdd4cd4539c2f105e4757cc1911b511f3f0"
+      }
+    },
+    {
+      "playId": "sha256:6421b8da62ee27ec98e754ba1943b00f87626767836a13e50c274be79f91e620",
+      "memberIds": [
+        "agent-hugo",
+        "agent-norma",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-hugo",
+      "opening": "诺姆用普攻接普攻，换到洛克茜用普攻起手。",
+      "handoff": "接着雨果用强化特殊技。",
+      "loop": "雨果用强化特殊技，换到诺姆用强化特殊技，循环中重复该段。",
+      "burst": "雨果用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "89f851cbd97ca17d5b23d368869d5dec5e688565e89dbb5d15e37f188285a9cf",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "07f87c98e841d51b7f4f9534edea4eac18e48ffb304b47da5a822dd3f7990320"
+      }
+    },
+    {
+      "playId": "sha256:37bf6195f4f5a784a2491d57a2c6f996f072e8b960bb6c992a3950379da74097",
+      "memberIds": [
+        "agent-hugo",
+        "agent-lighter",
+        "agent-norma"
+      ],
+      "primaryAgentId": "agent-hugo",
+      "opening": "莱特用强化特殊技接连携技接强化特殊技起手。",
+      "handoff": "接着雨果用连携技。",
+      "loop": "雨果用强化特殊技，换到莱特用快速支援，循环中重复该段。",
+      "burst": "雨果用连携技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "f68b4921fe7fbc954095710a63cc04eda280939d56f331e6af34187669cd8542",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "9bbadf8afaca22856c0b480903f1cc2a28a2f064636e9e2f00bfb6f8213e0e1c"
+      }
+    },
+    {
+      "playId": "sha256:fd24e949a47bfc5eaf681adc7bd7f324f9ce68ab317ba27586424078fb8b0524",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-hugo",
+        "agent-norma"
+      ],
+      "primaryAgentId": "agent-hugo",
+      "opening": "琉音用普攻，换到诺姆用强化特殊技，换到琉音用普攻起手。",
+      "handoff": "接着雨果用连携技接强化特殊技。",
+      "loop": "雨果用强化特殊技，换到诺姆用普攻，循环中重复该段。",
+      "burst": "雨果用连携技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "32598359c6d0b9cb81ba0f4c710e22a1a6f17315d8bcb769b99ec125deb6a62e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "73edaecd58ff82e0b6f0c6a47223dea1914d5a6a496e97ef061a6a8fa3dc345b"
+      }
+    },
+    {
+      "playId": "sha256:653fdfc12191e12f65fba1e3e9b05cb64b05ba2f8c2417a84b094278dcceebcd",
+      "memberIds": [
+        "agent-claret",
+        "agent-lycaon",
+        "agent-nicole"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "莱卡恩用蓄力攻击，换到妮可用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "莱卡恩用连携技，换到克拉蕾用强化特殊技。",
+      "evidence": {
+        "axisSha256": "c541ed5b4d1a569caa731d93afe92fb3f34cfaf2118b0b92c23c3d6a7d04bc44",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "7e17b01b082faff89dde20db0b5bdd77e28c2c1529d97aeaa6136a510ce2e728"
+      }
+    },
+    {
+      "playId": "sha256:48d2031e79feb63ad86913aa3d4e05239b1d99e3dac1f1497cc3f8cda3538faa",
+      "memberIds": [
+        "agent-lycaon",
+        "agent-rina",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "莱卡恩用蓄力攻击接强化特殊技，换到丽娜用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "希格莉德·德拉叙尔用终结技，换到莱卡恩用强化特殊技。",
+      "evidence": {
+        "axisSha256": "1eafeb94fcf4a5b0bd3479a5d25cbabf30d24f1f0f5f3b48bb3ecaa5b67fb53b",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "0ba264b02dc0d6eba5f15ea4784021cf0fe684afcb280b6220afb8a16bcd5302"
+      }
+    },
+    {
+      "playId": "sha256:ebb36bc96094096488c2d4bb894369a980fe10f5f7f2fc7453127944a928e0df",
+      "memberIds": [
+        "agent-lycaon",
+        "agent-roxy",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "莱卡恩用蓄力攻击，换到洛克茜用强化特殊技接特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用强化特殊技接普攻，循环中重复该段。",
+      "burst": "洛克茜用终结技，换到希格莉德·德拉叙尔用普攻。",
+      "evidence": {
+        "axisSha256": "2d27d7daa8517cfd1c26198fb01d2b9093466f7993f2e93537ba02708d246a2c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "b8b6ff850bad4914cd50eaae2dc966f6c574fff4c56ebbf82107fecf10b6999b"
+      }
+    },
+    {
+      "playId": "sha256:61501af085d56a7b145d0eefbba746b36ca93486847f69672218c957bac8c2e1",
+      "memberIds": [
+        "agent-claret",
+        "agent-lycaon",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "莱卡恩用蓄力攻击，换到洛克茜用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "克拉蕾用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "da242da5cd4ada2d044565ed5099ac714d2eb363b266881f5a200b58e7042f36",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "2b30cf1f496e136895c29040bba000c766c2e5be6db40457c615c1c1da3a8f84"
+      }
+    },
+    {
+      "playId": "sha256:48123dc46f73d6fdeb3f29789e040cc8e33486d84acd6bc4c967368e3690b945",
+      "memberIds": [
+        "agent-hugo",
+        "agent-lycaon",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-hugo",
+      "opening": "莱卡恩用蓄力攻击，换到洛克茜用强化特殊技接特殊技起手。",
+      "handoff": "接着雨果用强化特殊技。",
+      "loop": "雨果用强化特殊技，换到莱卡恩用强化特殊技，循环中重复该段。",
+      "burst": "莱卡恩用连携技，换到雨果用强化特殊技。",
+      "evidence": {
+        "axisSha256": "37479f9e23a303858cdaefa4568953df9111b76d810200e24712db2013e64af7",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "3f8533c51d57615a8c75c25aeabb3760793e70e099d28ebc2edb6abe2bcd351c"
+      }
+    },
+    {
+      "playId": "sha256:0ada129f3dbc184560f55e2bedd0d4a73ed1f7851f4048a3b64dfe28554b5a5f",
+      "memberIds": [
+        "agent-lighter",
+        "agent-lycaon",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "莱特用普攻接强化特殊技，换到莱卡恩用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "希格莉德·德拉叙尔用连携技，换到莱特用连携技。",
+      "evidence": {
+        "axisSha256": "ef114e3fc622212fbdb54d5f7157e4716aaa58a04595f7679d545083d831341d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "15550f9aa3972a582aaf04695d8c067ff16d35f54354ecbdafc7090fc65a62c3"
+      }
+    },
+    {
+      "playId": "sha256:bba82c7040bbdae0c67d87497ef92fb93d86863b23d72a90adc7b31f1c04fff5",
+      "memberIds": [
+        "agent-lycaon",
+        "agent-sigrid",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "莱卡恩用蓄力攻击，换到照用普攻，换到莱卡恩用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "希格莉德·德拉叙尔用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "b254f75de2be4301b0827887edb0cd1c133684953f8a941245750ea009d5c2e5",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "1db91b5dc0d2757cd0f2a96e6c009c137e4cd6aab9ddf86a79ae32d6c92e0f2e"
+      }
+    },
+    {
+      "playId": "sha256:87349b65b7999bf83270b935f7d12e160926f8eae0e7a7b60ecd7c76e33d7a88",
+      "memberIds": [
+        "agent-claret",
+        "agent-lycaon",
+        "agent-rina"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "莱卡恩用蓄力攻击，换到丽娜用普攻起手。",
+      "handoff": "接着克拉蕾用强化特殊技接特殊技。",
+      "loop": "克拉蕾用普攻接特殊技，循环中重复该段。",
+      "burst": "莱卡恩用连携技，换到克拉蕾用特殊技。",
+      "evidence": {
+        "axisSha256": "6c89358e329d13313d879cf17db2ca15936cd78a1de355f25531e1d05e328399",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a40910a190646ef61cd5eb285a03b8b7950f38f3813a65428cd5049880e3dc47"
+      }
+    },
+    {
+      "playId": "sha256:c19c8b5dd9084ca5c29e718492bf8b73af43ab7b4fbd83acdd7646a33b12d412",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-harumasa",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-harumasa",
+      "opening": "琉音用普攻，换到千夏用强化特殊技，换到琉音用强化特殊技起手。",
+      "handoff": "接着悠真用普攻接强化特殊技。",
+      "loop": "悠真用强化特殊技，换到琉音用强化特殊技，循环中重复该段。",
+      "burst": "悠真用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "ab434a004612c190f35fd1b586c04d3588363acfc793e43cad7553d9ad79e6d1",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "06ff69c2be0983ae12af32af43e35ea0332a15afc50ab64a92c9cc1596f996e1"
+      }
+    },
+    {
+      "playId": "sha256:cee083ab5f8fd6b4f35a5e32ec722d2780578c3dd3f2565a29be9d04c587e6b7",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-harumasa",
+        "agent-norma"
+      ],
+      "primaryAgentId": "agent-harumasa",
+      "opening": "琉音用普攻，换到诺姆用强化特殊技，换到琉音用强化特殊技起手。",
+      "handoff": "接着悠真用普攻接强化特殊技。",
+      "loop": "悠真用强化特殊技，换到琉音用强化特殊技，循环中重复该段。",
+      "burst": "琉音用终结技，换到悠真用普攻。",
+      "evidence": {
+        "axisSha256": "48a9a99eaea5450c43e2a9e69ece25f67410d73c3b6cc247ffbd7c7e873171b5",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "4334fbe408eae690d9a583c7104fb5773e35f1abee8f4cdfb36a4ad355ce0bb8"
+      }
+    },
+    {
+      "playId": "sha256:4a29887a41d458a61e3b24ffdfa3e5584dd3cb9e9170f8d47ee4fb5bdd982bdd",
+      "memberIds": [
+        "agent-harumasa",
+        "agent-norma",
+        "agent-rina"
+      ],
+      "primaryAgentId": "agent-harumasa",
+      "opening": "诺姆用普攻接强化特殊技，换到丽娜用强化特殊技起手。",
+      "handoff": "接着悠真用普攻接强化特殊技接冲刺攻击。",
+      "loop": "悠真用普攻接强化特殊技，循环中重复该段。",
+      "burst": "悠真用终结技接冲刺攻击。",
+      "evidence": {
+        "axisSha256": "17401f77804a708c771e43c9f521009b3cabd848265882dca96b7c2c450e818d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "1306a7da3e8d0180470be67a8c583bee03a129e73d5e2a9cab4b1f08c8af071e"
+      }
+    },
+    {
+      "playId": "sha256:6bf1734eec6605d4234ac0ff35a2d1a190ca02b93c67241d0b317035c73609b7",
+      "memberIds": [
+        "agent-harumasa",
+        "agent-norma",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-harumasa",
+      "opening": "诺姆用普攻接强化特殊技，换到千夏用强化特殊技起手。",
+      "handoff": "接着悠真用普攻接强化特殊技接冲刺攻击。",
+      "loop": "悠真用普攻接强化特殊技，循环中重复该段。",
+      "burst": "悠真用连携技，换到诺姆用强化特殊技。",
+      "evidence": {
+        "axisSha256": "8c2af11360dfc4e85022518883818b11bfe91a1cb110ba4b2dcff5ff9cec75fe",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "738b51b86fc7311ae3feec86c59eb48095a449f73aa0a022d9088e74a414b97e"
+      }
+    },
+    {
+      "playId": "sha256:3175fc201719e6e828c8609b14c30ffb290bf5027bc3248a9086fded68782152",
+      "memberIds": [
+        "agent-harumasa",
+        "agent-norma",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-harumasa",
+      "opening": "诺姆用普攻，换到照用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着悠真用普攻。",
+      "loop": "悠真用普攻接强化特殊技，循环中重复该段。",
+      "burst": "悠真用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "9e208508e0b831c77942ddbe465e152184e73981d8d736c19575e495bfb51dc8",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "538084adffb2832480cb8f5b1f92a1bde73e262b9f5ee31bac65c02889f6512c"
+      }
+    },
+    {
+      "playId": "sha256:81caded06cae810f605d154100735dec1da98dfdc8e335b96f960833f6e0a219",
+      "memberIds": [
+        "agent-manato",
+        "agent-norma",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-manato",
+      "opening": "诺姆用普攻，换到洛克茜用强化特殊技接特殊技起手。",
+      "handoff": "接着狛野真斗用特殊技接普攻。",
+      "loop": "狛野真斗用强化特殊技接普攻，循环中重复该段。",
+      "burst": "狛野真斗用连携技接特殊技。",
+      "evidence": {
+        "axisSha256": "98d224001521669b62faa68fb5181760c61f46db13065f9fd66db83bb290a028",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6f1e500ddcc269df2991471beab47182cd2ca87b6c0dbd204d9834e4b84f7aff"
+      }
+    },
+    {
+      "playId": "sha256:f286686804d05def27519535e3ab4153b6d26b9c1f4f348237fdf80fbe2f013d",
+      "memberIds": [
+        "agent-lucia",
+        "agent-manato",
+        "agent-norma"
+      ],
+      "primaryAgentId": "agent-manato",
+      "opening": "卢西娅用普攻接强化特殊技，换到诺姆用强化特殊技起手。",
+      "handoff": "接着狛野真斗用特殊技接普攻接强化特殊技。",
+      "loop": "狛野真斗用强化特殊技接普攻，循环中重复该段。",
+      "burst": "诺姆用终结技，换到狛野真斗用强化特殊技。",
+      "evidence": {
+        "axisSha256": "f997ef156502b6b95e3d73815de7e673a92c1d2e0a1abdb09d64e6583d8ac9a3",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "bbaa4856484738070677f8898da439e0e7c6d1980a8c0f25b5f3d660a95ecf7c"
+      }
+    },
+    {
+      "playId": "sha256:a4ca646b77f27f2dd9ea779f52b42fc5be7a2e0afab8eb2a93e154d01a5a3d62",
+      "memberIds": [
+        "agent-manato",
+        "agent-norma",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-manato",
+      "opening": "诺姆用普攻，换到洛克茜用强化特殊技接特殊技起手。",
+      "handoff": "接着狛野真斗用特殊技接普攻。",
+      "loop": "狛野真斗用强化特殊技接普攻，循环中重复该段。",
+      "burst": "狛野真斗用连携技接特殊技。",
+      "evidence": {
+        "axisSha256": "271f8f4a9f4f91182a568d5faf19cb66da02c292605fd24fb5049e358a34b398",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "35306fcd4dcf94c87846cdbd6addef33b34f7870aeba9a5cdd62792aefbf5c82"
+      }
+    },
+    {
+      "playId": "sha256:698a5709110e76126c2d3325a69e50a6d2cbd06cbc14b4610c6ca3f1e3fa02c7",
+      "memberIds": [
+        "agent-lucia",
+        "agent-manato",
+        "agent-norma"
+      ],
+      "primaryAgentId": "agent-manato",
+      "opening": "卢西娅用普攻接强化特殊技，换到诺姆用强化特殊技起手。",
+      "handoff": "接着狛野真斗用特殊技接普攻接强化特殊技。",
+      "loop": "狛野真斗用强化特殊技接普攻，循环中重复该段。",
+      "burst": "诺姆用终结技，换到狛野真斗用强化特殊技。",
+      "evidence": {
+        "axisSha256": "2b90f2796923265437e9b623c476a601be09a79bc2bb301c6f7e35560062b37f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "95ba602e9fcaeee00db62f660fd36e830f4ffb521af3415f55ab95226482cb80"
+      }
+    },
+    {
+      "playId": "sha256:1c7d55bb368b678cbc5f5d29b58b955686ef8838051d925e1941c800bd7aebf5",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-yidhari"
+      ],
+      "primaryAgentId": "agent-yidhari",
+      "opening": "诺姆用普攻，换到洛克茜用强化特殊技接特殊技起手。",
+      "handoff": "接着伊德海莉用强化特殊技接普攻。",
+      "loop": "伊德海莉用强化特殊技接普攻，循环中重复该段。",
+      "burst": "洛克茜用终结技，换到伊德海莉用强化特殊技。",
+      "evidence": {
+        "axisSha256": "7d4c5cfc901b77a1bd970163cdeb9d6094dc2b2354049581977af200897398e9",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "46d1eb5a12938845a6d97dfd272fcf556ee8922a56f0aec0e78777f1f6a65e21"
+      }
+    },
+    {
+      "playId": "sha256:8a910573bceab0c606d2d83ba8688686aae6c22929a9fbdb7f50e930860d208f",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-soldier-11"
+      ],
+      "primaryAgentId": "agent-soldier-11",
+      "opening": "诺姆用普攻，换到洛克茜用普攻，换到诺姆用强化特殊技起手。",
+      "handoff": "接着「11号」用普攻。",
+      "loop": "「11号」用强化特殊技接普攻，循环中重复该段。",
+      "burst": "「11号」用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "66a54f8da2c703d71db9e1b0aa30c23b98ed92567429e4396a1bfcaba9a627d9",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6401283dea45bc95575b3701eac65d5d187850095c77719092f0e184507a0371"
+      }
+    },
+    {
+      "playId": "sha256:0f1d7be4eb26b1d2e8957c9724556d9662277188581039040b71f0bd143e3451",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-sunna",
+        "agent-ye-shunguang"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光用快速支援接普攻接强化特殊技起手。",
+      "handoff": "接着琉音用普攻，换到千夏用普攻，换到琉音用强化特殊技。",
+      "loop": "叶瞬光用普攻接强化特殊技，循环中重复该段。",
+      "burst": "叶瞬光用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "68620283302acd609ac2847cc419df33396c60ba435d403f222b066e10034507",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "81ba87d6e1cf846a1793b4abf0f903cc96d348425b0c02b8f636da404186284d"
+      }
+    },
+    {
+      "playId": "sha256:485dc1617619a0c9414f62e3cfa2db46afdcfa3d75afc0b73eb71aaccc2a6841",
+      "memberIds": [
+        "agent-nicole",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光用快速支援接普攻接强化特殊技起手。",
+      "handoff": "接着妮可用普攻，换到照用普攻，换到妮可用强化特殊技。",
+      "loop": "叶瞬光用普攻接强化特殊技，循环中重复该段。",
+      "burst": "照用终结技，换到叶瞬光用强化特殊技。",
+      "evidence": {
+        "axisSha256": "7cc030cd9929eff30ced9cd7cc0d2130d0641e3607cab89c6770ff843e1abb80",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "119298f7ff0c91407e538e8ee4ae7239014073827f167c66914f088469934ce3"
+      }
+    },
+    {
+      "playId": "sha256:400c149993e5acce12d8a9166d18326b7e2f6b6bdb3666c29f6939498d2f9143",
+      "memberIds": [
+        "agent-astra",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光用快速支援接普攻接强化特殊技起手。",
+      "handoff": "接着耀嘉音用特殊技，换到照用普攻，换到叶瞬光用强化特殊技。",
+      "loop": "叶瞬光用普攻接强化特殊技，循环中重复该段。",
+      "burst": "叶瞬光用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "f666f4d16b7afec28baad0f513fafc0866ef88fe8bbc68b0a90c6c20fdaa5e0c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6c86523a5bf3eef120a6534e104669ce14de7ea5307ff13fb71b73dd87283324"
+      }
+    },
+    {
+      "playId": "sha256:a22092f8d9350e362f43d17b66d9c75782da354bf8cf64b614ed93c279d84ca6",
+      "memberIds": [
+        "agent-lucy",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光用快速支援接普攻接强化特殊技起手。",
+      "handoff": "接着露西用普攻，换到照用普攻，换到露西用强化特殊技。",
+      "loop": "叶瞬光用普攻接强化特殊技，循环中重复该段。",
+      "burst": "照用终结技，换到叶瞬光用强化特殊技。",
+      "evidence": {
+        "axisSha256": "1fd35555c6b2b206123e0a4a5299b33907c836e1466af36f445c4e62abe5b408",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "bb231b5d1946787e9a72e56facb9fe49ac19b141289b868da0fc2c155b194257"
+      }
+    },
+    {
+      "playId": "sha256:747910d1ebd064a0030120d65ab627adeaa7bb2fcac501dadc4e10d1ccd845c2",
+      "memberIds": [
+        "agent-sunna",
+        "agent-trigger",
+        "agent-ye-shunguang"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光用快速支援接普攻接强化特殊技起手。",
+      "handoff": "接着千夏用普攻，换到「扳机」用普攻，换到千夏用强化特殊技。",
+      "loop": "叶瞬光用普攻接强化特殊技，循环中重复该段。",
+      "burst": "叶瞬光用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "6f78d9addef5a562d2e4e287a67d3836c1179594a8a43f37856cf9d29103bb62",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6bf5d0d486a6dddad457ca2e1e0b55cb35aabaa64e5fba5538fe2e0802941f79"
+      }
+    },
+    {
+      "playId": "sha256:c41d607f420f424380c63ef62469d79c8e961f0204437da753b72dfa9a42ee6a",
+      "memberIds": [
+        "agent-astra",
+        "agent-ju-fufu",
+        "agent-ye-shunguang"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光用快速支援接普攻接强化特殊技起手。",
+      "handoff": "接着耀嘉音用特殊技，换到橘福福用普攻接强化特殊技。",
+      "loop": "叶瞬光用普攻接强化特殊技，循环中重复该段。",
+      "burst": "叶瞬光用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "e366f151244a84e2c88f0fc5ca7dc9899ed66f0a1bd11b070d80a9194e57ca06",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "5a6bbed1e37fdc318d7a00b4a4fb3fc1e2cbe9e33a62118b0af6dbd43d3c8fa8"
+      }
+    },
+    {
+      "playId": "sha256:61a65bba78b096f3e6fc525678db89f9b38548958822425eafe7d470bb191b50",
+      "memberIds": [
+        "agent-ju-fufu",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光用快速支援接普攻接强化特殊技起手。",
+      "handoff": "接着橘福福用普攻，换到照用普攻，换到橘福福用强化特殊技。",
+      "loop": "叶瞬光用普攻接强化特殊技，循环中重复该段。",
+      "burst": "叶瞬光用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "99f4334df1fa67417a839c21af2802b45a0c4d854a03d6ee11e6c46abe5ba887",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "9ba7de0821696a55b574ab2c67166ffe038bde7e0013a515687869095c9eb0b3"
+      }
+    },
+    {
+      "playId": "sha256:5f0de895d0bedf7259bfd454cc9d7b12ecb4d3fb5342ef19635f748f8d5b541a",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-velina",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "维琳娜用普攻，换到柳用普攻，换到维琳娜用强化特殊技起手。",
+      "handoff": "接着菲欧妮用普攻。",
+      "loop": "菲欧妮用长按普攻「焚罪」接普攻，循环中重复该段。",
+      "burst": "菲欧妮用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "a95166ebba254ee785d2146904d9502db749f06bbf633b8f4269e2c2b26bc904",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "0fd0c95deef104f744a910497f4d57438856bc6d602b407ecdd27b8d3ea2620b"
+      }
+    },
+    {
+      "playId": "sha256:a0ae8b706fb7ef1995c09ae3dc4ea6b4e92edc6b994b1856a64de7bfce5014c5",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-roxy",
+        "agent-yixuan"
+      ],
+      "primaryAgentId": "agent-yixuan",
+      "opening": "仪玄用终结技接普攻接强化特殊技起手。",
+      "handoff": "接着琉音用普攻，换到洛克茜用普攻，换到琉音用强化特殊技。",
+      "loop": "仪玄用普攻接强化特殊技，循环中重复该段。",
+      "burst": "琉音用终结技，换到仪玄用强化特殊技。",
+      "evidence": {
+        "axisSha256": "db0ef915eef5876b91fde7dde555fa09fae0cb2cec415ee9344a6a789ec9f7c1",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f1f144c9b5cf0d05c14f5c126ea35f0a16caf2065d0837b40bf5ec7816848acf"
+      }
+    },
+    {
+      "playId": "sha256:01e423395ab924715008508762bff63cf958d14c27327b862247e03e096cdfe7",
+      "memberIds": [
+        "agent-jane",
+        "agent-phoenix",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "菲欧妮用普攻，换到柚叶用普攻，换到菲欧妮用强化特殊技起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "f7a4b879e1bf1bb6a3702e33a464a5dbf9eec9d4069ce75906b3f1b06083634f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "8e287badda9937b2bc6863f8bd09d139e7b947d6d2951f9ad3e90dfdb15fde8b"
+      }
+    },
+    {
+      "playId": "sha256:0c3204b7eb3cd573f28beca9741cf00b1becd2d021dd8b5d21990f9bacf82a48",
+      "memberIds": [
+        "agent-jane",
+        "agent-phoenix",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "菲欧妮用普攻，换到维琳娜用普攻，换到菲欧妮用强化特殊技起手。",
+      "handoff": "接着简用普攻。",
+      "loop": "简用强化特殊技接普攻，循环中重复该段。",
+      "burst": "简用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "84ec9d19a70550bd343e04e376768c000fcb3024b977819168f014195d930520",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "21fe40be7a75e57ffc6e0163a6de764c7748ee62384e4768c762d8290e80a669"
+      }
+    },
+    {
+      "playId": "sha256:c8e65bd50f7a4593cbb6bd888e89af567a3f9a63feb4aa28d24d92ae91cd6b8b",
+      "memberIds": [
+        "agent-lucia",
+        "agent-norma",
+        "agent-yixuan"
+      ],
+      "primaryAgentId": "agent-yixuan",
+      "opening": "仪玄用终结技接普攻接强化特殊技起手。",
+      "handoff": "接着卢西娅用普攻，换到诺姆用普攻，换到卢西娅用强化特殊技。",
+      "loop": "仪玄用普攻接强化特殊技，循环中重复该段。",
+      "burst": "卢西娅用连携技，换到仪玄用特殊技。",
+      "evidence": {
+        "axisSha256": "bc87a308d19640c38f35baf503812c94c510b10642cb9be9dd7cdd7ce306b353",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "e1e9c845298f4a8aa46cba9671795d5e6ca4388594e601de673cecd066b75e0b"
+      }
+    },
+    {
+      "playId": "sha256:e04e82ec2dc884c4d61ad22b72986ab7318c01a1d32dd7ebc75433b6dd914ddd",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-starlight-billy"
+      ],
+      "primaryAgentId": "agent-starlight-billy",
+      "opening": "诺姆用普攻，换到洛克茜用强化特殊技接特殊技起手。",
+      "handoff": "接着星徽·比利用强化特殊技接普攻接特殊技。",
+      "loop": "星徽·比利用普攻接特殊技，循环中重复该段。",
+      "burst": "星徽·比利用终结技，换到诺姆用强化特殊技。",
+      "evidence": {
+        "axisSha256": "3ae64d2da603502f725c6d1b079603d94dce6d640476b4ed0b58e2d7587668bc",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "143438a9c0a3350cba13cd07baf0c0621d83f57375b4c794633da8f1400a58df"
+      }
+    },
+    {
+      "playId": "sha256:8a55b6092c04a49f6f5a34c7e4cfeabff033e8f5f2e609a2f0b0e55a0ad74d14",
+      "memberIds": [
+        "agent-astra",
+        "agent-harumasa",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-harumasa",
+      "opening": "洛克茜用普攻，换到耀嘉音用特殊技起手。",
+      "handoff": "接着悠真用快速支援。",
+      "loop": "悠真用普攻接强化特殊技，循环中重复该段。",
+      "burst": "悠真用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "60d7948e2a81949edd57828749866099c1dd2276a082d6767f10875668424aed",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "120d30b7712a8a3d1d4aaace6796173d5f3633adbfd3975bb3f339611b8957f1"
+      }
+    },
+    {
+      "playId": "sha256:1f1f457af3eec70455e2cf90f11a7c28955b6f017bed5c960dcdd9a7ac9c92db",
+      "memberIds": [
+        "agent-astra",
+        "agent-lycaon",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "莱卡恩用蓄力攻击，换到耀嘉音用特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用快速支援。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "耀嘉音用连携技，换到希格莉德·德拉叙尔用连携技。",
+      "evidence": {
+        "axisSha256": "549aa524c40c68d6442b05bc507c376c26fbf626d2528d407c5ee61728fd7df7",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "4f1f149ea3c52ce9ef59e9a7c924a0cb30530553269ded065e4e3136458e9ceb"
+      }
+    },
+    {
+      "playId": "sha256:ab6661f4ff9f01aa9d822b87248c2543a9cc3d8a72a2096f6fb75f7fc6c7c903",
+      "memberIds": [
+        "agent-burnice",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "柏妮思用普攻，换到蕾米埃尔·丹用普攻起手。",
+      "handoff": "接着普罗米娅用强化特殊技接普攻接强化特殊技。",
+      "loop": "普罗米娅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "普罗米娅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "3638754c7a0971ba2281bb2f1bdee5b2ffcbc08ee8cd6030c9ceb1170530f964",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "ded31c1a3b6b454aff533cf0985c53ee74a681caa54895f30dc9905e06f9355c"
+      }
+    },
+    {
+      "playId": "sha256:c250c670fba240e4f4350a2d091132b5545afb869352be1e7b78a213c2788731",
+      "memberIds": [
+        "agent-lycaon",
+        "agent-miyabi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "莱卡恩用蓄力攻击，换到柚叶用普攻，换到莱卡恩用强化特殊技起手。",
+      "handoff": "接着星见雅用普攻。",
+      "loop": "星见雅用普攻接强化特殊技，循环中重复该段。",
+      "burst": "星见雅用终结技接普攻。",
+      "evidence": {
+        "axisSha256": "2695cc19652b8e58aaa26571d83e65f80ab4903bce7114f8961f3a80953e2d19",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d6a7ababc65217117f58134077cd9e80a627c47b391fdba629888b5903bfd959"
+      }
+    },
+    {
+      "playId": "sha256:78d72618afc3569143e7d3b29397c27be0c14ad5501444edf8a7498eb305ac71",
+      "memberIds": [
+        "agent-lycaon",
+        "agent-sigrid",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "莱卡恩用蓄力攻击接强化特殊技，换到千夏用强化特殊技起手。",
+      "handoff": "接着希格莉德·德拉叙尔用普攻接强化特殊技接普攻。",
+      "loop": "希格莉德·德拉叙尔用普攻接强化特殊技，循环中重复该段。",
+      "burst": "希格莉德·德拉叙尔用终结技，换到莱卡恩用连携技。",
+      "evidence": {
+        "axisSha256": "15b40f592a1d248464f69c0a31fae9c7b52e755e5db01aa6c3545ee49333e71b",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "9ec1d7724ff1e46737eb1a3b2fc0947c46295f86bf36c547b955380c7c6fbec7"
+      }
+    },
+    {
+      "playId": "sha256:a6c056aaee2bfdd23b0c891aa1921f2b98182b87ed6322376096b85e27319722",
+      "memberIds": [
+        "agent-alice",
+        "agent-jane",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "柚叶用强化特殊技，换到爱丽丝用特殊普攻接强化特殊技起手。",
+      "handoff": "接着简用普攻接强化特殊技接普攻。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "e3c7879cac04c6f18bd39765c8b49ee84b3a41b60357e52cd3766e83e5a6f338",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "099b6ef9cbf8d5abdeb66003b647acd436cd59f2ca1b626685f1d9df0b28928a"
+      }
+    },
+    {
+      "playId": "sha256:b98e13a02592eb12a3143ef4bd59bf372ae16b4a379ff786218ef72fa0ff63f5",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音用特殊技开歌起手。",
+      "handoff": "接着星见雅用快速支援接三段蓄力普攻接强化特殊技。",
+      "loop": "星见雅用普攻接三段蓄力普攻，循环中重复该段。",
+      "burst": "薇薇安用连携技，换到星见雅用普攻。",
+      "evidence": {
+        "axisSha256": "be18b421fe8638d4ee4cd86ec4604b9d5cac27c76d9aba1aafda675fc3f12205",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "bf8b2e1bc4b008e9af3b9ca285966112942b6843a72d0264dbc923264adc6b08"
+      }
+    },
+    {
+      "playId": "sha256:d6a4c8e308978dd1da71457e8bb5e7e5f0aafa4f306363c3b388bf85559c4b6d",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音用特殊技开歌，换到柳用强化特殊技起手。",
+      "handoff": "接着星见雅用快速支援接三段蓄力普攻接强化特殊技。",
+      "loop": "星见雅用三段蓄力普攻，换到柳用特殊普攻，循环中重复该段。",
+      "burst": "柳用终结技，换到星见雅用三段蓄力普攻。",
+      "evidence": {
+        "axisSha256": "e4974b48cacea9c99515f804871bf2e889582e1e730518c1d6de0f729f9aabd0",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "0519aea753b8c4b2b8e31a1640c05796e3830a04da1233a0592ccd5fc2cb8e43"
+      }
+    },
+    {
+      "playId": "sha256:c819e39906c926f265f1756a57d87923496b1addb183ef7951cd37c2ef255a01",
+      "memberIds": [
+        "agent-alice",
+        "agent-jane",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-alice",
+      "opening": "柚叶用强化特殊技起手。",
+      "handoff": "接着爱丽丝用特殊普攻接强化特殊技。",
+      "loop": "爱丽丝用强化特殊技，换到简用普攻，循环中重复该段。",
+      "burst": "爱丽丝用终结技接特殊普攻。",
+      "evidence": {
+        "axisSha256": "db3ce8776af0bbc11e60cb855c6d708e3ce1b07ebcadd90470d65bf276d6eb16",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "debae67b3a15ec057c64d7cd4213b87b4fbd569f9190ccaa532f26df2b741d4f"
+      }
+    },
+    {
+      "playId": "sha256:3256043415c3cc997ee75ecb101333db3f7a65caa598ab500d9402fbe8fdd565",
+      "memberIds": [
+        "agent-jane",
+        "agent-vivian",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "柚叶用强化特殊技起手。",
+      "handoff": "接着简用普攻接强化特殊技接普攻。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "1e66ee5fce69290503cef82bc6ef13e670136abfc595a7108f4d87b7b2f95fad",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "cac4704b0feb05150015f1e5282f7c2600c0458a26b366eba0de04a6f099f3d7"
+      }
+    },
+    {
+      "playId": "sha256:4c9b1e2b5909bc85756332b1ef3193bfb69944054eac6b19c2646e3294effc0c",
+      "memberIds": [
+        "agent-vivian",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着柚叶用强化特殊技，换到薇薇安用快速支援接特殊普攻。",
+      "loop": "柳用特殊普攻接特殊技，循环中重复该段。",
+      "burst": "柳用终结技接特殊普攻。",
+      "evidence": {
+        "axisSha256": "9d7f6179eb1f68bfe09c47c93303a9d76b62f72256fe6b2b1ac7c1f7b8430417",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "83525fab083b1bc6012822c0a28a225f2dc3e1de35b57ef90e5d877ef53e60ce"
+      }
+    },
+    {
+      "playId": "sha256:623ebeecd3268c1358a436f2f04473344b8a3b5b3969e74424bd74e1e7006dc8",
+      "memberIds": [
+        "agent-jane",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "柳用强化特殊技，换到柚叶用强化特殊技起手。",
+      "handoff": "接着简用快速支援。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技，换到柳用普攻。",
+      "evidence": {
+        "axisSha256": "bc28de3b39dc87e8fd25a4ef31a207046136a3eccb2d3bf49914fecbbca6bc42",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c97324f12679e0032a86f704d72ab3261bc38ddf7dd7599b04eb644c30461510"
+      }
+    },
+    {
+      "playId": "sha256:625bfa392c6539e2f305c64eae4d02efa38390f7f936aad143219fcf5b8a60d9",
+      "memberIds": [
+        "agent-jane",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着柚叶用强化特殊技，换到简用快速支援，换到柳用特殊普攻。",
+      "loop": "柳用普攻接强化特殊技，循环中重复该段。",
+      "burst": "柳用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "3e7cf0fb57287e46ca3e47f3a715748305c2bb27adfbe4214d5374fdaf0f797d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "7e1f3e8706045ece1e834d8f833e8ac62e4b83369ccb8bfdb0325bbd9122da2e"
+      }
+    },
+    {
+      "playId": "sha256:92acf8166b6eab704d79b655887ffae97959474e974f9ab1e1091ee87ed79d2a",
+      "memberIds": [
+        "agent-astra",
+        "agent-jane",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "耀嘉音用特殊技开歌起手。",
+      "handoff": "接着简用快速支援接普攻。",
+      "loop": "简用普攻接强化特殊技，循环中重复该段。",
+      "burst": "简用终结技，换到薇薇安用快速支援。",
+      "evidence": {
+        "axisSha256": "d7b28cce148430741766d89476b8f11e0208dd7f91bc596e6eca416e6066414d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "f187874c0688e5078b65e29a395f7d0371952dcb4ef2d1bc05cd53764bb18330"
+      }
+    },
+    {
+      "playId": "sha256:de677c45cf78cfac5e56ed85149bcd65e1b5a8c79378cef03674fa8385aa6b4c",
+      "memberIds": [
+        "agent-alice",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着爱丽丝用特殊普攻接强化特殊技，换到柚叶用强化特殊技。",
+      "loop": "柳用特殊普攻接强化特殊技，循环中重复该段。",
+      "burst": "柳用终结技接特殊普攻。",
+      "evidence": {
+        "axisSha256": "080fb72e582fb76f569ffbc184938a518dcd102d1156b720437b4b714b628b9b",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c46cfc592daed9adbd8e58f8641fe000f0df40155d752f379edbee6335ab7f2d"
+      }
+    },
+    {
+      "playId": "sha256:036d48ae7656f698091a0442b92e582da59c6026921d7774903925adadf66a18",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着星见雅用三段蓄力普攻接强化特殊技，换到柚叶用强化特殊技。",
+      "loop": "柳用强化特殊技，换到星见雅用普攻，循环中重复该段。",
+      "burst": "星见雅用连携技，换到柳用强化特殊技。",
+      "evidence": {
+        "axisSha256": "9f28e8e5083fcc8437cfc9f3ae8e42fb1d636c1a324817a9a7a4395190f1bcd5",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "66c450b1a8ade56eb881ec3c3c4d094e8db97b3b8a64863c4feec1762a2ff747"
+      }
+    },
+    {
+      "playId": "sha256:7e85bb521a969b154f6251b17a76d8f89e20bbcf749d8eae982fdb22665c4baa",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "耀嘉音用特殊技开歌起手。",
+      "handoff": "接着柳用强化特殊技。",
+      "loop": "柳用强化特殊技，换到星见雅用普攻，循环中重复该段。",
+      "burst": "柳用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "1a3af2dd7d981819328dc7255dd988fdcebda0b81c59292e2258b5ae9610cffd",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "352b04f78611abab5d13804d54c838bf2b0324780551f9cb7f6ddcde5cf73293"
+      }
+    },
+    {
+      "playId": "sha256:ec0e8543caa23570f432380dbb11991bbb3443e654743fd67a4745aca54bc87f",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-vivian",
+      "opening": "耀嘉音用特殊技开歌，换到星见雅用快速支援起手。",
+      "handoff": "接着薇薇安用快速支援接特殊普攻。",
+      "loop": "薇薇安用快速支援接特殊普攻，循环中重复该段。",
+      "burst": "薇薇安用终结技接特殊普攻。",
+      "evidence": {
+        "axisSha256": "3504f18bb55aae3de17848e95472835249e03d915c9433e6de7e9c2f3e06db04",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "935794fcffa9987d8e650f9fc98feaa3ab54d4b09ea0c4cbd7f63e2760819adf"
+      }
+    },
+    {
+      "playId": "sha256:fb5bad4a8245e85525c0e2ec5c58307e011e4a942651558b3c843976053b1299",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-vivian",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-vivian",
+      "opening": "星见雅用三段蓄力普攻接普攻接三段蓄力普攻起手。",
+      "handoff": "接着薇薇安用强化特殊技接特殊普攻。",
+      "loop": "薇薇安用强化特殊技接特殊普攻，循环中重复该段。",
+      "burst": "薇薇安用终结技接特殊普攻。",
+      "evidence": {
+        "axisSha256": "7bde52c2cb5d5f2b2635f0784626082977586cbf59eb13db8996f9e01ec7e18c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "38709a653857fc7b96c87f818f137fac08abe58f3f3f4e9af251309ee478f962"
+      }
+    },
+    {
+      "playId": "sha256:82ecc545577c26a78c4168794d22f7de01830216c2bb470557af3e69b315d0b2",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音用特殊技开歌起手。",
+      "handoff": "接着星见雅用快速支援接三段蓄力普攻接强化特殊技。",
+      "loop": "星见雅用强化特殊技接普攻，循环中重复该段。",
+      "burst": "星见雅用连携技接三段蓄力普攻。",
+      "evidence": {
+        "axisSha256": "6a2fea0e9209bef3c9c743a6c76ee143a58924d83e8823c24bbf85a4034e5a19",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "b5f5c457f31a177f04300a1704e74113c9c53816be51439397404cadbd8f212c"
+      }
+    },
+    {
+      "playId": "sha256:14ea8bfd8702a2486fb346240ecce028c43bacfbad1a21358dd4507ccc26f5ef",
+      "memberIds": [
+        "agent-astra",
+        "agent-soldier-0-anby",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "耀嘉音用特殊技开歌，换到「扳机」用特殊普攻起手。",
+      "handoff": "接着零号·安比用普攻接特殊技接普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "246cc4b4d76c4c75da6a90540694b1efc4e9e65387df655b262521b1ee78bb0e",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a84e6725b4a4c68ebb50a316c5b75438395f85f0f42a4e9449fb4d093e74f4bd"
+      }
+    },
+    {
+      "playId": "sha256:cd08daa69f3eec7f2a0a566cd1ae5e7258ce2c671a1fe8d4f0197d76b8d012df",
+      "memberIds": [
+        "agent-astra",
+        "agent-soldier-0-anby",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "耀嘉音用特殊技开歌，换到「扳机」用特殊普攻起手。",
+      "handoff": "接着零号·安比用普攻接特殊技接普攻。",
+      "loop": "零号·安比用特殊技接普攻，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "aa8fee42a1a4bce005a697f8effedef01050a04931d63a3712d081d519831785",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "28f3e9a8a4cc877d31045ea802ad2ab9e0a60ac18b81dfd15cfbb9c47054476e"
+      }
+    },
+    {
+      "playId": "sha256:3453c74226803e66447aba6b9aac7084bc4224786f0e43c521ea23ce83e35ac3",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-vivian",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "星见雅用三段蓄力普攻接强化特殊技起手。",
+      "handoff": "接着柚叶用强化特殊技，换到星见雅用连携技。",
+      "loop": "星见雅用普攻接三段蓄力普攻，循环中重复该段。",
+      "burst": "星见雅用连携技接三段蓄力普攻。",
+      "evidence": {
+        "axisSha256": "1dd08d6d0c727176e5ab2d563e0d7e5b93eb817e9b5bc676b66b680b811534d8",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "73cb7dfa04be9727c8239a38ee05902f1486c7fc7cccf0a7a31d3a21ad33caca"
+      }
+    },
+    {
+      "playId": "sha256:999f90c3d34ed9d65de6a0d84c7c796757416491d78b94117fb5a127e1b0a4cf",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着星见雅用三段蓄力普攻接强化特殊技。",
+      "loop": "柳用强化特殊技，换到星见雅用三段蓄力普攻，循环中重复该段。",
+      "burst": "星见雅用连携技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "5671656974805aad135160776ca6c4593ef07eddc04a40f65f4d1c5b056fdfd3",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "58db3c0d1bc9417ed2916486c4e3a649c821ff3267c62d8622720436e481a33d"
+      }
+    },
+    {
+      "playId": "sha256:ecd0a2a0d3c82468272fa2766845510a96e5637d0feb55fe0a497dd3b3fa50e7",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音用特殊技开歌起手。",
+      "handoff": "接着星见雅用快速支援接三段蓄力普攻接强化特殊技。",
+      "loop": "星见雅用强化特殊技接普攻，循环中重复该段。",
+      "burst": "星见雅用连携技接三段蓄力普攻。",
+      "evidence": {
+        "axisSha256": "50b2f2f875181f517b732f07d42ef975fbc8f2c71886f3d0ef0ff29b4829b3a6",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "2ca2c6a1186a8cd46ee76e59ea707b9ef1809eb9aeb35abad04c438965fd05b2"
+      }
+    },
+    {
+      "playId": "sha256:f8abc67ef704e671234bbe609ade5c83cba867d58a04e9d7d16a52efbd36c679",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音用特殊技开歌起手。",
+      "handoff": "接着星见雅用快速支援接三段蓄力普攻接强化特殊技。",
+      "loop": "星见雅用普攻接三段蓄力普攻，循环中重复该段。",
+      "burst": "薇薇安用终结技，换到星见雅用强化特殊技。",
+      "evidence": {
+        "axisSha256": "65347f08afed4a89f3764a74661d7a5f5bd4ac4a8d3a0d069cc647c3845da09c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "10638632e177a3aa39d24523c0f278692cad058256b36e4a2c7de537868583e3"
+      }
+    },
+    {
+      "playId": "sha256:078266afaea8558251b9753ea12fce7fb0d2ec19056a06a00f9e6b89e479c077",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-rina",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着星见雅用三段蓄力普攻接强化特殊技。",
+      "loop": "柳用强化特殊技，换到星见雅用三段蓄力普攻，循环中重复该段。",
+      "burst": "丽娜用连携技，换到星见雅用三段蓄力普攻。",
+      "evidence": {
+        "axisSha256": "7734768060085eeefbe03ca873d7a132051f3fb3c40f7bf06278b67adb017b35",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "97e5d32cff3a62e3d40fdda55ec05bd440ad0b5de1a37bfd2bc816b33e7dfcaf"
+      }
+    },
+    {
+      "playId": "sha256:01fc7790462a39276239d4c4a0b0a7cc96a317962c6ea080f05f934857ce1dbf",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-piper",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "星见雅用三段蓄力普攻接强化特殊技起手。",
+      "handoff": "接着柚叶用强化特殊技，换到星见雅用连携技。",
+      "loop": "星见雅用普攻接三段蓄力普攻，循环中重复该段。",
+      "burst": "星见雅用连携技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "3846e0ee746eee4cd7fd25d1746d9273d776d5eb7c7f3089b601f8b8c1eef7c0",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "9082e092184f4948c30d4b5dc54061c1e5d72cc715a260c3aa2c40d2efb2abd2"
+      }
+    },
+    {
+      "playId": "sha256:958721f5640ee7121f9ac8d0177507fe129d83f78a3e9222b6e04fcdf449be2d",
+      "memberIds": [
+        "agent-rina",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着柚叶用强化特殊技，换到丽娜用连携技，换到柳用特殊普攻。",
+      "loop": "柳用强化特殊技接普攻，循环中重复该段。",
+      "burst": "丽娜用连携技，换到柳用强化特殊技。",
+      "evidence": {
+        "axisSha256": "ac9d9e5c04e64cd5393bc0eeca0009a8ee7d23db16ca29114b4d172a462b9d9f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "37f87f9233cf6b49658e64b4162599a22a03e27124c9249d5a127ffd67b06144"
+      }
+    },
+    {
+      "playId": "sha256:05b50afbb39250a18340f39ce896cad1c1e12e50c7c5301f048d519f1dc2f6c2",
+      "memberIds": [
+        "agent-piper",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着柚叶用强化特殊技，换到柳用特殊普攻。",
+      "loop": "柳用强化特殊技接普攻，循环中重复该段。",
+      "burst": "柳用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "837e95e1e8e27d404b9db41d1a60965fb089eac48d66afd245ce856bdf0d67b9",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "890ac498e5eb9f704994b58655418507bffa2709365a6ebfe67306522bb3b3a6"
+      }
+    },
+    {
+      "playId": "sha256:94107689c08f2e15845cace8b52275324fe1c22a1cf956f0c8e924abc191a47e",
+      "memberIds": [
+        "agent-astra",
+        "agent-rina",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "耀嘉音用特殊技开歌起手。",
+      "handoff": "接着柳用强化特殊技接特殊普攻接特殊技。",
+      "loop": "柳用特殊普攻接特殊技，循环中重复该段。",
+      "burst": "柳用终结技接特殊普攻。",
+      "evidence": {
+        "axisSha256": "76de574d15c5f7c87a16739d05b6dcc5544ba0f4b80c7b9927c63200ad68ddb9",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "94cd733b953368ac3c390c7adbdf092ea3160fb14e805d1ed9f6a727e1f4d6c1"
+      }
+    },
+    {
+      "playId": "sha256:519d4c494358194c56baf926f88f7725c5797f4b1e200819cf70091acd94973a",
+      "memberIds": [
+        "agent-lucy",
+        "agent-rina",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着露西用特殊技，换到柳用特殊普攻。",
+      "loop": "柳用特殊普攻接特殊技，循环中重复该段。",
+      "burst": "柳用终结技接特殊普攻。",
+      "evidence": {
+        "axisSha256": "b52a3901c29834e3bb307c478a64d8e34b4395042d234ed4023fd4a21be51f43",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "c6e21cfc5576daaf4818ee6d29b4f2b4b4ab2abf7df08720cd0ccc2a95ff3da0"
+      }
+    },
+    {
+      "playId": "sha256:976447ce29441b9c402047c0f297c8554980db2bf878ea1ba0646a672b2e19c7",
+      "memberIds": [
+        "agent-burnice",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "柳用强化特殊技起手。",
+      "handoff": "接着柚叶用强化特殊技，换到柳用特殊普攻。",
+      "loop": "柳用特殊普攻接特殊技，循环中重复该段。",
+      "burst": "柳用终结技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "7901a19f03522c8b88769b65a99a231686931837728f2521f17efae8dd2b0b7f",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "a9c57d16a6db676cefe0680d27b2e24abacb5a3a387b3a9e60680409be963628"
+      }
+    },
+    {
+      "playId": "sha256:5726d382775a4e4110024ac83e1dfce31fa42c83691e4ece216a4aea90262193",
+      "memberIds": [
+        "agent-burnice",
+        "agent-miyabi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "星见雅用三段蓄力普攻接强化特殊技起手。",
+      "handoff": "接着柏妮思用强化特殊技短喷接强化特殊技收招，换到柚叶用强化特殊技。",
+      "loop": "星见雅用强化特殊技接普攻，循环中重复该段。",
+      "burst": "星见雅用终结技接三段蓄力普攻。",
+      "evidence": {
+        "axisSha256": "befdd50cd5e42627912b16a21e1ad38c037ba85d2d1ec5998d59175ac91dda3c",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "d879e9de57fa9029f30f9158ce26121cf1a2dee7379329c209d15c35198afcea"
+      }
+    },
+    {
+      "playId": "sha256:cab8f101429a55680813b9556972f1ade00faa2591b238ca0564e8a05e37fc17",
+      "memberIds": [
+        "agent-caesar",
+        "agent-soldier-0-anby",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "凯撒用强化特殊技，换到「扳机」用特殊普攻起手。",
+      "handoff": "接着零号·安比用普攻接特殊技接普攻。",
+      "loop": "零号·安比用普攻接特殊技，循环中重复该段。",
+      "burst": "零号·安比用终结技接特殊技。",
+      "evidence": {
+        "axisSha256": "83093f960869fc6367c713acb1f6055a203b901c80cc702e85fdcd929c7ad441",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "646ee9549b0ab95a2ca2d8e736a808ebe739416b6b4f7f2760cf0a163f1e4379"
+      }
+    },
+    {
+      "playId": "sha256:a4667b2e2b14b3aa826e3bd4341f4f141289892c041201dd62cc733f0da78f07",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-nicole"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音用特殊技开歌，换到妮可用强化特殊技起手。",
+      "handoff": "接着星见雅用快速支援接三段蓄力普攻接强化特殊技。",
+      "loop": "星见雅用强化特殊技接普攻，循环中重复该段。",
+      "burst": "星见雅用连携技接强化特殊技。",
+      "evidence": {
+        "axisSha256": "bcbd1d5c7494d001e34432551e1f174d8872b0c037748d09661175fdc25ec32d",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "productionReportSha256": "6d5690058ba8d40cfe1ebd5deea7bb1ec5adc0fe566d14a60e22a83a3849cb50"
+      }
     }
   ]
 }
