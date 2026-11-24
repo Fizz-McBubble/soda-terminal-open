@@ -2398,6 +2398,60 @@
         "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
         "productionReportSha256": "7b4384edb862e3c0de6c93090dedb8d56cbeb463d646344e4d49e2dc7fc01cc6"
       }
+    },
+    {
+      "playId": "sha256:7d480c8062c8845915e0e133ecbe4edab54ab404673dcd23ce8d0d43e33771ce",
+      "memberIds": [
+        "agent-aria",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "蕾米埃尔、柚叶先用普攻攒能。蕾米埃尔放强化特殊技后切爱芮打一套普攻，柚叶接强化特殊技。",
+      "handoff": "柚叶打完强化特殊技即交回爱芮。蕾米埃尔的支援攻击接短普攻，随后回到爱芮的站场循环。",
+      "loop": "爱芮用普攻衔接加速蓄力，能量就绪时穿插强化特殊技。蕾米埃尔与柚叶轮流补强化特殊技。",
+      "burst": "蕾米埃尔有终结技时先释放再交回爱芮。爱芮的终结技后接加速强化蓄力，出现连携机会时由爱芮接连携。",
+      "evidence": {
+        "axisSha256": "cf5dc55cd620f34285f1236359148218ba5ea4bf2309067303d9521e8bc49d98",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "draftSha256": "235c563f60c2139c4da7b0f8f47275d46ac6381a4b6cb6d117b0289b86f341a2"
+      }
+    },
+    {
+      "playId": "sha256:a4e7a9d5234bedae31be976ad5be3711f88409ac0c4cab482537d46b8e127256",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "蕾米埃尔、柚叶先用普攻攒能。蕾米埃尔放强化特殊技后切菲欧妮过渡，柚叶接强化特殊技。",
+      "handoff": "柚叶放完强化特殊技后交回菲欧妮。蕾米埃尔的支援攻击接短普攻后也交回菲欧妮。",
+      "loop": "菲欧妮以普攻衔接强化特殊技和燔焰普攻，蕾米埃尔与柚叶间歇切入补强化特殊技。",
+      "burst": "蕾米埃尔与菲欧妮在喧响就绪时各自施放终结技。菲欧妮回到普攻与强化特殊技连段，并使用可发动的后续强化段。",
+      "evidence": {
+        "axisSha256": "78c82ac2fd8001839766c015987dd00cc5c7470e6ce7eb51e93b58c50047233a",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "draftSha256": "28e2538880ba44e0a69777a6046ea91307f99404b80b4af687e9fcc7b2beb051"
+      }
+    },
+    {
+      "playId": "sha256:91d2aba8b4033fcbf54fb8cba816a69316f86b85bd84cd61e12e9a782ca453af",
+      "memberIds": [
+        "agent-aria",
+        "agent-yuzuha",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "柚叶和照依次用普攻攒能。柚叶放强化特殊技后切爱芮打一套普攻，再由照补强化特殊技。",
+      "handoff": "照放完强化特殊技或打完入场支援就切回爱芮。柚叶接到连携时，把后续站场交给爱芮。",
+      "loop": "爱芮以普攻衔接加速蓄力，穿插强化特殊技。柚叶和照分开补强化特殊技，照有入场支援时补入。",
+      "burst": "爱芮释放终结技后接加速强化蓄力。照的终结技就绪时释放，随后切回爱芮继续输出。",
+      "evidence": {
+        "axisSha256": "867896820c5256e680efd18558d8c47fe662a3d7e247c3128bf9a8b87b130835",
+        "policySha256": "b7543ebed26549f1366a555c7a4b00cb6783770e39dff90431482af2afb5e3d6",
+        "draftSha256": "97093a0cdb9510e3dc542a326f67df6c929f5516e00ac39525ae2ddfbb971a2c"
+      }
     }
   ]
 }
