@@ -5,7 +5,6 @@ import type {
   VisualAssetPackState,
 } from './visualAssetBrowserRuntime'
 import {
-  fetchOfficialVisualAsset,
   findVerifiedCachedAsset,
   getCacheableVisualAssets,
   openActiveVisualAssetCaches,
@@ -20,6 +19,7 @@ import {
 } from './visualAssetCacheRuntimeSupport'
 import { visualAssetManifestSchema, type VisualAssetManifest } from './visualAssetSchemas'
 import { visualAssetDownloadOrder } from './visualAssetDownloadOrder'
+import { automaticVisualAssetCacheName, downloadVisualAsset } from './visualAssetSharedDownload'
 
 export type VisualAssetSyncResult = {
   installed: number
@@ -43,7 +43,7 @@ export async function synchronizeVisualAssetPackIntoCache(
 ): Promise<VisualAssetSyncResult> {
   const parsed = visualAssetManifestSchema.parse(manifest)
   const assets = getCacheableVisualAssets(parsed, 'all')
-  const cacheName = `${cachePrefix}:automatic:${parsed.packVersion}:${parsed.contentHash.slice(-12)}`
+  const cacheName = automaticVisualAssetCacheName(cachePrefix, parsed)
   let completed = 0
   let failed = 0
   let quotaExceeded = false
@@ -81,7 +81,14 @@ export async function synchronizeVisualAssetPackIntoCache(
     )
     throwIfAborted(signal)
     // The pointer makes verified partial entries visible without asserting full readiness.
-    runtime.setState({ ...previousState, automaticCache: cacheName })
+    runtime.setState({
+      ...previousState,
+      automaticCache: cacheName,
+      previousAutomaticCache:
+        previousState.automaticCache && previousState.automaticCache !== cacheName
+          ? previousState.automaticCache
+          : previousState.previousAutomaticCache,
+    })
     await runBoundedConcurrentTasks(
       visualAssetDownloadOrder(assets),
       3,
@@ -93,37 +100,40 @@ export async function synchronizeVisualAssetPackIntoCache(
             signal,
           )
           throwIfAborted(signal)
-          const response =
-            cached ??
-            (options.responseForAsset
-              ? await waitForAbortable(
-                  Promise.resolve().then(() => options.responseForAsset!(asset)),
-                  signal,
-                )
-              : await fetchOfficialVisualAsset(asset, runtime, { signal }))
-          throwIfAborted(signal)
-          if (!response) throw new Error(`${asset.name} 未返回可用图片`)
-          if (!cached) {
-            const bytes =
-              takeFetchedResponseBytes(response) ??
-              (await waitForAbortable(response.clone().arrayBuffer(), signal))
+          const provideResponse = options.responseForAsset
+          if (!cached && !provideResponse) {
+            const download = downloadVisualAsset(
+              asset,
+              runtime,
+              cacheName,
+              (verified) => cache.put(asset.remoteUrl, verified),
+              signal,
+            )
+            await waitForAbortable(download.saved, signal)
+          } else {
+            const response = cached ?? (await waitForAbortable(provideResponse!(asset), signal))
+            if (!cached) {
+              const bytes =
+                takeFetchedResponseBytes(response) ??
+                (await waitForAbortable(response.clone().arrayBuffer(), signal))
+              throwIfAborted(signal)
+              const actualHash = await waitForAbortable(runtime.digest(bytes), signal)
+              throwIfAborted(signal)
+              if (actualHash !== asset.contentHash) throw new Error(`${asset.name} 内容哈希不一致`)
+            }
+            const existing = await waitForAbortable(cache.match(asset.remoteUrl), signal)
+            const existingBytes = existing
+              ? await waitForAbortable(existing.clone().arrayBuffer(), signal)
+              : null
             throwIfAborted(signal)
-            const actualHash = await waitForAbortable(runtime.digest(bytes), signal)
+            const existingHash = existingBytes
+              ? await waitForAbortable(runtime.digest(existingBytes), signal)
+              : null
             throwIfAborted(signal)
-            if (actualHash !== asset.contentHash) throw new Error(`${asset.name} 内容哈希不一致`)
-          }
-          const existing = await waitForAbortable(cache.match(asset.remoteUrl), signal)
-          const existingBytes = existing
-            ? await waitForAbortable(existing.clone().arrayBuffer(), signal)
-            : null
-          throwIfAborted(signal)
-          const existingHash = existingBytes
-            ? await waitForAbortable(runtime.digest(existingBytes), signal)
-            : null
-          throwIfAborted(signal)
-          if (!existing || existingHash !== asset.contentHash) {
-            await waitForAbortable(cache.put(asset.remoteUrl, response.clone()), signal)
-            throwIfAborted(signal)
+            if (!existing || existingHash !== asset.contentHash) {
+              await waitForAbortable(cache.put(asset.remoteUrl, response.clone()), signal)
+              throwIfAborted(signal)
+            }
           }
         } catch (error) {
           if (isQuotaExceededError(error)) {
@@ -162,6 +172,7 @@ export async function synchronizeVisualAssetPackIntoCache(
     runtime.setState({
       ...currentState,
       automaticCache: null,
+      previousAutomaticCache: null,
       activeCache: cacheName,
       previousCache:
         previousState.activeCache !== cacheName

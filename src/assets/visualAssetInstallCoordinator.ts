@@ -9,6 +9,10 @@ import {
 } from './visualAssets'
 import { getCacheableVisualAssets } from './visualAssetCacheLookup'
 import { throwIfAborted, waitForAbortable } from './visualAssetCacheRuntimeSupport'
+import {
+  enableVisibleCatalogDownloads,
+  stopVisibleCatalogDownloads,
+} from './visibleCatalogDownload'
 
 let sharedInstall: Promise<void> | null = null
 let sharedRemoval: Promise<void> | null = null
@@ -16,6 +20,16 @@ let activeInstallAbortController: AbortController | null = null
 let readyStateKey: string | null = null
 let sharedProgress = 0
 let automaticLoadingSuppressed = false
+
+function waitForCatalogWarmup(signal: AbortSignal) {
+  if (typeof window.requestIdleCallback !== 'function') return
+  let handle = 0
+  const idle = new Promise<void>((resolve) => {
+    handle = window.requestIdleCallback(() => resolve(), { timeout: 1500 })
+  })
+  return waitForAbortable(idle, signal).finally(() => window.cancelIdleCallback?.(handle))
+}
+
 export type OfficialCatalogInstallStatus = {
   kind: 'idle' | 'loading' | 'ready' | 'partial' | 'error'
   completed: number
@@ -56,6 +70,7 @@ function currentCatalogStateKey() {
     state.catalogProfile ?? '',
     state.activeCache ?? '',
     state.automaticCache ?? '',
+    state.previousAutomaticCache ?? '',
     ...officialCatalogEntityTypes.map((entityType) => state.activeCaches?.[entityType] ?? ''),
   ].join('|')
 }
@@ -72,6 +87,7 @@ export function subscribeOfficialCatalogInstallProgress(listener: (completed: nu
 export function cancelOfficialCatalogInstall(): boolean {
   if (activeInstallAbortController) {
     automaticLoadingSuppressed = true
+    stopVisibleCatalogDownloads()
     activeInstallAbortController.abort(new DOMException('已取消素材下载', 'AbortError'))
     return true
   }
@@ -88,6 +104,7 @@ export async function ensureOfficialCatalogInstalled(
   if (sharedRemoval) await sharedRemoval
   if (automaticLoadingSuppressed && !options.verifyCache) return
   if (options.verifyCache) automaticLoadingSuppressed = false
+  enableVisibleCatalogDownloads()
   if (!options.verifyCache && readyStateKey && readyStateKey === currentCatalogStateKey()) return
   if (sharedInstall) return sharedInstall
 
@@ -100,6 +117,7 @@ export async function ensureOfficialCatalogInstalled(
   }, options.timeoutMs ?? 60_000)
 
   const onExternalAbort = () => {
+    stopVisibleCatalogDownloads()
     controller.abort(options.signal?.reason ?? new DOMException('用户取消素材下载', 'AbortError'))
   }
   if (options.signal) {
@@ -113,6 +131,10 @@ export async function ensureOfficialCatalogInstalled(
   sharedInstall = (async () => {
     publishStatus({ kind: 'loading', completed: 0, total: sharedStatus.total, failed: 0 })
     throwIfAborted(controller.signal)
+    if (!options.verifyCache && options.timeoutMs === undefined) {
+      const idle = waitForCatalogWarmup(controller.signal)
+      if (idle) await idle
+    }
     if (options.verifyCache) invalidateVisualAssetPackVerification()
     if (
       await waitForAbortable(
@@ -147,7 +169,9 @@ export async function ensureOfficialCatalogInstalled(
         packTimeoutMs: options.timeoutMs ?? 60_000,
       },
     )
-    window.dispatchEvent(new Event('soda-visual-assets-ready'))
+    window.dispatchEvent(
+      new Event(options.verifyCache ? 'soda-visual-assets-ready' : 'soda-visual-assets-progress'),
+    )
 
     if (result.quotaExceeded) {
       readyStateKey = null
@@ -241,6 +265,7 @@ export async function removeOfficialCatalogImages() {
   // verification must not survive, and deletion must not trigger auto-download.
   readyStateKey = null
   automaticLoadingSuppressed = true
+  stopVisibleCatalogDownloads()
   invalidateVisualAssetPackVerification()
   sharedRemoval = removePersonalVisualAssetCaches()
     .then(() => undefined)

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getVisualAsset } from '../assets/visualAssets'
 import {
-  resolveSessionVisualSource,
+  resolveVisibleSessionVisualSource,
   sessionVisualSources,
   visualSourceKey,
 } from '../assets/visualEntityImageSource'
@@ -29,15 +29,17 @@ export function SelectedAgentAvatar({
     let active = true
     const refresh = () => {
       if (!preferred) return
-      void resolveSessionVisualSource(preferred).then((source) => {
+      void resolveVisibleSessionVisualSource(preferred).then((source) => {
         if (active) setResolved({ key, available: Boolean(source) })
       })
     }
     refresh()
     window.addEventListener('soda-visual-assets-ready', refresh)
+    window.addEventListener('online', refresh)
     return () => {
       active = false
       window.removeEventListener('soda-visual-assets-ready', refresh)
+      window.removeEventListener('online', refresh)
     }
   }, [key, preferred])
   return (

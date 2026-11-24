@@ -7,6 +7,7 @@ import {
   readBrowserState,
   sha256,
   stateStorageKey,
+  visualAssetCachePrefix as cachePrefix,
   type VisualAssetCacheRuntime,
   type VisualAssetInstallOptions,
   type VisualAssetInstallProgress,
@@ -41,6 +42,7 @@ export {
 import {
   fetchOfficialVisualAsset,
   findVerifiedCachedAsset,
+  getCacheNamesForAsset,
   getCacheableVisualAssets,
   openActiveVisualAssetCaches,
 } from './visualAssetCacheLookup'
@@ -76,7 +78,6 @@ export {
   isTimeoutError,
 } from './visualAssetCacheRuntimeSupport'
 export { getOfficialVisualAssetDownloadUrl, getOfficialWEngineDownloadUrl }
-const cachePrefix = 'soda-terminal-visual-assets'
 
 // The full catalog check reads and hashes every cached image. Share overlapping checks, but
 // revalidate a later call: Cache Storage can evict an image without changing our state pointer.
@@ -102,6 +103,7 @@ function verificationStateKey(state: VisualAssetPackState, scope: 'catalog' | 'a
     state.catalogProfile,
     state.activeCache,
     state.automaticCache,
+    state.previousAutomaticCache,
     state.wEngineCache,
     ...visualAssetEntityTypeSchema.options.map((type) => state.activeCaches?.[type] ?? ''),
   ].join('|')
@@ -390,11 +392,7 @@ export async function resolveCachedVisualAsset(
 ) {
   if (!asset.remoteUrl || !('caches' in window)) return null
   const state = readBrowserState()
-  const cacheNames =
-    asset.entityType === 'wengine'
-      ? [state.activeCaches?.wengine, state.wEngineCache, state.activeCache]
-      : [state.activeCaches?.[asset.entityType], state.activeCache]
-  if (state.automaticCache) cacheNames.unshift(state.automaticCache)
+  const cacheNames = getCacheNamesForAsset(asset, state)
   for (const cacheName of new Set(cacheNames)) {
     if (!cacheName) continue
     let source: string | null = null

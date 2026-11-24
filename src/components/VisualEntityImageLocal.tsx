@@ -2,7 +2,7 @@ import './visual-entity-image.css'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { type VisualAssetEntityType } from '../assets/visualAssets'
 import {
-  resolveSessionVisualSource,
+  resolveVisibleSessionVisualSource,
   forgetFailedSessionVisualSource,
   resolveVisualEntityImageAsset,
   sessionVisualSources,
@@ -127,16 +127,18 @@ export function VisualEntityImage({
     window.addEventListener('soda-visual-assets-ready', refresh)
     // New verified entries become visible without revoking already decoded sibling images.
     window.addEventListener('soda-visual-assets-progress', refresh)
+    window.addEventListener('online', refresh)
     return () => {
       window.removeEventListener('soda-visual-assets-ready', refresh)
       window.removeEventListener('soda-visual-assets-progress', refresh)
+      window.removeEventListener('online', refresh)
     }
   }, [])
 
   useEffect(() => {
     let active = true
     if (asset && !bundledSource && shouldResolve) {
-      void resolveSessionVisualSource(asset).then((cachedUrl) => {
+      void resolveVisibleSessionVisualSource(asset).then((cachedUrl) => {
         if (!active) return
         if (assetKey)
           setCachedSource({ assetKey, retryKey, objectUrl: cachedUrl, revision: runtimeRevision })
@@ -148,8 +150,7 @@ export function VisualEntityImage({
   }, [asset, assetKey, bundledSource, retryKey, runtimeRevision, shouldResolve])
 
   useEffect(() => {
-    // Cache access and browser decoding can fail transiently. Retry only this
-    // mounted image, without downloading assets or restarting the whole pack.
+    // Retry this mounted slot after a transient read, request, or decode failure.
     if (!asset?.remoteUrl || !shouldResolve || resolving || !failed || retries.current.count >= 2)
       return
     const identity = imageIdentity

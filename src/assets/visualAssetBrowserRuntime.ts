@@ -5,6 +5,7 @@ import { type VisualAsset, type VisualAssetEntityType } from './visualAssetSchem
 export type VisualAssetPackState = {
   /** Verified automatic downloads, including successful entries from a partial run. */
   automaticCache?: string | null
+  previousAutomaticCache?: string | null
   activeCache: string | null
   previousCache: string | null
   installedAt: string | null
@@ -43,6 +44,7 @@ export type VisualAssetCacheRuntime = {
 }
 
 export const stateStorageKey = 'soda-terminal:visual-assets:state:v1'
+export const visualAssetCachePrefix = 'soda-terminal-visual-assets'
 
 export function readBrowserState(): VisualAssetPackState {
   const fallback = {
@@ -70,10 +72,12 @@ export async function sha256(bytes: ArrayBuffer) {
   return `sha256-${[...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('')}`
 }
 
+const fetchVisualAsset: typeof fetch = (...args) => fetch(...args)
+
 export function createBrowserVisualAssetRuntime(): VisualAssetCacheRuntime {
   return {
-    cacheStorage: caches,
-    fetcher: (...args) => fetch(...args),
+    cacheStorage: window.caches,
+    fetcher: fetchVisualAsset,
     getState: readBrowserState,
     setState: (state) => localStorage.setItem(stateStorageKey, JSON.stringify(state)),
     digest: sha256,

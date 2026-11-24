@@ -25,10 +25,14 @@ import {
 } from '../navigation'
 import { useUiStore } from '../store/useUiStore'
 import { applyRouteStyleScope, getRouteStyleScope } from '../styles/routeStyles'
+import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
 import { SodaMark } from './SodaMark'
 import { F5VisualShell } from './F5VisualShell'
 import { F5AccountSummaryProvider } from './f5AccountSummaryContext'
 import { OnlineCalculationConsent } from './OnlineCalculationConsent'
+import { ensureOfficialCatalogInstalled } from '../assets/visualAssetInstallCoordinator'
+import { prioritizeAccountVisualAssets } from '../assets/visualAssetDownloadOrder'
+import { getVisualAsset, officialCatalogAssets } from '../assets/visualAssets'
 import { readEntryState } from '../application/entryReadState'
 
 export function AppShell({
@@ -72,18 +76,35 @@ export function AppShell({
                       agentCount: 0,
                       hasAccount: false,
                       accountDiagnostic,
+                      catalogPriority: [],
                     }
                   const [discCount, roster] = await Promise.all([
                     database.accountDriveDiscs.where('accountId').equals(account.id).count(),
                     getAccountRoster(account.id),
                   ])
+                  const ownedAgents = roster.agents.filter((agent) => agent.owned)
+                  const catalogPriority = [
+                    ...ownedAgents.map(({ agentId }) => getVisualAsset('agent', agentId)),
+                    ...roster.bangboos
+                      .filter(({ owned }) => owned)
+                      .map(({ bangbooId }) => getVisualAsset('bangboo', bangbooId)),
+                    ...(roster.wEngines ?? []).map(({ engineId }) =>
+                      getVisualAsset('wengine', engineId),
+                    ),
+                    ...(discCount > 0
+                      ? officialCatalogAssets.filter(
+                          ({ entityType }) => entityType === 'drive_disc_set',
+                        )
+                      : []),
+                  ].flatMap((asset) => (asset?.remoteUrl ? [asset.remoteUrl] : []))
                   return {
                     accountId: account.id,
                     name: account.displayName,
                     discCount,
-                    agentCount: roster.agents.filter((agent) => agent.owned).length,
+                    agentCount: ownedAgents.length,
                     hasAccount: true,
                     accountDiagnostic,
+                    catalogPriority,
                   }
                 },
               ),
@@ -93,6 +114,11 @@ export function AppShell({
     [databaseStatus, accountReadRevision],
   )
   const accountSummary = accountRead?.status === 'ready' ? accountRead.data : undefined
+  const catalogPriority = accountSummary?.catalogPriority
+  useEffect(() => {
+    prioritizeAccountVisualAssets(catalogPriority ?? [])
+    return () => prioritizeAccountVisualAssets([])
+  }, [catalogPriority])
   const accountStatus: 'loading' | 'ready' | 'error' =
     databaseStatus === 'error' || accountRead?.status === 'error'
       ? 'error'
@@ -130,6 +156,16 @@ export function AppShell({
       )
     : 0
   const isPrimaryCurrent = (path: string) => isPrimaryNavigationCurrent(path, location.pathname)
+
+  useEffect(() => {
+    const loadImages = () => {
+      // Images enhance every route; a cache or network failure must not gate the app.
+      void ensureOfficialCatalogInstalled().catch(() => undefined)
+    }
+    loadImages()
+    window.addEventListener('online', loadImages)
+    return () => window.removeEventListener('online', loadImages)
+  }, [])
 
   useLayoutEffect(() => {
     document.documentElement.classList.toggle('soda-f5-scrollbarless', isF5Slice)
@@ -204,11 +240,6 @@ export function AppShell({
       const heading = document.querySelector<HTMLElement>('main h1')
       if (!heading) return false
       const activeElement = document.activeElement
-      if (
-        activeElement?.closest('.release-notes') ||
-        document.querySelector('.release-notes > [aria-expanded="true"]')
-      )
-        return false
       const focusWasLost =
         activeElement === document.body ||
         activeElement === document.documentElement ||
@@ -331,6 +362,8 @@ export function AppShell({
                     aria-current={current ? 'page' : undefined}
                     className={`nav-item ${current ? 'nav-item--active' : ''}`}
                     onClick={closeSidebar}
+                    onPointerEnter={() => preloadPlayerRoute(path)}
+                    onFocus={() => preloadPlayerRoute(path)}
                   >
                     <Icon size={19} strokeWidth={2.1} />
                     <span className="nav-item__label">{label}</span>
@@ -341,7 +374,12 @@ export function AppShell({
           ))}
         </nav>
         <div className="sidebar__footer" aria-live="polite">
-          <Link to="/system/help" onClick={closeSidebar}>
+          <Link
+            to="/system/help"
+            onClick={closeSidebar}
+            onPointerEnter={() => preloadPlayerRoute('/system/help')}
+            onFocus={() => preloadPlayerRoute('/system/help')}
+          >
             帮助与隐私
           </Link>
           <strong>本地数据</strong>

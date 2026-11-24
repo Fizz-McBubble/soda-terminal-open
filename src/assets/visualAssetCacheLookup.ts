@@ -64,8 +64,8 @@ export async function fetchOfficialVisualAsset(
   throw lastError
 }
 
-function getCacheNamesForAsset(
-  asset: VisualAsset & { remoteUrl: string },
+export function getCacheNamesForAsset(
+  asset: Pick<VisualAsset, 'entityType'>,
   state: VisualAssetPackState,
 ) {
   return [
@@ -73,6 +73,7 @@ function getCacheNamesForAsset(
     state.activeCaches?.[asset.entityType],
     asset.entityType === 'wengine' ? state.wEngineCache : null,
     state.activeCache,
+    state.previousAutomaticCache,
   ].filter((cacheName): cacheName is string => Boolean(cacheName))
 }
 
@@ -85,6 +86,7 @@ export async function openActiveVisualAssetCaches(
       state.automaticCache,
       state.activeCache,
       state.wEngineCache,
+      state.previousAutomaticCache,
       ...Object.values(state.activeCaches ?? {}),
     ].filter((cacheName): cacheName is string => Boolean(cacheName)),
   )
@@ -117,11 +119,16 @@ export async function findVerifiedCachedAsset(
 
 export function getCacheableVisualAssets(manifest: VisualAssetManifest, scope: 'catalog' | 'all') {
   return manifest.assets
-    .filter(
-      (item): item is typeof item & { remoteUrl: string } =>
-        item.status === 'verified' &&
-        item.cachePolicy === 'explicit-personal-cache' &&
-        Boolean(item.remoteUrl),
-    )
+    .filter(isPersonalCacheableVisualAsset)
     .filter((item) => scope === 'all' || isCatalogVisualAsset(item))
+}
+
+export function isPersonalCacheableVisualAsset(
+  asset: VisualAsset,
+): asset is VisualAsset & { remoteUrl: string } {
+  return (
+    asset.status === 'verified' &&
+    asset.cachePolicy === 'explicit-personal-cache' &&
+    Boolean(asset.remoteUrl)
+  )
 }

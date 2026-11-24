@@ -1,5 +1,6 @@
 import { getVisualAsset, resolveCachedVisualAsset, type VisualAsset } from './visualAssets'
 import { prioritizeVisualAsset } from './visualAssetDownloadOrder'
+import { loadVisibleCatalogImage } from './visibleCatalogDownload'
 import { resolveVisualAssetSlot, type VisualAssetSlotSpec } from './visualAssetSlots'
 import {
   createLatestVisualSelection as createLatestSelection,
@@ -13,6 +14,7 @@ export type { VisualEntityImageRequest }
 // revoke the URL another visible card is still painting.
 export const sessionVisualSources = new Map<string, string>()
 const pendingVisualSources = new Map<string, Promise<string | null>>()
+const pendingVisibleSources = new Map<string, Promise<string | null>>()
 // A failed consumer must be able to read a fresh blob without revoking a URL
 // that another mounted consumer is still displaying.
 const retiredVisualSources = new Set<string>()
@@ -22,6 +24,7 @@ let sourceGeneration = 0
 export function invalidateSessionVisualSources() {
   sourceGeneration += 1
   pendingVisualSources.clear()
+  pendingVisibleSources.clear()
   for (const source of sessionVisualSources.values()) URL.revokeObjectURL(source)
   for (const source of retiredVisualSources) URL.revokeObjectURL(source)
   retiredVisualSources.clear()
@@ -88,6 +91,45 @@ export async function resolveSessionVisualSource(asset: VisualAsset) {
     return await resolution
   } finally {
     if (pendingVisualSources.get(key) === resolution) pendingVisualSources.delete(key)
+  }
+}
+
+/** A mounted slot can display verified bytes while the shared cache write completes. */
+export async function resolveVisibleSessionVisualSource(asset: VisualAsset) {
+  const generation = sourceGeneration
+  const cached = await resolveSessionVisualSource(asset)
+  if (cached || generation !== sourceGeneration) return cached
+
+  const key = visualSourceKey(asset)
+  const existing = sessionVisualSources.get(key)
+  if (existing) return existing
+  const pending = pendingVisibleSources.get(key)
+  if (pending) return pending
+
+  const resolution = (async () => {
+    let source: string | null = null
+    try {
+      const blob = await loadVisibleCatalogImage(asset)
+      if (!blob || generation !== sourceGeneration) return null
+      source = URL.createObjectURL(blob)
+      await decodeVisualSource(source)
+      const shared = sessionVisualSources.get(key)
+      if (generation !== sourceGeneration || shared) {
+        URL.revokeObjectURL(source)
+        return generation === sourceGeneration ? (shared ?? null) : null
+      }
+      sessionVisualSources.set(key, source)
+      return source
+    } catch {
+      if (source) URL.revokeObjectURL(source)
+      return null
+    }
+  })()
+  pendingVisibleSources.set(key, resolution)
+  try {
+    return await resolution
+  } finally {
+    if (pendingVisibleSources.get(key) === resolution) pendingVisibleSources.delete(key)
   }
 }
 
