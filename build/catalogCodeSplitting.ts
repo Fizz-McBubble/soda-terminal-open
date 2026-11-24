@@ -11,8 +11,215 @@ const catalogNames = [
 ] as const
 const evidenceFile =
   'src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/agentDevelopmentEvidence.ts'
+const encyclopediaFile = 'src/gameDataPacks/data/current-encyclopedia-display.3.3.json'
+const planningEventSetFile = 'src/gameDataPacks/data/reviewed-planning-event-set32.v1.json'
 const prefix = '\0soda-catalog:'
+const workerSlimPrefix = '\0soda-worker-slim:'
 const serialize = (value: unknown) => `JSON.parse(${JSON.stringify(JSON.stringify(value))})`
+
+const workerEncyclopediaPinAgentIds = new Set([
+  'agent-lycaon',
+  'agent-cissia',
+  'agent-astra',
+  'agent-rina',
+  'agent-seed',
+])
+
+const workerEncyclopediaPinImporters = new Set([
+  'reviewedLycaonDamageTaken32.ts',
+  'reviewedCissiaEventEffects32.ts',
+  'reviewedAstraCoreAttack32.ts',
+  'reviewedRinaCleanupWindow32.ts',
+  'reviewedSeedVanguard32.ts',
+])
+
+/**
+ * Project the 3.39 MB encyclopedia down to the exact fields read by the 5 reviewed
+ * calculation pin guards inside Worker bundles, live-extracted at build time so zero drift
+ * is possible while keeping calculation source files byte-identical for hash gates.
+ */
+export function slimWorkerEncyclopediaPayload(raw: Record<string, unknown>) {
+  const agents = Array.isArray(raw.agents) ? raw.agents : []
+  return {
+    agents: agents
+      .filter(
+        (row): row is Record<string, unknown> =>
+          Boolean(row) &&
+          typeof row === 'object' &&
+          typeof (row as { stableId?: unknown }).stableId === 'string' &&
+          workerEncyclopediaPinAgentIds.has((row as { stableId: string }).stableId),
+      )
+      .map((row) => {
+        const stableId = row.stableId as string
+        const source = row.source as Record<string, unknown> | undefined
+        if (stableId !== 'agent-astra') {
+          return { stableId, source: { sha256: source?.sha256 } }
+        }
+        const core = Array.isArray(row.core)
+          ? row.core
+              .filter(
+                (entry): entry is Record<string, unknown> =>
+                  Boolean(entry) &&
+                  typeof entry === 'object' &&
+                  (entry as { level?: unknown }).level === 7,
+              )
+              .map((entry) => ({
+                level: entry.level,
+                effects: Array.isArray(entry.effects)
+                  ? entry.effects.slice(0, 1).map((e: Record<string, unknown>) => ({
+                      description: e?.description ?? '',
+                    }))
+                  : [],
+              }))
+          : []
+        const skills = Array.isArray(row.skills)
+          ? row.skills
+              .map((skill: Record<string, unknown>) => ({
+                effects: Array.isArray(skill?.effects)
+                  ? skill.effects
+                      .filter(
+                        (effect: Record<string, unknown>) =>
+                          effect?.name === '和弦' || effect?.name === '普通攻击：终曲',
+                      )
+                      .map((effect: Record<string, unknown>) => ({
+                        name: effect.name,
+                        description: effect.description ?? '',
+                      }))
+                  : [],
+              }))
+              .filter((skill) => skill.effects.length > 0)
+          : []
+        return {
+          stableId,
+          source: { sha256: source?.sha256 },
+          core,
+          skills,
+        }
+      }),
+  }
+}
+
+/**
+ * Project the 2.31 MB planning event qualification JSON down to only the fields hashed by
+ * reviewedPlanningEventSetIdentity32.ts, live-extracted at build time with zero hash drift.
+ */
+export function slimWorkerPlanningEventSetIdentityPayload(raw: Record<string, unknown>) {
+  return {
+    qualificationId: raw.qualificationId,
+    gameVersion: raw.gameVersion,
+    semanticIdentityHash: raw.semanticIdentityHash,
+    scope: raw.scope,
+    regression: raw.regression,
+  }
+}
+
+/**
+ * Project the 2.31 MB planning event qualification JSON down to the exact capsuleSchema fields
+ * validated by reviewedPlanningEventSet32.ts (drops ~99.4% unused calibration/source blobs).
+ */
+export function slimWorkerPlanningEventSetQualificationPayload(raw: Record<string, unknown>) {
+  const records = Array.isArray(raw.records) ? raw.records : []
+  return {
+    schema: raw.schema,
+    gameVersion: raw.gameVersion,
+    upstreamCommit: raw.upstreamCommit,
+    qualificationId: raw.qualificationId,
+    semanticIdentityHash: raw.semanticIdentityHash,
+    ready: raw.ready,
+    scope: raw.scope,
+    records: records.map((entry: Record<string, unknown>) => {
+      const record = (entry?.record ?? {}) as Record<string, unknown>
+      const verification = (entry?.verification ?? {}) as Record<string, unknown>
+      return {
+        record: {
+          entity_id: record.entity_id,
+          event_id: record.event_id,
+          formula_family: record.formula_family,
+          capability: record.capability,
+        },
+        verification: {
+          ready: verification.ready,
+        },
+      }
+    }),
+  }
+}
+
+/**
+ * Build plugin that avoids bundling multi-megabyte full JSON payloads into
+ * calculation/identity/qualification guards that only inspect a handful of fields.
+ */
+export function workerRuntimePayloadSlimming(): Plugin {
+  const virtualModules = new Map<string, string>()
+  let root = ''
+  return {
+    name: 'soda-worker-runtime-payload-slimming',
+    apply: 'build',
+    enforce: 'pre',
+    configResolved(config) {
+      root = config.root
+    },
+    buildStart() {
+      virtualModules.clear()
+    },
+    resolveId(source, importer) {
+      if (source.startsWith(workerSlimPrefix)) return source
+      if (!importer || source.includes('?') || !source.endsWith('.json')) return null
+      const cleanImporter = importer.split('?', 1)[0]
+      const importerBase = basename(cleanImporter)
+      const resolvedFile = resolve(dirname(cleanImporter), source)
+      if (
+        resolvedFile === resolve(root, encyclopediaFile) &&
+        workerEncyclopediaPinImporters.has(importerBase)
+      ) {
+        const id = `${workerSlimPrefix}encyclopedia-pins.js`
+        if (!virtualModules.has(id)) {
+          const parsed = JSON.parse(readFileSync(resolvedFile, 'utf8')) as Record<string, unknown>
+          virtualModules.set(
+            id,
+            `export default ${serialize(slimWorkerEncyclopediaPayload(parsed))};`,
+          )
+        }
+        this.addWatchFile(resolvedFile)
+        return id
+      }
+      if (
+        resolvedFile === resolve(root, planningEventSetFile) &&
+        importerBase === 'reviewedPlanningEventSetIdentity32.ts'
+      ) {
+        const id = `${workerSlimPrefix}planning-event-set-identity.js`
+        if (!virtualModules.has(id)) {
+          const parsed = JSON.parse(readFileSync(resolvedFile, 'utf8')) as Record<string, unknown>
+          virtualModules.set(
+            id,
+            `export default ${serialize(slimWorkerPlanningEventSetIdentityPayload(parsed))};`,
+          )
+        }
+        this.addWatchFile(resolvedFile)
+        return id
+      }
+      if (
+        resolvedFile === resolve(root, planningEventSetFile) &&
+        importerBase === 'reviewedPlanningEventSet32.ts'
+      ) {
+        const id = `${workerSlimPrefix}planning-event-set-qualification.js`
+        if (!virtualModules.has(id)) {
+          const parsed = JSON.parse(readFileSync(resolvedFile, 'utf8')) as Record<string, unknown>
+          virtualModules.set(
+            id,
+            `export default ${serialize(slimWorkerPlanningEventSetQualificationPayload(parsed))};`,
+          )
+        }
+        this.addWatchFile(resolvedFile)
+        return id
+      }
+      return null
+    },
+    load(id) {
+      return virtualModules.get(id) ?? null
+    },
+  }
+}
 
 /** Preserve JSON values and order while giving the bundler independently cacheable modules. */
 export function catalogModules(value: Record<string, unknown>, identity: string) {
@@ -80,7 +287,9 @@ export function evidenceModules(source: string) {
   }
 }
 
-export function catalogCodeSplitting(projectSource?: (source: string, file: string) => string): Plugin {
+export function catalogCodeSplitting(
+  projectSource?: (source: string, file: string) => string,
+): Plugin {
   const modules = new Map<string, string>()
   const entries = new Map<string, string>()
   let root = ''

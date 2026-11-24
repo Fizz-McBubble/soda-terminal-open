@@ -12,9 +12,7 @@ import {
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { getAgentName } from '../application/publicRosterNames'
 import type { TeamDeploymentOrder } from '../decision/teamDeployment'
-import type {
-  TeamExecutionPresentation,
-} from './teamExecutionPresentation'
+import type { TeamExecutionPresentation } from './teamExecutionPresentation'
 import type { TeamExecutionAttributePanel } from './teamExecutionAttributePanel'
 import { PublicTeamAttributeInspector } from './PublicTeamAttributeInspector'
 import type { TeamExecutionWorkspaceAlternate } from './TeamExecutionWorkspaceSurface'
@@ -61,8 +59,15 @@ export function PublicTeamExecutionPanel({
   const selectedMember =
     view.members.find((member) => member.agentId === selectedMemberId) ?? view.members[0]
 
-  const { selectedDiscId, selectedAttributeKey, matchedAttributeKeys, isDiscHighlighted,
-    handleDiscSelect, handleAttributeSelect, handleDeselect } = useTeamDiscAttributeLinkage(view, selectedMemberId, setSelectedMemberId)
+  const {
+    selectedDiscId,
+    selectedAttributeKey,
+    matchedAttributeKeys,
+    isDiscHighlighted,
+    handleDiscSelect,
+    handleAttributeSelect,
+    handleDeselect,
+  } = useTeamDiscAttributeLinkage(view, selectedMemberId, setSelectedMemberId)
   const currentCultivation = currentTeamCultivation(
     view.members.map((member) => member.agentId),
     warehouse.roster,
@@ -70,7 +75,8 @@ export function PublicTeamExecutionPanel({
   const expectedDiscCount = 18
   const completion = teamDiscCompletion(
     targetTeamFit?.memberIds ?? view.members.map((member) => member.agentId),
-    view.members, warehouse.discs,
+    view.members,
+    warehouse.discs,
   )
   const actualDiscCount = completion.matchedSlots
   const selection = targetTeamFit
@@ -285,7 +291,12 @@ export function PublicTeamExecutionPanel({
             )}
           </div>
         </div>
-        <div className="team-execution__workspace" id={`${headingId}-panel`} role="tabpanel" aria-labelledby={`${headingId}-${selectedMember.agentId}`}>
+        <div
+          className="team-execution__workspace"
+          id={`${headingId}-panel`}
+          role="tabpanel"
+          aria-labelledby={`${headingId}-${selectedMember.agentId}`}
+        >
           <div className="team-execution__main">
             <header className="team-execution__loadout-heading">
               <div>

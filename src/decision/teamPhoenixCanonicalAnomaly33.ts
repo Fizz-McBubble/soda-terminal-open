@@ -305,7 +305,8 @@ export function createStandardPhoenixCanonicalEvent33(input: {
     atSeconds: 0,
     skill: 'basic_purifying_flame',
     ...(!ordinary && attribute === 'fire'
-      ? { coefficientBasis: 'sinburn_fire_attack_coefficient' as const } : {}),
+      ? { coefficientBasis: 'sinburn_fire_attack_coefficient' as const }
+      : {}),
     skillLevel: phoenix.skillLevels.basic,
     phoenix: {
       coreLevel: phoenix.coreLevel,

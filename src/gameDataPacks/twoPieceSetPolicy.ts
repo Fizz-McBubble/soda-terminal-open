@@ -130,7 +130,8 @@ export function twoPieceRecommendationPriority(
   // Keep that reference in the source-bound target panel, and compare the
   // secondary effects here without an invented universal ATK switch point.
   if (id === 'agent-remielle' && (stat === 'atk_' || stat === 'anomProf')) {
-    const projected = projectedAttack === undefined ? '' : `换套后攻击约 ${projectedAttack.toFixed(0)}；`
+    const projected =
+      projectedAttack === undefined ? '' : `换套后攻击约 ${projectedAttack.toFixed(0)}；`
     const label = stat === 'atk_' ? '补攻击' : '补异常精通'
     return result(0, label, `${projected}${label}，按完整面板和副词条取舍。`)
   }

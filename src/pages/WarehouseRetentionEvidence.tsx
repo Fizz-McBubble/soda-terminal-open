@@ -146,13 +146,16 @@ function RetentionAgentDialog({
     window.addEventListener('scroll', onScroll, true)
     panelRef.current?.addEventListener('toggle', position, true)
     let resizeFrame: number | undefined
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => {
-      if (resizeFrame !== undefined) return
-      resizeFrame = window.requestAnimationFrame(() => {
-        resizeFrame = undefined
-        position()
-      })
-    })
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => {
+            if (resizeFrame !== undefined) return
+            resizeFrame = window.requestAnimationFrame(() => {
+              resizeFrame = undefined
+              position()
+            })
+          })
     if (panelRef.current && observer) {
       observer.observe(panelRef.current)
       Array.from(panelRef.current.children).forEach((child) => observer.observe(child))

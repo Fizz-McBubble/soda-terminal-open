@@ -48,9 +48,15 @@ export function compareTeamSystemRankingAuthority(
   left: (CurrentTeamSystemRanking & { graduatedScore?: GraduatedTeamScore }) | null | undefined,
   right: (CurrentTeamSystemRanking & { graduatedScore?: GraduatedTeamScore }) | null | undefined,
 ) {
-  const leftScore = left?.graduatedScore, rightScore = right?.graduatedScore
-  if (leftScore && rightScore && !leftScore.unconfirmedBuildAgentIds && !rightScore.unconfirmedBuildAgentIds &&
-      leftScore.standardIdentity === rightScore.standardIdentity)
+  const leftScore = left?.graduatedScore,
+    rightScore = right?.graduatedScore
+  if (
+    leftScore &&
+    rightScore &&
+    !leftScore.unconfirmedBuildAgentIds &&
+    !rightScore.unconfirmedBuildAgentIds &&
+    leftScore.standardIdentity === rightScore.standardIdentity
+  )
     return leftScore.orderGroup - rightScore.orderGroup
   if (left?.genericOrder || right?.genericOrder) {
     const a = left?.genericOrder

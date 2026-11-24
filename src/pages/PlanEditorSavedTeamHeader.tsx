@@ -38,7 +38,9 @@ export function PlanEditorSavedTeamHeader({
           <button type="button" className="button button--secondary" onClick={onReviewSavedRating}>
             读取当前评分
           </button>
-        ) : <span className="optimizer-plan__stale-state">已保存配装</span>}
+        ) : (
+          <span className="optimizer-plan__stale-state">已保存配装</span>
+        )}
         {deleteAction}
       </div>
     </header>

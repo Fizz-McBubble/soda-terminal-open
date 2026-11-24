@@ -83,7 +83,11 @@ export function TeamExecutionDiscCard({
       >
         <DevelopmentDiscCard
           disc={displayedDisc}
-          slotAction={disc.state === 'borrow' || disc.state === 'change' ? discStateLabel(disc.state) : undefined}
+          slotAction={
+            disc.state === 'borrow' || disc.state === 'change'
+              ? discStateLabel(disc.state)
+              : undefined
+          }
           conflictContext="equipment_or_plan"
           consumer="box.team-workspace"
         />

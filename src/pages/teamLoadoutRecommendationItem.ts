@@ -24,13 +24,18 @@ export function targetFitBangbooPresentation(
   const bangbooId = fit.effectiveEquipmentParameters?.bangbooId
   if (!bangbooId) return { deploymentOrder: fit.targetExecution.deploymentOrder }
   const selectedStars = fit.effectiveEquipmentParameters?.bangbooStars
-  const bangbooStars = typeof selectedStars === 'number' &&
+  const bangbooStars =
+    typeof selectedStars === 'number' &&
     Number.isInteger(selectedStars) &&
     selectedStars >= 1 &&
     selectedStars <= 5
-      ? selectedStars as 1 | 2 | 3 | 4 | 5
+      ? (selectedStars as 1 | 2 | 3 | 4 | 5)
       : undefined
-  const bangbooSuggestions = teamOverviewBangbooSuggestions(variant.agentIds, bangbooId, bangbooStars)
+  const bangbooSuggestions = teamOverviewBangbooSuggestions(
+    variant.agentIds,
+    bangbooId,
+    bangbooStars,
+  )
   return {
     bangbooId,
     bangbooStars,
@@ -38,7 +43,9 @@ export function targetFitBangbooPresentation(
     bangbooLabel: playerFacingBangbooLabel(bangbooId),
     bangbooReason: null,
     bangbooSuggestions,
-    bangbooAlternativeIds: bangbooSuggestions.filter(option => option.bangbooId !== bangbooId).map(option => option.bangbooId),
+    bangbooAlternativeIds: bangbooSuggestions
+      .filter((option) => option.bangbooId !== bangbooId)
+      .map((option) => option.bangbooId),
     bangbooAuthority: bangbooId === variant.bangbooId ? variant.bangbooAuthority : 'unknown',
     combatEvidence: reviewedTeamCombatEvidence(variant.agentIds, bangbooId),
   }
@@ -142,9 +149,15 @@ export function recommendationItem(
       : undefined
   // The fit route uses the same exact-trio shortlist when no source default was
   // bound. Fill the initial card from it without changing the candidate identity.
-  const bangbooOptions = authority?.authorComparisonMembership && !authority.authorComparisonMembership.independentDefaultAdmission
-    ? []
-    : teamOverviewBangbooSuggestions(recommendation.memberIds, sourceSchemeBangbooId, sourceSchemeBangbooStars)
+  const bangbooOptions =
+    authority?.authorComparisonMembership &&
+    !authority.authorComparisonMembership.independentDefaultAdmission
+      ? []
+      : teamOverviewBangbooSuggestions(
+          recommendation.memberIds,
+          sourceSchemeBangbooId,
+          sourceSchemeBangbooStars,
+        )
   const defaultOptions = sourceSchemeBangbooId ? [] : bangbooOptions
   const automaticBangbooId = defaultOptions[0]?.bangbooId ?? null
   const schemeBangbooId = sourceSchemeBangbooId ?? automaticBangbooId
@@ -217,7 +230,9 @@ export function recommendationItem(
     ...(schemeBangbooId === sourceSchemeBangbooId && sourceSchemeBangbooStars
       ? { bangbooStars: sourceSchemeBangbooStars }
       : {}),
-    bangbooAlternativeIds: bangbooOptions.filter(option => option.bangbooId !== schemeBangbooId).map(option => option.bangbooId),
+    bangbooAlternativeIds: bangbooOptions
+      .filter((option) => option.bangbooId !== schemeBangbooId)
+      .map((option) => option.bangbooId),
     bangbooSuggestions: bangbooOptions,
     bangbooLabel: schemeBangbooId ? playerFacingBangbooLabel(schemeBangbooId) : '邦布待确认',
     bangbooReason: schemeBangbooId
@@ -264,7 +279,7 @@ export function recommendationItem(
       teamSystemRanking?.graduatedScore?.band ??
       (hasCurrentReference ? (authority?.teamRating.ratingBand ?? null) : null),
     confidence: teamSystemRanking?.graduatedScore
-      ? teamSystemRanking.genericOrder?.confidence ?? null
+      ? (teamSystemRanking.genericOrder?.confidence ?? null)
       : hasCurrentReference
         ? (authority?.teamRating.confidence ?? null)
         : null,
@@ -290,7 +305,8 @@ export function recommendationItem(
     playDirection,
     authorityNextAction: authority?.cultivationPriority.nextAction ?? null,
     sourceConfirmed:
-      (!authority?.authorComparisonMembership || authority.authorComparisonMembership.independentDefaultAdmission === true) &&
+      (!authority?.authorComparisonMembership ||
+        authority.authorComparisonMembership.independentDefaultAdmission === true) &&
       !authority?.hasPreparedBenchmark32 &&
       authority?.mainstreamRecognition?.status === 'confirmed',
     ...(authority ? { defaultEligible: authority.defaultEligible } : {}),
@@ -300,7 +316,9 @@ export function recommendationItem(
       : {}),
     fallbackOnly: isReviewedFallbackTeam(recommendation.memberIds),
     sourceConditions:
-      (authority?.authorComparisonMembership?.independentDefaultAdmission ? undefined : authority?.authorComparisonMembership?.conditions) ??
+      (authority?.authorComparisonMembership?.independentDefaultAdmission
+        ? undefined
+        : authority?.authorComparisonMembership?.conditions) ??
       authority?.mainstreamRecognition?.conditions ??
       [],
     sourceBangbooOptionIds: authority?.mainstreamRecognition?.sourceBangbooOptionIds ?? [],

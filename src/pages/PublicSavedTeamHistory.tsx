@@ -23,7 +23,10 @@ export function PublicSavedTeamHistory({
   const assignedIds = new Set(loadouts.flatMap((loadout) => loadout.discIds))
   const unassignedRefs = plan.warehouseRefs.filter((id) => !assignedIds.has(id))
   return (
-    <section className="team-execution is-build" aria-label={verifying ? '已保存方案配装' : '历史保存方案配装'}>
+    <section
+      className="team-execution is-build"
+      aria-label={verifying ? '已保存方案配装' : '历史保存方案配装'}
+    >
       <header className="team-execution__header">
         {verifying ? (
           <>

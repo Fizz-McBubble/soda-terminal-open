@@ -24,7 +24,6 @@ export async function verifyTeamSaveChoice(
       !sameSavedTeam(current, memberIds, approved.solutionContext?.ratedTeamPlayId)
     )
       throw new Error('已保存方案发生变化，请重新保存并确认。')
-
   }
 }
 
@@ -43,7 +42,12 @@ export function useTeamSaveConfirmation() {
     resolve.current = null
     setTarget(null)
   }
-  const request = async (accountId: string, memberIds: readonly string[], preferredId?: string, playId?: string | null) => {
+  const request = async (
+    accountId: string,
+    memberIds: readonly string[],
+    preferredId?: string,
+    playId?: string | null,
+  ) => {
     const isCurrentPage = capturePageScope()
     const matches = (await listAccountPlanningDrafts(accountId)).filter((plan) =>
       sameSavedTeam(plan, memberIds, playId),

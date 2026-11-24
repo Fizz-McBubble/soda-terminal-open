@@ -33,24 +33,36 @@ describe('Nangong team candidate warehouse constraints', () => {
     (support) => {
       const memberIds = ['agent-miyabi', 'agent-nangong', support]
       const constraint = getCandidateWarehouseConstraintForTeam('agent-nangong', { memberIds })!
-      const astral = constraint.setPlans!.find(plan => plan.primarySetIds.includes('set-astral-voice'))!
-      const alternative = constraint.setPlans!.find(plan => plan.primarySetIds.includes('set-phaethons-melody'))!
+      const astral = constraint.setPlans!.find((plan) =>
+        plan.primarySetIds.includes('set-astral-voice'),
+      )!
+      const alternative = constraint.setPlans!.find((plan) =>
+        plan.primarySetIds.includes('set-phaethons-melody'),
+      )!
       const eligibility = evaluateCandidateSetPlanEligibility
       expect(astral).toMatchObject({
         condition: {
           sourceId: 'miyoushe-74153268-nangong-anomaly-support-astral-voice',
-          rule: { kind: 'teammate_specialty_and_action', specialties: ['anomaly'], action: 'team_quick_assist' },
+          rule: {
+            kind: 'teammate_specialty_and_action',
+            specialties: ['anomaly'],
+            action: 'team_quick_assist',
+          },
         },
       })
       expect(eligibility('agent-nangong', astral, { memberIds }).status).toBe('condition-unknown')
-      expect(eligibility('agent-nangong', astral, {
-        memberIds,
-        operationCoverage: { basis: 'final-candidate', teamQuickAssist: 'not-covered' },
-      }).status).toBe('condition-not-met')
-      expect(eligibility('agent-nangong', astral, {
-        memberIds,
-        operationCoverage: { basis: 'final-candidate', teamQuickAssist: 'verified' },
-      })).toMatchObject({ status: 'eligible', effectCoverage: 'unknown' })
+      expect(
+        eligibility('agent-nangong', astral, {
+          memberIds,
+          operationCoverage: { basis: 'final-candidate', teamQuickAssist: 'not-covered' },
+        }).status,
+      ).toBe('condition-not-met')
+      expect(
+        eligibility('agent-nangong', astral, {
+          memberIds,
+          operationCoverage: { basis: 'final-candidate', teamQuickAssist: 'verified' },
+        }),
+      ).toMatchObject({ status: 'eligible', effectCoverage: 'unknown' })
       expect(eligibility('agent-nangong', alternative, { memberIds }).status).toBe('unrestricted')
     },
   )

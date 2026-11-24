@@ -110,7 +110,8 @@ export function createAgentDevelopmentPanelProjection(input: {
       '所选配装需要六张不同部位的有效驱动盘；请检查盘片引用或重新匹配。',
       input.agent.agentId,
     )
-  const schemeEngine = input.planDiscIds != null && input.candidateDiscIds == null ? input.planWEngine : undefined
+  const schemeEngine =
+    input.planDiscIds != null && input.candidateDiscIds == null ? input.planWEngine : undefined
   const engine = schemeEngine ?? input.agent.wEngineDetails
   if (!engine.id) {
     return unsupported(
@@ -129,11 +130,7 @@ export function createAgentDevelopmentPanelProjection(input: {
       input.agent.agentId,
     )
   }
-  if (
-    input.agent.skillLevels?.core == null ||
-    !engine.id ||
-    engine.refinement === null
-  ) {
+  if (input.agent.skillLevels?.core == null || !engine.id || engine.refinement === null) {
     return unsupported(
       source,
       '缺少核心技、已选音擎或改装事实，不能猜测面板输入。',
@@ -154,11 +151,7 @@ export function createAgentDevelopmentPanelProjection(input: {
       input.agent.agentId,
     )
   const agentAscension = resolveRecordedAscension(input.agent.level, input.agent.ascension)
-  const engineAscension = resolveRecordedAscension(
-    engine.level,
-    engine.ascension,
-    true,
-  )
+  const engineAscension = resolveRecordedAscension(engine.level, engine.ascension, true)
   if (agentAscension === undefined || engineAscension === undefined) {
     return unsupported(
       source,

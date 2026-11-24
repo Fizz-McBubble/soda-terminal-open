@@ -31,7 +31,11 @@ export function PlanEditorSavedStateNotices({
           role="status"
           aria-label={currentSavedDiscScore ? '原盘当前评分说明' : '已保存方案重新匹配'}
         >
-          <p>{currentSavedDiscScore ? '已按最新资料重算原18张驱动盘，历史记录保持原样。' : staleNotice}</p>
+          <p>
+            {currentSavedDiscScore
+              ? '已按最新资料重算原18张驱动盘，历史记录保持原样。'
+              : staleNotice}
+          </p>
           {!currentSavedDiscScore ? (
             <button className="button button--secondary" type="button" onClick={reanalyze}>
               重新匹配当前队伍

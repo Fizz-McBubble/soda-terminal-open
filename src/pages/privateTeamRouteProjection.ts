@@ -3,9 +3,7 @@ import type { AccountDecisionRun } from '../application/calculationQueryContract
 import { currentBangbooDirectory } from '../assault/catalog'
 import { defaultEquipmentRankForRarity } from '../decision/teamEquipmentRecommendations'
 import { describeBangbooConditions } from '../decision/bangbooConditionPresentation'
-import {
-  playerConfirmableTargetBangbooIds,
-} from '../decision/targetTeamEquipmentParameters'
+import { playerConfirmableTargetBangbooIds } from '../decision/targetTeamEquipmentParameters'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { displayableLocalAnalysis, localAnalysisRatingLabel } from './teamLocalAnalysisPresentation'
 import { decisionTeamAlternativeVariants, teamRatingSummary } from './teamLoadoutDecisionViewModel'
@@ -62,10 +60,12 @@ export function projectPrivateTeamRoute(
     ? [...new Set(playerConfirmableTargetBangbooIds(input))].map((bangbooId) => {
         const directory = currentBangbooDirectory.find((item) => item.id === bangbooId)
         const sourceOption = sourceOptions.find((option) => option.bangbooId === bangbooId)
-        const defaultStars = sourceOption?.defaultStars ?? defaultEquipmentRankForRarity(directory?.rarity)
+        const defaultStars =
+          sourceOption?.defaultStars ?? defaultEquipmentRankForRarity(directory?.rarity)
         const activationDetailsByStars = Object.fromEntries(
-          ([1, 2, 3, 4, 5] as const).map(stars => [
-            stars, describeBangbooConditions({ memberIds: input.memberIds, bangbooId, stars }),
+          ([1, 2, 3, 4, 5] as const).map((stars) => [
+            stars,
+            describeBangbooConditions({ memberIds: input.memberIds, bangbooId, stars }),
           ]),
         )
         return {
@@ -85,7 +85,8 @@ export function projectPrivateTeamRoute(
     candidateId,
     team,
     targetCandidateId: entry.targetCandidateId,
-    ...(entry.authorityCandidate?.authorComparisonMembership && !entry.authorityCandidate.authorComparisonMembership.independentDefaultAdmission
+    ...(entry.authorityCandidate?.authorComparisonMembership &&
+    !entry.authorityCandidate.authorComparisonMembership.independentDefaultAdmission
       ? { discOnlyCandidate: true as const }
       : {}),
     automaticBangboo: entry.automaticBangboo

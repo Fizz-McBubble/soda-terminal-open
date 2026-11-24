@@ -45,10 +45,7 @@ function playerFacingBangbooReason(value: string) {
         )
         .replace(/^待触发条件：(.+?)[；;]$/u, '触发条件：$1。')
         .replace(/(\d)星可激活额外能力[；;]/gu, '$1星可激活额外能力：')
-        .replace(
-          /^本队未激活额外能力[；;]/u,
-          '当前队伍未满足额外能力条件；基础技能仍可使用：',
-        )
+        .replace(/^本队未激活额外能力[；;]/u, '当前队伍未满足额外能力条件；基础技能仍可使用：')
         .replace(/，收益取决于.*(?:能量缺口|接收|拾取|触发)[。]$/u, '。')
       return translated ? [translated] : []
     })

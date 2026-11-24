@@ -25,6 +25,7 @@ import {
   WEngineVisual,
   MissingTeamDiscsNotice,
 } from './teamExecutionWorkspaceParts'
+import { TeamExecutionAllMembersView } from './TeamExecutionAllMembersView'
 import {
   equipmentParameterSelection,
   TeamSchemeBangbooControl,
@@ -62,8 +63,15 @@ export function TeamExecutionWorkspaceSurface({
   const selectedMember =
     view.members.find((member) => member.agentId === selectedMemberId) ?? view.members[0]
 
-  const { selectedDiscId, selectedAttributeKey, matchedAttributeKeys, isDiscHighlighted,
-    handleDiscSelect, handleAttributeSelect, handleDeselect } = useTeamDiscAttributeLinkage(view, selectedMemberId, setSelectedMemberId)
+  const {
+    selectedDiscId,
+    selectedAttributeKey,
+    matchedAttributeKeys,
+    isDiscHighlighted,
+    handleDiscSelect,
+    handleAttributeSelect,
+    handleDeselect,
+  } = useTeamDiscAttributeLinkage(view, selectedMemberId, setSelectedMemberId)
   const currentCultivation = currentTeamCultivation(
     view.members.map((member) => member.agentId),
     warehouse.roster,
@@ -79,7 +87,8 @@ export function TeamExecutionWorkspaceSurface({
   const expectedDiscCount = 18
   const completion = teamDiscCompletion(
     targetTeamFit?.memberIds ?? view.members.map((member) => member.agentId),
-    view.members, warehouse.discs,
+    view.members,
+    warehouse.discs,
   )
   const displayedDiscCount = completion.matchedSlots
   const hasCompleteTeamLoadout = completion.complete
@@ -117,14 +126,16 @@ export function TeamExecutionWorkspaceSurface({
       ? createTeamExecutionAttributePanel({
           agent: selectedAccountAgent,
           member: selectedExecutionMember,
-          equippedDiscIds: readOnly ? selectedAccountAgent.equippedDiscIds ?? [] : undefined,
+          equippedDiscIds: readOnly ? (selectedAccountAgent.equippedDiscIds ?? []) : undefined,
           discs: warehouse.discs,
           wEngines: warehouse.roster.wEngines,
           memberIds: view.members.map((member) => member.agentId),
           buildDirectionConditions: targetTeamBuildDirectionConditions({
             memberIds: view.members.map((member) => member.agentId),
             roster: warehouse.roster,
-            potentialByAgentId: targetTeamFit?.effectiveEquipmentParameters?.potentialByAgentId ?? savedPotentialByAgentId,
+            potentialByAgentId:
+              targetTeamFit?.effectiveEquipmentParameters?.potentialByAgentId ??
+              savedPotentialByAgentId,
           }),
         })
       : null
@@ -422,77 +433,27 @@ export function TeamExecutionWorkspaceSurface({
               <MissingTeamDiscsNotice count={selectedMember.missingDiscIds.length} />
             </article>
           ) : (
-            <div className="team-execution__all-members" aria-label="全队驱动盘配装">
-              <header className="team-execution__loadout-heading">
-                <div>
-                  <h2 ref={loadoutHeadingRef} id={headingId} tabIndex={-1}>
-                    全队配装
-                  </h2>
-                  {hasCompleteTeamLoadout ? null : <p id={descriptionId}>{loadoutProgressLabel}</p>}
-                </div>
-                <div className="team-execution__view-toggle" role="group" aria-label="完整配装视图">
-                  <button
-                    type="button"
-                    aria-pressed={false}
-                    onClick={() => setLoadoutView('member')}
-                  >
-                    当前角色
-                  </button>
-                  <button type="button" aria-pressed onClick={() => setLoadoutView('team')}>
-                    全队驱动盘<span aria-hidden="true"> · {expectedDiscCount}槽</span>
-                  </button>
-                </div>
-              </header>
-              {view.members.map((member) => (
-                <article key={member.agentId}>
-                  <header>
-                    <div className="team-execution__all-member-identity">
-                      <TeamMemberVisual
-                        agentId={member.agentId}
-                        name={member.agentName}
-                        className="team-execution__all-member-avatar"
-                      />
-                      <h4>{member.agentName}</h4>
-                    </div>
-                    <div className="team-execution__all-member-engine">
-                      <WEngineVisual
-                        className="team-execution__all-member-engine-visual"
-                        engineId={member.suggestedWEngineId}
-                        name={member.suggestedWEngineLabel}
-                      />
-                      <span>{member.suggestedWEngineLabel}</span>
-                    </div>
-                    <button
-                      className="team-execution__member-detail-action"
-                      type="button"
-                      onClick={() => {
-                        setSelectedMemberId(member.agentId)
-                        setLoadoutView('member')
-                        handleDeselect()
-                      }}
-                    >
-                      查看角色配装
-                    </button>
-                  </header>
-                  {member.discFacts.length > 0 ? (
-                    <ol aria-label={`${member.agentName}的六张驱动盘`}>
-                      {member.discFacts.map((disc) => (
-                        <TeamExecutionDiscCard
-                          condensed
-                          disc={disc}
-                          key={disc.id}
-                          selected={selectedDiscId === disc.id}
-                          highlighted={isDiscHighlighted(disc, member.agentId)}
-                          onSelect={() => handleDiscSelect(disc, member.agentId)}
-                          onDeselect={handleDeselect}
-                        />
-                      ))}
-                    </ol>
-                  ) : null}
-                  <MissingTeamDiscsNotice count={member.missingDiscIds.length} />
-                </article>
-              ))}
-            </div>
+            <TeamExecutionAllMembersView
+              view={view}
+              headingId={headingId}
+              descriptionId={descriptionId}
+              loadoutHeadingRef={loadoutHeadingRef}
+              hasCompleteTeamLoadout={hasCompleteTeamLoadout}
+              loadoutProgressLabel={loadoutProgressLabel}
+              expectedDiscCount={expectedDiscCount}
+              selectedDiscId={selectedDiscId}
+              isDiscHighlighted={isDiscHighlighted}
+              onSelectDisc={handleDiscSelect}
+              onDeselect={handleDeselect}
+              onSelectMemberView={(memberId) => {
+                if (memberId) {
+                  setSelectedMemberId(memberId)
+                  handleDeselect()
+                }
+                setLoadoutView('member')
+              }}
+              onSelectTeamView={() => setLoadoutView('team')}
+            />
           )}
           <TeamExecutionAttributeInspector
             accountId={warehouse.accountId ?? undefined}

@@ -3,7 +3,7 @@ import { currentSavedTeamBuildIntents } from './savedTeamBuildIntent'
 import { enumerateActiveTeamHardConstraints } from '../accounts/teamPortfolioPreference'
 import { currentBangbooDirectory } from '../assault/catalog'
 import { contentHash } from '../evaluation/contentHash'
-import { currentDataAuthorityProjection } from '../gameDataPacks/currentDataAuthorityProjection'
+import { currentDataAuthorityId } from '../gameDataPacks/currentDataAuthorityIdentity'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { type AccountBuildResult, optimizeAccountBuilds } from '../optimizer/optimizeAccountBuilds'
 import { analyzeAccountWarehouse } from '../warehouse/discWarehouseAnalysis'
@@ -35,7 +35,7 @@ import {
 import { assemblePlanningCandidateEvaluations } from './planningCandidateEvaluationAssembler'
 import { projectAccountPlanningEvaluations } from './accountDecisionPlanningEvaluationProjection'
 import { current31CandidateUniverseAudit } from '../teamEngine/current31CandidateUniverseAudit'
-import { projectCurrent31ProductionDecisionUniverse } from './exhaustiveAccountCandidateScoring'
+import { projectCurrent31ProductionDecisionUniverse } from './productionDecisionUniverse'
 import { projectAccountDecisionAuthority } from './accountDecisionAuthority'
 import { FullTeamIndexesRequired, ownedAdmittedBoxFormations } from './currentBoxTeamAdmission'
 import { usesTeamStartupIntrinsicIndex } from './current31TeamIntrinsicIndex'
@@ -413,7 +413,7 @@ export function buildAccountDecisionSnapshot({
       packageVersion: currentVersionProjection.packageVersion,
       lifecycle: currentVersionProjection.lifecycle,
       fieldBoundary: currentVersionProjection.fieldBoundary,
-      authorityId: currentDataAuthorityProjection.authorityId,
+      authorityId: currentDataAuthorityId,
     },
     fingerprint,
     warehouse: warehouseAnalysis,

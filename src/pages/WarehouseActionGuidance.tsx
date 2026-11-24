@@ -42,7 +42,11 @@ export function WarehouseActionNextStep({
           <strong>继续观察</strong>
         </div>
         <p>先保留，暂不继续强化。</p>
-        {onReanalyze ? <button className="button button--primary" type="button" onClick={onReanalyze}>重新分析</button> : null}
+        {onReanalyze ? (
+          <button className="button button--primary" type="button" onClick={onReanalyze}>
+            重新分析
+          </button>
+        ) : null}
       </section>
     )
   const nextStepLabel =

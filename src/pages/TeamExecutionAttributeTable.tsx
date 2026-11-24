@@ -43,7 +43,9 @@ export function TeamExecutionAttributeTable({
           selectedKey && (row.key === selectedKey || row.label === selectedKey),
         )
         const rowKey = row.key ?? row.label
-        const isInteractive = Boolean(onSelectRow && getStatKeysForAttributeKeyOrLabel(rowKey).length)
+        const isInteractive = Boolean(
+          onSelectRow && getStatKeysForAttributeKeyOrLabel(rowKey).length,
+        )
         return (
           <div
             className={`team-execution__attribute-row${row.isPriority ? ' is-priority' : ''}${
@@ -73,12 +75,12 @@ export function TeamExecutionAttributeTable({
                 >
                   {row.label}
                 </button>
-              ) : row.label}
+              ) : (
+                row.label
+              )}
             </strong>
             {showAccount ? (
-              <span role="cell">
-                {row.outOfCombatStatus === 'missing' ? '—' : row.outOfCombat}
-              </span>
+              <span role="cell">{row.outOfCombatStatus === 'missing' ? '—' : row.outOfCombat}</span>
             ) : null}
             <span
               role="cell"

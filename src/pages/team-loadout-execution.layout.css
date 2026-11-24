@@ -378,7 +378,8 @@
 .team-execution__view-toggle button[aria-pressed='true'] {
   border-color: color-mix(in srgb, var(--soda-accent) 48%, var(--soda-line));
   color: var(--soda-surface);
-  background: linear-gradient(116deg, transparent 76%, rgb(255 255 255 / 12%) 76%), var(--soda-accent-ink);
+  background:
+    linear-gradient(116deg, transparent 76%, rgb(255 255 255 / 12%) 76%), var(--soda-accent-ink);
   box-shadow: 0 1px 2px rgb(54 40 85 / 8%);
 }
 

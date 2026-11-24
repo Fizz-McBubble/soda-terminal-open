@@ -92,7 +92,13 @@ export type WarehouseActionItem = {
   retentionAgentIds?: string[]
   usageAgentIds: string[]
   affectedAgentIds: string[]
-  affectedPlans: Array<{ id: string; name: string; memberIds?: string[]; state: 'draft' | 'saved'; active: boolean }>
+  affectedPlans: Array<{
+    id: string
+    name: string
+    memberIds?: string[]
+    state: 'draft' | 'saved'
+    active: boolean
+  }>
   affectedTeams: Array<{
     /** Stable saved-plan key. Older projections only carried the solver candidate. */
     planId?: string

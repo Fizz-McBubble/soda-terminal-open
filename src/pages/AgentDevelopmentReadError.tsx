@@ -13,11 +13,7 @@ export function AgentDevelopmentReadError({
     <section className="panel" role="alert">
       <h1>暂时无法读取养成资料</h1>
       <p>{playerErrorMessage(message, '当前养成资料未能载入。')}</p>
-      <p>
-        {onRetry
-          ? '请重试更新。'
-          : '请重新加载后再试。'}
-      </p>
+      <p>{onRetry ? '请重试更新。' : '请重新加载后再试。'}</p>
       <div className="app-recovery-actions">
         {onRetry ? (
           <button className="button button--primary" type="button" onClick={onRetry}>

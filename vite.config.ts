@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import type { Connect, Plugin } from 'vite'
-import { catalogCodeSplitting } from './build/catalogCodeSplitting'
+import { catalogCodeSplitting, workerRuntimePayloadSlimming } from './build/catalogCodeSplitting'
 import { boxStartupIndexAliases } from './build/boxStartupIndexAliases'
 import { communityConsumerPolicySourceHashes } from './build/communityConsumerPolicySourceHashes.mjs'
 import { scannerReleaseManifests } from './build/scannerReleaseManifests.mjs'
@@ -267,6 +267,7 @@ export default defineConfig({
     // projection there or large guide catalogs can bypass the public locator scrub.
     plugins: () => [
       communityConsumerPolicySourceHashes(),
+      workerRuntimePayloadSlimming(),
       ...(process.env.VITE_SODA_COMMUNITY_BUILD === 'true'
         ? [
             boxStartupIndexAliases(),
@@ -327,6 +328,36 @@ export default defineConfig({
                     priority: 25,
                   },
                   {
+                    name: 'worker-planning-event-set32',
+                    test: /[/\\]gameDataPacks[/\\]data[/\\]reviewed-planning-event-set32\.v1\.json$/u,
+                    priority: 30,
+                  },
+                  {
+                    name: 'worker-box-formation-ranks',
+                    test: /[/\\]gameDataPacks[/\\]generated[/\\]box-default-formation-ranks\.3\.3\.json$/u,
+                    priority: 30,
+                  },
+                  {
+                    name: 'worker-team-bangboo',
+                    test: /[/\\]gameDataPacks[/\\]generated[/\\]team-bangboo-overview\.3\.3\.json$/u,
+                    priority: 30,
+                  },
+                  {
+                    name: 'worker-team-directions',
+                    test: /soda-catalog:reviewed-team-(?:image|nested)-directions|[/\\]gameDataPacks[/\\]data[/\\]reviewed-team-(?:image|nested|direction-reuse)/u,
+                    priority: 25,
+                  },
+                  {
+                    name: 'worker-agent-dev-evidence',
+                    test: /soda-catalog:agent-development-evidence|[/\\]agentDevelopmentEvidence\.ts$/u,
+                    priority: 25,
+                  },
+                  {
+                    name: 'worker-agent-mechanics',
+                    test: /soda-catalog:current-agent-(?:decision-)?mechanic-catalog|[/\\]current-agent-(?:decision-)?mechanic-catalog\.v1\.json$/u,
+                    priority: 25,
+                  },
+                  {
                     name: 'worker-calculation',
                     test: /[/\\]src[/\\]calculation[/\\]/,
                     priority: 20,
@@ -346,6 +377,7 @@ export default defineConfig({
       },
     },
     communityConsumerPolicySourceHashes(),
+    workerRuntimePayloadSlimming(),
     communitySourceProjectionPlugin(),
     react(),
     publicEntryPlugin(),

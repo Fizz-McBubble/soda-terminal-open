@@ -19,9 +19,12 @@ import '../team-loadout-journey.css'
 
 const Editor = lazy(() => import('./SavedPlan').then((module) => ({ default: module.SavedPlan })))
 
-const SavedPanel = import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
-  ? null
-  : lazy(() => import('./SavedPlanPanelView').then(module => ({ default: module.SavedPlanPanelView })))
+const SavedPanel =
+  import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
+    ? null
+    : lazy(() =>
+        import('./SavedPlanPanelView').then((module) => ({ default: module.SavedPlanPanelView })),
+      )
 
 export function SavedPlanRoute() {
   const { planId = '' } = useParams()

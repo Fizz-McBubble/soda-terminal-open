@@ -204,12 +204,18 @@ describe('source-bound contextual target panel', () => {
     expect(target.conditions.join()).toContain('不作为当前初始暴击目标')
     expect(target.value).not.toHaveProperty('critRate')
     const signature = getCurrentBuildTargetPanel('agent-claret', {
-      coreLevel: 7, engineId: 'wengine-14161', engineRefinement: 1, agentLevel: 60,
+      coreLevel: 7,
+      engineId: 'wengine-14161',
+      engineRefinement: 1,
+      agentLevel: 60,
     })!
     expect(signature.value).toHaveProperty('critRate.min', 128.9)
     expect(signature.value).toHaveProperty('cultivationReference.keys', ['def', 'critRate'])
     const otherRefinement = getCurrentBuildTargetPanel('agent-claret', {
-      coreLevel: 7, engineId: 'wengine-14161', engineRefinement: 2, agentLevel: 60,
+      coreLevel: 7,
+      engineId: 'wengine-14161',
+      engineRefinement: 2,
+      agentLevel: 60,
     })!
     expect(otherRefinement.value).not.toHaveProperty('critRate')
   })

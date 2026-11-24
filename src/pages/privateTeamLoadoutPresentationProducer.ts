@@ -18,11 +18,14 @@ import { targetTeamBuildDirectionConditions } from '../application/targetTeamEff
 type OverviewSource = Pick<AccountDecisionRun, 'runId' | 'input' | 'snapshot'>
 // Each immutable analysis run keeps only its latest filter context. Solving another
 // variant changes its 18 discs, while the community order and roster stay the same.
-const baseOverviews = new WeakMap<AccountDecisionRun, {
-  source: OverviewSource | undefined
-  contextKey: string
-  model: ReturnType<typeof buildTeamLoadoutOverviewModel>
-}>()
+const baseOverviews = new WeakMap<
+  AccountDecisionRun,
+  {
+    source: OverviewSource | undefined
+    contextKey: string
+    model: ReturnType<typeof buildTeamLoadoutOverviewModel>
+  }
+>()
 
 /** Private Query producer. The browser consumes only its serialized result. */
 export function projectPrivateTeamOverview(

@@ -1,6 +1,7 @@
 import rawGameData from '../data/game-data.json'
 import rawDriveDiscData from '../data/drive-disc-data.v1.json'
 import { buildKnowledge30Formal, rotation30Formal, visualCatalog30Formal } from './baseline'
+import { currentDataAuthorityId } from './currentDataAuthorityIdentity'
 import { currentVersionProjection } from './currentVersionProjection'
 import { graduationCandidateProfileProjectionIdentity } from './graduationCandidateProfileProjection'
 import { l3BoxTeamTemplateProjectionIdentity } from './l3BoxTeamTemplateProjection'
@@ -66,7 +67,7 @@ import {
  */
 export const currentDataAuthorityProjection = {
   schema: 'soda-current-data-authority/v1',
-  authorityId: 'pc2-data1-current-authority-r1',
+  authorityId: currentDataAuthorityId,
   currentVersion: currentVersionProjection,
   versionGate: {
     authorityId: currentFieldAuthority.id,

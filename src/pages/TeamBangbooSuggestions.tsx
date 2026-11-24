@@ -71,9 +71,10 @@ export function TeamBangbooSuggestions({
               ? selectedBangbooLabel
               : playerFacingBangbooLabel(bangbooId)
           const isSelected = bangbooId === selectedBangbooId
-          const actualStars = isSelected && selectedBangbooStarLabel === '方案'
-            ? selectedBangbooStars
-            : accountStarsById?.[bangbooId] ?? (isSelected ? selectedBangbooStars : undefined)
+          const actualStars =
+            isSelected && selectedBangbooStarLabel === '方案'
+              ? selectedBangbooStars
+              : (accountStarsById?.[bangbooId] ?? (isSelected ? selectedBangbooStars : undefined))
           const explanationStars = actualStars || defaultStars
           const baseSkillLevel = bangbooBaseSkillLevelForStars(explanationStars)
           const details =

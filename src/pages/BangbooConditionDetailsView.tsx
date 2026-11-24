@@ -8,7 +8,9 @@ export function BangbooConditionDetailsView({
 }: {
   condition: BangbooConditionPresentation
 }) {
-  const purpose = formatBangbooCardDisplay({ recommendationReason: condition.purposeSummary }).fullReason
+  const purpose = formatBangbooCardDisplay({
+    recommendationReason: condition.purposeSummary,
+  }).fullReason
   return (
     <div className="team-execution__bangboo-conditions" aria-live="polite">
       <div className="team-execution__bangboo-status-row">

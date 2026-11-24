@@ -45,7 +45,8 @@ describe('quick-read A/B records', () => {
       if (failure === 'uid') lower.uid = input.assets.discs[0].uid
       if (failure === 'level') lower.level = omitted() as unknown as typeof lower.level
       if (failure === 'base')
-        lower.substats[0].base_value = omitted() as unknown as (typeof lower.substats)[0]['base_value']
+        lower.substats[0].base_value =
+          omitted() as unknown as (typeof lower.substats)[0]['base_value']
       if (failure === 'add') lower.substats[0].add_value = present(0)
       if (failure === 'duplicate') lower.substats[1].key = lower.substats[0].key
       if (failure === 'main') lower.main_stat.key = lower.substats[0].key

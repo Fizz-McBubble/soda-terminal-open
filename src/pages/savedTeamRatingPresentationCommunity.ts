@@ -1,7 +1,10 @@
 import type { AccountPlanningDraft } from '../accounts/types'
 import { savedTeamRatedPlayId } from '../accounts/savedTeamRatingPlayIdentity'
 import { publicVersionIdentity } from '../application/publicVersionIdentity'
-import { lookupGraduatedTeamDefaultPlay, lookupGraduatedTeamScore } from '../decision/graduatedTeamScoreIndex'
+import {
+  lookupGraduatedTeamDefaultPlay,
+  lookupGraduatedTeamScore,
+} from '../decision/graduatedTeamScoreIndex'
 import scores from '../gameDataPacks/generated/graduated-team-scores.v1.json'
 import { formatGraduatedTeamScore } from './teamRatingText'
 
@@ -25,11 +28,18 @@ export function communitySavedTeamRatingLabel(plan: AccountPlanningDraft) {
     new Set(members).size !== 3 ||
     snapshotMembers?.length !== 3 ||
     [...snapshotMembers].sort().join('|') !== key
-  ) return null
+  )
+    return null
 
   const catalogHash = scores.catalogHash
-  const playId = plan.solutionContext.ratedTeamPlayId !== undefined ? savedTeamRatedPlayId(plan)
-    : playCounts.get(key) === 1 ? lookupGraduatedTeamDefaultPlay(members, catalogHash, version) : null
-  const score = playId && lookupGraduatedTeamScore({ catalogHash, gameVersion: version, memberIds: members, playId })
+  const playId =
+    plan.solutionContext.ratedTeamPlayId !== undefined
+      ? savedTeamRatedPlayId(plan)
+      : playCounts.get(key) === 1
+        ? lookupGraduatedTeamDefaultPlay(members, catalogHash, version)
+        : null
+  const score =
+    playId &&
+    lookupGraduatedTeamScore({ catalogHash, gameVersion: version, memberIds: members, playId })
   return score ? formatGraduatedTeamScore(score) : null
 }

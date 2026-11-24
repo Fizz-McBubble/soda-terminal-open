@@ -79,6 +79,7 @@ export const currentVitest = [
   'src/motion/useTeamSelectionMotion.test.ts',
   'src/optimizer/candidateEffectiveCritObjective.unknown.test.ts',
   'src/pages/TeamLoadoutDecisionSummary.test.tsx',
+  'src/pages/teamRotationSummaryPresentation.test.tsx',
   'src/pages/TeamLoadoutExperience.test.tsx',
   'src/pages/agentDevelopmentWorkbenchViewModel.training.test.ts',
   'src/pages/batch4RetentionUses.test.tsx',
@@ -1387,6 +1388,9 @@ export const currentNodeTests = [
   'scripts/release-test-census.test.mjs',
   'scripts/scanner-native-wiring.test.mjs',
   'scripts/scanner-runtime-diagnostics.test.mjs',
+  'scripts/identity-layers.test.mjs',
+  'scripts/materialize-team-rotation-summaries.test.mjs',
+  'scripts/team-kodie-reversal-policies.test.mjs',
 ]
 
 // These suites require the pinned team-score archive. Their precise recordings,

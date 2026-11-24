@@ -21,7 +21,10 @@ import {
 } from './accountDecisionBands'
 import { exactMemberIds } from './accountDecisionOrdering'
 import type { projectOutputPotentialBands } from './outputPotentialBand'
-import { lookupCurrent31TeamIntrinsicSummary, lookupCurrent31TeamIntrinsicDetails } from './current31TeamIntrinsicIndex'
+import {
+  lookupCurrent31TeamIntrinsicSummary,
+  lookupCurrent31TeamIntrinsicDetails,
+} from './current31TeamIntrinsicIndex'
 import { selectSavedDefaultTeamAdmissionPlay } from './defaultTeamAdmissionPlay'
 import { preparedBoxFormationRanking } from './preparedBoxFormationRanking'
 import {
@@ -159,13 +162,24 @@ export function projectAccountIntrinsicCandidates(input: {
     const memberIds = exactMemberIds(candidate)
     // The intrinsic cohort is ranked by the artifact's bound default play.
     // The selected play is checked again when the recommendation is projected.
-    let systemRanking = input.mode === 'indexed'
-      ? preparedBoxFormationRanking(memberIds, currentGenericTeamRankingStatus.contentHash)
-      : undefined
+    let systemRanking =
+      input.mode === 'indexed'
+        ? preparedBoxFormationRanking(memberIds, currentGenericTeamRankingStatus.contentHash)
+        : undefined
     if (systemRanking === undefined) {
-      const direction = lookupCurrent31TeamIntrinsicDetails(memberIds, candidate.candidateId)?.mechanismDirection
-      const defaultPlay = direction && selectSavedDefaultTeamAdmissionPlay(memberIds, direction, currentGenericTeamRankingStatus.contentHash)
-      systemRanking = (defaultPlay && lookupCurrentGenericTeamRankingForPlay(memberIds, defaultPlay)) ||
+      const direction = lookupCurrent31TeamIntrinsicDetails(
+        memberIds,
+        candidate.candidateId,
+      )?.mechanismDirection
+      const defaultPlay =
+        direction &&
+        selectSavedDefaultTeamAdmissionPlay(
+          memberIds,
+          direction,
+          currentGenericTeamRankingStatus.contentHash,
+        )
+      systemRanking =
+        (defaultPlay && lookupCurrentGenericTeamRankingForPlay(memberIds, defaultPlay)) ||
         lookupCurrentTeamSystemRanking(memberIds)
     }
     const output = outputById.get(candidate.candidateId)

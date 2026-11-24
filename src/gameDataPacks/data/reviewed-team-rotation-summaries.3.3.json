@@ -670,6 +670,1734 @@
         "policySha256": "1d2be4ba7aa9bca50f0cdcc320003b971527895d5cac5a66d3754f60fca9f3b4",
         "sourceUrl": "https://www.reddit.com/r/ZZZ_Discussion/comments/1nbmhpc"
       }
+    },
+    {
+      "playId": "sha256:9897f6d7cb51e1dbbdd1301ccbd4ecaf99ce7a383337bdcc2ed7dd734d516f79",
+      "memberIds": [
+        "agent-promeia",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔放强化特殊技铺场，切普罗米娅普攻衔接强化特殊技，再切维琳娜补风异常。",
+      "handoff": "蕾米埃尔强化特殊技与支援效果后交普罗米娅站场；维琳娜打完强化特殊技挂风异常后切回普罗米娅。",
+      "loop": "普罗米娅以普攻接强化特殊技持续打异常与异放；维琳娜轮换强化特殊技续风异常，蕾米埃尔补强化特殊技与支援维持增益。",
+      "burst": "敌人失衡后优先让普罗米娅接连携；喧响就绪时依次衔接蕾米埃尔、普罗米娅与维琳娜终结技打满异放窗口。",
+      "evidence": {
+        "axisSha256": "8a7fea69cddd9a19fc656d64f5db984c26ad7c6a969cb617a51face0c908cfd2",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "a0a4e11fdd8082ff87143c09104e5f54bb42a9e34c781d692ebd09b1dc7fc05b"
+      }
+    },
+    {
+      "playId": "sha256:6155db5f08c9e4909836902b20b5c1e9f322355b14a90b2f32baa66560435e18",
+      "memberIds": [
+        "agent-promeia",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "蕾米埃尔与柚叶先用普攻攒能，蕾米埃尔强化特殊技起手，普罗米娅普攻接强化特殊技，柚叶再补强化特殊技给增益。",
+      "handoff": "蕾米埃尔与柚叶各自释放强化特殊技后均迅速交回普罗米娅，由普罗米娅吃满双支援增益站场。",
+      "loop": "普罗米娅以普攻高频衔接强化特殊技与寒蚀招式；柚叶与蕾米埃尔按节奏补强化特殊技与支援维持全队增益。",
+      "burst": "敌人失衡或双支援增益齐全时，集中释放普罗米娅与蕾米埃尔终结技，衔接普罗米娅强化特殊技收尾。",
+      "evidence": {
+        "axisSha256": "c03c965b4344932981bf1b5129a84db20ba47ba460caf641e178bdf78e5b3853",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "b2994d64729cc9bbee7ddeba637f18b0fdfe9df045d248ba2e3ae5a0b704e481"
+      }
+    },
+    {
+      "playId": "sha256:9dced54e1cf7dc59382cea5312615bbd76c3586d424d9f43221f8da6b353db0f",
+      "memberIds": [
+        "agent-aria",
+        "agent-phoenix",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "爱芮与蕾米埃尔先用普攻攒能，爱芮打强化特殊技接加速蓄力铺异常，蕾米埃尔补强化特殊技后再交菲欧妮入场输出。",
+      "handoff": "爱芮蓄力挂完异常后经蕾米埃尔强化特殊技或支援交接给菲欧妮；菲欧妮打完一轮强化特殊技后再轮回爱芮补异常。",
+      "loop": "菲欧妮以普攻衔接多段强化特殊技作主轴；爱芮穿插强化特殊技与加速蓄力续以太异常，蕾米埃尔用强化特殊技与支援续增益。",
+      "burst": "敌人失衡时接连携后由菲欧妮集中倾泻终结技与强化特殊技；蕾米埃尔与爱芮终结技就绪后穿插补伤害与异常异放。",
+      "evidence": {
+        "axisSha256": "9cb9ab24410739c1bcd9c7957eb8a2ffcd6462030ef0431da7ede817900b3442",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "dc206ea03218574d104badb5c85db0c2b72f8bbc01299197221fe08a85d8559e"
+      }
+    },
+    {
+      "playId": "sha256:59985ec254debcd77462c8a4dc945ef9c8ea1d56a155d25363fd06688a980954",
+      "memberIds": [
+        "agent-grace",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-grace",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔强化特殊技起手，格莉丝普攻过渡后由维琳娜连放强化特殊技，再交回格莉丝。",
+      "handoff": "蕾米埃尔放完强化特殊技与支援后交回格莉丝；维琳娜补完风异常强化特殊技后切回格莉丝触发感电与紊乱。",
+      "loop": "格莉丝高频打出四段普攻衔接强化特殊技铺电异常；维琳娜轮换强化特殊技续风异常，蕾米埃尔用强化特殊技与支援续增益。",
+      "burst": "喧响就绪后在增益覆盖下交替释放格莉丝、蕾米埃尔与维琳娜终结技，衔接格莉丝强化特殊技连续引爆感电与紊乱。",
+      "evidence": {
+        "axisSha256": "0177d463d8984bb01b4d4048cf432d143e942c780ccfb92fd2f8cbc75bf188c5",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "47de7ae4d2e01ef88a88fca2ed9110b6bdf6dd56c99bf8e2cda96a7de89fb61c"
+      }
+    },
+    {
+      "playId": "sha256:67a9be2c5b8d56f11f9670283e91f912dc4ecea1da204600ca52691aaac4e830",
+      "memberIds": [
+        "agent-aria",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔强化特殊技起手，爱芮普攻过渡后由维琳娜连放强化特殊技，再交回爱芮。",
+      "handoff": "蕾米埃尔释放强化特殊技与支援后交爱芮输出，维琳娜补完风异常强化特殊技后切回爱芮继续蓄力节奏。",
+      "loop": "爱芮以普攻和强化特殊技高频衔接三段及强化加速蓄力攻击；维琳娜轮换强化特殊技续风异常，蕾米埃尔补强化特殊技与支援。",
+      "burst": "增益覆盖齐全时依次释放爱芮、蕾米埃尔与维琳娜终结技，衔接爱芮强化加速蓄力攻击打出异常与异放爆发。",
+      "evidence": {
+        "axisSha256": "1b663471010f97bf455d508f566534762991208bd601dd639db1449e75fd5b2a",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "5796a9811b2b2df2889f1a51878fb5ff76d8c05535cb2ef560f9a5ac380659b8"
+      }
+    },
+    {
+      "playId": "sha256:c9b6a9670036ad2ae306c2f0b60226973e7ecf2eca8916118141a6d3af41c2de",
+      "memberIds": [
+        "agent-aria",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "维琳娜与柚叶先用普攻攒能，维琳娜连放两段强化特殊技铺风异常，切爱芮普攻过渡，柚叶接强化特殊技后交回爱芮。",
+      "handoff": "维琳娜打完风异常强化特殊技后交爱芮输出，柚叶补完强化特殊技给增益后迅速交回爱芮接蓄力。",
+      "loop": "爱芮以普攻与强化特殊技高频衔接三段及强化加速蓄力攻击；维琳娜轮换强化特殊技续风异常，柚叶定期补强化特殊技。",
+      "burst": "喧响就绪且增益生效时释放爱芮与维琳娜终结技，随后由爱芮连续打满强化加速蓄力与异常异放爆发。",
+      "evidence": {
+        "axisSha256": "5f2593ea732ddc68b54220808ece1d556e8f9a8d9e45634099cb207dcfa9446d",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "8e963ebffdb9f705b82f7656f6f058c2500e51ef9c3a00a28c5e3a5da24ea6c4"
+      }
+    },
+    {
+      "playId": "sha256:d686bd9ccb8911c033a4e346507087e0acd804244ce30f3e5c2563b6fbe38a07",
+      "memberIds": [
+        "agent-jane",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "蕾米埃尔与柚叶先用普攻攒能，蕾米埃尔强化特殊技起手，切简打满六段普攻后由柚叶补强化特殊技，再交回简站场。",
+      "handoff": "蕾米埃尔放完强化特殊技与支援后交简输出，柚叶补完强化特殊技后同样交回简维持双支援覆盖。",
+      "loop": "简以全套普攻衔接萨霍夫跳与强化特殊技高频触发强击；柚叶定期补强化特殊技，蕾米埃尔用强化特殊技与支援续增益。",
+      "burst": "敌人失衡时按序衔接蕾米埃尔、柚叶与简的连携；喧响就绪后释放简与蕾米埃尔终结技并衔接强化特殊技爆发。",
+      "evidence": {
+        "axisSha256": "3825f2f6e8b412d677474aa811be14810e08dacf9e26bbc9ca5a3712d11f04e1",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "a675c7f94d02cd463465e33846c40e99158e0cbd20532df8b6b48a0579285984"
+      }
+    },
+    {
+      "playId": "sha256:008cb4643d45d81c35c21098387e80776afa2a787b9e19c7c5f5254ada59053e",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "菲欧妮与蕾米埃尔先用普攻攒能，菲欧妮强化特殊技起手，维琳娜接五段普攻，蕾米埃尔补强化特殊技后再交回维琳娜站场。",
+      "handoff": "蕾米埃尔释放强化特殊技与支援后交维琳娜主攻；菲欧妮打完三段强化特殊技连段后同样切回维琳娜接续循环。",
+      "loop": "维琳娜以五段普攻衔接多段风异常强化特殊技作主轴；菲欧妮穿插强化特殊技连段，蕾米埃尔用强化特殊技与支援续增益。",
+      "burst": "敌人失衡时由菲欧妮与维琳娜接连携；喧响就绪后集中释放维琳娜、蕾米埃尔与菲欧妮终结技打满涡流与异常爆发。",
+      "evidence": {
+        "axisSha256": "592770c6dc85e18311adafc908dc46943c1a504de561db901030d0a9cc9d5bb5",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "78ec578551a633c075343eb32efdf27a22eebcd785d31c3d555a442ab7d10da6"
+      }
+    },
+    {
+      "playId": "sha256:dbc42cd4690d07fda404a368b00efd7ee18865c83b68b336e0631269e9659493",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-promeia",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "菲欧妮与柚叶先用普攻攒能，菲欧妮放强化特殊技起手，普罗米娅打满普攻接强化特殊技，柚叶补强化特殊技后交回普罗米娅。",
+      "handoff": "菲欧妮打完多段强化特殊技铺垫后交回普罗米娅，柚叶补完强化特殊技后迅速交回普罗米娅站场输出。",
+      "loop": "普罗米娅以五段普攻高频衔接强化特殊技与特殊攻击；菲欧妮轮换三段强化特殊技，柚叶定期补强化特殊技维持增益。",
+      "burst": "敌人失衡时由菲欧妮接连携衔接爆发；喧响就绪后依次释放普罗米娅与菲欧妮终结技，接续普罗米娅强化特殊技打满异放。",
+      "evidence": {
+        "axisSha256": "f74f2f6d86562d67422e2078774b7c3d82450bea00e38a628d8c8d502f2718b8",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "aa1cc5b0f29f47f3944ac19bedf7bcb3353271df2f10a4d32cf0e013734f8556"
+      }
+    },
+    {
+      "playId": "sha256:e23337cc0153664af7250453951c360c9a97ad63fde6d2ac07d8e7d7bc52cc7a",
+      "memberIds": [
+        "agent-remielle",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "蕾米埃尔与柚叶先用普攻攒能，蕾米埃尔强化特殊技起手，维琳娜打满普攻后由柚叶接强化特殊技，再交回维琳娜站场。",
+      "handoff": "蕾米埃尔释放强化特殊技与支援后交维琳娜输出，柚叶补完强化特殊技后同样迅速交回维琳娜保持双支援覆盖。",
+      "loop": "维琳娜以五段普攻轮换三类风异常强化特殊技持续叠异常；柚叶定期补强化特殊技，蕾米埃尔用强化特殊技与支援续增益。",
+      "burst": "双支援增益齐全且喧响就绪时，集中释放维琳娜与蕾米埃尔终结技，并穿插维琳娜三段强化特殊技打满涡流爆发。",
+      "evidence": {
+        "axisSha256": "2ca5cfca8e76be6f66aefa2ee32f98818033fb2466ff8020bd2943706eb03e78",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "613ab610d9a944603ee5d57037003f979bf70820bb85e6563b8147bbda2b9a2c"
+      }
+    },
+    {
+      "playId": "sha256:8fd94020b29de8057b8d4b02ad290f917445be10b39c11f7aafb9cd17dd58c70",
+      "memberIds": [
+        "agent-remielle",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "蕾米埃尔与柚叶先用普攻攒能，蕾米埃尔强化特殊技起手，柳打一轮上弦普攻后由柚叶补强化特殊技，再交回柳站场。",
+      "handoff": "蕾米埃尔补完强化特殊技与支援后交柳输出，柚叶释放强化特殊技续增益后同样交回柳维持双支援覆盖。",
+      "loop": "柳交替使用上弦、下弦普攻并高频衔接多段强化特殊技触发极性紊乱；柚叶与蕾米埃尔轮换强化特殊技与支援续增益。",
+      "burst": "敌人失衡或增益充足时由蕾米埃尔接连携并开终结技，随后释放柳终结技衔接强化特殊技连续打出极性紊乱爆发。",
+      "evidence": {
+        "axisSha256": "8b5e2e4640b94bc50819a42f3553dc5220aeae63143a5b7eaaed66f95bf20d6a",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "85e4b2ed2755798d4b3224b7289d8b246013e890c64d9037c4c031905d1b3de7"
+      }
+    },
+    {
+      "playId": "sha256:67976447dda8573eec682bb4682f24d04dc73dca00e11cfbe3ee74544aa0c38f",
+      "memberIds": [
+        "agent-aria",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "普罗米娅普攻接强化特殊技，蕾米埃尔普攻攒能，普罗米娅补第二段强化特殊技后切爱芮普攻，蕾米埃尔放强化特殊技再交回爱芮。",
+      "handoff": "普罗米娅打完强化特殊技铺寒蚀后交爱芮输出，蕾米埃尔补完强化特殊技与支援后同样交回爱芮维持站场。",
+      "loop": "爱芮以普攻和强化特殊技高频衔接三段与强化加速蓄力攻击；普罗米娅穿插强化特殊技与特殊攻击，蕾米埃尔续增益。",
+      "burst": "双异常叠加且喧响就绪时，依次释放爱芮、蕾米埃尔与普罗米娅终结技，衔接爱芮强化加速蓄力打满高额异放爆发。",
+      "evidence": {
+        "axisSha256": "83b5dbc259e07542783b7526bed03f79c342ed0a1fc8ebff5b9895b6ff04ebae",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "16bff840669fb4afc8845c8024779077f4d57db943b3569bb64e996e35aab706"
+      }
+    },
+    {
+      "playId": "sha256:67ed1cea288aaf11c296026b6d26b06c28d822202e973e4f2a15101654c2fc0a",
+      "memberIds": [
+        "agent-aria",
+        "agent-promeia",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "普罗米娅普攻接强化特殊技，柚叶普攻攒能后由普罗米娅补第二段强化特殊技，切爱芮普攻过渡、柚叶放强化特殊技后交回爱芮。",
+      "handoff": "普罗米娅打完强化特殊技挂异常后交爱芮接管，柚叶补完强化特殊技给增益后迅速交回爱芮。",
+      "loop": "爱芮以普攻与强化特殊技高频衔接三段及强化加速蓄力攻击；普罗米娅轮换两类强化特殊技与特殊攻击，柚叶定期补强化特殊技。",
+      "burst": "增益覆盖齐全且喧响就绪时释放爱芮与普罗米娅终结技，配合普罗米娅强化特殊技与爱芮多段加速蓄力收割异放爆发。",
+      "evidence": {
+        "axisSha256": "4f3b73d33ae300b7f82acc39a488658c885df622d2a1c933bf3168628a0defbf",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "0c906f723663ab033dcea197f4c5bd5663df2a71643579ddd6d1ea1b7de638c5"
+      }
+    },
+    {
+      "playId": "sha256:9b79668d5fc62e32b25733715eee3e30b28d26fd6768d8e4e57ce4113e28c6c4",
+      "memberIds": [
+        "agent-aria",
+        "agent-sunna",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "千夏与柚叶先用普攻攒能，千夏放强化特殊技起手，爱芮普攻过渡后由柚叶接强化特殊技，再切回爱芮展开加速蓄力输出。",
+      "handoff": "千夏与柚叶释放强化特殊技补足增益后均交回爱芮站场，让爱芮吃满双支援增益接续蓄力。",
+      "loop": "爱芮以普攻与强化特殊技高频衔接三段及强化加速蓄力攻击；千夏与柚叶按能量节奏轮换强化特殊技续增益。",
+      "burst": "敌人失衡时由千夏接连携；双支援增益齐全时释放爱芮与千夏终结技，随后由爱芮连续打满加速蓄力异放爆发。",
+      "evidence": {
+        "axisSha256": "d36107cc9f2ae3fe506b86c298523b518920c672c146f85076458114a07e2d5c",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "9c1a6a8f907b4539bf823beb6f5c64b64ee8161129b127f26961000f8908f91d"
+      }
+    },
+    {
+      "playId": "sha256:21ee6ec7e056011d8ac342c8b63635bee605d853de9773e36e50afc1c3313636",
+      "memberIds": [
+        "agent-aria",
+        "agent-lycaon",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "莱卡恩先打满五段蓄力普攻接柚叶普攻攒能，莱卡恩满蓄强化特殊技后切爱芮普攻，柚叶放强化特殊技再交回爱芮。",
+      "handoff": "莱卡恩打完强化特殊技挂失衡与减抗后交爱芮输出，柚叶补完强化特殊技给增益后迅速交回爱芮站场。",
+      "loop": "爱芮以普攻与强化特殊技高频衔接三段及强化加速蓄力攻击；莱卡恩穿插强化特殊技推进失衡，柚叶定期补强化特殊技。",
+      "burst": "敌人失衡时由莱卡恩接连携；随后依次释放爱芮与莱卡恩终结技，配合爱芮多轮加速蓄力攻击打满爆发。",
+      "evidence": {
+        "axisSha256": "806e8ac07f61e0bd39e2907dd50d273959891f12cf0e4602a2d0b594ebb3b7cf",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "942d5123c37d0568d708bcb85d08d53b787d397f0c54cb0cd4c863cbcb5de34c"
+      }
+    },
+    {
+      "playId": "sha256:361401ead40374c82d5f073455c57a8c0d5677095b3852ca2b2c44bb77b411f6",
+      "memberIds": [
+        "agent-grace",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-grace",
+      "opening": "维琳娜与柚叶先用普攻攒能，维琳娜连放两段强化特殊技铺风异常，切格莉丝打满普攻后由柚叶接强化特殊技，再交回格莉丝。",
+      "handoff": "维琳娜补完风异常强化特殊技后交格莉丝触发感电与紊乱，柚叶释放强化特殊技后迅速交回格莉丝站场。",
+      "loop": "格莉丝以四段普攻高频衔接强化特殊技与特殊攻击铺电异常；维琳娜轮换强化特殊技续风异常，柚叶定期补强化特殊技。",
+      "burst": "双辅助增益生效且喧响就绪时，交替释放格莉丝与维琳娜终结技，衔接格莉丝强化特殊技连续引爆感电与紊乱爆发。",
+      "evidence": {
+        "axisSha256": "83fe37dc2e639e7e7e3ceda1c568d381344393de9ef6af89e6f19f0a60802cc4",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "3b071bfd69787f3cb9c563156cec3b2c8fd27358511e993d4560765c690e176e"
+      }
+    },
+    {
+      "playId": "sha256:a6052df82f1ff9626133af41f844ca62e7b48008ba95c5a6ef93a295d51de5de",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-norma",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "琉音与诺姆先用普攻攒能，琉音接强化特殊技、诺姆补强化特殊技后再切琉音二段强化特殊技，随即交希格莉德四段普攻接强化特殊技起手。",
+      "handoff": "琉音按三段强化特殊技推进失衡后切希格莉德收割，诺姆释放强化特殊技补足增益与后台火力后交回希格莉德站场。",
+      "loop": "希格莉德以四段普攻、三阶聚枪连段与强化特殊技交替循环；诺姆高频补强化特殊技，琉音循环三段强化特殊技压制失衡条。",
+      "burst": "敌人失衡时优先由琉音与希格莉德接连携；喧响就绪后在失衡窗内依次倾泻希格莉德、琉音与诺姆终结技打满爆发。",
+      "evidence": {
+        "axisSha256": "cf39dd6a93ebb39c631785881b6376016af1518089c6e6406286bd469a1b62fd",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "38ef581f9333d51926652e16674539fcf0c8cdd748e1a976644ee3191d94d1f9"
+      }
+    },
+    {
+      "playId": "sha256:7d78099db1b1c942df25d81ffe27efd1934ea4c98f72f1485033a9958acb6713",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔强化特殊技起手，星见雅打完五段普攻后由维琳娜连放两段强化特殊技铺风异常，再交回星见雅。",
+      "handoff": "蕾米埃尔释放强化特殊技与支援后交星见雅站场，维琳娜补完风异常强化特殊技后切回星见雅触发紊乱并回复落霜。",
+      "loop": "星见雅以五段普攻衔接两段强化特殊技快速积攒落霜，维琳娜轮换强化特殊技续风异常与涡流，蕾米埃尔定期补增益。",
+      "burst": "星见雅攒满落霜后释放三段蓄力斩收割；喧响就绪后衔接星见雅、蕾米埃尔与维琳娜终结技拉高异常紊乱爆发。",
+      "evidence": {
+        "axisSha256": "04456c1b3dc8415d3d7505c38ba8d783f8ba5ec4e5865e5f4e999cfb3ae61005",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "48e460453bd85e05f25f73f29920fbb791b4de4c53b8bb6603ec23654dd856ae"
+      }
+    },
+    {
+      "playId": "sha256:723cd4796169b91d935cd271cb863643df4beb3cf206987f358989c7d406af53",
+      "memberIds": [
+        "agent-norma",
+        "agent-sigrid",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "诺姆与柚叶先用普攻攒能，诺姆与柚叶依次释放强化特殊技铺好增益，随后切希格莉德四段普攻衔接聚枪连段与强化特殊技展开输出。",
+      "handoff": "诺姆与柚叶各自放完强化特殊技后均迅速交回希格莉德，让希格莉德吃满双辅助增益打完聚枪循环。",
+      "loop": "希格莉德以四段普攻、三阶聚枪与强化特殊技为主轴持续压制；诺姆高频补强化特殊技，柚叶定时续强化特殊技维持增益。",
+      "burst": "敌人失衡时优先由诺姆与希格莉德接连携；喧响就绪后交替释放希格莉德与诺姆终结技打出高额失衡窗口伤害。",
+      "evidence": {
+        "axisSha256": "21b721144eee8e539b265ba160e92cf5335eaf3057c2c46af8dfcfaa67cfcf39",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "02ff68d6c2916f2a72824832967fc03de77f09e386824730d7eb21a235a77f6f"
+      }
+    },
+    {
+      "playId": "sha256:00759576f04d2219d0ca7ac10236030f1005a46ba19f7bd63c40e45f18ac1020",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "菲欧妮与蕾米埃尔先用普攻攒能，菲欧妮放强化特殊技铺火异常，切普罗米娅五段普攻接强化特殊技，再由蕾米埃尔补强化特殊技续增益。",
+      "handoff": "菲欧妮打完火异常强化特殊技与双段强化技后交回普罗米娅；蕾米埃尔释放强化特殊技与支援入场后随即切回普罗米娅站场。",
+      "loop": "普罗米娅以五段普攻高频衔接强化特殊技与寒蚀招式输出；菲欧妮轮换强化特殊技续火异常触发紊乱，蕾米埃尔维持全队增益。",
+      "burst": "增益与异常状态齐备时集中释放普罗米娅、菲欧妮与蕾米埃尔终结技，衔接普罗米娅强化特殊技完成爆发收割。",
+      "evidence": {
+        "axisSha256": "3e7d38599ea8e3a1f0096c6dbf36df2135a37b0cf84dc12fabcd532146f197e2",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "7d81c937c80a1890ef66b44ceb1319357387e3ed3c31ad3a303a921d5cd2a62c"
+      }
+    },
+    {
+      "playId": "sha256:53924f5aacaf8429a3066435e0610a6459aed67d26e1a4b140eda425e04df36e",
+      "memberIds": [
+        "agent-remielle",
+        "agent-velina",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔强化特殊技起手，柳打完五段普攻后切维琳娜连放两段强化特殊技铺风异常，再交回柳输出。",
+      "handoff": "维琳娜补完风异常强化特殊技后切回柳打极性紊乱，蕾米埃尔释放强化特殊技与支援后交回柳保持双架势输出节奏。",
+      "loop": "柳站场交替打出上下弦五段普攻与强化特殊技追刺连段；维琳娜轮换强化特殊技续风异常与涡流，蕾米埃尔按节奏补增益。",
+      "burst": "敌人失衡时由蕾米埃尔接连携；喧响就绪后集中释放柳、蕾米埃尔与维琳娜终结技，衔接柳强化特殊技引爆多轮极性紊乱。",
+      "evidence": {
+        "axisSha256": "5a9fe8b199b4155b22eb7d62b96550a289750dfaff208ef1e85e8f0498e54afe",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "a7b2bab5e87d68c152fdcf0de15839dd1d201d4700dda2407f5fe49ac957b91e"
+      }
+    },
+    {
+      "playId": "sha256:794746139df2afa325e0ac0c683461fe647a40e3fd1a5a5fe1ffb571bfc8eb1c",
+      "memberIds": [
+        "agent-astra",
+        "agent-trigger",
+        "agent-ye-shunguang"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光以快速支援入场直接打满一轮明心境剑势连段并收尾，随后切耀嘉音开启演奏、扳机蓄力狙击攒决意，再交回叶瞬光普攻续能。",
+      "handoff": "耀嘉音开启演奏后保持后台增伤，扳机补完蓄力狙击或强化特殊技后立刻切回叶瞬光快速支援入场切入明心境。",
+      "loop": "叶瞬光在常态四段普攻与强化特殊技攒满剑势后切入明心境打完整套空地剑气连段；扳机定期补强化特殊技维持后台协同。",
+      "burst": "喧响就绪后在耀嘉音终结技与扳机增益覆盖下，交替释放叶瞬光双终结技与扳机终结技，在明心境窗口倾泻全套高倍率连招。",
+      "evidence": {
+        "axisSha256": "6e27fc8dad0fb2f9e83287f1eaa35a132d24cce5bcfb8716cd2e3b1b78a71e4f",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "632cd383597aa169e94874869de78a93b5af295261dee3330a6fcc5642643ee4"
+      }
+    },
+    {
+      "playId": "sha256:9c415c8a5e6fbffa70d1fca56842d4c0037d13bd0d2c8e5f05554b6600e62598",
+      "memberIds": [
+        "agent-burnice",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "柏妮思与维琳娜先用普攻攒能，柏妮思喷火强化特殊技挂灼烧，维琳娜连放强化特殊技铺风异常，再切普罗米娅五段普攻接强化特殊技。",
+      "handoff": "柏妮思补完喷火强化特殊技续后台余烬、维琳娜补完风异常强化特殊技后，均迅速切回普罗米娅站场触发高频紊乱。",
+      "loop": "普罗米娅以五段普攻高频衔接强化特殊技与寒蚀招式作主轴；柏妮思与维琳娜按能量轮换补火、风异常维持双后台异常覆盖。",
+      "burst": "敌人失衡时由维琳娜接连携；喧响就绪后释放普罗米娅与维琳娜终结技，衔接普罗米娅强化特殊技打满三属性异常爆发。",
+      "evidence": {
+        "axisSha256": "eba7b1d5227123553d807bdc8edd5db531f07befcdd315930518aa7c06441a5d",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "c1f824f45cc61d1b6487379cd6013e78744b5c2a347d6ecbb5e9dffb5677ea5b"
+      }
+    },
+    {
+      "playId": "sha256:17131cc04b84fc9bab07148b8634979c85a2c16946b39f08beb2911ce500c687",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境全套剑势连段，随后由琉音与照各自普攻攒能并开启增益与失衡压制。",
+      "handoff": "琉音打完三段强化特殊技推进失衡、照释放强化特殊技或入场支援补增益后，均迅速交回叶瞬光切入下一轮明心境。",
+      "loop": "叶瞬光循环常态普攻、强化特殊技攒剑势并打满明心境空地连段；琉音持续三段强化特殊技控失衡，照定期补强化特殊技续增益。",
+      "burst": "敌人失衡时由叶瞬光与琉音接连携；喧响就绪后集中释放叶瞬光双终结技、琉音与照终结技在失衡窗口收割。",
+      "evidence": {
+        "axisSha256": "93e11f58d84f244edf0b681329010aa5fc5aaf70cc9292792d0bd4da673e4214",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "33b2c98a78efe6dbfded04965f74db3920f1f3a0ddf3632d1a4ab3ce205d4be2"
+      }
+    },
+    {
+      "playId": "sha256:c1ed2c758c8c571426cb3a7c6600df3d89b458b537b98bc3874211f8c183fc58",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔强化特殊技起手，星见雅打完五段普攻后切维琳娜连放强化特殊技铺风异常，再交回星见雅。",
+      "handoff": "蕾米埃尔释放强化特殊技与支援后交星见雅输出，维琳娜补完风异常强化特殊技后切回星见雅触发紊乱续落霜。",
+      "loop": "星见雅站场以五段普攻衔接两段强化特殊技攒满落霜打三段蓄力斩；维琳娜轮换强化特殊技续风异常，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由蕾米埃尔与维琳娜衔接连携铺垫窗口；喧响就绪后依次释放星见雅、蕾米埃尔与维琳娜终结技打满蓄力与紊乱爆发。",
+      "evidence": {
+        "axisSha256": "4731d5d7244a52d91d2d2bb9cb54d3a17bb83b34b3ef3624640dfbfc1203d817",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "1e2e922b44bcef020e7f568bd80860d77865143412669800e899533c31730ce0"
+      }
+    },
+    {
+      "playId": "sha256:ec037f5bd994eb65324c0250eae6c5aad8773e0bee1346678c0d85efa94ad56c",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "菲欧妮与维琳娜先用普攻攒能，菲欧妮放强化特殊技铺火异常，切普罗米娅五段普攻接强化特殊技，随后由维琳娜连放强化特殊技补风异常。",
+      "handoff": "菲欧妮补完火异常强化特殊技、维琳娜打完风异常两段强化特殊技后，均迅速切回普罗米娅站场吃满异常异放收益。",
+      "loop": "普罗米娅以五段普攻与高频强化特殊技作主轴；菲欧妮与维琳娜轮换释放强化特殊技续火、风异常并持续触发紊乱与涡流。",
+      "burst": "喧响就绪后交替释放普罗米娅、维琳娜与菲欧妮终结技，衔接普罗米娅寒蚀招式与强化特殊技打满多异常爆发。",
+      "evidence": {
+        "axisSha256": "8ca4f054d2383a11e4380b039864467c21af2851cb54818d285adb1aa248d10c",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "7ff959e0b3dea508806252a7c2caa226e7a67387f7399e4e4b461f46622f3a6d"
+      }
+    },
+    {
+      "playId": "sha256:e3901f757d43c24fc66e70d3dbe44acf93b281da1748bbb29294194feeae66a3",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-remielle",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "蕾米埃尔与薇薇安先用普攻攒能，蕾米埃尔强化特殊技起手，菲欧妮四段普攻过渡后由薇薇安放强化特殊技补护羽，再交回菲欧妮站场。",
+      "handoff": "蕾米埃尔打完强化特殊技与支援、薇薇安补完强化特殊技续护羽后均迅速交回菲欧妮，保障菲欧妮持续高频站场。",
+      "loop": "菲欧妮以四段普攻攒燔焰衔接强化蓄力普攻与双段强化特殊技；薇薇安定时补强化特殊技触发后台异放，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由蕾米埃尔与菲欧妮接连携；喧响就绪后集中倾泻菲欧妮、蕾米埃尔与薇薇安终结技打满火以太异放爆发。",
+      "evidence": {
+        "axisSha256": "781aec13b8c018f74a59bada28919f4e704fa7d5a671c5e3fcd12b11a1d9d855",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "d0a9cec48ddcb9ab8482124aaab7e56ded8374968da6791b8ec99bb182d46434"
+      }
+    },
+    {
+      "playId": "sha256:257e70c9849345a1505e541cf0b94b91a20aeafe243393732478c99b0262a6f2",
+      "memberIds": [
+        "agent-roxy",
+        "agent-sigrid",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "洛克茜与柚叶先用普攻攒能，洛克茜长按两段强化特殊技接特殊技起手，柚叶补强化特殊技后切希格莉德四段普攻展开循环。",
+      "handoff": "洛克茜打完两段长按强化特殊技与特殊技后经柚叶增益交回希格莉德，保持双核衔接与增益不断档。",
+      "loop": "希格莉德以四段普攻、三阶聚枪与强化特殊技轮转输出；洛克茜高频循环两段长按强化特殊技打风压，柚叶定期补强化特殊技。",
+      "burst": "敌人失衡时优先由洛克茜与希格莉德接连携；喧响就绪后交替释放希格莉德与洛克茜终结技收割失衡窗。",
+      "evidence": {
+        "axisSha256": "c3a7921cedac2b4ae59ee90e2928dcfe95f743df391ebdafe06dbb43dfc182ac",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "191e881a546d9c515c5e4368769c7049b0d13616f221959137fc90834c1cb60e"
+      }
+    },
+    {
+      "playId": "sha256:57ff14bd997de2b38368eac8576fc011b49fa4b84ce664778c903794172cd26c",
+      "memberIds": [
+        "agent-aria",
+        "agent-miyabi",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "星见雅与蕾米埃尔先用普攻攒能，星见雅打出三段蓄力斩后切爱芮四段普攻，再由星见雅双段强化特殊技与蕾米埃尔强化特殊技铺垫，交回爱芮。",
+      "handoff": "星见雅补完强化特殊技或三段蓄力斩挂冰异常、蕾米埃尔补完强化特殊技与支援后均交回爱芮打高频加速蓄力。",
+      "loop": "爱芮高频以强化特殊技与普攻衔接加速三段蓄力攻击作主轴；星见雅定期切入打双段强化特殊技与蓄力斩续冰异常，蕾米埃尔续增益。",
+      "burst": "喧响就绪后依次释放爱芮、星见雅与蕾米埃尔终结技，借爱芮大招窗口连发强化加速蓄力引爆异放与紊乱。",
+      "evidence": {
+        "axisSha256": "dbae6fd059d54311c713da11ee6fc69a7d6646ec984c72a20f395e2e293bb029",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "eae4fd561140f8a81ff90f2080f7f4267590040e2ac0a8fbe7bfbd428eeda990"
+      }
+    },
+    {
+      "playId": "sha256:702ef3285c0b67247e425272b20582ba564081f5594ddf3ee286928c07cec920",
+      "memberIds": [
+        "agent-astra",
+        "agent-dialyn",
+        "agent-ye-shunguang"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境全套剑势连段，随后耀嘉音开演奏、琉音普攻接强化特殊技起手，再交叶瞬光强化特殊技续循环。",
+      "handoff": "耀嘉音维持演奏与快速支援通道，琉音打完三段强化特殊技推进失衡后切回叶瞬光快速支援入场开启下一轮明心境。",
+      "loop": "叶瞬光交替进行常态普攻强化特殊技攒势与明心境完整空地剑气连段；琉音循环三段强化特殊技推进失衡，耀嘉音后台保增益。",
+      "burst": "敌人失衡时由叶瞬光与耀嘉音衔接连携；在耀嘉音终结技增益覆盖下释放叶瞬光双终结技与琉音终结技打出高额爆发。",
+      "evidence": {
+        "axisSha256": "8993c9dc9049603ac327eddeede5a281bf195b3ceeb9891001253b2c06a44757",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "6b52fbd9268fbc9bb0d218a25c1f006ef8dcb315f97c272562535c3f5d959a27"
+      }
+    },
+    {
+      "playId": "sha256:27f815c5ef8edb3ef6fc949b430ef78c97c365b8ee51bcc135e13628d665db26",
+      "memberIds": [
+        "agent-astra",
+        "agent-sunna",
+        "agent-ye-shunguang"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境剑势连段，随后耀嘉音开启演奏、千夏普攻攒能后切叶瞬光强化特殊技，再由千夏补强化特殊技。",
+      "handoff": "耀嘉音保持演奏提供快速支援，千夏释放强化特殊技铺好增益后立刻交回叶瞬光快速支援入场切入明心境。",
+      "loop": "叶瞬光在双支援增益下循环常态普攻攒剑势与明心境空地全套连招；千夏按节奏补强化特殊技续增益，耀嘉音后台维系演奏。",
+      "burst": "敌人失衡时由耀嘉音与叶瞬光接连携；喧响就绪后依次释放耀嘉音、千夏与叶瞬光双终结技在双支援窗口内收割。",
+      "evidence": {
+        "axisSha256": "147e3b91b0a84b8ee7cb574dbb6309fd399cf83546ebfb12aee98d8f93a1defe",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "ac717ea4328b3911f3019dc702a8dd1e611b6eed015aa56443a28e464a097b59"
+      }
+    },
+    {
+      "playId": "sha256:167ce573f1a71235739e350c5f98c615fbc71590268c62a3cfea63fba54d9827",
+      "memberIds": [
+        "agent-grace",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-grace",
+      "opening": "蕾米埃尔与柚叶先用普攻攒能，蕾米埃尔强化特殊技起手，格莉丝四段普攻过渡后由柚叶补强化特殊技，再交回格莉丝普攻接强化特殊技。",
+      "handoff": "蕾米埃尔与柚叶释放完强化特殊技或支援后均迅速切回格莉丝，让格莉丝在双支援增益下长时间站场。",
+      "loop": "格莉丝以高频四段普攻攒电能衔接强化特殊技与特殊技持续触发感电；柚叶与蕾米埃尔轮换强化特殊技与支援维持全队增益。",
+      "burst": "双支援增益齐备时依次释放格莉丝与蕾米埃尔终结技，随后由格莉丝连续穿插强化特殊技打满高额电异常伤害。",
+      "evidence": {
+        "axisSha256": "45396f341dab8555bd31ed3b3c8b06757f0a213b14bba5cae83f408773254541",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "fe1792f88a75f1006fb6750e059bb4e8af749f8bb3d246c51f6cb3e7d0df4edf"
+      }
+    },
+    {
+      "playId": "sha256:98632a5862f4fb84bb2a0fb586227c78b1c7b4911cfdf2a3b2d8c4aaf6b57d58",
+      "memberIds": [
+        "agent-jane",
+        "agent-phoenix",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-jane",
+      "opening": "菲欧妮与蕾米埃尔先用普攻攒能，菲欧妮放强化特殊技铺火异常，简打满六段普攻后由蕾米埃尔补强化特殊技，再交回简站场输出。",
+      "handoff": "菲欧妮打完火异常强化特殊技、蕾米埃尔补完强化特殊技与支援后均交回简，由简高频触发强击与火物理紊乱。",
+      "loop": "简维持狂热状态以六段普攻连段衔接萨霍夫跳持续打强击；菲欧妮轮换强化特殊技续火异常，蕾米埃尔穿插强化特殊技与支援续增益。",
+      "burst": "敌人失衡时由菲欧妮与简接连携；喧响就绪后交替释放简、菲欧妮与蕾米埃尔终结技，顺势衔接强击与高额紊乱收尾。",
+      "evidence": {
+        "axisSha256": "6983a7102fcf20dd941af4cec3b504b286be6f0686bb446c8954f80a88418584",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "f8cc59da9b583183ff6187526fcb3893a904d614dddcce127788815541bf701b"
+      }
+    },
+    {
+      "playId": "sha256:5dfb745a994866e9fbe25963106ac45bdc533c35d1b1560af8e8f0e176edeb7e",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "诺姆与洛克茜先用普攻攒能，诺姆放强化特殊技后洛克茜长按两段强化特殊技接特殊技，再切希格莉德四段普攻展开连段。",
+      "handoff": "诺姆补完强化特殊技、洛克茜打完两段长按强化特殊技与特殊技后交回希格莉德，双副输出轮换不断档。",
+      "loop": "希格莉德以四段普攻、三阶聚枪与强化特殊技轮转；洛克茜高频循环两段长按强化特殊技，诺姆定时补强化特殊技。",
+      "burst": "敌人失衡时由希格莉德与诺姆接连携；喧响就绪后集中释放希格莉德、洛克茜与诺姆终结技打满失衡窗口。",
+      "evidence": {
+        "axisSha256": "4792aeb904bda8154dacebb89c756894a26a0d1f8ee102d239ac229cb8658860",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "af95193589b4de480450f19423d48bc0f5edebd61b4bfe86adb6e45afd8772a9"
+      }
+    },
+    {
+      "playId": "sha256:9bc53a4dee7a8fb14056b4b350a78c333ffb1cd32cea6016031464762b274511",
+      "memberIds": [
+        "agent-roxy",
+        "agent-sunna",
+        "agent-ye-shunguang"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境全套剑势连段，随后由洛克茜与千夏依次普攻攒能并开启双人循环。",
+      "handoff": "千夏释放强化特殊技补增益、洛克茜打完两段长按强化特殊技与特殊技后，再切叶瞬光快速支援入场切入明心境。",
+      "loop": "叶瞬光在常态四段普攻攒势与明心境空地连招间轮转；洛克茜高频长按强化特殊技衔接旋风连击，千夏定期补强化特殊技。",
+      "burst": "敌人失衡时优先由叶瞬光与洛克茜接连携；喧响就绪后释放叶瞬光双终结技与洛克茜终结技完成失衡收割。",
+      "evidence": {
+        "axisSha256": "04ce353f111bdee7de11e5708189e06350b242b4dc93fc59c710654ecbb7bb3a",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "32bd5917d8389dfad75e1092e5aeceb71b0c9836ed9db62358d6928c60adcfe3"
+      }
+    },
+    {
+      "playId": "sha256:9217060448f33ec257a704cc4afaa38c010f0a0290aa71a71df20fa2b9f81149",
+      "memberIds": [
+        "agent-sunna",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境剑势连段，随后由千夏与照先后普攻攒能并补强化特殊技铺开双支援增益。",
+      "handoff": "千夏释放强化特殊技、照补强化特殊技或入场支援后均迅速切回叶瞬光，以快速支援衔接下一轮明心境。",
+      "loop": "叶瞬光以常态四段普攻与强化特殊技攒剑势，满势即切明心境打完整套空地连段；千夏与照轮换强化特殊技维持增益。",
+      "burst": "敌人失衡时由叶瞬光接连携；喧响就绪后在双支援覆盖下依次释放叶瞬光双终结技、千夏与照终结技打满窗口。",
+      "evidence": {
+        "axisSha256": "23781366277e6a90fcd70a475c76f8f6f58c4c61534ec4a22b374077729173d3",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "dc1448c49de3c6cb120c5ae0a1ea116e66fb3046de70fd0da9bc36d4f692a83b"
+      }
+    },
+    {
+      "playId": "sha256:8302886e294de7a3757c1d8aebbb994ca90b579a92dca4c4adb0ef4959de1dfe",
+      "memberIds": [
+        "agent-velina",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "维琳娜与柚叶先用普攻攒能，维琳娜连放两段强化特殊技铺风异常，切柳打满五段普攻后再由柚叶补强化特殊技，随即交回柳站场。",
+      "handoff": "维琳娜补完风异常强化特殊技、柚叶放完强化特殊技后均交回柳，由柳衔接强化特殊技连续引爆极性紊乱。",
+      "loop": "柳在上下弦五段普攻间穿插高频强化特殊技追刺与下劈连段；维琳娜轮换强化特殊技续风异常与涡流，柚叶定时补增益。",
+      "burst": "敌人失衡时由柚叶接连携过渡；喧响就绪后交替倾泻柳与维琳娜终结技，顺势衔接柳多段强化特殊技打满紊乱爆发。",
+      "evidence": {
+        "axisSha256": "5ee983fe3a65d97fe2d085c185a790b0739b8eaeae7b16661810193c7dc43817",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "2c30207ecbf4d54d97aeb94f255a376a08116582e9661b3fec78a3daf1b971ac"
+      }
+    },
+    {
+      "playId": "sha256:ca304cffa4e86429bd2149874d5d4f7fe26e8b894036e745488c04b99fe301d8",
+      "memberIds": [
+        "agent-aria",
+        "agent-promeia",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "爱芮与柚叶先用普攻攒能，爱芮强化特殊技接两段加速蓄力铺以太异常，柚叶补强化特殊技后交普罗米娅五段普攻接双段强化特殊技。",
+      "handoff": "爱芮打完强化特殊技与加速蓄力、柚叶补完强化特殊技后均交回普罗米娅站场输出，双向触发异放与紊乱。",
+      "loop": "普罗米娅以五段普攻高频衔接强化特殊技作主轴；爱芮穿插强化特殊技与多轮加速蓄力续以太异常，柚叶维持全队增益。",
+      "burst": "增益与异常到位后集中释放普罗米娅与爱芮终结技，衔接爱芮强化加速蓄力与普罗米娅寒蚀招式打满爆发。",
+      "evidence": {
+        "axisSha256": "e7dd696df700aacb59fe210a1fba0312fd07e10bb295e65661749e8b62122811",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "db6770fe73606bf5e1dd315df455fa25a0539f85f9a789edeaa33ae425806a49"
+      }
+    },
+    {
+      "playId": "sha256:e06aeaebddb631d44604f79f945acc65656575c00ca742a02e5af4ae9e907a07",
+      "memberIds": [
+        "agent-aria",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "爱芮与蕾米埃尔先用普攻攒能，爱芮强化特殊技接两段加速蓄力铺异常，蕾米埃尔补强化特殊技后交维琳娜五段普攻接双段强化特殊技。",
+      "handoff": "爱芮补完加速蓄力挂以太异常、蕾米埃尔补完强化特殊技与支援后交回维琳娜站场引爆风异常与涡流。",
+      "loop": "维琳娜以五段普攻衔接多段风系强化特殊技作主轴；爱芮轮换强化特殊技与加速蓄力续以太异常，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由维琳娜与爱芮衔接连携；喧响就绪后集中倾泻维琳娜、爱芮与蕾米埃尔终结技打满双异常异放爆发。",
+      "evidence": {
+        "axisSha256": "c8525ae19f2a321b6e86c349b33385904862d63ea4e43836be4fb7cf63a6e740",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "66d84dfc2b302d3a13f09f5b849fd5939faea4b5fccab4853d6f45121a518dbb"
+      }
+    },
+    {
+      "playId": "sha256:a44208af50873ce7ce569a78b8580a8b2f090f10ed61d5b348882b9312e9cfe7",
+      "memberIds": [
+        "agent-caesar",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境剑势连段，随后由凯撒与照依次普攻攒能并补强化特殊技立盾给增益。",
+      "handoff": "凯撒释放强化特殊技续护盾与攻击加成、照补强化特殊技或入场支援后，均迅速切回叶瞬光衔接下一轮明心境。",
+      "loop": "叶瞬光在护盾保护下循环常态四段普攻、强化特殊技攒势与明心境完整连段；凯撒与照按能量轮换强化特殊技保覆盖。",
+      "burst": "敌人失衡时由凯撒接连携过渡；喧响就绪后在双增益覆盖下依次释放叶瞬光双终结技、凯撒与照终结技收割。",
+      "evidence": {
+        "axisSha256": "4333dcd4cd7d008551f154b49198179c29480809c024ac590f1da1b3474fad4b",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "1a45a300dd11a31c140f3ef77985dec484414f858bc9957cccd5612a311e7188"
+      }
+    },
+    {
+      "playId": "sha256:d1e0ee5aef99d5f803665443a8c5fd52c15e07989fb98bc25cea48d2ab1770d0",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-roxy",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "琉音与洛克茜先用普攻攒能，琉音首段强化特殊技后洛克茜长按两段强化特殊技接特殊技，琉音再打完后两段强化特殊技后交希格莉德起手。",
+      "handoff": "琉音三段强化特殊技推进失衡、洛克茜打完两段长按强化特殊技与特殊技后均切回希格莉德站场收割。",
+      "loop": "希格莉德以四段普攻、三阶聚枪与强化特殊技轮转；洛克茜循环两段长按强化特殊技，琉音高频三段强化特殊技压失衡条。",
+      "burst": "敌人失衡时由琉音与希格莉德接连携；喧响就绪后依次释放希格莉德、琉音与洛克茜终结技打满失衡窗口。",
+      "evidence": {
+        "axisSha256": "7812ff18e49ae20ddea1bd8c6243fbf32dce7ecf1799c3b86ed76c0890736690",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "8afaf293f0f2221bea57bedddb9540372d7861a2827e4678ed360f37300df087"
+      }
+    },
+    {
+      "playId": "sha256:bd65e91963fdb387671417a1a65242956be5e0e5107e0f9c96b20ac2f2da8538",
+      "memberIds": [
+        "agent-norma",
+        "agent-orphie-magus",
+        "agent-roxy"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "奥菲丝先以两段蓄热追击强化特殊技起手，诺姆普攻攒能后切洛克茜长按两段强化特殊技接特殊技，再由诺姆补强化特殊技交回洛克茜。",
+      "handoff": "奥菲丝放完蓄热喷发强化特殊技、诺姆补完强化特殊技后均切回洛克茜站场衔接四段普攻与长按旋风连击。",
+      "loop": "洛克茜高频循环两段长按强化特殊技、旋风连击与特殊技并穿插四段普攻；奥菲丝与诺姆按能量轮换强化特殊技维持追击火力。",
+      "burst": "敌人失衡时由诺姆与奥菲丝衔接连携；喧响就绪后集中倾泻洛克茜、奥菲丝与诺姆终结技打满爆发。",
+      "evidence": {
+        "axisSha256": "a9b926f9c77a48e24b1b48af7068adc3d1f2ce836196714f1303b6b4305e6e98",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "9b411a2a783f32cc4f495fc6dbd36ff2aaa79ae579f97700bb2a1120af3a5a62"
+      }
+    },
+    {
+      "playId": "sha256:02b2c0871086bae83447145ce3071f93d2adff12044872332f7541d5b6e23c87",
+      "memberIds": [
+        "agent-norma",
+        "agent-sigrid",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "诺姆与照先用普攻攒能，诺姆强化特殊技起手后由照入场支援切出，希格莉德四段普攻过渡、照补强化特殊技后再交回希格莉德输出。",
+      "handoff": "诺姆补完强化特殊技、照打完入场支援或强化特殊技后均迅速交回希格莉德，维持增益覆盖与聚枪节奏。",
+      "loop": "希格莉德循环四段普攻、三阶聚枪与强化特殊技；诺姆高频补强化特殊技，照穿插强化特殊技与入场支援续增益。",
+      "burst": "敌人失衡时由诺姆与希格莉德接连携；喧响就绪后集中释放希格莉德、诺姆与照终结技打满失衡窗口。",
+      "evidence": {
+        "axisSha256": "26c9a026a7925158bd2818d232b99fe0c40f0a0988c64f9275d19634ea46bd4a",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "d82fa00663a09db03b23222ad6ab2ce982870dff8ff9fb564c020f943e5278b7"
+      }
+    },
+    {
+      "playId": "sha256:e2f5071c4d75922746f081aa8455ba0c4177c70c889cddfc8860dc7c2af853b7",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "普罗米娅先五段普攻接强化特殊技铺寒蚀，蕾米埃尔普攻攒能后普罗米娅补二段强化特殊技，切菲欧妮四段普攻再由蕾米埃尔强化特殊技起手。",
+      "handoff": "普罗米娅补完强化特殊技挂冰异常、蕾米埃尔补完强化特殊技与支援后均交回菲欧妮站场触发异放与紊乱。",
+      "loop": "菲欧妮以四段普攻攒燔焰衔接强化蓄力普攻与双段强化特殊技作主轴；普罗米娅轮换强化特殊技续冰异常，蕾米埃尔续增益。",
+      "burst": "敌人失衡时由普罗米娅接连携；喧响就绪后交替倾泻菲欧妮、蕾米埃尔与普罗米娅终结技打满冰火异常爆发。",
+      "evidence": {
+        "axisSha256": "70b0e0e65ab73e9d06c8ef2aac66e4c911bd5997247f65cf86c75b33245446e1",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "5432e8b24bec2372afd64d49025d6e4558156c382dfbbc60e63dbd2981bbd23e"
+      }
+    },
+    {
+      "playId": "sha256:4fa8497c45671f67f60d79dc4c26d2a4b5a2b7f4743e832b41f723dd26e5ff2c",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-remielle",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "蕾米埃尔与柳先用普攻攒能，蕾米埃尔强化特殊技起手，菲欧妮四段普攻过渡后由柳打一套强化特殊技连段铺电异常，再交回菲欧妮。",
+      "handoff": "柳打完强化特殊技连段触发极性紊乱、蕾米埃尔补完强化特殊技与支援后均交回菲欧妮站场输出。",
+      "loop": "菲欧妮以四段普攻攒燔焰衔接强化蓄力普攻与双段强化特殊技；柳轮换强化特殊技续电异常与紊乱，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由蕾米埃尔与菲欧妮接连携；喧响就绪后集中释放菲欧妮、蕾米埃尔与柳终结技收割异常爆发窗口。",
+      "evidence": {
+        "axisSha256": "30072636d17ec360656db0a580b437f369b875db9c9178b4a09da7215e95fda1",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "56bf47deab978f184def9bf98a83625ae557a18a32637e116d28824b6e315f0a"
+      }
+    },
+    {
+      "playId": "sha256:65d05bd7b97f5beb9fe19ec1c601bea91f8b5af51b2ce45f58b4b4337e309830",
+      "memberIds": [
+        "agent-promeia",
+        "agent-velina",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "维琳娜与柳先用普攻攒能，维琳娜连放强化特殊技铺风异常，普罗米娅五段普攻接强化特殊技起手，柳再补强化特殊技连段触发紊乱。",
+      "handoff": "维琳娜补完风异常强化特殊技、柳打完强化特殊技连段触发极性紊乱后，均交回普罗米娅站场打高频寒蚀输出。",
+      "loop": "普罗米娅以五段普攻衔接高频强化特殊技作主轴；维琳娜轮换强化特殊技续风异常与涡流，柳定期切入补电异常与极性紊乱。",
+      "burst": "敌人失衡时由维琳娜接连携；喧响就绪后交替释放普罗米娅、维琳娜与柳终结技打满三异常联动爆发。",
+      "evidence": {
+        "axisSha256": "898ee75da1db0e6dba7a7ed463e6dab6a24377e3ac0035750f54f260c2d01a95",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "5e4db06302ecad6bc9169d94c28455b421b2c22fe0286ef47192fa4412191d04"
+      }
+    },
+    {
+      "playId": "sha256:13e15cd23531fcc5e9af529b854f156128c2bb3e80da74d7a76f9591e7f539b1",
+      "memberIds": [
+        "agent-aria",
+        "agent-nangong",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "南宫羽与照先用普攻攒能，南宫羽强化特殊技起手，爱芮普攻过渡后由照入场支援切出，再交回爱芮展开高频蓄力输出。",
+      "handoff": "南宫羽强化特殊技推进失衡后交爱芮，照释放强化特殊技或入场支援续增益后均迅速切回爱芮站场。",
+      "loop": "爱芮高频以强化特殊技与普攻衔接多轮加速蓄力攻击；南宫羽与照定期补强化特殊技压制失衡并维持增益。",
+      "burst": "敌人失衡时由爱芮接连携；喧响就绪后集中释放爱芮、南宫羽与照终结技，借大招窗口连发强化加速蓄力爆发。",
+      "evidence": {
+        "axisSha256": "6aa3bcfba00a883f89506eb9e1cc12ca7d9e5ff0f1b13ca20137f1e535856134",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "3d8120746d2b108695e1839e39a26ad00045ddb3225c56c6eadd3e5e0d4fbf43"
+      }
+    },
+    {
+      "playId": "sha256:6d1e9e94f3cee498181b0f382b3676fbff6b99f5fd77ec72c3f7d140f0e189ea",
+      "memberIds": [
+        "agent-aria",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "爱芮与蕾米埃尔先用普攻攒能，爱芮强化特殊技接两段加速蓄力铺以太异常，蕾米埃尔补强化特殊技后交普罗米娅五段普攻起手。",
+      "handoff": "爱芮打完强化特殊技与加速蓄力、蕾米埃尔补完强化特殊技与支援后均交回普罗米娅触发冰以太异放与紊乱。",
+      "loop": "普罗米娅以五段普攻高频衔接双段强化特殊技作主轴；爱芮穿插加速蓄力续以太异常，蕾米埃尔维持全队增益。",
+      "burst": "增益与异常齐备后依次释放普罗米娅、蕾米埃尔与爱芮终结技，衔接普罗米娅寒蚀招式打满爆发窗口。",
+      "evidence": {
+        "axisSha256": "92489ef2d3ff61ba8443cd48937bd1b1394657b7f6452f724d925a07121377ef",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "87864af7f8c12f7b9b3900cc0e2d7aa6a4683ba9592405e617e3c8ec017561cd"
+      }
+    },
+    {
+      "playId": "sha256:4cb4fc00e832120d59c99aab75c9207e5385cf2f6e2f0f41c635333ca839aaa2",
+      "memberIds": [
+        "agent-lighter",
+        "agent-sigrid",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "莱特与千夏先用普攻攒能并依次释放强化特殊技起手，希格莉德四段普攻过渡后由莱特快速支援切入强化连拳推进失衡。",
+      "handoff": "千夏补完强化特殊技续增益、莱特满士气快速支援打完强化连拳后均交回希格莉德收割。",
+      "loop": "希格莉德循环四段普攻、聚枪连段与强化特殊技；莱特高频快速支援衔接强化特殊技压失衡，千夏按节奏补强化特殊技。",
+      "burst": "敌人失衡时由希格莉德与莱特连续接连携；喧响就绪后在失衡窗内释放希格莉德与千夏终结技完成爆发。",
+      "evidence": {
+        "axisSha256": "d4e0b622390c4c7c1e05f006749c0ce82964018329ec2f460def37a1cfcd1b3f",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "ac7ceddd38a8480107cf3385214c98797beb2c4f3a8f1603892d66374f802f51"
+      }
+    },
+    {
+      "playId": "sha256:81191a99cba9423a6bdf02071b6b57f38acf9c5e5ec61d93eb74545624f42695",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "蕾米埃尔与柚叶先用普攻攒能，蕾米埃尔强化特殊技起手，星见雅打完五段普攻后由柚叶补强化特殊技，再交回星见雅输出。",
+      "handoff": "蕾米埃尔与柚叶各自放完强化特殊技或支援后均迅速切回星见雅，让星见雅吃满双支援增益站场攒落霜。",
+      "loop": "星见雅以五段普攻高频衔接两段强化特殊技攒落霜并释放三段蓄力斩；柚叶与蕾米埃尔轮换强化特殊技维持全队增益。",
+      "burst": "敌人失衡时由蕾米埃尔与柚叶接连携；喧响就绪后在双支援增益覆盖下释放星见雅与蕾米埃尔终结技衔接满霜蓄力斩。",
+      "evidence": {
+        "axisSha256": "a672a765a5a37ccdaf225f934868ad52558df05b56dbaa1de6c458cce16444e1",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "f47f41934912fc0b60f5fedb4e2a432edb06a08ae5b4e1d4213f88fac901dcc0"
+      }
+    },
+    {
+      "playId": "sha256:3c574d678c2c8d3e47c6ca12fa289e801844725490fff3171e928a614ca13030",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-remielle",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "蕾米埃尔与柚叶先用普攻攒能，蕾米埃尔强化特殊技起手，星见雅打完五段普攻后切柚叶补强化特殊技，随即交回星见雅主站场。",
+      "handoff": "蕾米埃尔补完强化特殊技与支援、柚叶续完强化特殊技后均立刻交回星见雅，保持落霜获取与增益节奏一致。",
+      "loop": "星见雅围绕五段普攻与两段强化特殊技高效攒霜打三段蓄力斩；柚叶与蕾米埃尔定时轮换强化特殊技续增益。",
+      "burst": "敌人失衡时由蕾米埃尔与柚叶衔接连携；喧响就绪后依次释放星见雅与蕾米埃尔终结技在满增益窗内倾泻蓄力斩。",
+      "evidence": {
+        "axisSha256": "7c4f0c51418020fcf8c3b37488d3da5bc4b4e6afe2d55b0a63a4b4590b5073e6",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "5878326cda51f680014a814fcdd3d772d295967cfd5b1e68b7c0240fd2a4822a"
+      }
+    },
+    {
+      "playId": "sha256:33f34028b1cb52fe14b1d879eade2f579090fe14be43396d5cd8e977b464089a",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "维琳娜与柚叶先用普攻攒能，维琳娜连放两段强化特殊技铺风异常，随后切星见雅五段普攻接双段强化特殊技展开霜风紊乱循环。",
+      "handoff": "维琳娜补完风异常强化特殊技、柚叶放完强化特殊技给增益后均交回星见雅触发紊乱并迅速回复落霜。",
+      "loop": "星见雅高频衔接五段普攻与两段强化特殊技积攒落霜打三段蓄力斩；维琳娜持续续风异常与涡流，柚叶维持全队增益。",
+      "burst": "喧响就绪后在增益与异常覆盖下交替释放星见雅与维琳娜终结技，顺势衔接满霜蓄力斩与高额紊乱收尾。",
+      "evidence": {
+        "axisSha256": "405f2ddfe727440771a8eba8b5907c9077873dce26dfcb8b816c0723066d3d20",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "8287534c3e4ec5e62479aaca39e96c288ef97120f14987e1b5e406a8d281579d"
+      }
+    },
+    {
+      "playId": "sha256:374e3a20109d6b3326129850ddf7ab43eb8ad489067a5e51314dd2e7ea4d666c",
+      "memberIds": [
+        "agent-nangong",
+        "agent-phoenix",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "南宫羽与蕾米埃尔先用普攻攒能，南宫羽强化特殊技起手，菲欧妮四段普攻过渡后由蕾米埃尔补强化特殊技，再交回菲欧妮站场。",
+      "handoff": "南宫羽补完强化特殊技推进失衡、蕾米埃尔放完强化特殊技与支援后均交回菲欧妮输出。",
+      "loop": "菲欧妮以四段普攻攒燔焰衔接强化蓄力与双段强化特殊技；南宫羽定期补强化特殊技控失衡，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由南宫羽接连携；喧响就绪后集中释放菲欧妮、蕾米埃尔与南宫羽终结技打满失衡窗爆发。",
+      "evidence": {
+        "axisSha256": "0e6e0b2a6fc3ede6e20833b013e7f2f5c3828a82dcad0104bc6be2eb927fd594",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "940dbcb069f22ea8f49871e931f486916fb345df20c100b71d9799e107e73b7d"
+      }
+    },
+    {
+      "playId": "sha256:53e336a3c4d69daa6be7787d966788c1584c5f892601a877ece92157db5daa9a",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "菲欧妮与柚叶先用普攻攒能，菲欧妮强化特殊技挂火异常起手，维琳娜五段普攻过渡后由柚叶补强化特殊技，再交回维琳娜主站场。",
+      "handoff": "菲欧妮补完火异常双段强化特殊技、柚叶补完强化特殊技续增益后均交回维琳娜引爆风异常与涡流。",
+      "loop": "维琳娜以五段普攻高频衔接多段风系强化特殊技为主轴；菲欧妮轮换强化特殊技续火异常触发紊乱，柚叶维持全队增益。",
+      "burst": "喧响就绪后在增益与灼蚀覆盖下依次释放维琳娜与菲欧妮终结技，衔接维琳娜多段风系强化技打满爆发。",
+      "evidence": {
+        "axisSha256": "14528db69cd69c8635608ce8d6f8cecabb653034e702ee22133c017daa11db6d",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "2015e915cb80cd1a47aeea3c2d9231d7602673efe3b74305669f1c1fa7b0151d"
+      }
+    },
+    {
+      "playId": "sha256:4d6f3ecf88b50693bb1a074ff26ddf4db0bf35d763592e1fbb30630953fa5b36",
+      "memberIds": [
+        "agent-remielle",
+        "agent-velina",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "蕾米埃尔与柳先用普攻攒能，蕾米埃尔强化特殊技起手，维琳娜打完五段普攻后由柳放强化特殊技铺电异常，再切回维琳娜主输出。",
+      "handoff": "柳打完强化特殊技连段触发极性紊乱、蕾米埃尔补完强化特殊技与支援后均交回维琳娜站场续风异常与涡流。",
+      "loop": "维琳娜以五段普攻衔接多段风系强化特殊技作主轴；柳按能量切入打强化特殊技连段触发极性紊乱，蕾米埃尔续增益。",
+      "burst": "增益与双异常齐备时交替倾泻维琳娜、蕾米埃尔与柳终结技，衔接涡流与极性紊乱完成高额异常爆发。",
+      "evidence": {
+        "axisSha256": "8563175de3f347582e1c012624a3a24e258e9206c9ed1d805470e5dd778ad1e9",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "4c1c33c260175702486621c427a718c82012e54239759359d70d0aab570eef3a"
+      }
+    },
+    {
+      "playId": "sha256:5abfca87bb60be12751f7403eeeaa934fa6d63f7ad0d264e2a19c8e6da4f61a2",
+      "memberIds": [
+        "agent-seed",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境剑势连段，随后由席德普攻起手、照补强化特殊技与入场支援铺开双核节奏。",
+      "handoff": "照补完强化特殊技或入场支援给增益、席德放完强化特殊技补输出后，均迅速切回叶瞬光衔接下一轮明心境。",
+      "loop": "叶瞬光循环常态普攻、强化特殊技攒势与明心境完整空地连段；席德定期切入放强化特殊技，照持续补强化特殊技续增益。",
+      "burst": "喧响就绪后在增益覆盖下依次释放叶瞬光双终结技与席德终结技，集中倾泻明心境高倍率连招收尾。",
+      "evidence": {
+        "axisSha256": "719dfe399fd77cad319f0722d8820e798a1ab8f16522d5e3667ebec80e09878d",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "71bb52152d2e19301d2f2b3bac481dc16ed52716cc572686d893881b7f495fa7"
+      }
+    },
+    {
+      "playId": "sha256:e5e261d0802ba1143c236172edc1ce85aa46d4c6f7bc4428489d554ec541670e",
+      "memberIds": [
+        "agent-trigger",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境全套剑势连段，随后切扳机蓄力狙击攒决意、照普攻攒能并补强化特殊技起手。",
+      "handoff": "扳机补完蓄力狙击或强化特殊技退回后台协同、照放完强化特殊技续增益后，均迅速交回叶瞬光切入明心境。",
+      "loop": "叶瞬光在常态普攻攒势与明心境空地连招间轮转；照定时补强化特殊技保增益，扳机穿插强化特殊技维持后台协同与失衡。",
+      "burst": "敌人失衡时由扳机接连携；喧响就绪后集中释放叶瞬光双终结技与扳机终结技在失衡窗内收割。",
+      "evidence": {
+        "axisSha256": "21ade662d0cd86021e389f3eda3c64c4d11358731d4bda09824b474b93402772",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "6f76c07a943b3ee6b3a0c34cbf7a0532f1f5116cb7d32b05415f2aee5e37192e"
+      }
+    },
+    {
+      "playId": "sha256:7382ed6cf13e6653c81e289e442d750bd857ccf55807313e648ea71ef414bbce",
+      "memberIds": [
+        "agent-aria",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "爱芮与维琳娜先用普攻攒能，爱芮强化特殊技接两段加速蓄力铺以太异常，维琳娜连放强化特殊技铺风异常后交普罗米娅五段普攻起手。",
+      "handoff": "爱芮补完加速蓄力挂以太异常、维琳娜补完风异常强化特殊技后均交回普罗米娅触发三属性紊乱与异放。",
+      "loop": "普罗米娅以五段普攻高频衔接强化特殊技作主轴；爱芮与维琳娜轮换补以太与风异常，持续维持涡流与异放循环。",
+      "burst": "敌人失衡时由普罗米娅接连携；喧响就绪后依次释放普罗米娅、维琳娜与爱芮终结技打满三异常爆发。",
+      "evidence": {
+        "axisSha256": "31b209c69a0e12204af594ab4272b39d9821386a57320757f0a2aa9f7bfcf5e4",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "e41bcfd77e0ed82feaad9123b848d52988dd3290233851da2d0bd0f8c94f6fa4"
+      }
+    },
+    {
+      "playId": "sha256:c7aab9b7cd01c8735c9ffdc026f415cdb552d05d9a336be70bc734f508643aa7",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-lighter",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "琉音与莱特先用普攻攒能并先后释放强化特殊技起手，琉音补二段强化特殊技后交希格莉德四段普攻衔接聚枪连段。",
+      "handoff": "琉音三段强化特殊技与莱特快速支援强化连拳轮流压制失衡条，推进失衡后迅速交回希格莉德倾泻输出。",
+      "loop": "希格莉德以四段普攻、聚枪连段与强化特殊技作主轴；琉音高频循环三段强化特殊技，莱特穿插快速支援与强化特殊技续增益。",
+      "burst": "敌人失衡时由希格莉德与琉音连续接连携；喧响就绪后在双击破高频失衡窗内释放希格莉德与琉音终结技收割。",
+      "evidence": {
+        "axisSha256": "78cfad202d0e2b1a209cb3cf9b726a751d77920056287686a9946533428bfbf4",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "f0cbb8112312bd7657c5da0a58fe477890e501a4c1276a9f564001f6c85f51cd"
+      }
+    },
+    {
+      "playId": "sha256:ea9e5da5eed6f866d1699798a6f07716f902a526b196c2e9e3ea4e459b1effa6",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-seed",
+        "agent-ye-shunguang"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境剑势连段，随后由琉音普攻攒能开启三段强化特殊技压制失衡，再衔接席德补火力。",
+      "handoff": "琉音打完三段强化特殊技推进失衡、席德补完强化特殊技后均交回叶瞬光以快速支援切入下一轮明心境。",
+      "loop": "叶瞬光交替进行常态普攻攒势与明心境完整空地连段；琉音高频循环三段强化特殊技控失衡，席德按能量穿插强化特殊技。",
+      "burst": "喧响就绪后趁琉音压出的失衡窗集中释放叶瞬光双终结技，衔接明心境全套高倍率剑势收割。",
+      "evidence": {
+        "axisSha256": "d8d7880979dad33a11a601ddc42da4ee0b0a1ba4a3b9b875bc3d167d6b344489",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "d4c9dfc188689e17006ea1ffb3e7071ef3743edb87c9fb8af209a54e37bf7cda"
+      }
+    },
+    {
+      "playId": "sha256:d1c47ed9f7654892f310720ec358b67228f014f15fc13076f6f90f4d8b65da94",
+      "memberIds": [
+        "agent-lighter",
+        "agent-norma",
+        "agent-sigrid"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "莱特与诺姆先用普攻攒能并依次释放强化特殊技起手，随后切希格莉德四段普攻衔接聚枪连段与强化特殊技展开输出。",
+      "handoff": "诺姆高频补强化特殊技、莱特满士气快速支援打完强化连拳后均交回希格莉德站场收割。",
+      "loop": "希格莉德以四段普攻、聚枪与双形态强化特殊技轮转；诺姆高频补强化特殊技，莱特穿插快速支援与强化特殊技压失衡。",
+      "burst": "敌人失衡时由莱特与希格莉德接连携；喧响就绪后在失衡窗内依次倾泻希格莉德与诺姆终结技。",
+      "evidence": {
+        "axisSha256": "9d6407d282a123f2b5bc7b332ef3277a13e9df4a676d06d99a59085c3015da44",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "691569f4c1c05e1b7b2f3dd315c0e6410b580f953e8502c3f57b8200cc4273d1"
+      }
+    },
+    {
+      "playId": "sha256:373cfe831728f1bc0a6e02ec0ab1d48838ad77dbecf861225530570ccfa6bc67",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "星见雅与维琳娜先用普攻攒能，星见雅打出三段蓄力斩铺烈霜后交普罗米娅五段普攻起手，再由维琳娜补风异常强化特殊技。",
+      "handoff": "星见雅补完双段强化特殊技挂霜、维琳娜补完风异常强化特殊技后均交回普罗米娅站场打高频寒蚀与紊乱。",
+      "loop": "普罗米娅以五段普攻高频衔接强化特殊技为主轴；维琳娜轮换风系强化特殊技续涡流，星见雅定期切入补霜异常与蓄力斩。",
+      "burst": "敌人失衡时由维琳娜接连携；喧响就绪后集中释放普罗米娅、维琳娜与星见雅终结技打满冰霜风异常爆发。",
+      "evidence": {
+        "axisSha256": "40aa33f4f1a4101b463169fd7d302a2df0a77fc5342ce48a376ae22048a5f89f",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "46675f256ebf19f22712cb33ad60ca4928e8c432fd9b1d2d3184d218fadb542b"
+      }
+    },
+    {
+      "playId": "sha256:9971414d0d0c901b9e248a4e55ca00edf21bb9522994812631917ca6b0244341",
+      "memberIds": [
+        "agent-norma",
+        "agent-roxy",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "诺姆与柚叶先用普攻攒能，洛克茜直接长按两段强化特殊技衔接旋风连击起手，诺姆补强化特殊技后再交回洛克茜普攻续循环。",
+      "handoff": "诺姆高频放强化特殊技补后台火力、柚叶补强化特殊技给增益后均迅速交回洛克茜站场打满旋风长按循环。",
+      "loop": "洛克茜高频循环两段长按强化特殊技、多段旋风与特殊技并穿插普攻；诺姆与柚叶按能量轮换强化特殊技保覆盖。",
+      "burst": "敌人失衡时优先由诺姆与洛克茜连续接连携；喧响就绪后依次释放洛克茜与诺姆终结技打满失衡爆发。",
+      "evidence": {
+        "axisSha256": "a3cc787ad2b089bc77d70796a8629c0b5661208aa9d2ded708a2508e64a25042",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "d584fc73d23266aecb6d678550bf5cea375a8d1061b8d3d220b92638111f3fb8"
+      }
+    },
+    {
+      "playId": "sha256:acb5f8096dae46c1bd694d7a81ee044b2311bb3210dbdf80778a9f0b7f0c62d0",
+      "memberIds": [
+        "agent-piper",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "派派与蕾米埃尔先用普攻攒能，派派转圈强化特殊技起手叠动力与物理异常，再经蕾米埃尔强化特殊技交维琳娜主站场打风异常。",
+      "handoff": "派派打完转圈强击与重砸收尾、蕾米埃尔补完强化特殊技与支援后均交回维琳娜引爆风物理紊乱与涡流。",
+      "loop": "维琳娜以五段普攻衔接多段风系强化特殊技为主轴；派派周期性切入长按转圈挂物理强击，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由维琳娜接连携；喧响就绪后集中释放维琳娜、派派与蕾米埃尔终结技打满物理风异常爆发。",
+      "evidence": {
+        "axisSha256": "68d4da353aa5bfb9eb2725d1c5239605cf1eee6f207ff25374eb18f6fb95acf4",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "08f99539ac82863bdf8f6ede1ca4f6dff1796476860737018d068d12f77f6bcd"
+      }
+    },
+    {
+      "playId": "sha256:48d3f2c126c0b6f4b9b0f27b374fc1cf4c5dc75a863245d5a541603a21fbd8b9",
+      "memberIds": [
+        "agent-aria",
+        "agent-grace",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "格莉丝与蕾米埃尔先用普攻攒能，格莉丝强化特殊技挂感电起手，切爱芮四段普攻过渡，格莉丝再补普攻与感电后交回爱芮主输出。",
+      "handoff": "格莉丝补完强化特殊技挂电异常、蕾米埃尔放完强化特殊技与支援后均交回爱芮打高频加速蓄力触发异放与紊乱。",
+      "loop": "爱芮以强化特殊技与普攻高频衔接加速三段蓄力攻击作主轴；格莉丝轮换强化特殊技续感电，蕾米埃尔维持全队增益。",
+      "burst": "喧响就绪后交替倾泻爱芮、蕾米埃尔与格莉丝终结技，借爱芮大招窗口连发强化加速蓄力引爆电以太紊乱。",
+      "evidence": {
+        "axisSha256": "5d5825db945da1ee41fda4ea0a08a173b8d4901bdb0a038383de70d358db76c1",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "6f144c29d692f88cc86dc460cd64f3b714c187c25cb18bacb57a367146445562"
+      }
+    },
+    {
+      "playId": "sha256:5cf52b21d52d4f0f37a701f8ef7daae02fb62afc6fda9322e58ca82b88311d18",
+      "memberIds": [
+        "agent-aria",
+        "agent-miyabi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "爱芮与柚叶先用普攻攒能，爱芮强化特殊技接两段加速蓄力铺以太异常，柚叶补强化特殊技后交星见雅五段普攻起手。",
+      "handoff": "爱芮补完强化特殊技与加速蓄力挂以太异常、柚叶补完强化特殊技续增益后均交回星见雅打紊乱回落霜。",
+      "loop": "星见雅以五段普攻高频衔接双段强化特殊技攒满落霜打三段蓄力斩；爱芮高频切入补以太蓄力，柚叶维持全队增益。",
+      "burst": "敌人失衡时由爱芮接连携；喧响就绪后依次释放星见雅与爱芮终结技，衔接满霜蓄力斩与强化加速蓄力爆发。",
+      "evidence": {
+        "axisSha256": "e6abb7fd75c2e5d6666fb30453fa688dd49f44867fc9eaf768232c9dbf0f0d76",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "dfc0d11463b8c92c9d75fc20b6a938c298052cf7dabcf3c0cb8c8cda4ef99af7"
+      }
+    },
+    {
+      "playId": "sha256:7c8a2a0750029f8ce436202e2f110d7d526808256744d1d9e00280ea08edc274",
+      "memberIds": [
+        "agent-aria",
+        "agent-miyabi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "星见雅与柚叶先用普攻攒能，星见雅打出三段蓄力斩铺霜异常，爱芮四段普攻过渡后由星见雅双段强化特殊技与柚叶补增益，交回爱芮。",
+      "handoff": "星见雅补完双段强化特殊技挂冰异常、柚叶补完强化特殊技续增益后均迅速交回爱芮站场打满加速蓄力。",
+      "loop": "爱芮高频以强化特殊技衔接多轮强化加速蓄力与三段蓄力攻击为主轴；星见雅定期切入补霜异常，柚叶维持全队增益。",
+      "burst": "增益与异常覆盖下交替释放爱芮与星见雅终结技，借爱芮大招窗口连发强化加速蓄力引爆高额霜以太紊乱。",
+      "evidence": {
+        "axisSha256": "30b03fc2caf4fddb014c5916e075d6949afe1ebc642f6ddc59fbdd7eb78ed17c",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "7d63d4eb95f615cd0ed195aed0f18e937283aeb7b2f5fc052021ab5873327570"
+      }
+    },
+    {
+      "playId": "sha256:349dcf27b2c87581f2ad361fa36f5e56cceca6e7585968d401f041a7f1ee61f1",
+      "memberIds": [
+        "agent-aria",
+        "agent-miyabi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "爱芮与柚叶先用普攻攒能，爱芮强化特殊技接两段加速蓄力铺以太异常，柚叶放强化特殊技后交星见雅五段普攻切入主输出。",
+      "handoff": "爱芮打完强化加速蓄力续以太异常、柚叶补完强化特殊技给增益后均交回星见雅触发紊乱并迅速续满落霜。",
+      "loop": "星见雅以五段普攻与双段强化特殊技为主轴高频蓄力斩；爱芮轮换加速蓄力维持以太异常，柚叶定时补强化特殊技。",
+      "burst": "敌人失衡时由爱芮接连携；喧响就绪后集中释放星见雅与爱芮终结技，顺势衔接满霜蓄力斩收割窗口。",
+      "evidence": {
+        "axisSha256": "2791c54876343918599d0eb1d8bad1750c60c2d493cd25c3c1ee2ed8c034a888",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "d2c4f41de086570451026e7afce52491fbc9e4054a8ebd9b40195b9c39f7392c"
+      }
+    },
+    {
+      "playId": "sha256:0c16f99e5a604d1dda97e4488a52292a169d8f836152ce624654c5b8e137bef8",
+      "memberIds": [
+        "agent-aria",
+        "agent-remielle",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "蕾米埃尔与薇薇安先用普攻攒能，爱芮强化特殊技接加速蓄力起手，蕾米埃尔补强化特殊技后交回爱芮普攻与高频蓄力循环。",
+      "handoff": "蕾米埃尔释放强化特殊技与支援、薇薇安补强化特殊技续护羽后均迅速交回爱芮，保障爱芮持续高频蓄力。",
+      "loop": "爱芮以高频强化特殊技衔接三段加速蓄力为主轴持续触发异放；薇薇安定时补强化特殊技维持后台护羽，蕾米埃尔续增益。",
+      "burst": "敌人失衡时由蕾米埃尔与爱芮接连携；喧响就绪后集中释放爱芮、蕾米埃尔与薇薇安终结技打满纯以太异放爆发。",
+      "evidence": {
+        "axisSha256": "f1bcc7ae243d56a813b1340687e16d766e49208cbbd6197addee43af118c4704",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "0c600c36ed177487bb04b16c536d3365ef7df28bb3c65fb7a73fb339b1baf51f"
+      }
+    },
+    {
+      "playId": "sha256:3397fc14dc32602ec7dba04f59cd873fea94ae2f4600cdd9fe53bab9d9e71fda",
+      "memberIds": [
+        "agent-dialyn",
+        "agent-sigrid",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "琉音与照先用普攻攒能，琉音首段强化特殊技后由照入场支援切出，琉音补二段强化特殊技，希格莉德四段普攻后照补强化特殊技起手。",
+      "handoff": "琉音循环三段强化特殊技推进失衡、照释放强化特殊技与入场支援续增益后均迅速交回希格莉德站场收割。",
+      "loop": "希格莉德以四段普攻、聚枪连段与强化特殊技轮转输出；琉音高频三段强化特殊技控失衡，照按节奏补强化特殊技。",
+      "burst": "敌人失衡时由希格莉德与琉音接连携；喧响就绪后在失衡窗内依次释放希格莉德、琉音与照终结技。",
+      "evidence": {
+        "axisSha256": "8bea3a1ee5190c4b3b9d498f222b9840e2e18a151d8d0b40ae94fd210c73c0c2",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "ce71d6d1ec4b7ac9b98ea7f4ea95495e44d1e6ea00fdeaa4dbbc0ae29dc03477"
+      }
+    },
+    {
+      "playId": "sha256:baf2517521b65f5b171152f84f35b661a46905c76295d470a9b29526d64379fe",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-remielle",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "菲欧妮与蕾米埃尔先用普攻攒能，菲欧妮强化特殊技挂火异常起手，柳打满五段普攻后由蕾米埃尔补强化特殊技，随即交回柳主站场。",
+      "handoff": "菲欧妮补完火异常强化特殊技、蕾米埃尔放完强化特殊技与支援后均交回柳，由柳衔接强化特殊技引爆极性紊乱。",
+      "loop": "柳以五段普攻高频衔接强化特殊技追刺与下劈连段为主轴；菲欧妮轮换强化特殊技续火异常，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由菲欧妮接连携；喧响就绪后集中倾泻柳、菲欧妮与蕾米埃尔终结技打满火电极性紊乱爆发。",
+      "evidence": {
+        "axisSha256": "bf787ba486886ab31074ca6421db65f49646c3e0dce13fad564d0eec8f1d1ebe",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "9b3d958fd141b1e2ad05c2c7330038ccfbb8f9b6d8b84b9c3ad36a087fc1d3f2"
+      }
+    },
+    {
+      "playId": "sha256:9d3ab407bba4a388ecd667f55e7afa74eac95e633bdecd13b5f83d21f2230dae",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-roxy",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "洛克茜与柚叶先用普攻攒能，洛克茜长按两段强化特殊技接旋风与特殊技起手，随后经柚叶补强化特殊技交菲欧妮站场输出。",
+      "handoff": "洛克茜打完两段长按强化特殊技与特殊技、柚叶补完强化特殊技给增益后均切回菲欧妮吃满窗口。",
+      "loop": "菲欧妮以普攻攒燔焰衔接强化蓄力与双段强化特殊技为主轴；洛克茜高频循环两段长按强化特殊技，柚叶定时续增益。",
+      "burst": "敌人失衡时由洛克茜与菲欧妮接连携；喧响就绪后交替倾泻菲欧妮与洛克茜终结技打满失衡窗口。",
+      "evidence": {
+        "axisSha256": "9f657bb8ac84dcc790c2078a0963f504210abbbd781d990d369f26267fffdfb1",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "6719a3616fa455210beda5aba9d1298dbc7412dbabc79ab22130fb400e7e5ae6"
+      }
+    },
+    {
+      "playId": "sha256:8c203aa3f5f76eb68e85cb61abb481d6f1839bfa75c17a8733b5b090dc68c013",
+      "memberIds": [
+        "agent-promeia",
+        "agent-pulchra",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "波可娜与维琳娜先用普攻攒能，波可娜强化特殊技进后台追击，普罗米娅五段普攻接强化特殊技起手，维琳娜再补风异常强化特殊技。",
+      "handoff": "波可娜补完强化特殊技退回后台协同、维琳娜补完风异常强化特殊技后均交回普罗米娅触发冰风紊乱。",
+      "loop": "普罗米娅以五段普攻高频衔接强化特殊技与寒蚀招式作主轴；维琳娜轮换风系强化特殊技续涡流，波可娜定期补强化特殊技。",
+      "burst": "敌人失衡时由普罗米娅接连携；喧响就绪后依次释放普罗米娅、维琳娜与波可娜终结技打满失衡爆发。",
+      "evidence": {
+        "axisSha256": "234f8177e24ba1a619ab20715367c4118a77845ce696a08aca78eb360bce888a",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "91c70abebee112576f2ef89ad2273db86d0ab3df99ce082d74feaa3e4fa54756"
+      }
+    },
+    {
+      "playId": "sha256:2233bea1b3556aaa6fe30b7d297cbb0d35ba9847fe189886cf0e2618d717ed9c",
+      "memberIds": [
+        "agent-roxy",
+        "agent-sigrid",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "洛克茜与照先用普攻攒能，洛克茜长按两段强化特殊技接旋风与特殊技起手，照补强化特殊技后交希格莉德四段普攻展开循环。",
+      "handoff": "洛克茜打完两段长按强化特殊技与特殊技、照补完强化特殊技或入场支援后均迅速切回希格莉德站场收割。",
+      "loop": "希格莉德以四段普攻、聚枪与强化特殊技轮转；洛克茜高频循环两段长按强化特殊技，照按节奏补强化特殊技与入场支援。",
+      "burst": "敌人失衡时由洛克茜与希格莉德接连携；喧响就绪后集中释放希格莉德、洛克茜与照终结技打满失衡窗口。",
+      "evidence": {
+        "axisSha256": "3bc5fcbfc8765ea5adc190f9c7ec6ed47079809ba18b1e3d364159a57e9b477a",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "0d9f6b28df25a47929fa953bf1ab3db3d58644ea70fc13cdd3530be7891fad87"
+      }
+    },
+    {
+      "playId": "sha256:5c19f7ddcf6bef91b279aeb413bd10321a4ff173f5ddeeb54b32f22eb2663994",
+      "memberIds": [
+        "agent-aria",
+        "agent-burnice",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-aria",
+      "opening": "柏妮思与蕾米埃尔先用普攻攒能，爱芮强化特殊技接加速蓄力起手，柏妮思喷火强化特殊技挂灼烧、蕾米埃尔补增益后交回爱芮。",
+      "handoff": "柏妮思补完喷火强化特殊技续后台灼烧、蕾米埃尔补完强化特殊技与支援后均交回爱芮高频打加速蓄力触发火以太紊乱。",
+      "loop": "爱芮以高频强化特殊技与加速三段蓄力攻击作主轴；柏妮思循环喷火强化特殊技铺火异常，蕾米埃尔维持全队增益。",
+      "burst": "增益与双异常齐备时交替倾泻爱芮与蕾米埃尔终结技，借爱芮大招窗口连发强化加速蓄力打满异放与紊乱爆发。",
+      "evidence": {
+        "axisSha256": "ff773340b564bd0f53519a9df212fae839723ab27da86e538d60da43fba3726c",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "261fb1c92eb3f7b4e082e3dd13b00f4614fb30d871f0bd20eff8c7b8ae1cb986"
+      }
+    },
+    {
+      "playId": "sha256:840ef6c0bafe014f353d1cc87d3caacc5fe85a1c1f71860e556532338798ff01",
+      "memberIds": [
+        "agent-claret",
+        "agent-qingyi",
+        "agent-rina"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "青衣与丽娜先用普攻攒能，克拉蕾强化特殊技接血誓特殊技起手，随后由青衣打满闪络冲刺与强化特殊技、丽娜补人偶再交回克拉蕾。",
+      "handoff": "青衣打满闪络与强化特殊技叠失衡易伤、丽娜补完强化特殊技续穿透人偶后均迅速交回克拉蕾站场连段。",
+      "loop": "克拉蕾高频围绕血誓特殊技连段、星锻普攻与强化特殊技输出；丽娜保持人偶穿透覆盖，青衣穿插闪络冲刺与强化特殊技压失衡。",
+      "burst": "敌人失衡时由克拉蕾与青衣接连携；喧响就绪后在青衣失衡易伤与丽娜穿透覆盖下依次释放克拉蕾、青衣与丽娜终结技。",
+      "evidence": {
+        "axisSha256": "3081a4f1fbf4d022eba651d2884362f2dcb8e9a39c438277b079adbf6367fdc5",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "6145f4490c758e27bee76ed99dbe340cabba534bb45431ed0950a2634420d4fb"
+      }
+    },
+    {
+      "playId": "sha256:bf24d443262f3b9c897e82f41a040799e8676cf8ae29918b2265a615b80a0658",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-promeia",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "普罗米娅五段普攻接强化特殊技铺寒蚀，维琳娜普攻攒能后普罗米娅补二段强化特殊技，随即交菲欧妮四段普攻展开主站场循环。",
+      "handoff": "普罗米娅补完冰异常强化特殊技、维琳娜补完风异常强化特殊技后均交回菲欧妮触发三属性异放与紊乱。",
+      "loop": "菲欧妮以四段普攻攒燔焰衔接强化蓄力与双段强化特殊技作主轴；维琳娜与普罗米娅轮换补风、冰异常维持涡流与寒蚀。",
+      "burst": "喧响就绪后依次倾泻菲欧妮、维琳娜与普罗米娅终结技，顺势衔接菲欧妮强化蓄力打满三异常爆发。",
+      "evidence": {
+        "axisSha256": "1c2f28f762fbfba7f30635ed25f9bcc77f2d3dc76c076add8b3f1fb483794e26",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "b384de2c6cb68713b722ae14a63144916f2769d6100d57dc643e6d3154689ce2"
+      }
+    },
+    {
+      "playId": "sha256:174e584f6c924269e1d52811897b171f4add79bcf0b0e86c033a6daf128dfd01",
+      "memberIds": [
+        "agent-piper",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-piper",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔强化特殊技起手，派派四段普攻过渡后由维琳娜连放两段风系强化特殊技，再交回派派主输出。",
+      "handoff": "维琳娜补完风异常强化特殊技、蕾米埃尔放完强化特殊技与支援后均交回派派长按转圈触发强击与风物理紊乱。",
+      "loop": "派派以长时间旋转强化特殊技接重砸收尾为主轴持续堆动力与强击；维琳娜轮换续风异常与涡流，蕾米埃尔维持增益。",
+      "burst": "增益与异常齐备时交替释放派派、蕾米埃尔与维琳娜终结技，衔接派派连续转圈强击打满爆发窗口。",
+      "evidence": {
+        "axisSha256": "62626514a66e0fd3940dac79f043fb3b413faf6766c1fcf8488758a515bf7321",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "edad16fe6b5630f70c1c39a0fdb0a2599cecd1c7f42f1097c3643f4ef5e790c2"
+      }
+    },
+    {
+      "playId": "sha256:3bc9c2375b31649bbf4ddcefd7fd83a8b98850f15e96187c89a47aad76536e12",
+      "memberIds": [
+        "agent-remielle",
+        "agent-velina",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-vivian",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔强化特殊技起手，薇薇安四段普攻过渡后由维琳娜连放强化特殊技铺风异常，再交回薇薇安。",
+      "handoff": "维琳娜补完风异常强化特殊技、蕾米埃尔补完强化特殊技与支援后均交回薇薇安续护羽并触发高频异放。",
+      "loop": "薇薇安站场以普攻衔接强化特殊技维系护羽与以太异常；维琳娜高频轮换风系强化特殊技续涡流，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由薇薇安接连携；喧响就绪后集中释放薇薇安、蕾米埃尔与维琳娜终结技打满以太风异放爆发。",
+      "evidence": {
+        "axisSha256": "d868f92742cf44aba089536de5663810c8ee1863b3798e4da47163f42b9a9dfa",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "232cc2775b5d6d3f9f0ad51c088dbcbbd36fe6a77f4254f93b51251823c544d4"
+      }
+    },
+    {
+      "playId": "sha256:48d1ba28661ed4f9712a3c05203d02befe92f9380a6665a820f16c9a0a30722b",
+      "memberIds": [
+        "agent-rina",
+        "agent-ye-shunguang",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-ye-shunguang",
+      "opening": "叶瞬光先以快速支援入场打满首轮明心境全套剑势连段，随后丽娜普攻攒能放人偶挂穿透、照补强化特殊技铺开双辅助增益。",
+      "handoff": "丽娜定期补强化特殊技续人偶穿透、照释放强化特殊技续增益后均迅速切回叶瞬光以快速支援切入下一轮明心境。",
+      "loop": "叶瞬光循环常态普攻、强化特殊技攒势与明心境空地全套连招；丽娜与照按能量轮换强化特殊技保持穿透与增益不断档。",
+      "burst": "喧响就绪后在丽娜穿透与照增益覆盖下依次释放叶瞬光双终结技、丽娜与照终结技收割爆发窗口。",
+      "evidence": {
+        "axisSha256": "ab2261281071bd578f70a18f812cc54b3d95f9e03cddf69cbe061829e7d063ed",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "1492159410cb267c462d0d85ae2cc224f65f1e8445a729de4380675aa5832598"
+      }
+    },
+    {
+      "playId": "sha256:e161c079da945139a6be402b130983f8191efe5f9161dc6a397954d89f87a50d",
+      "memberIds": [
+        "agent-alice",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-alice",
+      "opening": "蕾米埃尔与维琳娜先用普攻攒能，蕾米埃尔强化特殊技起手，爱丽丝打完五段普攻后由维琳娜补风异常强化特殊技，再交回爱丽丝站场。",
+      "handoff": "维琳娜补完风异常强化特殊技、蕾米埃尔补完强化特殊技与支援后均交回爱丽丝，由爱丽丝续剑仪触发强击与紊乱。",
+      "loop": "爱丽丝以五段普攻衔接强化第五段、三段蓄力与强化特殊技持续打物理强击；维琳娜续风异常与涡流，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由蕾米埃尔接连携；喧响就绪后依次释放爱丽丝、蕾米埃尔与维琳娜终结技打满强击与紊乱爆发。",
+      "evidence": {
+        "axisSha256": "e75f5e9ce260105443536aa598db958fbd4ca140e50477846beb87ed27d62f7a",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "2e3192bc86198cd8a9c20d57b595b784c03eece0896c2672a4586763fb3f5342"
+      }
+    },
+    {
+      "playId": "sha256:268cf2f9d96a9fc7a37cc7a6c48fc499b2e8016a495efc52051948ae062e0041",
+      "memberIds": [
+        "agent-alice",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-alice",
+      "opening": "维琳娜与柚叶先用普攻攒能，维琳娜连放两段风系强化特殊技铺异常，随即切爱丽丝五段普攻接强化第五段展开高频强击循环。",
+      "handoff": "维琳娜补完风异常强化特殊技、柚叶放完强化特殊技续增益后均交回爱丽丝站场连续引爆强击与风物理紊乱。",
+      "loop": "爱丽丝高频打出普攻连段与强化第五段衔接蓄力及强化特殊技；维琳娜轮换风系强化技续涡流，柚叶定时补强化特殊技。",
+      "burst": "敌人失衡时由柚叶接连携过渡；喧响就绪后交替倾泻爱丽丝与维琳娜终结技，顺势收割强击与紊乱窗口。",
+      "evidence": {
+        "axisSha256": "fb2c631510c7382cdeb6fe0d13e9bbf14aa2263e5f99d31e9e2ff7a523ae06f6",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "0cb56a12427e70ad95106ed5a3ead3f4b901ebd3770ac0e63cc974581fe5f51e"
+      }
+    },
+    {
+      "playId": "sha256:95d399135d6f142ee6255fcdeb21d6322556fa3e64710ee170b775d24a4bb524",
+      "memberIds": [
+        "agent-aria",
+        "agent-miyabi",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "爱芮与蕾米埃尔先用普攻攒能，爱芮强化特殊技接两段加速蓄力铺以太异常，蕾米埃尔补强化特殊技后交星见雅五段普攻起手。",
+      "handoff": "爱芮打完加速蓄力续以太异常、蕾米埃尔补完强化特殊技与支援后均交回星见雅打霜以太紊乱并回复落霜。",
+      "loop": "星见雅以五段普攻高频衔接双段强化特殊技攒落霜打三段蓄力斩；爱芮定期切入补以太加速蓄力，蕾米埃尔维持全队增益。",
+      "burst": "喧响就绪后在增益与异常覆盖下依次释放星见雅、爱芮与蕾米埃尔终结技，衔接满霜蓄力斩与强化蓄力打满爆发。",
+      "evidence": {
+        "axisSha256": "2af0f985696bb1d0454c52c2747fdcd5eccba3882de0c8c9a1282d82372da9a7",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "72fafadc64dd633fdd86400f5258df57740b4b87c7a6251554ad88b03975d5e3"
+      }
+    },
+    {
+      "playId": "sha256:5dee9a7f9bbfdfbcaed938aa6cf1b06a266502b06cc9713f231ab793c3147def",
+      "memberIds": [
+        "agent-aria",
+        "agent-miyabi",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "爱芮与蕾米埃尔先用普攻攒能，爱芮强化特殊技接两段加速蓄力挂以太异常，蕾米埃尔放强化特殊技后交星见雅五段普攻主站场。",
+      "handoff": "爱芮补完以太加速蓄力、蕾米埃尔放完强化特殊技与支援后均交回星见雅触发紊乱续霜。",
+      "loop": "星见雅围绕五段普攻与双段强化特殊技高频释放三段蓄力斩；爱芮轮换强化特殊技与加速蓄力续异常，蕾米埃尔维持增益。",
+      "burst": "喧响就绪后集中释放星见雅、爱芮与蕾米埃尔终结技，顺势衔接满霜蓄力斩与高额紊乱收尾。",
+      "evidence": {
+        "axisSha256": "81a4ea868dd3aa9a722ddc602d70d14ad7234b7ec39f8125cdf548d3222e68a5",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "e0291a1f3ed256318b81e0ca6d10e9e632576070beaeafda54c78f0d038e9ec7"
+      }
+    },
+    {
+      "playId": "sha256:63bbaac49804ae021a137a0ad6f261451549f5d26cc51e6dd5aaf97053721dd2",
+      "memberIds": [
+        "agent-aria",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "爱芮与柚叶先用普攻攒能，爱芮强化特殊技接两段加速蓄力铺以太异常，柚叶补强化特殊技后交维琳娜五段普攻切入主输出。",
+      "handoff": "爱芮补完强化加速蓄力挂以太异常、柚叶补完强化特殊技续增益后均交回维琳娜引爆风以太紊乱与涡流。",
+      "loop": "维琳娜以五段普攻衔接多段风系强化特殊技作主轴；爱芮轮换加速蓄力续以太异常，柚叶定期补强化特殊技维持增益。",
+      "burst": "敌人失衡时由爱芮接连携；喧响就绪后交替倾泻维琳娜与爱芮终结技，顺势衔接多段风系强化技与涡流收尾。",
+      "evidence": {
+        "axisSha256": "ab8bf0207c31531a7336ec04d874371a44ba9751babc660ce6b8ba72c48ddf3d",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "1f8eea8cece2c139133cf204c0b09e4dbf049c2ab7614319f92f692e04aac262"
+      }
+    },
+    {
+      "playId": "sha256:942b15fa6da8e743e3a59e552ff7b650f5991d0b212f874ae87bd19c1dd3ed52",
+      "memberIds": [
+        "agent-burnice",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "柏妮思与蕾米埃尔先用普攻攒能，柏妮思喷火强化特殊技挂灼烧、蕾米埃尔补强化特殊技铺增益，再交维琳娜五段普攻主站场。",
+      "handoff": "柏妮思补完喷火强化特殊技续后台灼烧、蕾米埃尔补完强化特殊技与支援后均交回维琳娜连续触发火风紊乱与涡流。",
+      "loop": "维琳娜以五段普攻衔接多段风系强化特殊技为主轴；柏妮思循环喷火强化特殊技补火异常，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由蕾米埃尔接连携；喧响就绪后集中释放维琳娜与蕾米埃尔终结技，衔接风系强化技与灼烧紊乱收尾。",
+      "evidence": {
+        "axisSha256": "ed440816beddf6cf24416ead9f19b139c04da60caaee7b2d970df6c0f10447ed",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "61e2fb5a911493cfa519794d90d70c0341ecf4fd8f87e1e87e63a1ca6956de80"
+      }
+    },
+    {
+      "playId": "sha256:d6f59aca5fd36659bb8f05e4be6daf5ad718b40fc89ff6930d8a77b2ac4d1c3e",
+      "memberIds": [
+        "agent-cissia",
+        "agent-roxy",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-cissia",
+      "opening": "洛克茜普攻攒能、扳机蓄力狙击攒决意，希希芙四段普攻过渡后由洛克茜长按两段强化特殊技接特殊技起手，再交回希希芙主站场。",
+      "handoff": "扳机攒好决意后退回后台协同，洛克茜打完两段长按强化特殊技与特殊技后均迅速切回希希芙打高频强化特殊技。",
+      "loop": "希希芙以四段普攻与高频强化特殊技为主轴持续输出；洛克茜循环两段长按强化特殊技与旋风，扳机后台协同推进失衡。",
+      "burst": "敌人失衡时由洛克茜与希希芙接连携；喧响就绪后趁失衡窗口释放希希芙终结技衔接强化特殊技完成收割。",
+      "evidence": {
+        "axisSha256": "59444f34ae5ba895946b1981bcf386e50b3e42dc3212aa7ce9448d0538d38035",
+        "policySha256": "101228238afdd2201e824166dcccc7356c92bb3da5c7acd1e965b2df3f48f26b",
+        "productionReportSha256": "a0ba421b3464dffcf57744390153ef6ad6892714eab7cc64b186c8dba2247681"
+      }
+    },
+    {
+      "playId": "sha256:dc3ce3b516215d4950db93ac3977bc4df7e4966336bcfd780303f339f53dad5e",
+      "memberIds": [
+        "agent-claret",
+        "agent-dialyn",
+        "agent-rina"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "琉音与丽娜先用普攻攒能，克拉蕾强化特殊技接血誓连段起手，随后琉音首段强化特殊技、丽娜补人偶穿透后再交回克拉蕾站场。",
+      "handoff": "琉音三段强化特殊技压制失衡、丽娜高频补强化特殊技与特殊技续人偶穿透后均迅速切回克拉蕾输出。",
+      "loop": "克拉蕾高频围绕血誓特殊技连段、星锻普攻与强化特殊技循环；琉音与丽娜交替补三段强化特殊技与穿透人偶。",
+      "burst": "敌人失衡时由克拉蕾与琉音连续接连携；喧响就绪后在丽娜穿透覆盖下释放克拉蕾与琉音终结技打满失衡窗。",
+      "evidence": {
+        "axisSha256": "47a9a0597a993ff368359fd806b6dcace13f719477bc12471b8e4b80466b5fe7",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "ec478fe67dc17762d93dd9a5ecdce240c3b7aa141d86b6bd4a53692edb01c7cb"
+      }
+    },
+    {
+      "playId": "sha256:5101ae7786cf53aabe1710c7e427fb5e4d909059b87ee457a64698898551b5c8",
+      "memberIds": [
+        "agent-grace",
+        "agent-nangong",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-grace",
+      "opening": "南宫羽与蕾米埃尔先用普攻攒能，南宫羽强化特殊技起手，格莉丝四段普攻过渡后由蕾米埃尔补强化特殊技给增益，再交回格莉丝。",
+      "handoff": "南宫羽高频补强化特殊技推进失衡、蕾米埃尔补完强化特殊技与支援后均迅速交回格莉丝站场打高频感电。",
+      "loop": "格莉丝以四段普攻高频衔接强化特殊技与特殊技持续引爆感电；南宫羽定期压失衡，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由格莉丝接连携；喧响就绪后集中释放格莉丝、蕾米埃尔与南宫羽终结技在失衡窗内收割。",
+      "evidence": {
+        "axisSha256": "90e4970072138a06d482055e816253572677d8d45df71423c8c81d3b43057856",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "031470eddc2e70db4578f0694f83950ecb650bf0dd0bed419e2dacc925238f90"
+      }
+    },
+    {
+      "playId": "sha256:8210443c0b150aafdb6a8bd3159f9b61c8246905e0bb943a119fdb50b84de7b9",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-promeia",
+        "agent-remielle"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "星见雅与蕾米埃尔先用普攻攒能，星见雅打出三段蓄力斩铺霜后切普罗米娅五段普攻接强化特殊技，蕾米埃尔再补增益起手。",
+      "handoff": "星见雅补完双段强化特殊技续霜异常、蕾米埃尔补完强化特殊技与支援后均交回普罗米娅站场打高频寒蚀。",
+      "loop": "普罗米娅以五段普攻高频衔接双段强化特殊技作主轴；星见雅定期切入补霜异常与蓄力斩，蕾米埃尔维持全队增益。",
+      "burst": "敌人失衡时由普罗米娅接连携；喧响就绪后集中倾泻普罗米娅、星见雅与蕾米埃尔终结技打满冰霜爆发。",
+      "evidence": {
+        "axisSha256": "43c072e47d550eb092a6548ea2e232714499c15533d3dea91002f23f5c678bff",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "42d93a57c78f79cec751deda92d8312011fd8341f89489d37a7fdb9477889963"
+      }
+    },
+    {
+      "playId": "sha256:c185558bcc4844e48d4d1ed0b7a22b21bcc5fba62e141123b48dbb7a5ac04609",
+      "memberIds": [
+        "agent-orphie-magus",
+        "agent-roxy",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-roxy",
+      "opening": "奥菲丝先以两段蓄热追击强化特殊技起手，扳机蓄力狙击攒决意，洛克茜四段普攻后长按两段强化特殊技接旋风与特殊技展开主输出。",
+      "handoff": "扳机攒完决意退回后台协同，奥菲丝补完蓄热喷发强化特殊技后均切回洛克茜站场衔接长按旋风循环。",
+      "loop": "洛克茜高频循环两段长按强化特殊技、多段旋风与特殊技；奥菲丝轮换蓄热追击强化技，扳机后台协同推进失衡。",
+      "burst": "敌人失衡时由奥菲丝接连携；喧响就绪后集中释放洛克茜、奥菲丝与扳机终结技打满三追击爆发。",
+      "evidence": {
+        "axisSha256": "ac202bbcaa144c6ef4177e33788a177854897e6766ac118a85b9a05bb5fac51d",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "53758f321b026b07ba1a802fec49aa3912f307d0fc32131a70ec76551ad3a4bf"
+      }
+    },
+    {
+      "playId": "sha256:a9cd2b6f5157215ccfcb21358ee2f1242074e431bf01aa71baf781d539248d46",
+      "memberIds": [
+        "agent-promeia",
+        "agent-vivian",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-promeia",
+      "opening": "薇薇安与柚叶先用普攻攒能，柚叶强化特殊技给增益起手，切普罗米娅五段普攻衔接高频强化特殊技，薇薇安适时补护羽。",
+      "handoff": "柚叶补完强化特殊技维持增益、薇薇安补完强化特殊技续护羽后均迅速交回普罗米娅站场打满寒蚀。",
+      "loop": "普罗米娅以五段普攻高频衔接双段强化特殊技为主轴；薇薇安定时补强化特殊技触发后台异放，柚叶持续续增益。",
+      "burst": "敌人失衡时由薇薇安接连携；喧响就绪后在增益覆盖下集中倾泻普罗米娅与薇薇安终结技打满冰以太异放爆发。",
+      "evidence": {
+        "axisSha256": "cc1a558b7ef8061e68b774054365957c3a172d4fed17705d8a1b3dde8527778c",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "7454510d8e0cd7df9323ca3e5a6f521145624dc2731e9e5de8ff23d5a12f00e7"
+      }
+    },
+    {
+      "playId": "sha256:a9b1d6804e68bc8f8043a71881fe1d3bf21fb57ee9d434f4e03cec08737991de",
+      "memberIds": [
+        "agent-remielle",
+        "agent-velina",
+        "agent-vivian"
+      ],
+      "primaryAgentId": "agent-velina",
+      "opening": "蕾米埃尔与薇薇安先用普攻攒能，蕾米埃尔强化特殊技起手，维琳娜打完五段普攻后由薇薇安补强化特殊技续护羽，再交回维琳娜主输出。",
+      "handoff": "蕾米埃尔补完强化特殊技与支援、薇薇安补完强化特殊技续护羽后均交回维琳娜站场触发风以太异放与涡流。",
+      "loop": "维琳娜以五段普攻衔接多段风系强化特殊技作主轴；薇薇安定时补强化特殊技维持后台护羽，蕾米埃尔续增益。",
+      "burst": "敌人失衡时由薇薇安与维琳娜接连携；喧响就绪后依次释放维琳娜、蕾米埃尔与薇薇安终结技打满异放爆发。",
+      "evidence": {
+        "axisSha256": "1cdb1dab989c95db4c079d6e709c1140543d410bdcbf8ac0c1605c1c38a120ee",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "22c101d01f806eb6af1a9e2f1849a207b3b8cfee6050f573e809ba61b03e0c87"
+      }
+    },
+    {
+      "playId": "sha256:83b8025bcc71271c8004fb47cf689108a0d5a1fbe3ebfb26dc2bfd3fea66884e",
+      "memberIds": [
+        "agent-roxy",
+        "agent-soldier-0-anby",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "洛克茜与千夏先用普攻攒能，洛克茜长按两段强化特殊技接旋风与特殊技起手，千夏补强化特殊技后交零号·安比高频追击起手。",
+      "handoff": "洛克茜打完两段长按强化特殊技、千夏补完强化特殊技给增益后均迅速切回零号·安比站场引爆银星印记。",
+      "loop": "零号·安比高频打出苍雷突刺与界限追击衔接强化特殊技；洛克茜循环两段长按强化特殊技与旋风，千夏定时补增益。",
+      "burst": "敌人失衡时由零号·安比与洛克茜接连携；喧响就绪后趁失衡窗口释放零号·安比终结技衔接快速界限连斩收割。",
+      "evidence": {
+        "axisSha256": "6f0af339f25155f65e82f5976e80ceee39960b0d370fdf5a8f7dd7e38920cf45",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "3d47cc1950a36dc2131e785557c959976b276caadf73b9d80853c283514b7a96"
+      }
+    },
+    {
+      "playId": "sha256:a5125ee4f965149f2f2ab93d1a27798c393629f26df8ae20f4228f029f786eae",
+      "memberIds": [
+        "agent-roxy",
+        "agent-soldier-0-anby",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-soldier-0-anby",
+      "opening": "洛克茜与千夏先用普攻攒能，洛克茜长按两段强化特殊技接旋风与特殊技起手，千夏补强化特殊技铺增益后再交零号·安比主站场。",
+      "handoff": "洛克茜打完两段长按强化特殊技与特殊技、千夏补完强化特殊技续增益后均立刻交回零号·安比连续打苍雷追击。",
+      "loop": "零号·安比围绕苍雷、界限追击与强化特殊技持续倾泻追击伤害；洛克茜循环旋风长按，千夏按节奏补强化特殊技。",
+      "burst": "敌人失衡时由零号·安比与洛克茜连续接连携；喧响就绪后释放零号·安比终结技并衔接多段快速界限追击收尾。",
+      "evidence": {
+        "axisSha256": "c526d39bd4f6da7f5f95594376578d6f43ae11c5d4d01c7141eefe9d47977286",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "15b343509d30416ecac36d2b89a4ccf8441858a36a8d3aa889cd8c2219864b9f"
+      }
+    },
+    {
+      "playId": "sha256:77f5ab5785e556388136eb71dcec07a62398b83024d3af15a488fe7ece7712d0",
+      "memberIds": [
+        "agent-sigrid",
+        "agent-sunna",
+        "agent-zhao"
+      ],
+      "primaryAgentId": "agent-sigrid",
+      "opening": "千夏与照先用普攻攒能，千夏强化特殊技起手后由照入场支援切出，希格莉德四段普攻过渡、照补强化特殊技后再交回希格莉德。",
+      "handoff": "千夏补完强化特殊技、照打完入场支援与强化特殊技后均迅速交回希格莉德，吃满双辅助增益打完聚枪循环。",
+      "loop": "希格莉德以四段普攻、三阶聚枪与高频强化特殊技为主轴；千夏与照按能量轮换强化特殊技与入场支援维持全队增益。",
+      "burst": "敌人失衡时由希格莉德与千夏接连携；喧响就绪后依次释放希格莉德、照与千夏终结技在双增益窗内完成爆发。",
+      "evidence": {
+        "axisSha256": "aa95d03d2a56625374f3ce65bdf5ff80ce5b3eeb606a2a697b41dc3437b198f9",
+        "policySha256": "79b83fdc645320c9ffbdd83aff4f927a76d09651fb692434b13c19aea75f89ae",
+        "productionReportSha256": "7b4384edb862e3c0de6c93090dedb8d56cbeb463d646344e4d49e2dc7fc01cc6"
+      }
     }
   ]
 }

@@ -30,19 +30,27 @@ export function visibleRecommendationFamilies(
       if (item.mechanicValidity === 'invalid') return false
       if (item.defaultEligible === true) return true
       if (item.defaultEligible === false && !includeExploratory) return false
-      return (!item.authorComparisonMembership?.explicitSelectionOnly ||
-          item.authorComparisonMembership.independentDefaultAdmission || includeExploratory) &&
+      return (
+        (!item.authorComparisonMembership?.explicitSelectionOnly ||
+          item.authorComparisonMembership.independentDefaultAdmission ||
+          includeExploratory) &&
         (!item.hasPreparedBenchmark32 || includeExploratory) &&
-        (!item.fallbackOnly || (hasRatedTeamStrength(item) && !item.inferredStrength) ||
-          includeHistorical || includeExploratory) &&
+        (!item.fallbackOnly ||
+          (hasRatedTeamStrength(item) && !item.inferredStrength) ||
+          includeHistorical ||
+          includeExploratory) &&
         ((includeExploratory && item.hasPreparedBenchmark32 === true) ||
-          (includeExploratory && item.authorComparisonMembership?.explicitSelectionOnly === true &&
+          (includeExploratory &&
+            item.authorComparisonMembership?.explicitSelectionOnly === true &&
             item.authorComparisonMembership.observationRole === 'author_comparison_setup' &&
             item.authorComparisonMembership.sourceVersion === '3.2') ||
           (item.authorComparisonMembership?.independentDefaultAdmission === true &&
             item.teamSystemRanking?.genericOrder?.status === 'recommended') ||
-          (hasRatedTeamStrength(item) && (!item.inferredStrength || item.sourceConfirmed || includeExploratory)) ||
-          (item.sourceConfirmed && (!item.historicalReferenceOnly || includeHistorical || includeExploratory)))
+          (hasRatedTeamStrength(item) &&
+            (!item.inferredStrength || item.sourceConfirmed || includeExploratory)) ||
+          (item.sourceConfirmed &&
+            (!item.historicalReferenceOnly || includeHistorical || includeExploratory)))
+      )
     })
     if (!variants.length) return []
     return variants.length === family.variants.length

@@ -13,9 +13,12 @@ export function visibleGraduatedScore(item: TeamLoadoutOverviewItem) {
     ranking.status === 'ranked' &&
     !item.historicalReferenceOnly &&
     item.mechanicValidity !== 'invalid' &&
-    ranking.genericOrder?.sourceAuthority === (score.unconfirmedBuildAgentIds ? 'verified_fixed_build' : score.ratingBasis === 'standardized_theory'
-      ? 'standardized_theory_graduation'
-      : 'independently_calibrated_graduation') &&
+    ranking.genericOrder?.sourceAuthority ===
+      (score.unconfirmedBuildAgentIds
+        ? 'verified_fixed_build'
+        : score.ratingBasis === 'standardized_theory'
+          ? 'standardized_theory_graduation'
+          : 'independently_calibrated_graduation') &&
     ranking.genericOrder.band === score.band &&
     item.teamRatingBand === score.band &&
     Number.isSafeInteger(score.score) &&
@@ -66,7 +69,10 @@ export function ratingLabel(item: TeamLoadoutOverviewItem) {
 
 export function ratingTitle(item: TeamLoadoutOverviewItem) {
   const score = visibleGraduatedScore(item)
-  if (score) return score.unconfirmedBuildAgentIds ? genericTeamRatingScopeCopy.title : '当前玩法的毕业配置评级'
+  if (score)
+    return score.unconfirmedBuildAgentIds
+      ? genericTeamRatingScopeCopy.title
+      : '当前玩法的毕业配置评级'
   if (
     item.mechanicValidity === 'invalid' ||
     item.historicalReferenceOnly ||

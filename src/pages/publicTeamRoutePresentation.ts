@@ -38,7 +38,8 @@ export function acceptTeamRoutePresentation(
     value.inputFingerprint !== identity.inputFingerprint ||
     value.candidateId !== identity.candidateId ||
     (value.team !== null && value.team.id !== identity.candidateId) ||
-    (value.ratedTeamPlayId !== undefined && (!value.team || !ratedTeamPlayIdPattern.test(value.ratedTeamPlayId))) ||
+    (value.ratedTeamPlayId !== undefined &&
+      (!value.team || !ratedTeamPlayIdPattern.test(value.ratedTeamPlayId))) ||
     !Array.isArray(value.playerConfirmableBangbooOptions) ||
     !Array.isArray(value.alternativeTeams)
   )

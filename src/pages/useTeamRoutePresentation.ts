@@ -42,10 +42,15 @@ export function useTeamRoutePresentation({
     status: acceptedRetainedRoute ? 'ready' : 'loading',
     route: acceptedRetainedRoute,
   })
-  const route = acceptedRetainedRoute ?? (routeState.identity === routeIdentity ? routeState.route : null)
-  const routeStatus = route ? 'ready'
-    : !analysisRunId || !decision || !calculationClient ? 'error'
-    : routeState.identity === routeIdentity ? routeState.status : 'loading'
+  const route =
+    acceptedRetainedRoute ?? (routeState.identity === routeIdentity ? routeState.route : null)
+  const routeStatus = route
+    ? 'ready'
+    : !analysisRunId || !decision || !calculationClient
+      ? 'error'
+      : routeState.identity === routeIdentity
+        ? routeState.status
+        : 'loading'
   useEffect(() => {
     if (acceptedRetainedRoute || !analysisRunId || !decision || !calculationClient) return
     let active = true

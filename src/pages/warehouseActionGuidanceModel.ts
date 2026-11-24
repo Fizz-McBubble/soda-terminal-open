@@ -69,6 +69,8 @@ export function playerFacingNextStep(
 }
 
 export function needsWarehouseDecisionRecheck(item: WarehouseActionItem) {
-  return hasMismatchedRecommendationWitness(item) ||
+  return (
+    hasMismatchedRecommendationWitness(item) ||
     (item.action === 'cleanup' && !item.cleanupAssessment && !item.absoluteRetention)
+  )
 }

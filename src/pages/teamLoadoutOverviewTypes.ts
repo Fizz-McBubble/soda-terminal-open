@@ -88,7 +88,10 @@ export type TeamLoadoutOverviewItem = {
   planningDps: number | null
   planningDpsStatus: 'ready' | 'unsupported'
   cultivationPriority: 'ready_now' | 'short_upgrade' | 'strategic_build' | 'experimental' | null
-  teamRatingBand: import('../decision/graduatedTeamRatingBands').GraduatedTeamRatingBand | 'Experimental' | null
+  teamRatingBand:
+    | import('../decision/graduatedTeamRatingBands').GraduatedTeamRatingBand
+    | 'Experimental'
+    | null
   confidence: 'high' | 'medium' | 'low' | 'experimental' | null
   /** Mechanic-only dense ordinal inside one primary output system.
    * `unsupported` is an explicit authority result; `null` means unavailable/unknown. */

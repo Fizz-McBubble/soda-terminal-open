@@ -283,7 +283,11 @@ function projectOne(
       agentId,
       input.roster,
       effectiveEquipmentParameters,
-      Boolean(candidate.authorComparisonMembership && !candidate.authorComparisonMembership.independentDefaultAdmission && candidate.bangbooId === null),
+      Boolean(
+        candidate.authorComparisonMembership &&
+        !candidate.authorComparisonMembership.independentDefaultAdmission &&
+        candidate.bangbooId === null,
+      ),
     )
     const actions = [...wEngine.actions]
     const impacts = [
@@ -367,17 +371,23 @@ function projectOne(
     memberIds: [...candidate.memberIds],
     // Ordinary legacy pending-Bangboo plans keep their established representation.
     // Only the separately qualified author membership carries an explicit null identity.
-    bangbooId: candidate.authorComparisonMembership && !candidate.authorComparisonMembership.independentDefaultAdmission
-      ? candidate.bangbooId
-      : (candidate.bangbooId ?? ''),
-    ...(candidate.bangbooId === null && candidate.authorComparisonMembership && !candidate.authorComparisonMembership.independentDefaultAdmission
+    bangbooId:
+      candidate.authorComparisonMembership &&
+      !candidate.authorComparisonMembership.independentDefaultAdmission
+        ? candidate.bangbooId
+        : (candidate.bangbooId ?? ''),
+    ...(candidate.bangbooId === null &&
+    candidate.authorComparisonMembership &&
+    !candidate.authorComparisonMembership.independentDefaultAdmission
       ? { authorComparisonMembership: candidate.authorComparisonMembership }
       : {}),
     bangbooStar: recordedBangbooStar(
       effectiveEquipmentParameters?.bangbooStars ?? schemeBangbooStar(candidate),
     ),
     wEngineBindingMode:
-      candidate.authorComparisonMembership && !candidate.authorComparisonMembership.independentDefaultAdmission && candidate.bangbooId === null
+      candidate.authorComparisonMembership &&
+      !candidate.authorComparisonMembership.independentDefaultAdmission &&
+      candidate.bangbooId === null
         ? 'account_fact_binding'
         : 'scheme_parameters',
     members,
