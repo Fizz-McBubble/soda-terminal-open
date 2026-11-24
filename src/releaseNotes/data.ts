@@ -15,6 +15,18 @@ export type ReleaseNote = {
 // Use the release date and describe what players can now do. Keep older entries in order.
 export const releases: readonly ReleaseNote[] = [
   {
+    id: '20261124-reviewed-team-operations',
+    date: '2026-11-24',
+    title: '补充 A 档及以上队伍手法，优化 BOX 搜索与多队组合',
+    scope: 'BOX、队伍手法与配装',
+    changes: [
+      '补充 223 种 A 档及以上打法的开场、交接、循环与爆发，覆盖不同打法的实际换人顺序、支援动作与核心招式。',
+      'A、A+、S、S+ 合计 329 种打法均有完整说明，原有手法可继续查看。整榜共 354 种已准入打法有四段手法。',
+      '搜索优先使用已准入队伍的数据。无匹配时直接给出结果，需要补充队伍时再加载完整索引。',
+      '多队组队提前排除成员重复的组合，减少反复检查同一队的装备。评分、配装条件和保存重开沿用原规则。',
+    ],
+  },
+  {
     id: '20261124-box-grades-and-workspace',
     date: '2026-11-24',
     title: '校准 BOX 毕业评级，优化配装、仓库与工具下载',

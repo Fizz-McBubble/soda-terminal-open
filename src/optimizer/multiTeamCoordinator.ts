@@ -68,14 +68,35 @@ type CandidatePortfolio = {
 
 const evidenceRank = { missing: 0, limited: 0, candidate: 1, formal: 2 } as const
 
-function combinations<T>(items: readonly T[], size: number): T[][] {
-  if (size === 0) return [[]]
-  if (items.length < size) return []
-  const result: T[][] = []
-  items.forEach((item, index) => {
-    for (const tail of combinations(items.slice(index + 1), size - 1)) result.push([item, ...tail])
-  })
-  return result
+function* disjointPortfolios(
+  matches: readonly SourceBackedTeamCandidate[],
+  locked: readonly SourceBackedTeamCandidate[],
+  teamCount: number,
+) {
+  const selected = [...locked]
+  if (!Number.isSafeInteger(teamCount) || teamCount < locked.length) return
+  const lockedMembers = locked.flatMap((match) => match.members.map((member) => member.agentId))
+  const occupied = new Set(lockedMembers)
+  if (occupied.size !== lockedMembers.length) return
+
+  function* visit(start: number): Generator<SourceBackedTeamCandidate[]> {
+    const remaining = teamCount - selected.length
+    if (remaining === 0) {
+      yield [...selected]
+      return
+    }
+    for (let index = start; index <= matches.length - remaining; index += 1) {
+      const match = matches[index]
+      if (match.members.some((member) => occupied.has(member.agentId))) continue
+      for (const member of match.members) occupied.add(member.agentId)
+      selected.push(match)
+      yield* visit(index + 1)
+      selected.pop()
+      for (const member of match.members) occupied.delete(member.agentId)
+    }
+  }
+
+  yield* visit(0)
 }
 
 function unique(values: readonly string[]) {
@@ -131,13 +152,17 @@ function teamFromMatch(
   }
 }
 
-function comparePortfolios(left: CandidatePortfolio, right: CandidatePortfolio) {
+function compareStrengthBands(left: readonly number[], right: readonly number[]) {
   // Preserve the existing coarse strength order before considering owned equipment.
   // Compare bands, not a synthetic damage score or summed team power.
-  for (let index = 0; index < left.strengthBands.length; index += 1) {
-    const difference = right.strengthBands[index] - left.strengthBands[index]
+  for (let index = 0; index < left.length; index += 1) {
+    const difference = right[index] - left[index]
     if (difference) return difference
   }
+  return 0
+}
+
+function comparePortfolioTies(left: CandidatePortfolio, right: CandidatePortfolio) {
   return (
     right.usableTeamCount - left.usableTeamCount ||
     right.weakestEvidence - left.weakestEvidence ||
@@ -186,45 +211,40 @@ export function coordinateMatchedTeams(input: {
     }
   }
   const lockedIds = new Set(lockedTemplateIds)
-  const candidates = combinations(
+  const candidates = disjointPortfolios(
     validMatches.filter((match) => !lockedIds.has(match.templateId)),
-    preference.teamCount - lockedMatches.length,
+    lockedMatches,
+    preference.teamCount,
   )
-    .map((matches) => [...lockedMatches, ...matches])
-    .filter((matches) => {
-      const members = matches.flatMap((match) => match.members.map((member) => member.agentId))
-      const bangboos = matches.flatMap((match) => (match.bangbooId ? [match.bangbooId] : []))
-      const templateIds = matches.map((match) => match.templateId)
-      return (
-        new Set(members).size === members.length &&
-        preference.templateIds.every((id) => templateIds.includes(id)) &&
-        preference.fixedAgentIds.every((id) => members.includes(id)) &&
-        preference.fixedBangbooIds.every((id) => bangboos.includes(id))
+  const teamCache = new Map<SourceBackedTeamCandidate, CoordinatedTeam>()
+  let selected: CandidatePortfolio | undefined
+  for (const matches of candidates) {
+    if (
+      !preference.templateIds.every((id) => matches.some((match) => match.templateId === id)) ||
+      !preference.fixedAgentIds.every((id) =>
+        matches.some((match) => match.members.some((member) => member.agentId === id)),
+      ) ||
+      !preference.fixedBangbooIds.every((id) =>
+        matches.some((match) => match.bangbooId && match.bangbooId === id),
       )
+    )
+      continue
+
+    const strengthBands = matches
+      .map((match) =>
+        match.strength.band ? { apex: 3, meta: 2, viable: 1 }[match.strength.band] : 0,
+      )
+      .sort((left, right) => right - left)
+    const bandOrder = selected ? compareStrengthBands(strengthBands, selected.strengthBands) : -1
+    if (bandOrder > 0) continue
+    const teams = matches.map((match) => {
+      let team = teamCache.get(match)
+      if (!team) {
+        team = teamFromMatch(match, input.activePlansByAgent)
+        teamCache.set(match, team)
+      }
+      return team
     })
-
-  if (!candidates.length) {
-    const detail =
-      validMatches.length < preference.teamCount
-        ? `当前仅有 ${validMatches.length} 支机制闭环方案，无法组成 ${preference.teamCount} 支互斥完整队。`
-        : '固定成员、邦布或模板偏好无法同时满足互斥完整队。'
-    return {
-      status: 'needs_completion',
-      requestedTeamCount: preference.teamCount,
-      teams: [],
-      gaps: [
-        {
-          code: validMatches.length < preference.teamCount ? 'team_count' : 'fixed_preference',
-          detail,
-        },
-      ],
-      buildStabilityCost: 0,
-      previewEligibleAgentIds: [],
-    }
-  }
-
-  const portfolios = candidates.map((matches): CandidatePortfolio => {
-    const teams = matches.map((match) => teamFromMatch(match, input.activePlansByAgent))
     const allDiscIds = teams.flatMap((team) => team.discIds)
     const duplicatedDiscIds = unique(
       allDiscIds.filter((id, index) => allDiscIds.indexOf(id) !== index),
@@ -244,13 +264,9 @@ export function coordinateMatchedTeams(input: {
       buildStabilityCost: team.buildStabilityCost + conflictGap.length,
       usable: team.usable && conflictGap.length === 0,
     }))
-    return {
+    const portfolio: CandidatePortfolio = {
       teams: withConflict,
-      strengthBands: matches
-        .map((match) =>
-          match.strength.band ? { apex: 3, meta: 2, viable: 1 }[match.strength.band] : 0,
-        )
-        .sort((left, right) => right - left),
+      strengthBands,
       gaps: conflictGap,
       buildStabilityCost: withConflict.reduce((total, team) => total + team.buildStabilityCost, 0),
       usableTeamCount: withConflict.filter((team) => team.usable).length,
@@ -264,8 +280,28 @@ export function coordinateMatchedTeams(input: {
         .sort()
         .join(':'),
     }
-  })
-  const selected = portfolios.sort(comparePortfolios)[0]!
+    if (!selected || bandOrder < 0 || comparePortfolioTies(portfolio, selected) < 0)
+      selected = portfolio
+  }
+
+  if (!selected) {
+    const insufficient = validMatches.length < preference.teamCount
+    return {
+      status: 'needs_completion',
+      requestedTeamCount: preference.teamCount,
+      teams: [],
+      gaps: [
+        {
+          code: insufficient ? 'team_count' : 'fixed_preference',
+          detail: insufficient
+            ? `当前仅有 ${validMatches.length} 支机制闭环方案，无法组成 ${preference.teamCount} 支互斥完整队。`
+            : '固定成员、邦布或模板偏好无法同时满足互斥完整队。',
+        },
+      ],
+      buildStabilityCost: 0,
+      previewEligibleAgentIds: [],
+    }
+  }
   return {
     status: selected.usableTeamCount === preference.teamCount ? 'ready' : 'needs_completion',
     requestedTeamCount: preference.teamCount,
