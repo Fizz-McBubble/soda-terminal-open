@@ -1,6 +1,7 @@
 import { Blob as NodeBlob } from 'node:buffer'
 import { createHash, webcrypto } from 'node:crypto'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadRelease } from '../assetQuickRead/distribution'
@@ -208,25 +209,29 @@ it('streams exact installer bytes, supports cancel/retry and prepares a file wit
     ),
   )
   setDownloadFetcher(fetcher)
+  const user = userEvent.setup()
   render(<AssetQuickReadInstallerAction release={release} />)
-  expect(screen.getByRole('button', { name: '下载资产快读' })).toHaveAttribute(
-    'title',
-    `资产快读安装包 v${release.version}`,
-  )
+  const downloadButton = screen.getByRole('button', { name: '下载资产快读' })
+  expect(downloadButton).toHaveAttribute('title', `资产快读安装包 v${release.version}`)
   expect(screen.getByText(`v${release.version}`)).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  await user.tab()
+  expect(downloadButton).toHaveFocus()
+  await user.keyboard('{Enter}')
   await waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
   await act(async () => stream.enqueue(executable.subarray(0, 4)))
   await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('value', '4'))
   expect(save).not.toHaveBeenCalled()
   const cancelButton = screen.getByRole('button', { name: '取消资产快读下载' })
-  cancelButton.focus()
-  fireEvent.click(cancelButton)
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载已取消'))
+  await user.tab()
+  expect(cancelButton).toHaveFocus()
+  await user.keyboard('{Enter}')
+  await waitFor(() => {
+    expect(screen.getByRole('status')).toHaveTextContent('下载已取消')
+    expect(downloadButton).toHaveFocus()
+  })
   expect(cancel).toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: '下载资产快读' })).toHaveFocus()
   fetcher.mockResolvedValue(new Response(executable))
-  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  await user.keyboard('{Enter}')
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
   expect(screen.getByRole('status')).toHaveTextContent('打开安装包')
   expect(screen.queryByText('安装完成')).not.toBeInTheDocument()

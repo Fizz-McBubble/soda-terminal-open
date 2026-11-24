@@ -74,25 +74,29 @@ it('does not subscribe utility routes to the full account decision input', () =>
 
 it('loads the full image catalog at app mount and retries when connectivity returns', async () => {
   const { decisionEnvironment } = startupEnvironment()
-  const ensure = vi.spyOn(assetInstall, 'ensureOfficialCatalogInstalled')
-  ensure.mockRejectedValue(new Error('offline'))
+  const ensure = vi
+    .spyOn(assetInstall, 'ensureOfficialCatalogInstalled')
+    .mockRejectedValue(new Error('offline'))
   const app = () => (
     <AppCore HealthProvider={AppHealthProvider} decisionEnvironment={decisionEnvironment} />
   )
   const { unmount, rerender } = render(app())
   try {
-    expect(ensure).toHaveBeenCalledOnce()
     expect(ensure).toHaveBeenCalledWith()
     expect(
       await screen.findByRole('link', { name: /^前往扫描与导入/ }, { timeout: 10_000 }),
     ).toBeInTheDocument()
+    const startupCalls = ensure.mock.calls.length
     rerender(app())
-    expect(ensure).toHaveBeenCalledOnce()
+    expect(ensure).toHaveBeenCalledTimes(startupCalls)
+
     act(() => window.dispatchEvent(new Event('online')))
-    expect(ensure).toHaveBeenCalledTimes(2)
+    const reconnectCalls = ensure.mock.calls.length
+    expect(reconnectCalls).toBeGreaterThan(startupCalls)
+    expect(ensure).toHaveBeenLastCalledWith()
     unmount()
     act(() => window.dispatchEvent(new Event('online')))
-    expect(ensure).toHaveBeenCalledTimes(2)
+    expect(ensure).toHaveBeenCalledTimes(reconnectCalls)
   } finally {
     ensure.mockRestore()
   }

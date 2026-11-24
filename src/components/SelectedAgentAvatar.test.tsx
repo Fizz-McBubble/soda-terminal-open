@@ -1,18 +1,23 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SelectedAgentAvatar } from './SelectedAgentAvatar'
 import { preloadSelectedAgentAvatar } from './selectedAgentAvatarPreload'
 
 const sources = vi.hoisted(() => ({
   preferred: vi.fn(),
+  cached: vi.fn(),
   fallback: vi.fn(),
   sessions: new Map<string, string>(),
+  assets: new Map(
+    ['agent-remielle', 'agent-roxy'].map((entityId) => [entityId, { entityId }] as const),
+  ),
 }))
 vi.mock('../assets/visualAssets', () => ({
-  getVisualAsset: (_type: string, id: string) => ({ entityId: id }),
+  getVisualAsset: (_type: string, id: string) => sources.assets.get(id),
 }))
 vi.mock('../assets/visualEntityImageSource', () => ({
-  resolveSessionVisualSource: sources.preferred,
+  resolveVisibleSessionVisualSource: sources.preferred,
+  resolveSessionVisualSource: sources.cached,
   preloadVisualEntityImage: sources.fallback,
   sessionVisualSources: sources.sessions,
   visualSourceKey: (asset: { entityId: string }) => asset.entityId,
@@ -26,6 +31,7 @@ describe('selected agent avatar personal-cache preference', () => {
   beforeEach(() => {
     sources.sessions.clear()
     sources.preferred.mockReset().mockResolvedValue(null)
+    sources.cached.mockReset().mockResolvedValue(null)
     sources.fallback.mockReset().mockResolvedValue('existing-portrait')
   })
   it('keeps the old portrait available and switches when the personal cache is updated', async () => {
@@ -45,12 +51,14 @@ describe('selected agent avatar personal-cache preference', () => {
   })
   it('ignores a late avatar from the previous selection', async () => {
     let finish!: (source: string) => void
-    sources.preferred.mockImplementationOnce(
-      () =>
-        new Promise<string>((resolve) => {
-          finish = resolve
-        }),
-    )
+    sources.preferred
+      .mockImplementationOnce(
+        () =>
+          new Promise<string>((resolve) => {
+            finish = resolve
+          }),
+      )
+      .mockResolvedValueOnce('new-interknot')
     const view = render(
       <SelectedAgentAvatar
         agentId="agent-remielle"
@@ -65,9 +73,15 @@ describe('selected agent avatar personal-cache preference', () => {
         consumer="agent-development.overview"
       />,
     )
-    finish('old-interknot')
-    await waitFor(() => expect(sources.preferred).toHaveBeenCalledTimes(2))
-    expect(screen.getByLabelText('洛克茜')).toHaveAttribute('data-slot', 'agent.square-avatar')
+    await waitFor(() =>
+      expect(screen.getByLabelText('洛克茜')).toHaveAttribute(
+        'data-slot',
+        'agent.selected-summary',
+      ),
+    )
+    await act(async () => finish('old-interknot'))
+    expect(screen.getByLabelText('洛克茜')).toHaveAttribute('data-slot', 'agent.selected-summary')
+    expect(sources.preferred).toHaveBeenCalledTimes(2)
   })
   it('preloads the existing portrait when the new personal cache entry is absent', async () => {
     await expect(preloadSelectedAgentAvatar('agent-roxy', 'assets.editor')).resolves.toBe(
@@ -76,5 +90,7 @@ describe('selected agent avatar personal-cache preference', () => {
     expect(sources.fallback).toHaveBeenCalledWith(
       expect.objectContaining({ slotId: 'agent.square-avatar', entityId: 'agent-roxy' }),
     )
+    expect(sources.cached).toHaveBeenCalledWith(expect.objectContaining({ entityId: 'agent-roxy' }))
+    expect(sources.preferred).not.toHaveBeenCalled()
   })
 })
