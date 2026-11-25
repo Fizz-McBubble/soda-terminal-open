@@ -200,8 +200,8 @@ describe('installerFeedback sanitization and fragment consumption', () => {
     expect(safe?.tool).toBe('asset_quick_read_installer')
   })
 
-  it('accepts named native 1.2.0, normalized 1.2.1 and historical 1.3.0 diagnostics without allowing arbitrary native versions', () => {
-    for (const installerVersion of ['1.0.9', '1.1.0', '1.2.0', '1.2.1', '1.3.0']) {
+  it('accepts reviewed native versions without allowing arbitrary native versions', () => {
+    for (const installerVersion of ['1.0.9', '1.1.0', '1.2.0', '1.2.1', '1.2.2', '1.3.0']) {
       const report = { ...sampleReport, installerVersion }
       expect(sanitizeInstallerFeedback(report)).toEqual(report)
       expect(sanitizeScanFeedbackPayload(report)).toMatchObject({ ok: true, record: report })
@@ -216,7 +216,7 @@ describe('installerFeedback sanitization and fragment consumption', () => {
       ).toEqual(report)
     }
 
-    for (const invalidVersion of ['1.2.2', '1.3.1', '1.4.0', '2.0.0', '0.9.0', '1.0.0.0']) {
+    for (const invalidVersion of ['1.2.3', '1.3.1', '1.4.0', '2.0.0', '0.9.0', '1.0.0.0']) {
       expect(
         sanitizeInstallerFeedback({ ...sampleReport, installerVersion: invalidVersion }),
       ).toBeNull()

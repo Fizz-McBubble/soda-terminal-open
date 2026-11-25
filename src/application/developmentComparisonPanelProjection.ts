@@ -99,22 +99,22 @@ export function projectDevelopmentComparisonPanels(input: {
       const key = `${discFingerprint}:${parameterFingerprint ?? ''}`
       if (seen.has(key)) continue
       seen.add(key)
+      const engine = parameters?.wEngine
       const result = createAgentDevelopmentPanelProjection({
         agent: {
           ...agent,
           potentialImage: parameters?.potential ?? agent.potentialImage,
-          wEngineDetails: parameters?.wEngine
-            ? {
-                id: parameters.wEngine.engineId,
-                name: parameters.wEngine.engineId,
-                level: parameters.wEngine.level,
-                ascension: parameters.wEngine.ascension,
-                refinement: parameters.wEngine.refinement,
-              }
-            : agent.wEngineDetails,
         },
         discs,
         candidateDiscIds: discs.map((disc) => disc.id),
+        planWEngine: engine
+          ? {
+              id: engine.engineId,
+              level: engine.level,
+              ascension: engine.ascension,
+              refinement: engine.refinement,
+            }
+          : undefined,
       }).result
       const direction = parameters?.independentDirection
       const validDirection =
