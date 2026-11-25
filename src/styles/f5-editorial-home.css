@@ -141,6 +141,9 @@
 
 /* Full-body Wanzhou breaking cleanly above top border (+16px) and below bottom border (-24px) */
 .f5v-shell .soda-home--golden .home-version-hero {
+  /* Trim the official image's transparent margins to the AGY composition. */
+  object-view-box: inset(80px 6px 41px 0);
+  aspect-ratio: 1291 / 1248;
   position: absolute;
   z-index: 5;
   inset: auto clamp(210px, 20%, 350px) -24px auto;

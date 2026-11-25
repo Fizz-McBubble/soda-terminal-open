@@ -8,10 +8,8 @@ export function HomeHeroScene() {
       <img
         className="home-version-hero"
         src={homeHeroImage.src}
-        srcSet={homeHeroImage.srcSet}
-        sizes={homeHeroImage.sizes}
-        width={1600}
-        height={1200}
+        width={1291}
+        height={1248}
         fetchPriority="high"
         decoding="async"
         referrerPolicy="no-referrer"
