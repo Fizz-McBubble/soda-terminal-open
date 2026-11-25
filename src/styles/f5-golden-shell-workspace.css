@@ -1,3 +1,4 @@
+/* Restored F5 shell topbar, content frame, waveform, and mobile navigation base rules. */
 .f5v-content {
   min-height: 0;
   min-width: 0;
@@ -17,17 +18,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--soda-space-5);
-  padding-block-end: 13px;
-  /* Keep the wave's baseline aligned while the signal draws the only visible divider. */
-  border-bottom: 1px solid transparent;
   color: var(--f5-ink);
   background:
-    linear-gradient(
-      108deg,
-      color-mix(in srgb, var(--soda-accent) 4.5%, var(--soda-surface)) 0%,
-      transparent 34%
-    ),
-    var(--f5-paper);
+    linear-gradient(113deg, var(--soda-surface-raised) 4%, transparent 31%), var(--f5-paper);
 }
 
 .f5v-terminal-signal {
@@ -36,10 +29,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 14px;
+  height: 11px;
   overflow: hidden;
   pointer-events: none;
-  color: var(--soda-accent);
+  color: var(--soda-accent-ink);
 }
 
 .f5v-terminal-signal::before,
@@ -47,19 +40,21 @@
   content: '';
   flex: 1;
   height: 5px;
-  opacity: 0.24;
+  opacity: 0.22;
   background:
     linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat,
     repeating-linear-gradient(
       90deg,
-      transparent 0 15px,
-      currentColor 15px 16px,
-      transparent 16px 24px
+      transparent 0 13px,
+      currentColor 13px 14px,
+      transparent 14px 21px
     );
 }
+
 .f5v-terminal-signal::before {
   mask-image: linear-gradient(90deg, transparent, black);
 }
+
 .f5v-terminal-signal::after {
   mask-image: linear-gradient(270deg, transparent, black);
 }
@@ -69,39 +64,31 @@
   align-items: center;
   justify-content: center;
   gap: clamp(2px, 0.22vw, 4px);
-  max-width: 60%;
-  height: 70%;
+  max-width: 62%;
+  height: 68%;
   padding-inline: 0;
   transform: skewX(-10deg);
 }
+
 .f5v-terminal-wave i {
-  width: clamp(2px, 0.24vw, 4px);
+  width: clamp(2px, 0.27vw, 5px);
   min-width: 1px;
   height: var(--peak);
-  border-radius: 1px;
   background: var(--soda-accent);
-  opacity: 0.44;
+  opacity: 0.6;
 }
+
 .f5v-terminal-wave i:nth-child(4n) {
-  opacity: 0.64;
+  opacity: 0.78;
 }
+
 @media (max-width: 600px) {
-  .f5v-topbar {
-    padding-block-end: 9px;
-  }
   .f5v-terminal-signal {
-    inset-inline: 12px;
-    bottom: 1px;
-    height: 8px;
+    inset: auto 12px 1px;
+    height: 9px;
   }
   .f5v-terminal-wave {
     gap: 2px;
-  }
-}
-
-@media (601px <= width <= 760px) {
-  .f5v-location {
-    flex-shrink: 0;
   }
 }
 
@@ -130,13 +117,17 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   position: relative;
-  padding: 3px 22px 3px 10px;
+  padding: 3px 22px 3px 9px;
   color: var(--soda-surface);
-  background: linear-gradient(
-    112deg,
-    var(--soda-accent-ink) calc(100% - 12px),
-    transparent calc(100% - 11px)
-  );
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 5px,
+      rgba(255, 255, 255, 0.03) 5px,
+      transparent 6px
+    ),
+    linear-gradient(112deg, var(--soda-accent-ink) calc(100% - 12px), transparent calc(100% - 11px));
   letter-spacing: 0.025em;
 }
 
@@ -168,7 +159,7 @@
 
 .f5v-account-strip > * {
   min-width: 0;
-  padding: 0 var(--soda-space-3);
+  padding: 0 12px;
   white-space: nowrap;
 }
 
@@ -183,12 +174,12 @@
 }
 
 .f5v-account-strip b {
-  margin-left: var(--soda-space-2);
-  padding-block: 5px;
-  border: 1px solid color-mix(in srgb, var(--soda-accent) 18%, transparent);
+  margin-left: 9px;
+  padding-block: 6px;
+  border: 0;
   border-radius: 999px;
   color: var(--f5-accent);
-  background: color-mix(in srgb, var(--soda-accent) 7%, var(--soda-surface));
+  background: var(--f5-wash);
 }
 
 .f5v-page-content {
@@ -197,22 +188,37 @@
   padding: var(--soda-space-4) var(--soda-space-5);
   overflow: hidden;
   color: var(--f5-ink);
-  background: var(--f5-paper);
+  background:
+    repeating-radial-gradient(
+      circle at 94% 6%,
+      transparent 0,
+      transparent 27px,
+      color-mix(in srgb, var(--soda-accent) 2%, transparent) 27px,
+      color-mix(in srgb, var(--soda-accent) 2%, transparent) 28px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--soda-accent) 5%, transparent),
+      transparent 230px
+    ),
+    var(--f5-paper);
 }
 
 .f5v-page-content::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
-  height: 1px;
+  height: 2px;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--soda-surface) 90%, transparent) 0%,
-    color-mix(in srgb, var(--soda-accent) 12%, var(--soda-surface)) 50%,
+    transparent 0%,
+    color-mix(in srgb, var(--soda-accent) 15%, transparent) 20%,
+    color-mix(in srgb, var(--soda-accent) 28%, transparent) 50%,
+    color-mix(in srgb, var(--soda-accent) 15%, transparent) 80%,
     transparent 100%
   );
   pointer-events: none;
-  opacity: 0.8;
+  opacity: 0.55;
 }
 
 .f5v-page-frame {

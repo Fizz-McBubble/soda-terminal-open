@@ -143,25 +143,16 @@ describe('F5VisualShell narrow navigation', () => {
     const { container } = setup()
     const shell = container.querySelector<HTMLElement>('.f5v-shell')!
     const navigation = screen.getByRole('navigation', { name: '主导航' })
-    expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(0.88)
+    expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(0.75)
     expect(shell.style.getPropertyValue('--soda-type-vw')).toBe('14.4px')
 
-    // 1366/1440/1600 desktop windows lift effective text & hit targets (0.84..1.0 ramp)
+    // 1440/1600 desktop windows preserve baseline composition (tolerating OS frame width)
     // while keeping scale and fluid typography unit fixed when native browser zoom shrinks innerWidth.
-    vi.stubGlobal('outerWidth', 1366)
-    fireEvent.resize(window)
-    expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(
-      0.84 + ((1366 - 1280) / (1920 - 1280)) * 0.16,
-    )
-    expect(shell.style.getPropertyValue('--soda-type-vw')).toBe('13.66px')
-
     vi.stubGlobal('outerWidth', 1456)
     for (const innerWidth of [1440, 1309, 1152]) {
       vi.stubGlobal('innerWidth', innerWidth)
       fireEvent.resize(window)
-      expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(
-        0.84 + ((1456 - 1280) / (1920 - 1280)) * 0.16,
-      )
+      expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(1456 / 1920)
       expect(shell.style.getPropertyValue('--soda-type-vw')).toBe('14.56px')
     }
 
@@ -169,7 +160,7 @@ describe('F5VisualShell narrow navigation', () => {
     for (const innerWidth of [1600, 1455, 1280]) {
       vi.stubGlobal('innerWidth', innerWidth)
       fireEvent.resize(window)
-      expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(0.92)
+      expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(1600 / 1920)
       expect(shell.style.getPropertyValue('--soda-type-vw')).toBe('16px')
     }
 
@@ -177,9 +168,7 @@ describe('F5VisualShell narrow navigation', () => {
     for (const outerWidth of [1280, 1880]) {
       vi.stubGlobal('outerWidth', outerWidth)
       fireEvent.resize(window)
-      expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(
-        0.84 + ((outerWidth - 1280) / (1920 - 1280)) * 0.16,
-      )
+      expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(outerWidth / 1920)
       expect(shell.style.getPropertyValue('--soda-type-vw')).toBe(`${outerWidth / 100}px`)
     }
 

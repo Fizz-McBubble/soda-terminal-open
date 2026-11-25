@@ -208,21 +208,6 @@
 }
 
 /* Non-overlapping bottom cards with single-line labels & crisp disabled state */
-.f5v-shell .sponsor-support--home {
-  left: 32px;
-  bottom: 16px;
-  width: min(490px, calc(100% - 344px));
-  padding: 10px 12px;
-  border: 1.5px solid rgba(20, 18, 32, 0.18);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 2px 2px 0 rgba(20, 18, 32, 0.08);
-}
-
-.f5v-shell .sponsor-support--home .sponsor-qr {
-  width: 66px;
-}
-
 .f5v-shell .home-readiness {
   right: 22px;
   bottom: 16px;
@@ -333,11 +318,6 @@
     max-height: none;
     object-position: center bottom;
   }
-  .f5v-shell .sponsor-support--home {
-    left: 24px;
-    bottom: 14px;
-    width: min(460px, calc(100% - 322px));
-  }
   .f5v-shell .home-readiness {
     right: 18px;
     bottom: 14px;
@@ -361,12 +341,5 @@
     height: 300px;
     max-height: 300px;
     object-position: center bottom;
-  }
-  .f5v-shell .sponsor-support--home {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    width: auto;
-    margin: 0 20px 16px;
   }
 }

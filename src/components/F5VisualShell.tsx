@@ -38,23 +38,16 @@ function subscribeDesktopScale(onChange: () => void) {
 
 const desktopBaselineWidth = 1920
 const desktopMinScaleWidth = 1280
-const desktopMinScale = 0.84
 const desktopBaselineChromeTolerance = 24
 const desktopMaxScale = 1.5
 
 function desktopScale() {
   // Use outerWidth (stable across native browser zoom) as the desktop composition baseline.
   // Never scale from innerWidth, which shrinks under browser zoom and cancels magnification.
-  // Lift the 1280..1895 ramp (0.84..1.0) so 1366/1440 keep readable text & targets while
-  // preserving dense desktop hierarchy, exact 1x around 1920 (+/-24px), and ultrawide scaling.
+  // Snap within +/-24px of 1920 so OS window borders stay exact 1x without a large discontinuity.
   const windowWidth = window.outerWidth
   if (!Number.isFinite(windowWidth) || windowWidth < desktopMinScaleWidth) return 1
   if (Math.abs(windowWidth - desktopBaselineWidth) <= desktopBaselineChromeTolerance) return 1
-  if (windowWidth < desktopBaselineWidth) {
-    const progress =
-      (windowWidth - desktopMinScaleWidth) / (desktopBaselineWidth - desktopMinScaleWidth)
-    return desktopMinScale + progress * (1 - desktopMinScale)
-  }
   return Math.min(desktopMaxScale, windowWidth / desktopBaselineWidth)
 }
 

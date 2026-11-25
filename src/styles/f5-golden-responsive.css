@@ -222,8 +222,8 @@
   .f5v-shell .f5v-topbar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 6px;
-    padding-inline: var(--soda-space-3);
+    gap: 4px;
+    padding-inline: 10px;
   }
 
   .f5v-location {
@@ -257,14 +257,9 @@
     white-space: nowrap;
   }
 
-  .f5v-page-content {
-    padding: var(--soda-space-3) var(--soda-space-4);
-  }
-
   .f5v-page-content,
   .f5v-page-frame {
     min-width: 0;
-    max-width: 100%;
     width: 100%;
   }
 }
