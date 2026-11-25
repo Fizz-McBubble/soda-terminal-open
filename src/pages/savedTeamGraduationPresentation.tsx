@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { AccountPlanningDraft } from '../accounts/types'
 import type { SavedTeamGraduationCompletion } from '../decision/savedTeamGraduationCompletion'
+import type { GraduationMetricCompletion } from '../decision/graduationPanelTargets'
 import { getAgentName } from '../application/publicRosterNames'
 import {
   attachSavedTeamDiscCompletion,
@@ -16,13 +17,17 @@ const localGraduation =
       ? null
       : await import('./savedPlanGraduationCompletion')
 
-function playerTargetConditions(conditions: readonly string[] | undefined) {
-  return (conditions ?? []).flatMap((condition) =>
-    condition
-      .split(/[；;。]/u)
-      .map((part) => part.trim())
-      .filter((part) => part && !/(?:不证明|未计入|尚未计入|未闭合|没有对应)/u.test(part)),
-  )
+const panelLabels: Record<GraduationMetricCompletion['key'], string> = {
+  hp: '生命值',
+  atk: '攻击力',
+  def: '防御力',
+  impact: '冲击力',
+  critRate: '暴击率',
+  critDamage: '暴击伤害',
+  anomalyMastery: '异常掌控',
+  anomalyProficiency: '异常精通',
+  penRatio: '穿透率',
+  energyRegen: '能量自动回复',
 }
 
 export function GraduationCompletionLabel({
@@ -37,14 +42,18 @@ export function GraduationCompletionLabel({
   const memberText = completion.members
     .flatMap((member) => {
       if (member.status !== 'scored') return []
-      const conditions = playerTargetConditions(member.appliedConditions)
+      const fields = (member.metrics ?? []).map((metric) => panelLabels[metric.key]).filter(Boolean)
+      const details = [
+        fields.length ? `计入${fields.join('、')}` : '保存时未记录具体属性',
+        ...new Set([...(member.appliedConditions ?? []), ...(member.limitations ?? [])]),
+      ]
       return [
-        `${getAgentName(member.agentId)} ${member.score}%${conditions.length ? `（${conditions.join('；')}）` : ''}`,
+        `${getAgentName(member.agentId)} ${member.score}%${details.length ? `（${details.join('；')}）` : ''}`,
       ]
     })
-    .join(' · ')
+    .join('\n')
   const label = `${currentCultivation ? '当前培养 · ' : ''}局外属性目标达成度 ${completion.score}%`
-  const title = `成员的局外属性目标，按成员等权计算。${memberText ? `\n${memberText}` : ''}`
+  const title = `只统计有可比目标的局外属性，按成员等权计算。${memberText ? `\n${memberText}` : ''}`
   return (
     <span className="team-graduation-completion" title={title} aria-label={`${label}。${title}`}>
       {label}
