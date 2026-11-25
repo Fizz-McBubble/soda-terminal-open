@@ -1,3 +1,5 @@
+import { restoreWarehouseEvidenceTextReference } from './publicWarehouseEvidenceTextTransport'
+
 const marker = '$o'
 const encoder = new TextEncoder()
 const size = (value: unknown) => encoder.encode(JSON.stringify(value)).byteLength
@@ -59,32 +61,51 @@ export function warehouseObjectCodec(input: readonly unknown[]) {
   }
 }
 
-export function restoreWarehouseObjects(value: unknown, shapes: readonly string[][]): unknown {
-  if (Array.isArray(value)) return value.map((child) => restoreWarehouseObjects(child, shapes))
-  if (!value || typeof value !== 'object') return value
-  if (Object.hasOwn(value, marker)) {
-    const reference = (value as Record<string, unknown>)[marker]
+export function createWarehouseObjectReader(
+  shapes: readonly string[][],
+  texts?: readonly string[],
+) {
+  const approvedShapes = new Map<number, readonly string[]>()
+  const readText = (record: Record<string, unknown>) =>
+    texts ? restoreWarehouseEvidenceTextReference(record, texts) : record
+  const decode = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(decode)
+    if (!value || typeof value !== 'object') return value
+    const record = value as Record<string, unknown>
+    if (!Object.hasOwn(record, marker)) {
+      const reference = readText(record)
+      return typeof reference === 'string'
+        ? reference
+        : Object.fromEntries(Object.entries(reference).map(([key, child]) => [key, decode(child)]))
+    }
+    const reference = record[marker]
     if (
-      Object.keys(value).length !== 1 ||
+      Object.keys(record).length !== 1 ||
       !Array.isArray(reference) ||
       reference.length !== 2 ||
       !Number.isInteger(reference[0]) ||
       !Array.isArray(reference[1])
     )
       throw new Error('驱动盘分析对象资料无效，请重新分析。')
-    const keys = shapes[reference[0]]
-    if (
-      !Array.isArray(keys) ||
-      !keys.every((key) => typeof key === 'string') ||
-      new Set(keys).size !== keys.length ||
-      keys.length !== reference[1].length
-    )
-      throw new Error('驱动盘分析对象资料无效，请重新分析。')
-    return Object.fromEntries(
-      keys.map((key, index) => [key, restoreWarehouseObjects(reference[1][index], shapes)]),
-    )
+    const [shapeId, values] = reference
+    let keys = approvedShapes.get(shapeId)
+    if (!keys) {
+      const shape = shapes[shapeId]
+      if (
+        !Array.isArray(shape) ||
+        !shape.every((key) => typeof key === 'string') ||
+        new Set(shape).size !== shape.length
+      )
+        throw new Error('驱动盘分析对象资料无效，请重新分析。')
+      keys = shape
+      approvedShapes.set(shapeId, keys)
+    }
+    if (keys.length !== values.length) throw new Error('驱动盘分析对象资料无效，请重新分析。')
+    return readText(Object.fromEntries(keys.map((key, index) => [key, decode(values[index])])))
   }
-  return Object.fromEntries(
-    Object.entries(value).map(([key, child]) => [key, restoreWarehouseObjects(child, shapes)]),
-  )
+  return decode
+}
+
+export function restoreWarehouseObjects(value: unknown, shapes: readonly string[][]): unknown {
+  return createWarehouseObjectReader(shapes)(value)
 }

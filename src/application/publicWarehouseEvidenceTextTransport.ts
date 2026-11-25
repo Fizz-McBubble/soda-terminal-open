@@ -28,8 +28,12 @@ export function warehouseEvidenceTextCodec(evidence: readonly unknown[]) {
   // later calls must observe mutations to the input and get independent output.
   const createEncoder = () => {
     const encoded = new WeakMap<object, unknown>()
+    const references = texts.map((_, index) => ({ [marker]: index }))
     const encode = (value: unknown): unknown => {
-      if (typeof value === 'string' && indexes.has(value)) return { [marker]: indexes.get(value)! }
+      if (typeof value === 'string') {
+        const index = indexes.get(value)
+        return index === undefined ? value : references[index]
+      }
       if (!value || typeof value !== 'object') return value
       if (encoded.has(value)) return encoded.get(value)
       const result = Array.isArray(value)
@@ -47,21 +51,31 @@ export function warehouseEvidenceTextCodec(evidence: readonly unknown[]) {
   }
 }
 
+export function restoreWarehouseEvidenceTextReference(
+  record: Record<string, unknown>,
+  texts: readonly string[],
+): string | Record<string, unknown> {
+  if (!Object.hasOwn(record, marker)) return record
+  const index = record[marker]
+  if (
+    Object.keys(record).length !== 1 ||
+    typeof index !== 'number' ||
+    !Number.isInteger(index) ||
+    typeof texts[index] !== 'string'
+  )
+    throw new Error('驱动盘分析证据资料无效，请重新分析。')
+  return texts[index]
+}
+
 export function restoreWarehouseEvidenceText(value: unknown, texts: readonly string[]): unknown {
   if (Array.isArray(value)) return value.map((child) => restoreWarehouseEvidenceText(child, texts))
   if (!value || typeof value !== 'object') return value
-  if (Object.hasOwn(value, marker)) {
-    const index = (value as Record<string, unknown>)[marker]
-    if (
-      Object.keys(value).length !== 1 ||
-      typeof index !== 'number' ||
-      !Number.isInteger(index) ||
-      typeof texts[index] !== 'string'
-    )
-      throw new Error('驱动盘分析证据资料无效，请重新分析。')
-    return texts[index]
-  }
+  const decoded = restoreWarehouseEvidenceTextReference(value as Record<string, unknown>, texts)
+  if (typeof decoded === 'string') return decoded
   return Object.fromEntries(
-    Object.entries(value).map(([key, child]) => [key, restoreWarehouseEvidenceText(child, texts)]),
+    Object.entries(decoded).map(([key, child]) => [
+      key,
+      restoreWarehouseEvidenceText(child, texts),
+    ]),
   )
 }

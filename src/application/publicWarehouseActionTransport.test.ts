@@ -117,6 +117,29 @@ describe('public warehouse action transport', () => {
     ).toMatchObject({ functionDetail: 'original condition', ownedUseAgentIds: ['agent-test'] })
   })
 
+  it('validates each v3 row against its shape and resolves nested text references', () => {
+    const projection = {
+      agentListsVersion: 3 as const,
+      agentLists: [['agent-test']],
+      retentionTexts: ['已核验的配装条件'],
+      objectShapes: [['compatibleAgentIds', 'reasons']],
+      actions: [{ $o: [0, [0, [{ $t: 0 }]]] }, { $o: [0, [0, [{ $t: 0 }]]] }],
+    }
+    const restore = (actions: unknown[]) =>
+      unpackPublicWarehouseActions({ ...projection, actions } as never).actions
+    const decoded = restore(projection.actions)
+    expect(decoded.map((item) => item.reasons)).toEqual([
+      ['已核验的配装条件'],
+      ['已核验的配装条件'],
+    ])
+    decoded[0]!.reasons.push('只改变第一条')
+    expect(decoded[1]!.reasons).toEqual(['已核验的配装条件'])
+    expect(() => restore([projection.actions[0], { $o: [0, [0]] }])).toThrow('对象资料无效')
+    expect(() => restore([projection.actions[0], { $o: [0, [0, [{ $t: 3 }]]] }])).toThrow(
+      '证据资料无效',
+    )
+  })
+
   it('shares repeated field names losslessly and rejects corrupt object references', () => {
     const original = Array.from({ length: 24 }, (_, index) => ({
       currentDiscIdentifier: `disc-${index}`,

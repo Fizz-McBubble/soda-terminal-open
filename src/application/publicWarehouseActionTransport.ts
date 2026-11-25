@@ -1,5 +1,5 @@
 import type { WarehouseActionProjection } from './warehouseActionContract'
-import { restoreWarehouseObjects, warehouseObjectCodec } from './publicWarehouseObjectTransport'
+import { createWarehouseObjectReader, warehouseObjectCodec } from './publicWarehouseObjectTransport'
 import {
   restoreWarehouseEvidenceText,
   warehouseEvidenceTextCodec,
@@ -90,15 +90,12 @@ export function unpackPublicWarehouseActions(
       throw new Error('驱动盘分析用途资料无效，请重新分析。')
     return [...list]
   }
+  const restoreAction =
+    projection.agentListsVersion === 3
+      ? createWarehouseObjectReader(projection.objectShapes!, projection.retentionTexts!)
+      : (item: PackedAction) => item
   const actions = projection.actions.map((packed) => {
-    const item = {
-      ...(projection.agentListsVersion === 3
-        ? (restoreWarehouseEvidenceText(
-            restoreWarehouseObjects(packed, projection.objectShapes!),
-            projection.retentionTexts!,
-          ) as PackedAction)
-        : packed),
-    }
+    const item = { ...(restoreAction(packed) as PackedAction) }
     for (const field of agentFields) {
       if (item[field] !== undefined) item[field] = readList(item[field])
     }
