@@ -23,20 +23,42 @@
     linear-gradient(113deg, var(--soda-surface-raised) 4%, transparent 31%), var(--f5-paper);
 }
 
-.f5v-terminal-signal {
-  position: absolute;
-  inset: auto var(--soda-space-5) 2px;
+.f5v-topbar-leading {
+  --signal-gutter: clamp(4px, 2vw, 32px);
+  /* Icon, gap and two-character home pill in the AGY reference composition. */
+  --home-label-width: calc(30px + var(--soda-space-2) + 32px + 2.06rem);
+  container: topbar-leading / inline-size;
+  align-self: stretch;
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 11px;
+  flex: 1;
+  min-width: 0;
+}
+
+.f5v-terminal-signal {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  margin-inline: var(--signal-gutter);
   overflow: hidden;
   pointer-events: none;
   color: var(--soda-accent-ink);
 }
 
-.f5v-terminal-signal::before,
-.f5v-terminal-signal::after {
+/* Longer labels clip the leading ticks without moving the beat or the controls. */
+.f5v-terminal-track {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: calc(100cqi - var(--home-label-width) - 2 * var(--signal-gutter));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.f5v-terminal-track::before,
+.f5v-terminal-track::after {
   content: '';
   flex: 1;
   height: 5px;
@@ -51,11 +73,11 @@
     );
 }
 
-.f5v-terminal-signal::before {
+.f5v-terminal-track::before {
   mask-image: linear-gradient(90deg, transparent, black);
 }
 
-.f5v-terminal-signal::after {
+.f5v-terminal-track::after {
   mask-image: linear-gradient(270deg, transparent, black);
 }
 
@@ -82,13 +104,43 @@
   opacity: 0.78;
 }
 
-@media (max-width: 600px) {
+/* A long account summary can leave less room than the page title plus the beat. */
+@container topbar-leading (max-width: 24rem) {
   .f5v-terminal-signal {
+    position: absolute;
+    inset: auto 0 1px;
+    height: 9px;
+    margin: 0;
+  }
+  .f5v-terminal-track {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .f5v-topbar-leading {
+    display: contents;
+  }
+  .f5v-terminal-signal {
+    position: absolute;
     inset: auto 12px 1px;
     height: 9px;
+    margin: 0;
   }
+  .f5v-terminal-track {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
   .f5v-terminal-wave {
     gap: 2px;
+  }
+}
+
+@media (max-width: 360px) {
+  .f5v-terminal-signal {
+    inset-inline-end: 7.5rem;
   }
 }
 

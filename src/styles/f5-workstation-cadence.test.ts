@@ -75,11 +75,11 @@ describe('F5 musical workstation polish and style boundary', () => {
     expect(cadenceCss).toContain('@media (hover: none)')
   })
 
-  it('anchors the waveform to a separate strip in the shared header', () => {
-    const workspace = readStyle('f5-golden-shell-workspace.css')
-    expect(workspace).toMatch(/\.f5v-terminal-signal\s*\{\s*position: absolute;\s*inset:/)
-    expect(workspace).toMatch(/\.f5v-topbar\s*\{[^}]*\bposition:\s*relative;/)
-    expect(workspace).toMatch(/\.f5v-terminal-signal\s*\{[^}]*\binset:\s*auto var\(--soda-space-5\) 2px;/)
+  it('anchors the desktop beat to the available header width and gives narrow screens a separate track', () => {
+    const css = readStyle('f5-golden-shell-workspace.css')
+    expect(css).toMatch(/\.f5v-topbar-leading\s*\{[^}]*container: topbar-leading \/ inline-size;/)
+    expect(css).toMatch(/\.f5v-terminal-track\s*\{[^}]*inset-inline-end: 0;[^}]*100cqi/)
+    expect(css).toMatch(/@media \(max-width: 760px\)[^@]+inset: auto 12px 1px;/)
   })
 
   it('covers tactile cadence and tabular numerals across all four workstation sections', () => {

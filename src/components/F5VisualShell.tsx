@@ -348,30 +348,38 @@ function F5VisualShellContent({
           >
             <Menu aria-hidden="true" size={21} />
           </button>
-          <div className="f5v-location" aria-label="当前位置">
-            {LocationIcon ? (
-              <span className="f5v-location__mark" key={currentNavigation?.path} aria-hidden="true">
-                <LocationIcon size={16} />
+          <div className="f5v-topbar-leading">
+            <div className="f5v-location" aria-label="当前位置">
+              {LocationIcon ? (
+                <span
+                  className="f5v-location__mark"
+                  key={currentNavigation?.path}
+                  aria-hidden="true"
+                >
+                  <LocationIcon size={16} />
+                </span>
+              ) : null}
+              <strong>{currentTitle}</strong>
+              {navigationPending ? <small role="status">正在打开页面…</small> : null}
+            </div>
+            <span className="f5v-terminal-signal" ref={signalRef} aria-hidden="true">
+              <span className="f5v-terminal-track">
+                <span className="f5v-terminal-wave">
+                  {signalPeaks.map((peak, index) => (
+                    <i
+                      key={index}
+                      style={
+                        {
+                          '--peak': peak + '%',
+                          '--beat-offset': -((index * 7) % 24) * 0.09 + 's',
+                        } as CSSProperties
+                      }
+                    />
+                  ))}
+                </span>
               </span>
-            ) : null}
-            <strong>{currentTitle}</strong>
-            {navigationPending ? <small role="status">正在打开页面…</small> : null}
-          </div>
-          <span className="f5v-terminal-signal" ref={signalRef} aria-hidden="true">
-            <span className="f5v-terminal-wave">
-              {signalPeaks.map((peak, index) => (
-                <i
-                  key={index}
-                  style={
-                    {
-                      '--peak': peak + '%',
-                      '--beat-offset': -((index * 7) % 24) * 0.09 + 's',
-                    } as CSSProperties
-                  }
-                />
-              ))}
             </span>
-          </span>
+          </div>
           <div className="f5v-topbar-tools">
             <ReleaseNotes key={currentPath} />
             <div className="f5v-account-strip" aria-label="账号状态">

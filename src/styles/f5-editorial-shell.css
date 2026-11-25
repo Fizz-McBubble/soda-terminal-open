@@ -173,8 +173,8 @@
   color: #c8b8ff;
 }
 
-.f5v-shell .f5v-topbar .f5v-terminal-signal::before,
-.f5v-shell .f5v-topbar .f5v-terminal-signal::after {
+.f5v-shell .f5v-topbar .f5v-terminal-track::before,
+.f5v-shell .f5v-topbar .f5v-terminal-track::after {
   opacity: 0.34;
 }
 
