@@ -19,13 +19,20 @@ export function ScannerCompletedSummary({
         <AlertTriangle aria-hidden="true" size={20} />
         <span>本次结果{averageRate == null ? '' : ` · 平均 ${averageRate} 张/分钟`}</span>
         <strong>{snapshot.summary.uniqueRecords} 张</strong>
-        <small>可直接导入 {snapshot.summary.reliable} 张</small>
+        <small>
+          {snapshot.summary.resultStatus === 'blocked_import' ? '已识别' : '可直接导入'}{' '}
+          {snapshot.summary.reliable} 张
+        </small>
       </article>
       <article>
         <ShieldCheck aria-hidden="true" size={20} />
         <span>待校准</span>
         <strong>{snapshot.summary.needsReview} 张</strong>
-        <small>确认导入前不会改动账户</small>
+        <small>
+          {snapshot.summary.unreadable > 0
+            ? `未识别 ${snapshot.summary.unreadable} 张`
+            : '确认导入前不会改动账户'}
+        </small>
       </article>
       {completedImportCount !== null && (
         <article>

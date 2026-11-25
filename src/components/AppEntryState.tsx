@@ -1,9 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useAppHealth } from '../appHealthContext'
 import { AppShell } from './AppShell'
 import { HomeLoading } from './HomeHeroScene'
 import { useLocation } from 'react-router-dom'
 import './AppEntryState.css'
+import { DelayedLoadingFeedback } from './DelayedLoadingFeedback'
 
 /** Shared empty workbench: one explanation and one compact next action. */
 export function WorkbenchEmptyState({
@@ -37,22 +38,18 @@ export function AppLoadingState({
   heading?: string
   compact?: boolean
 }) {
-  const [visible, setVisible] = useState(false)
-  useEffect(() => {
-    const timeout = window.setTimeout(() => setVisible(true), 1200)
-    return () => window.clearTimeout(timeout)
-  }, [])
-  if (!visible && !heading) return null
   return (
-    <section
-      className={compact ? 'panel' : 'app-loading-status'}
-      role="status"
-      aria-live="polite"
-      aria-busy="true"
-    >
-      {heading ? <h1>{heading}</h1> : null}
-      {visible ? <p>{title}</p> : null}
-    </section>
+    <DelayedLoadingFeedback>
+      <section
+        className={compact ? 'panel' : 'app-loading-status'}
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        {heading ? <h1>{heading}</h1> : null}
+        <p>{title}</p>
+      </section>
+    </DelayedLoadingFeedback>
   )
 }
 

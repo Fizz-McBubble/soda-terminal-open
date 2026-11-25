@@ -19,6 +19,7 @@ export async function savePendingAssetResult(
   if (JSON.stringify(snapshot).length > 16 * 1024 * 1024) return false
   const value = {
     format: 'soda-pending-asset-result',
+    version: 2,
     accountId,
     snapshot,
     snapshotSha256,
@@ -65,7 +66,15 @@ export async function readPendingAssetResult(
     )
     if (imported) return null
     return {
-      snapshot: value.snapshot,
+      // Older receipts discarded diagnostic scopes. Keep the assets recoverable but
+      // require a fresh observation before they can authorize an account change.
+      snapshot:
+        value.version === 2
+          ? value.snapshot
+          : {
+              ...(value.snapshot as object),
+              issues: [{ code: 'legacy_observation_unverified', asset: 'snapshot', field: '' }],
+            },
       snapshotSha256: value.snapshotSha256,
       savedAt: value.savedAt,
     }

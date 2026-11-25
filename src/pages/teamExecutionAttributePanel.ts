@@ -1,15 +1,16 @@
+import {
+  getPlayerBuildKnowledgeProfile,
+  getPlayerBuildAuthorityProfile,
+  getPlayerBuildTargetPanel,
+} from '../gameDataPacks/currentPlayerDevelopmentGuidance33'
 import type { AccountRoster, RosterAgent } from '../assault/types'
 import type { DriveDisc } from '../domain/schemas'
 import type { TeamExecutionMember } from '../decision/teamExecutionProjection'
 import { resolveWEngine, type ResolvedWEngine } from '../decision/wEngineResolver'
-import { getAgentProfile, getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
+import { getAgentProfile } from '../gameDataPacks/agentProfile'
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
 import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
-import {
-  getCurrentBuildAuthorityProfile,
-  getCurrentBuildTargetPanel,
-  type CurrentBuildTargetPanelContext,
-} from '../gameDataPacks/currentBuildAuthority'
+import { type CurrentBuildTargetPanelContext } from '../gameDataPacks/currentBuildAuthority'
 import { createAgentDevelopmentPanelProjection } from './agentDevelopmentPanelProjection'
 import {
   evaluateSourceBoundAttackSupport,
@@ -192,7 +193,7 @@ export function createTeamExecutionAttributePanel(input: {
     'agentStateById' | 'selectedDirectionIdByAgentId'
   >
 }): TeamExecutionAttributePanel {
-  const profile = getProjectedBuildKnowledgeProfile(input.agent.agentId)
+  const profile = getPlayerBuildKnowledgeProfile(input.agent.agentId)
   const agentProfile = getAgentProfile(input.agent.agentId)
   const suggested = input.member.suggested
   const wEngineResolution = resolveWEngine({
@@ -212,7 +213,7 @@ export function createTeamExecutionAttributePanel(input: {
         },
       }
     : undefined
-  const mainStatGuidance = getCurrentBuildAuthorityProfile(
+  const mainStatGuidance = getPlayerBuildAuthorityProfile(
     input.agent.agentId,
     buildContext,
   )?.guidance.fields.find((field) => field.fieldId === 'build.main_sub_stats')
@@ -259,7 +260,7 @@ export function createTeamExecutionAttributePanel(input: {
         : { id: null, name: null, level: null, refinement: null },
   }
   const targetContext = { ...developmentBuildContext(projectedAgent), agentId: input.agent.agentId }
-  const targetField = getCurrentBuildTargetPanel(input.agent.agentId, {
+  const targetField = getPlayerBuildTargetPanel(input.agent.agentId, {
     ...buildContext,
     ...targetContext,
   })

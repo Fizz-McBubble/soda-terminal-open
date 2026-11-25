@@ -123,7 +123,10 @@ export function isAdmittedTeamPlay(play: ProvenPlay, key: string): boolean {
 
 const sorted = (values: string[]) => [...values].sort()
 const ordered = <T>(values: T[]) =>
-  [...values].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
+  values
+    .map((value) => ({ value, key: JSON.stringify(value) }))
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map(({ value }) => value)
 /** Identity retains all source, event, effect, state and threshold bindings, excluding presentation prose. */
 export function canonicalTeamPlayIdentity(play: ProvenPlay): string {
   const proof = play.mechanismProof

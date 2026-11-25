@@ -1,19 +1,18 @@
 import { resolveReviewedPhoenixTeam33 } from './reviewedPhoenixTeams33'
 import { currentBoxAdmissionByTeam, currentBoxAdmissionReady } from './currentBoxTeamAdmission'
 import { selectDefaultTeamAdmissionPlay } from './defaultTeamAdmissionPlay'
-import { canonicalTeamPlayIdentity } from '../domain/teamPlayMechanismContract'
-import {
-  lookupCurrent31TeamIntrinsicDetails,
-  current31TeamIntrinsicIndexStatus,
-} from './current31TeamIntrinsicIndex'
+import { createAccountTeamIndexReader } from './accountTeamIndexReader'
+import { current31TeamIntrinsicIndexStatus } from './current31TeamIntrinsicIndex'
 import type { AccountDecisionAuthorityInput } from './accountDecisionAuthorityInput'
-import { projectAccountDecisionRecommendation } from './accountDecisionRecommendationProjection'
+import {
+  projectAccountDecisionRecommendation,
+  projectExplicitMembership,
+} from './accountDecisionRecommendationProjection'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
 import { type CultivationPriorityInput } from './teamDecisionAuthority'
 import { isReviewedFallbackTeam } from './reviewedTeamRecommendationDisposition'
-import { resolveCurrent31MainstreamRecognition } from './current31TeamMainstreamRecognition'
 import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
 import { createTeamRecommendationPrerequisiteResolver } from './teamRecommendationPrerequisites'
 import { extractTeamStrengthMechanicFeatures } from './teamStrengthMechanicFeatures'
@@ -27,10 +26,7 @@ import {
   hasTeamSystemRankingAuthority,
 } from './defaultTeamRecommendationSelection'
 import { reviewedPreparedTeamCapabilities32 } from '../calculation/reviewedPreparedTeamBenchmark32'
-import {
-  authorComparisonMembership32Identity,
-  reviewedAuthorComparisonMembership32,
-} from './reviewedAuthorComparisonMembership32'
+import { authorComparisonMembership32Identity } from './reviewedAuthorComparisonMembership32'
 import { projectAccountCultivationCandidates } from './accountDecisionCultivationProjection'
 import {
   Current31TeamIntrinsicIndexMismatchError,
@@ -88,62 +84,17 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   const ownedAgentIds = input.roster.agents
     .filter((agent) => agent.owned)
     .map((agent) => agent.agentId)
-  const offlineCache = new Map<string, ReturnType<typeof lookupCurrent31TeamIntrinsicDetails>>()
-  const offlineDetails = (ids: readonly string[]) => {
-    const key = [...ids].sort().join('|')
-    if (!offlineCache.has(key))
-      offlineCache.set(key, lookupCurrent31TeamIntrinsicDetails(ids, 'offline-match'))
-    return offlineCache.get(key)
-  }
+  const reader = createAccountTeamIndexReader()
   const admissionReady = currentBoxAdmissionReady
   const admissionByTeam = currentBoxAdmissionByTeam
   const defaultAdmissionPlays = admissionReady
     ? new Map([...admissionByTeam].map(([key, value]) => [key, value.plays]))
     : undefined
-  const explicitMembershipById = new Map(
-    projected.flatMap((item) => {
-      // Membership evidence cannot override invalid mechanics, hard player constraints,
-      // or turn an unqualified source observation into a rated-strength claim.
-      if (
-        item.rating.status !== 'rated' ||
-        item.rating.ratingBand !== 'Experimental' ||
-        item.rating.confidence !== 'experimental'
-      )
-        return []
-      const membership = reviewedAuthorComparisonMembership32(item.memberIds, ownedAgentIds)
-      if (!membership) return []
-      // A separately confirmed current recommendation already supersedes the
-      // historical comparison-only membership.
-      const recognition = resolveCurrent31MainstreamRecognition(item.memberIds)
-      if (
-        recognition.status === 'confirmed' &&
-        recognition.historicalReferenceOnly === false &&
-        !isReviewedFallbackTeam(item.memberIds)
-      )
-        return []
-      const admitted = admissionReady
-        ? admissionByTeam.get([...item.memberIds].sort().join('|'))
-        : undefined
-      const play =
-        admitted?.route === 'exact_two_period_candidate'
-          ? offlineDetails(item.memberIds)?.mechanismDirection.playability
-          : null
-      if (
-        play &&
-        admitted &&
-        admitted.plays.has(canonicalTeamPlayIdentity(play)) &&
-        item.mechanicallyClosed &&
-        item.systemRanking?.status === 'ranked' &&
-        item.systemRanking.genericOrder?.status === 'recommended'
-      )
-        return [
-          [
-            item.candidate.candidateId,
-            { ...membership, independentDefaultAdmission: true as const },
-          ] as const,
-        ]
-      return [[item.candidate.candidateId, membership] as const]
-    }),
+  const explicitMembershipById = projectExplicitMembership(
+    projected,
+    ownedAgentIds,
+    admissionReady ? admissionByTeam : undefined,
+    reader,
   )
   // Availability of a named local finite model permits deliberate selection;
   // it is independent of community recognition, strength and rotation closure.
@@ -295,7 +246,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       // primary-output evidence. The pool does not consume that identity here.
       if (candidate.teamSystemRanking?.genericOrder?.status === 'recommended') return null
       if (input.validationIntrinsicProjectionMode !== 'direct')
-        return offlineDetails(candidate.memberIds)?.primaryOutputAgentId ?? null
+        return reader.offlineDetails(candidate.memberIds, candidate.candidateId)?.primaryOutputAgentId ?? null
       const phoenixReference = resolveReviewedPhoenixTeam33(candidate.memberIds)
       if (phoenixReference) return phoenixReference.primaryOutputAgentId
       const key = [...candidate.memberIds].sort().join('|')
@@ -315,10 +266,11 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
               if (!allowed) return null
               const play = selectDefaultTeamAdmissionPlay(
                 candidate.memberIds,
-                offlineDetails(candidate.memberIds)?.mechanismDirection,
+                reader.offlineDetails(candidate.memberIds, candidate.candidateId)?.mechanismDirection,
                 allowed.plays,
+                reader.identifyPlay,
               )
-              if (!play || !allowed.plays.has(canonicalTeamPlayIdentity(play))) return null
+              if (!play || !allowed.plays.has(reader.identifyPlay(play))) return null
               return {
                 tier:
                   allowed.route === 'exact_guide_or_observation_candidate' ||
@@ -472,12 +424,9 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   const cultivationRankById = new Map(
     cultivationOrder.map(({ item, rank }) => [item.candidate.candidateId, rank]),
   )
-  const strengthFirstComparator = (
-    left: (typeof enriched)[number],
-    right: (typeof enriched)[number],
-  ) => intrinsicDisplayComparator(left, right)
   const toRecommendation = (item: (typeof enriched)[number]) => {
     const recommendation = projectAccountDecisionRecommendation(item, {
+      ...reader,
       explicitMembershipById,
       preparedBenchmarkIds,
       teamStrengthRankById,
@@ -510,7 +459,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     .map(toRecommendation)
   const consumerRecommendations = enriched
     .filter((item) => consumerWorksetIds.has(item.candidate.candidateId))
-    .sort(strengthFirstComparator)
+    .sort(intrinsicDisplayComparator)
     .map(toRecommendation)
   const bestByAgent = new Map<string, (typeof enriched)[number]>()
   for (const item of [...enriched].sort(defaultStrengthComparator)) {

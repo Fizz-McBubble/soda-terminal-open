@@ -6,7 +6,7 @@ import { useDevelopmentCurrentRecordReconciliation } from './useDevelopmentCurre
 import { useDevelopmentWorkbenchRouteRead } from './useDevelopmentWorkbenchRouteRead'
 import { AppLoadingState } from '../components/AppEntryState'
 import { readDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteCache'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { publicDevelopmentDirectoryCatalog } from '../application/publicDevelopmentDirectoryCatalog'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { BackNavigation } from '../components/BackNavigation'
@@ -63,9 +63,6 @@ export function AgentDevelopmentWorkbenchPage() {
   } | null>(null)
   const [saveRefresh, setSaveRefresh] = useState<SaveRefresh | null>(null)
   const [analysisRefresh, setAnalysisRefresh] = useState<AnalysisRefresh | null>(null)
-  const analysisRefreshAttempt = useRef<string | null>(null)
-  const analysisRefreshRequest = useRef(0)
-  const pageActive = useRef(true)
   const requestedPlanId = searchParams.get('plan')
   const requestedCandidateRank = Number.parseInt(searchParams.get('candidate') ?? '1', 10)
   const preferEquipped = requestedCandidateRank === 0 && !requestedPlanId
@@ -96,12 +93,6 @@ export function AgentDevelopmentWorkbenchPage() {
     saveRefresh.accountId === pageAccountId &&
     saveRefresh.agentId === agentId
   useEffect(() => {
-    pageActive.current = true
-    return () => {
-      pageActive.current = false
-    }
-  }, [])
-  useEffect(() => {
     let active = true
     queueMicrotask(() => {
       if (!active) return
@@ -110,7 +101,6 @@ export function AgentDevelopmentWorkbenchPage() {
       setEditingCurrent(false)
       setEditingPresentation(null)
       setAnalysisRefresh(null)
-      analysisRefreshAttempt.current = null
     })
     return () => {
       active = false
@@ -129,9 +119,9 @@ export function AgentDevelopmentWorkbenchPage() {
       : null
   const runAnalysisRefresh = useWorkbenchAnalysisRefresh(
     refreshDecisionWorld,
-    analysisRefreshAttempt,
-    analysisRefreshRequest,
-    pageActive,
+    JSON.stringify([pageAccountId, agentId, requestedPlanId]),
+    currentRun,
+    analysisRefresh,
     setAnalysisRefresh,
   )
   useEffect(() => {
@@ -155,19 +145,6 @@ export function AgentDevelopmentWorkbenchPage() {
     staleRefreshKey,
     warehouseRefresh,
   ])
-  useEffect(() => {
-    if (!currentRun || !analysisRefresh) return
-    // Another request may have superseded this refresh and already produced a current run.
-    analysisRefreshRequest.current += 1
-    analysisRefreshAttempt.current = null
-    let active = true
-    queueMicrotask(() => {
-      if (active) setAnalysisRefresh(null)
-    })
-    return () => {
-      active = false
-    }
-  }, [analysisRefresh, currentRun])
   useDevelopmentCurrentRecordReconciliation(facts, saveRefresh, setSaveRefresh)
   const routeSnapshot =
     currentRun && !requestedPlanId && !preferEquipped

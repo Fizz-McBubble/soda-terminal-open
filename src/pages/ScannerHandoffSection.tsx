@@ -72,10 +72,18 @@ export function ScannerHandoffSection({
 }) {
   const discardTriggerRef = useRef<HTMLButtonElement>(null)
   // A completed transport state alone does not prove a complete, importable result.
-  if (snapshot.state === 'completed' && !snapshot.summary)
+  if (
+    snapshot.state === 'completed' &&
+    (!snapshot.summary || snapshot.summary.resultStatus === 'blocked_import')
+  )
     return (
       <section className="scanner-completed-review" aria-label="已完成扫描结果">
-        <p role="alert">结果摘要缺失，无法确认可导入范围。原结果保留，当前不能导入。</p>
+        {snapshot.summary && resultSummary}
+        <p role="alert">
+          {snapshot.summary
+            ? '本次结果无法安全导入，请重新扫描。'
+            : '结果摘要缺失，无法确认可导入范围。原结果保留，当前不能导入。'}
+        </p>
         <div className="scanner-result-ready__actions">
           {onExportResult && (
             <button
@@ -92,7 +100,7 @@ export function ScannerHandoffSection({
             className="button button--quiet"
             onClick={onReturnToTargetSelection}
           >
-            放弃
+            {snapshot.summary ? '返回准备步骤' : '放弃'}
           </button>
           {diagnosticFeedback}
         </div>
@@ -297,42 +305,28 @@ export function ScannerHandoffSection({
             </div>
           )}
           {resultSummary}
-          {snapshot.summary?.resultStatus === 'blocked_import' ? (
-            <p role="alert">本次结果无法安全导入，请重新扫描。</p>
-          ) : null}
           <div className="scanner-result-ready__actions">
-            {snapshot.summary?.resultStatus === 'blocked_import' ? (
-              <button
-                className="button button--primary scanner-web__primary-action"
-                type="button"
-                onClick={onReturnToTargetSelection}
-              >
-                返回准备步骤
-              </button>
-            ) : (
-              <>
-                <button
-                  className="button button--primary scanner-web__primary-action"
-                  type="button"
-                  disabled={!selectedAccount || handoffState.status === 'working'}
-                  onClick={onBindCompletedResult}
-                >
-                  用此账户检查结果
-                  <ChevronRight aria-hidden="true" size={18} />
-                </button>
-                <button
-                  className="button button--quiet"
-                  type="button"
-                  onClick={onReturnToTargetSelection}
-                >
-                  {sharedTargetSelection
-                    ? '放弃'
-                    : handoffState.status === 'working'
-                      ? '取消读取并返回准备'
-                      : '放弃此结果并重新扫描'}
-                </button>
-              </>
-            )}
+            <button
+              className="button button--primary scanner-web__primary-action"
+              type="button"
+              disabled={!selectedAccount || handoffState.status === 'working'}
+              onClick={onBindCompletedResult}
+            >
+              用此账户检查结果
+              <ChevronRight aria-hidden="true" size={18} />
+            </button>
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={onReturnToTargetSelection}
+            >
+              {sharedTargetSelection
+                ? '放弃'
+                : handoffState.status === 'working'
+                  ? '取消读取并返回准备'
+                  : '放弃此结果并重新扫描'}
+            </button>
+
             {diagnosticFeedback}
           </div>
         </section>

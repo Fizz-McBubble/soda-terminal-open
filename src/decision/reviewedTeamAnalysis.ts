@@ -98,6 +98,9 @@ export function createReviewedTeamAnalysisCatalog(
   applicability?: typeof reviewedVersionApplicability33,
 ) {
   const parsed = datasetSchema.parse(input)
+  // Bind continuity to the exact source snapshot used to construct this catalog.
+  const sourceDatasetHash =
+    applicability && parsed.gameVersion !== currentVersion ? stableContentHash(input) : null
   const records = new Map<string, z.infer<typeof recordSchema>>()
   const ids = new Set<string>()
   for (const record of parsed.records) {
@@ -129,7 +132,11 @@ export function createReviewedTeamAnalysisCatalog(
       if (!record || record.withdrawn) return null
       let versionApplicability: ReviewedTeamAnalysis['versionApplicability']
       if (parsed.gameVersion !== currentVersion) {
-        if (applicability?.contentHash !== reviewedVersionApplicability33.contentHash) return null
+        if (
+          !sourceDatasetHash ||
+          applicability?.contentHash !== reviewedVersionApplicability33.contentHash
+        )
+          return null
         const bindings = record.memberIds.flatMap((agentId) => {
           const formulaSha256 =
             getCurrentAgentDecisionMechanicContract(agentId)?.effectContract?.source.formulaSha256
@@ -140,7 +147,7 @@ export function createReviewedTeamAnalysisCatalog(
           sourceVersion: parsed.gameVersion,
           reviewVersion: parsed.gameVersion,
           sourceDeltaHash: applicability.sourceDeltaHash,
-          sourceDatasetHash: stableContentHash(input),
+          sourceDatasetHash,
           scope: 'formed_generic_reference',
           reviewId: record.id,
           memberIds,

@@ -9,6 +9,7 @@ import { currentIndependentPlans, independentDiscConflicts } from './agentIndepe
 import { getAgentName } from '../application/publicRosterNames'
 import { agentDevelopmentMainStatDifferences } from './agentDevelopmentMainStatDifferences'
 import { findDevelopmentComparisonPanel } from '../application/publicDevelopmentComparisonPanels'
+import { currentComparisonConditions } from '../gameDataPacks/severianPlayerConditions33'
 import { isDevelopmentDiscScore } from '../application/publicDevelopmentDiscScore'
 import { getCandidateStatLabels } from '../application/publicCandidateLabels'
 import { percentageStats } from './comparisonStatUnits'
@@ -306,7 +307,7 @@ export function projectDevelopmentComparisonView(input: {
     discs,
     coreStats: defaultStats,
     targetConditionsByLabel: hasStaticPanels
-      ? candidateSnapshot.panelPresentation?.targetConditionsByLabel
+      ? currentComparisonConditions(candidateSnapshot.panelPresentation)
       : undefined,
     allStats: allStats.map((stat) => {
       return {

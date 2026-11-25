@@ -1,15 +1,46 @@
-import { useCallback, type Dispatch, type SetStateAction, type RefObject } from 'react'
+import {
+  useCallback,
+  useLayoutEffect,
+  useEffect,
+  useRef,
+  type Dispatch,
+  type SetStateAction,
+} from 'react'
 import type { AccountDecisionRun } from '../application/calculationQueryContract'
 import { playerErrorMessage } from '../application/playerErrorMessage'
 import type { AnalysisRefresh } from './agentDevelopmentWorkbenchViewState'
 
 export function useWorkbenchAnalysisRefresh(
   refreshDecisionWorld: () => Promise<AccountDecisionRun | null>,
-  analysisRefreshAttempt: RefObject<string | null>,
-  analysisRefreshRequest: RefObject<number>,
-  pageActive: RefObject<boolean>,
+  scopeKey: string,
+  currentRun: AccountDecisionRun | null,
+  analysisRefresh: AnalysisRefresh | null,
   setAnalysisRefresh: Dispatch<SetStateAction<AnalysisRefresh | null>>,
 ) {
+  const analysisRefreshAttempt = useRef<string | null>(null)
+  const analysisRefreshRequest = useRef(0)
+  const pageActive = useRef(true)
+  useLayoutEffect(() => {
+    pageActive.current = true
+    return () => {
+      pageActive.current = false
+      analysisRefreshRequest.current += 1
+      analysisRefreshAttempt.current = null
+    }
+  }, [scopeKey])
+  useEffect(() => {
+    if (!currentRun || !analysisRefresh) return
+    // Another request may have superseded this refresh and already produced a current run.
+    analysisRefreshRequest.current += 1
+    analysisRefreshAttempt.current = null
+    let active = true
+    queueMicrotask(() => {
+      if (active) setAnalysisRefresh(null)
+    })
+    return () => {
+      active = false
+    }
+  }, [analysisRefresh, currentRun, setAnalysisRefresh])
   const runAnalysisRefresh = useCallback(
     async function refreshAnalysis(
       key: string,
@@ -42,13 +73,7 @@ export function useWorkbenchAnalysisRefresh(
         })
       }
     },
-    [
-      analysisRefreshAttempt,
-      analysisRefreshRequest,
-      pageActive,
-      refreshDecisionWorld,
-      setAnalysisRefresh,
-    ],
+    [refreshDecisionWorld, setAnalysisRefresh],
   )
   return runAnalysisRefresh
 }

@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom'
 import { allNavigationItems, mobileNavigation, navigationGroups } from '../navigation'
 import { preloadPlayerRouteIntent } from '../routes/preloadPlayerRoute'
 import { useDetailsDisclosureMotion } from '../motion/useDetailsDisclosureMotion'
-import { useStateTransitionMotion } from '../motion/useStateTransitionMotion'
+import { DelayedLoadingFeedback } from './DelayedLoadingFeedback'
 import { SponsorProvider, SponsorRail } from './SponsorSupport'
 import { ReleaseNotes } from './ReleaseNotes'
 import { TestingBadge } from './TestingBadge'
@@ -145,13 +145,6 @@ function F5VisualShellContent({
     currentPath.startsWith('/development') ||
     currentPath === '/warehouse/discs'
   useDetailsDisclosureMotion({ scope: pageFrameRef })
-  useStateTransitionMotion({
-    scope: pageFrameRef,
-    stateKey: currentPath,
-    includeScope: true,
-    enabled: !navigationPending,
-    transition: 'route',
-  })
   const scrollScannerFromInitialHeading = (event: KeyboardEvent<HTMLElement>) => {
     if (!isScanner || !(event.target instanceof HTMLElement)) return
     if (!event.target.matches('h1[tabindex="-1"]')) return
@@ -360,7 +353,11 @@ function F5VisualShellContent({
                 </span>
               ) : null}
               <strong>{currentTitle}</strong>
-              {navigationPending ? <small role="status">正在打开页面…</small> : null}
+              {navigationPending ? (
+                <DelayedLoadingFeedback>
+                  <small role="status">正在打开页面…</small>
+                </DelayedLoadingFeedback>
+              ) : null}
             </div>
             <span className="f5v-terminal-signal" ref={signalRef} aria-hidden="true">
               <span className="f5v-terminal-track">

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePlanEditorSaveScope } from './usePlanEditorSaveScope'
 import { buildSavedTeamPlanSolutionFingerprint } from '../accounts/planningSnapshotFreshness'
 import { buildExactTeamVariantKey } from '../accounts/planningSolutionContext'
-import { getActiveAccount } from '../accounts/repository'
+import { acceptCommittedPlanEditorSave } from './planEditorCommitScope'
 import {
   useAccountDecisionWorld,
   useReleaseAccountDecisionRun,
@@ -233,26 +233,17 @@ export function PlanEditor(props: PlanEditorProps) {
         remainingSession,
       })
       finishUsage('success')
-      const activeAccount = await getActiveAccount().catch(() => null)
-      const committed = commit(draft, next)
       if (
-        !activeAccount &&
-        isCurrentSave() &&
-        window.location.pathname === originatingPathname &&
-        window.location.search === originatingSearch
-      )
-        setMessage('方案已保存，当前账户暂时无法确认。')
-      if (
-        !isCurrentSave() ||
-        activeAccount?.id !== warehouse.accountId ||
-        window.location.pathname !== originatingPathname ||
-        window.location.search !== originatingSearch
+        !(await acceptCommittedPlanEditorSave({
+          accountId: warehouse.accountId,
+          originatingPathname,
+          originatingSearch,
+          isCurrentSave,
+          setMessage,
+          commitDraft: () => commit(draft, next),
+        }))
       )
         return false
-      if (!committed) {
-        setMessage('已保存提交时的方案，后续修改仍未保存。')
-        return false
-      }
       return finishPlanEditorSave({
         kind,
         team,

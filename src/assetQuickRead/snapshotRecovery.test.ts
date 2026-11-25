@@ -91,3 +91,17 @@ it('explains client compatibility without echoing untrusted failure text', () =>
     '均未通过',
   )
 })
+
+it.each(['disc', 'engine', 'agent', 'unknown'])(
+  'preserves the %s restriction after a sanitized export and reimport',
+  (asset) => {
+    const input = syntheticAssetSnapshot33()
+    input.issues = [{ code: 'private-code', field: 'private-field', asset }]
+    const context = { snapshotSha256: 'a'.repeat(64) }
+    const original = convertAssetSnapshot(input, context)
+    const recovered = prepareAssetSnapshotExport(input)!.snapshot
+    expect(JSON.stringify(recovered)).not.toContain('private-')
+    expect(convertAssetSnapshot(recovered, context)).toEqual(original)
+    expect(prepareAssetSnapshotExport(recovered)!.snapshot).toEqual(recovered)
+  },
+)

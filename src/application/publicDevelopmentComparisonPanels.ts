@@ -44,6 +44,8 @@ export type DevelopmentComparisonPanels = {
     version: string
     source: string
     currentEngineRecorded: boolean
+    /** Current-account reference bound to this comparison capture. */
+    severianSignatureRefinement?: number
   }
 }
 
@@ -103,6 +105,11 @@ export function hasDevelopmentComparisonPanels(
     typeof value.saveKnowledge.version === 'string' &&
     typeof value.saveKnowledge.source === 'string' &&
     typeof value.saveKnowledge.currentEngineRecorded === 'boolean' &&
+    (value.saveKnowledge.severianSignatureRefinement === undefined ||
+      (agentId === 'agent-severian' &&
+        Number.isInteger(value.saveKnowledge.severianSignatureRefinement) &&
+        value.saveKnowledge.severianSignatureRefinement >= 1 &&
+        value.saveKnowledge.severianSignatureRefinement <= 5)) &&
     value.entries.every(
       (entry) =>
         typeof entry.discFingerprint === 'string' &&

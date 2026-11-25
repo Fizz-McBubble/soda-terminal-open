@@ -2,6 +2,7 @@ export const teamMechanicExcludedConsumerSources = [
   '../pages/teamRecommendationOrdering.ts',
   '../pages/teamRecommendationRank.ts',
   '../decision/accountDecisionAuthority.ts',
+  '../decision/accountTeamIndexReader.ts',
   '../decision/accountDecisionOrdering.ts',
   '../decision/accountCultivationMarginalYield.ts',
   '../decision/teamRecommendationScore.ts',
@@ -9,6 +10,8 @@ export const teamMechanicExcludedConsumerSources = [
   '../decision/accountDecisionRecommendationProjection.ts',
   '../decision/savedTeamBuildIntent.ts',
   '../application/localTargetTeamFitQuery.ts',
+  '../gameDataPacks/currentPlayerDevelopmentGuidance33.ts',
+  '../gameDataPacks/severianPlayerConditions33.ts',
 ] as const
 
 /** Downstream account selection and display cannot affect upstream source-mechanic

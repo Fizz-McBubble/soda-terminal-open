@@ -5,10 +5,11 @@ import { AppLoadingState } from './AppEntryState'
 afterEach(() => vi.useRealTimers())
 
 describe('brief loading states', () => {
-  it('keeps the route heading visible while delaying a short-lived loading message', () => {
+  it('does not paint a temporary heading or panel before a brief read completes', () => {
     vi.useFakeTimers()
     render(<AppLoadingState heading="代理人养成" title="正在整理养成建议" compact />)
-    expect(screen.getByRole('heading', { name: '代理人养成' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
     expect(screen.queryByText('正在整理养成建议')).not.toBeInTheDocument()
     act(() => vi.advanceTimersByTime(1200))
     expect(screen.getByRole('heading', { name: '代理人养成' })).toBeInTheDocument()

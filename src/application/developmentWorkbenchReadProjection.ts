@@ -1,4 +1,9 @@
+import {
+  getPlayerBuildKnowledgeProfile,
+  getPlayerBuildTargetPanel,
+} from '../gameDataPacks/currentPlayerDevelopmentGuidance33'
 import { developmentBuildContext } from './developmentBuildContext'
+import { correctSeverianConditions } from '../gameDataPacks/severianPlayerConditions33'
 import { contentHash } from './contentHash'
 import { developmentPanelDiscFingerprint } from './publicDevelopmentComparisonPanels'
 import type {
@@ -30,8 +35,6 @@ import { createAgentDevelopmentWorkbenchViewModel } from '../pages/agentDevelopm
 import { resolvePersonalReferenceDiscs } from '../accounts/personalCurrentReference'
 import { developmentGraduationTargets } from '../pages/developmentGraduationTargets'
 import { developmentPanelTargetPresentation } from '../pages/developmentPanelTargetPresentation'
-import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
-import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
 import { resolveWEngine } from '../decision/wEngineResolver'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import type {
@@ -133,7 +136,20 @@ export function projectDevelopmentWorkbenchReadProjection<T extends ReadBase>({
   if (saved.status === 'missing' || saved.status === 'references_changed')
     return unavailable(saved.status)
   if (saved.plan && typeof saved.plan.name !== 'string') return unavailable('missing')
-  const equipmentResult = equipment(agent)
+  const historicalEquipment = equipment(agent)
+  const equipmentResult =
+    selection.agentId === 'agent-severian' && historicalEquipment
+      ? {
+          ...historicalEquipment,
+          profileSave: {
+            ...historicalEquipment.profileSave,
+            scenario: getPlayerBuildKnowledgeProfile(selection.agentId).scenario,
+          },
+          targetPanel: getPlayerBuildTargetPanel(selection.agentId, developmentBuildContext(agent)),
+          engineConditions: correctSeverianConditions(historicalEquipment.engineConditions),
+          discSetConditions: correctSeverianConditions(historicalEquipment.discSetConditions),
+        }
+      : historicalEquipment
   const savedContext =
     saved.plan && selection.candidateRank === null
       ? readSavedAgentComparisonContext(saved.plan, selection.agentId)
@@ -322,10 +338,10 @@ export function projectDevelopmentWorkbenchReadProjection<T extends ReadBase>({
     ...targetBuildContext,
     agentId: selection.agentId,
   }
-  const targetPanel = getCurrentBuildTargetPanel(selection.agentId, targetBuildContext)
+  const targetPanel = getPlayerBuildTargetPanel(selection.agentId, targetBuildContext)
   const workbench = createAgentDevelopmentWorkbenchViewModel({
     agent,
-    profile: getProjectedBuildKnowledgeProfile(selection.agentId),
+    profile: getPlayerBuildKnowledgeProfile(selection.agentId),
     activePlan: saved.plan ?? null,
     activePlanDiscIds: savedIds,
     discs: warehouse.discs,

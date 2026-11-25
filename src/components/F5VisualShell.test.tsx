@@ -80,7 +80,7 @@ afterEach(() => {
 })
 
 describe('F5VisualShell narrow navigation', () => {
-  it('keeps current content while reporting a pending route in the existing location bar', () => {
+  it('keeps current content and delays visible feedback for a pending route', async () => {
     mockWidth(false)
     const { rerender } = render(
       <MemoryRouter>
@@ -90,7 +90,8 @@ describe('F5VisualShell narrow navigation', () => {
     expect(screen.getByText('页面内容')).toBeVisible()
     expect(screen.getByText('页面操作')).toBeEnabled()
     expect(screen.getByRole('main')).toHaveAttribute('aria-busy', 'true')
-    expect(screen.getByRole('status')).toHaveTextContent('正在打开页面')
+    expect(screen.queryByText('正在打开页面…')).not.toBeInTheDocument()
+    expect(await screen.findByText('正在打开页面…', {}, { timeout: 4000 })).toBeVisible()
     rerender(
       <MemoryRouter>
         <Harness />

@@ -117,5 +117,4 @@ export const pendingAssetSnapshotSchema = assetSnapshotSchema.extend({
     upstream_commit: z.string().regex(/^[a-f0-9]{40}$/),
     protocol_version: z.string().regex(/^[0-9]{1,3}\.[0-9]{1,3}(?:\.[0-9]{1,3})?$/),
   }),
-  issues: z.array(z.never()).max(0),
 })

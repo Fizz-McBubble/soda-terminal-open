@@ -3,8 +3,23 @@ import { assetSnapshotSchema, pendingAssetSnapshotSchema } from './snapshotProto
 /** Local download only. This broader recovery schema never authorizes account import. */
 export function prepareAssetSnapshotExport(raw: unknown) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
-  // Free-form capture issues are not needed for asset recovery and may contain private text.
-  const input = { ...raw, issues: [] }
+  // Keep the import restriction for each affected asset without retaining diagnostic text.
+  const nativeIssues = 'issues' in raw ? raw.issues : null
+  const affected = new Set<'snapshot' | 'engine' | 'agent'>()
+  if (!Array.isArray(nativeIssues) || nativeIssues.length > 100) affected.add('snapshot')
+  else {
+    for (const issue of nativeIssues) {
+      const asset =
+        typeof issue?.code === 'string' && typeof issue?.field === 'string' ? issue.asset : null
+      affected.add(asset === 'engine' || asset === 'agent' ? asset : 'snapshot')
+    }
+  }
+  const issues = Array.from(affected, (asset) => ({
+    code: 'incomplete_observation',
+    asset,
+    field: '',
+  }))
+  const input = { ...raw, issues }
   const current = assetSnapshotSchema.safeParse(input)
   if (current.success) return { snapshot: current.data, pendingUpdate: false }
   const pending = pendingAssetSnapshotSchema.safeParse(input)

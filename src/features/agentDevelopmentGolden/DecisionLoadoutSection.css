@@ -33,13 +33,15 @@
 .f5v-shell .workbench--single-page .disc-workbench-metrics {
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 4px 16px;
   min-width: 0;
 }
 .f5v-shell .workbench--single-page .disc-metric {
-  display: grid;
-  align-content: center;
-  gap: 2px;
+  display: inline-flex;
+  align-items: baseline;
+  flex: none;
+  gap: 4px;
   min-width: 0;
   margin: 0;
   padding: 0;

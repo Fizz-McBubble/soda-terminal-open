@@ -27,6 +27,7 @@ export function selectDefaultTeamAdmissionPlay(
   members: readonly string[],
   direction: TeamMechanismDirection | null | undefined,
   admitted: ReadonlySet<string> | undefined,
+  identify = canonicalTeamPlayIdentity,
 ) {
   if (!direction) return null
   if (!admitted?.size) return direction.playability
@@ -34,16 +35,16 @@ export function selectDefaultTeamAdmissionPlay(
   const entry = reviewedByTeam.get(key)
   if (entry && admitted?.has(entry.playId)) {
     const preferred = direction.variants.find(play =>
-      play.primaryOutputAgentId === entry.primary && canonicalTeamPlayIdentity(play) === entry.playId,
+      play.primaryOutputAgentId === entry.primary && identify(play) === entry.playId,
     )
     if (preferred) return preferred
   }
   const preparedId = lookupGraduatedTeamDefaultPlay(members, admission.catalog, admission.gameVersion)
   if (preparedId && admitted?.has(preparedId)) {
-    const prepared = direction.variants.find(play => canonicalTeamPlayIdentity(play) === preparedId)
+    const prepared = direction.variants.find(play => identify(play) === preparedId)
     if (prepared) return prepared
   }
   const original = direction.playability
-  if (original && admitted.has(canonicalTeamPlayIdentity(original))) return original
-  return direction.variants.find(play => admitted.has(canonicalTeamPlayIdentity(play))) ?? original
+  if (original && admitted.has(identify(original))) return original
+  return direction.variants.find(play => admitted.has(identify(play))) ?? original
 }

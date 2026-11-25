@@ -1,3 +1,5 @@
+import { useWorkbenchAnalysisRefresh } from './useWorkbenchAnalysisRefresh'
+import { renderHook } from '@testing-library/react'
 import { mocks, type Props, type RouteResult } from './agentDevelopmentWorkbenchViewLifecycleMocks'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -578,3 +580,31 @@ it.each(['fingerprint', 'rank'] as const)(
     expect(initial.setAnalysisVersion).not.toHaveBeenCalled()
   },
 )
+
+it('ignores a rejected refresh after leaving and returning to the same account', async () => {
+  const setStatus = vi.fn()
+  let reject!: (reason: Error) => void
+  const stale = new Promise<null>((_, fail) => {
+    reject = fail
+  })
+  const refresh = vi.fn(() => stale)
+  const { result, rerender } = renderHook(
+    ({ scope }) => useWorkbenchAnalysisRefresh(refresh, scope, null, null, setStatus),
+    { initialProps: { scope: 'A/billy' } },
+  )
+  let pending!: Promise<void>
+  act(() => {
+    pending = result.current('inputs-a', 'A')
+  })
+  expect(setStatus).toHaveBeenCalledWith({
+    key: 'inputs-a',
+    phase: 'updating',
+  })
+  rerender({ scope: 'B/billy' })
+  rerender({ scope: 'A/billy' })
+  await act(async () => {
+    reject(new Error('old response'))
+    await pending
+  })
+  expect(setStatus).toHaveBeenCalledTimes(1)
+})

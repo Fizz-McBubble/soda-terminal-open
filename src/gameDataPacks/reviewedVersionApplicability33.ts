@@ -15,6 +15,19 @@ type ReferenceRequest = {
 
 const deltaHash = 'DD6B87A5CBFBB965726D2C79297F630EBCA85187AF09F7802A6F4D0D5B3A0AE0'
 const exactTeamKey = (ids: readonly string[]) => [...ids].sort().join('|')
+// Capture the locked source once. Keep only the values used by the per-team check
+// so later callers cannot change the source behind the verified identity.
+const originalTeamDatasetHash = stableContentHash(originalTeamReviews)
+const originalById = new Map(
+  originalTeamReviews.records.map((row) => [
+    row.id,
+    {
+      key: exactTeamKey(row.memberIds),
+      band: row.band,
+      withdrawn: 'withdrawn' in row && row.withdrawn,
+    },
+  ]),
+)
 const sameFormula = (left: string, right: string) =>
   /^[a-f\d]{64}$/i.test(left) && left.toUpperCase() === right.toUpperCase()
 
@@ -85,7 +98,7 @@ export function resolveReviewedLocalTeamApplicability33(
     source.authority !== 'local_editorial_estimate' ||
     source.confidence !== 'low' ||
     input.sourceDatasetHash !== source.sourceDatasetHash ||
-    stableContentHash(originalTeamReviews) !== source.sourceDatasetHash ||
+    originalTeamDatasetHash !== source.sourceDatasetHash ||
     input.memberIds.length !== 3 ||
     new Set(input.memberIds).size !== 3 ||
     input.currentFormulaBindings.length !== 3 ||
@@ -93,14 +106,14 @@ export function resolveReviewedLocalTeamApplicability33(
   )
     return null
   const record = source.records.find((row) => row.reviewId === input.reviewId)
-  const original = originalTeamReviews.records.find((row) => row.id === input.reviewId)
+  const original = originalById.get(input.reviewId)
   if (
     !record ||
     !original ||
-    ('withdrawn' in original && original.withdrawn) ||
+    original.withdrawn ||
     record.band !== original.band ||
     exactTeamKey(record.memberIds) !== exactTeamKey(input.memberIds) ||
-    exactTeamKey(original.memberIds) !== exactTeamKey(input.memberIds) ||
+    original.key !== exactTeamKey(input.memberIds) ||
     record.formulaBindings.length !== 3 ||
     new Set(record.formulaBindings.map((binding) => binding.agentId)).size !== 3 ||
     record.formulaBindings.some((binding) => {
