@@ -12,6 +12,8 @@ import { parseSourceMaterializationRecipeDocument, sourceMaterializationRecipeFi
 export function verifyTeamRatingReleaseBindings({ index, admission, catalog, catalogSha, reviewed, fixedBuilds }) {
   assert.equal(index.gameVersion, catalog.gameVersion, 'BOX score version differs from the catalog')
   assert.equal(index.catalogHash, catalog.contentHash, 'BOX scores refer to a different catalog')
+  assert.equal(admission.gameVersion, catalog.gameVersion, 'BOX admission version differs from the catalog')
+  assert.equal(admission.catalog, catalog.contentHash, 'BOX admission names a different catalog')
   assert.equal(admission.inputs['generic-team-ranking.v1.json'], catalogSha, 'BOX admission refers to different catalog bytes')
   const catalogTeams = new Map()
   for (const [ordinal, , , play] of catalog.mechanismCatalog.rows) {

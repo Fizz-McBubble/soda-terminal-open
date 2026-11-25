@@ -300,7 +300,7 @@ export function projectDevelopmentWorkbenchReadProjection<T extends ReadBase>({
     discs: warehouse.discs,
     candidateDiscIds: hasComparablePlan ? candidateIds : null,
     planDiscIds: currentRecord?.selectedDiscIds ?? savedIds,
-    planWEngine: savedContext && appliedEngine ? comparisonAgent.wEngineDetails : undefined,
+    planWEngine: appliedEngine ? comparisonAgent.wEngineDetails : undefined,
     savedTargetUnavailableReason,
   })
   const panelContext = createDevelopmentPanelContext({

@@ -114,7 +114,7 @@ export function createAgentDevelopmentPanelProjection(input: {
   if (input.savedTargetUnavailableReason)
     return unsupported(source, input.savedTargetUnavailableReason, input.agent.agentId)
   const schemeEngine =
-    input.planDiscIds != null && input.candidateDiscIds == null ? input.planWEngine : undefined
+    input.planDiscIds != null || input.candidateDiscIds != null ? input.planWEngine : undefined
   const engine = schemeEngine ?? input.agent.wEngineDetails
   if (!engine.id) {
     return unsupported(
