@@ -6,6 +6,7 @@ import type { GraduationMetricCompletion } from '../decision/graduationPanelTarg
 import { getAgentName } from '../application/publicRosterNames'
 import {
   attachSavedTeamDiscCompletion,
+  hasSavedTeamDiscAllocation,
   savedTeamDiscCompletion,
   type SavedTeamGraduationCardCompletion,
 } from './savedTeamDiscCompletion'
@@ -77,6 +78,7 @@ export function SavedPlanGraduationLabel({
       (plan.teamExecutionSnapshot ? [plan.teamExecutionSnapshot] : [])
     if (
       !executions.length ||
+      (warehouse && !hasSavedTeamDiscAllocation(executions, warehouse.discs)) ||
       executions.some(
         (execution) =>
           execution.members?.length !== 3 ||

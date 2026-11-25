@@ -19,7 +19,11 @@ import { savedPlanDisplayName } from '../application/savedPlanDisplayName'
 import type { TeamLoadoutOverviewItem } from './teamLoadoutOverviewModel'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import { savedPlanGraduationCompletion } from './savedPlanGraduationCompletion'
-import { attachSavedTeamDiscCompletion, savedTeamDiscCompletion } from './savedTeamDiscCompletion'
+import {
+  attachSavedTeamDiscCompletion,
+  hasSavedTeamDiscAllocation,
+  savedTeamDiscCompletion,
+} from './savedTeamDiscCompletion'
 import { teamOverviewBangbooSuggestions } from './teamOverviewBangbooSuggestions'
 import { resolveReviewedTeamOutputModule } from '../gameDataPacks/reviewedTeamOutputModuleEvidence'
 import { resolveTeamMechanismDirection } from '../decision/teamMechanismDirection'
@@ -271,6 +275,7 @@ export function savedPlanItem(
       (plan.teamExecutionSnapshot ? [plan.teamExecutionSnapshot] : [])
     if (
       !executions.length ||
+      (options.warehouse && !hasSavedTeamDiscAllocation(executions, options.warehouse.discs)) ||
       executions.some(
         (execution) =>
           execution.members?.length !== 3 ||

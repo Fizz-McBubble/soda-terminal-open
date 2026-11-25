@@ -198,14 +198,8 @@ function isScarceMainStat(disc: DriveDisc) {
   )
 }
 
-export function isRareUnique(disc: DriveDisc, all: DriveDisc[]) {
-  return (
-    isScarceMainStat(disc) &&
-    all.filter(
-      (other) =>
-        other.setId === disc.setId && other.slot === disc.slot && other.mainStat === disc.mainStat,
-    ).length === 1
-  )
+export function isRareUnique(disc: DriveDisc, physicalCopyCount: number) {
+  return isScarceMainStat(disc) && physicalCopyCount === 1
 }
 
 /** Keep a stable physical reserve even when multiple surplus copies are reviewed together. */

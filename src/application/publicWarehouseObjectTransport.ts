@@ -4,24 +4,49 @@ const marker = '$o'
 const encoder = new TextEncoder()
 const size = (value: unknown) => encoder.encode(JSON.stringify(value)).byteLength
 
+type ShapeOccurrence = { key?: string; children: ShapeOccurrence[]; count: number }
+
+function countObjectShapes(input: readonly unknown[]) {
+  const counts = new Map<string, number>()
+  const seen = new WeakMap<object, ShapeOccurrence>()
+  const postorder: ShapeOccurrence[] = []
+  const visit = (value: object): ShapeOccurrence => {
+    const previous = seen.get(value)
+    if (previous) return previous
+    const array = Array.isArray(value)
+    if (!array && Object.hasOwn(value, marker)) throw new Error('驱动盘分析对象格式无效。')
+    const node: ShapeOccurrence = { children: [], count: 0 }
+    const children = array ? value : Object.values(value)
+    if (!array && !children.includes(undefined)) {
+      node.key = JSON.stringify(Object.keys(value))
+      // Preserve the first-occurrence order of the v3 shape table.
+      if (!counts.has(node.key)) counts.set(node.key, 0)
+    }
+    for (const child of children) {
+      if (child && typeof child === 'object') node.children.push(visit(child))
+    }
+    seen.set(value, node)
+    postorder.push(node)
+    return node
+  }
+  for (const value of input) {
+    if (value && typeof value === 'object') visit(value).count += 1
+  }
+  // A shared branch still contributes once per path in the serialized payload.
+  // Walk parents before their descendants to propagate each count once.
+  for (let index = postorder.length - 1; index >= 0; index -= 1) {
+    const { key, children, count } = postorder[index]!
+    if (key !== undefined) counts.set(key, counts.get(key)! + count)
+    for (const child of children) child.count += count
+  }
+  return counts
+}
+
 /** Share repeated object field names on the wire without dropping any values. */
 export function warehouseObjectCodec(input: readonly unknown[]) {
-  const counts = new Map<string, number>()
-  const visit = (value: unknown): void => {
-    if (Array.isArray(value)) return value.forEach(visit)
-    if (!value || typeof value !== 'object') return
-    if (Object.hasOwn(value, marker)) throw new Error('驱动盘分析对象格式无效。')
-    const entries = Object.entries(value)
-    if (entries.every(([, child]) => child !== undefined)) {
-      const key = JSON.stringify(entries.map(([name]) => name))
-      counts.set(key, (counts.get(key) ?? 0) + 1)
-    }
-    entries.forEach(([, child]) => visit(child))
-  }
-  input.forEach(visit)
   const shapes: string[][] = []
   const indexes = new Map<string, number>()
-  for (const [key, count] of counts) {
+  for (const [key, count] of countObjectShapes(input)) {
     const keys: string[] = JSON.parse(key)
     const objectOverhead = size(Object.fromEntries(keys.map((name) => [name, null])))
     const packedOverhead = size({ [marker]: [shapes.length, keys.map(() => null)] })

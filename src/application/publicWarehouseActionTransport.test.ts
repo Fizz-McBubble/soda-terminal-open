@@ -166,4 +166,18 @@ describe('public warehouse action transport', () => {
       expect(() => restoreWarehouseObjects(bad, codec.shapes)).toThrow('对象资料无效')
     expect(() => warehouseObjectCodec([{ $o: 'reserved' }])).toThrow('对象格式无效')
   })
+
+  it('counts a shared nested shape for every wire occurrence', () => {
+    const child = { warehouseConditionSource: null, warehouseConditionSatisfied: false }
+    const branch = { child }
+    const batch = [child, branch, branch, { nested: [branch, child] }]
+    const codec = warehouseObjectCodec(batch)
+    const wire = JSON.stringify(codec.encodeAll(batch))
+    const copies: unknown[] = JSON.parse(JSON.stringify(batch))
+    const copyCodec = warehouseObjectCodec(copies)
+    expect(codec.shapes[0]).toEqual(Object.keys(child))
+    expect(codec.shapes).toEqual(copyCodec.shapes)
+    expect(wire).toBe(JSON.stringify(copyCodec.encodeAll(copies)))
+    expect(restoreWarehouseObjects(JSON.parse(wire), codec.shapes)).toEqual(batch)
+  })
 })

@@ -5,11 +5,7 @@ import { assessWarehouseUses } from './warehouseUseAssessment'
 import { warehouseUsePolicyVersion } from './warehouseDiscQuality'
 import { warehouseAnalysisRuleVersion } from './warehousePolicyVersion'
 import { assessWarehouse } from './absoluteDiscRetentionKernel'
-import {
-  retentionProfileSemantics,
-  retentionUseGuidance,
-  retentionUseMatchesRecommendedSet,
-} from './warehouseRetentionGuidance'
+import { retentionUseGuidance, retentionUseMatchesRecommendedSet } from './warehouseRetentionGuidance'
 import {
   absoluteDiscRetentionCatalog,
   absoluteDiscRetentionCatalogHash,
@@ -300,11 +296,11 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       )
       .map((evidence) => {
         const profile = retentionProfiles.get(evidence.profileId)
-        const semantics = retentionProfileSemantics(profile, evidence)
+        const guidance = retentionUseGuidance(disc, evidence, profile, absoluteDiscRetentionPolicy)
         return {
           profileId: evidence.profileId,
-          profileLabel: semantics.label,
-          profileDimensions: semantics.dimensions,
+          profileLabel: guidance?.profileLabel ?? null,
+          profileDimensions: [...(guidance?.profileDimensions ?? [])],
           ...(evidence.branchSetPlan ? { branchSetPlan: evidence.branchSetPlan } : {}),
           agentId: evidence.agentId,
           mainFit: evidence.mainFit,
@@ -323,7 +319,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
           investment: evidence.investment,
           weightEvidence: evidence.weightEvidence,
           blockers: evidence.blockers,
-          guidance: retentionUseGuidance(disc, evidence, profile, absoluteDiscRetentionPolicy),
+          guidance,
         }
       })
     const fitAgentIds = [
@@ -410,7 +406,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
         deleteAfterFeasible,
         hasBetterAlternative: enhancementPotential.candidateAlternativeIds.length > 0,
         hasCoverageAlternative: enhancementPotential.coverageAlternativeIds.length > 0,
-        rareUnique: isRareUnique(disc, eligibleDiscs),
+        rareUnique: isRareUnique(disc, physicalCopyCount),
         scarceReserve: false,
         premiumReserve: retention.qualityDisposition === 'keep',
         significantFit: fitAgentIds.length > 0,

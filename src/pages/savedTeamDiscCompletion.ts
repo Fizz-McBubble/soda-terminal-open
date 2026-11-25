@@ -1,5 +1,7 @@
 import type { AccountPlanningDraft } from '../accounts/types'
 import type { SavedTeamGraduationCompletion } from '../decision/savedTeamGraduationCompletion'
+import type { DriveDisc } from '../domain/schemas'
+import { teamDiscCompletion } from '../domain/teamDiscCompletion'
 
 type SavedTeamExecution = NonNullable<AccountPlanningDraft['teamExecutionSnapshot']>
 type SavedTeamPortfolio = NonNullable<AccountPlanningDraft['teamPortfolioSnapshot']>
@@ -183,6 +185,26 @@ export function savedTeamDiscCompletion(plan: SavedTeamDiscPlan): SavedTeamDiscC
   if (plan.teamPortfolioSnapshot) return portfolioCompletion(plan.teamPortfolioSnapshot)
   if (plan.teamExecutionSnapshot) return executionCompletion(plan.teamExecutionSnapshot)
   return fallbackReferenceCompletion(plan)
+}
+
+/** A historical reference can remain visible even when its physical allocation cannot be replayed. */
+export function hasSavedTeamDiscAllocation(
+  executions: readonly SavedTeamExecution[],
+  inventory: readonly DriveDisc[],
+) {
+  return executions.every(
+    (execution) =>
+      Array.isArray(execution.memberIds) &&
+      Array.isArray(execution.members) &&
+      teamDiscCompletion(
+        execution.memberIds,
+        execution.members.map((member) => ({
+          agentId: member.agentId,
+          discIds: member.suggested?.discIds ?? [],
+        })),
+        inventory,
+      ).complete,
+  )
 }
 
 export function attachSavedTeamDiscCompletion(
