@@ -6,6 +6,7 @@ import {
   AssetQuickReadRequestError,
   type AssetDiagnosticReport,
 } from '../assetQuickRead/diagnostics'
+import { AssetQuickReadUnavailableError } from '../assetQuickRead/launcher'
 
 export type Bridge = Pick<
   AssetQuickReadBridgeClient,
@@ -56,10 +57,19 @@ const connectionGuidance: Record<string, { problem: string; nextAction: string }
     nextAction: '请重新连接资产快读。',
   },
 }
-export const assetQuickReadConnectionGuidance = (code: string) =>
-  Object.hasOwn(connectionGuidance, code) ? connectionGuidance[code] : undefined
-export function assetQuickReadConnectionMessage(code: string) {
-  const hint = assetQuickReadConnectionGuidance(code) ?? connectionGuidance.bridge_unavailable!
+export function assetQuickReadConnectionGuidance(code: string, connectionStage?: string) {
+  if (code === 'bridge_unavailable' && connectionStage === 'protocol_launch') {
+    return {
+      problem: '等待资产快读连接超时。',
+      nextAction: '请确认资产快读已运行，允许浏览器访问本机设备后重新连接。',
+    }
+  }
+  return Object.hasOwn(connectionGuidance, code) ? connectionGuidance[code] : undefined
+}
+export function assetQuickReadConnectionMessage(code: string, connectionStage?: string) {
+  const hint =
+    assetQuickReadConnectionGuidance(code, connectionStage) ??
+    connectionGuidance.bridge_unavailable!
   return hint.problem + hint.nextAction
 }
 /** Only finite diagnostic codes choose copy. Raw exceptions can contain private
@@ -67,6 +77,7 @@ export function assetQuickReadConnectionMessage(code: string) {
 export const assetQuickReadConnectionErrorMessage = (error: unknown) =>
   assetQuickReadConnectionMessage(
     error instanceof AssetQuickReadRequestError ? error.diagnosticCode : 'bridge_unavailable',
+    error instanceof AssetQuickReadUnavailableError ? error.diagnostic?.connectionStage : undefined,
   )
 export const assetQuickReadConnectionStatus = (
   error: string,
@@ -75,7 +86,7 @@ export const assetQuickReadConnectionStatus = (
   error &&
   diagnostic &&
   (diagnostic.stage === 'connection' || diagnostic.code === 'origin_not_allowed')
-    ? assetQuickReadConnectionMessage(diagnostic.code)
+    ? assetQuickReadConnectionMessage(diagnostic.code, diagnostic.evidence.connectionStage)
     : ''
 export const assetQuickReadJobActive = (job: AssetBridgeJob | null) =>
   job?.state === 'starting' || job?.state === 'capturing'

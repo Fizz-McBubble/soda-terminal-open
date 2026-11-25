@@ -7,6 +7,9 @@ import type {
 import type { WarehouseRetentionBasis } from './warehouseRetention'
 import type { WarehouseDevelopmentAdvice } from './warehouseDevelopmentPresentation'
 
+// Lets the browser distinguish a user-requested stop from unmount cleanup.
+export const warehouseAnalysisStopReason = 'warehouse-analysis-stop'
+
 /** Serializable warehouse directions returned with an account decision run. */
 export type WarehouseActionKind = 'keep' | 'enhance' | 'cleanup'
 export type WarehouseActionStatus =

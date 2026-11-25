@@ -29,6 +29,7 @@ export function developmentPanelSummary(
     return '当前账户组合已接入面板复算；仅高亮有毕业推荐的属性。'
   if (projection.source === '暂无完整配装')
     return '关联完整6张驱动盘后可查看面板；上方等级、技能和音擎仍为当前记录。'
+  if (projection.result.reason?.startsWith('已保存方案')) return projection.result.reason
   if (projection.result.reason?.startsWith('当前音擎')) return projection.result.reason
   if (projection.result.reason?.startsWith('所选配装')) return projection.result.reason
   if (projection.result.reason?.includes('60 级'))

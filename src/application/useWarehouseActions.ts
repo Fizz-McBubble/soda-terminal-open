@@ -2,7 +2,10 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { CalculationQueryClientContext } from './accountDecisionWorldHooks'
 import { calculationQueryContractVersion } from './calculationQueryContract'
 import type { AccountDecisionWorldContextValue } from './accountDecisionWorldModel'
-import type { WarehouseActionProjection } from './warehouseActionContract'
+import {
+  warehouseAnalysisStopReason,
+  type WarehouseActionProjection,
+} from './warehouseActionContract'
 
 type WarehouseRead = {
   runId: string
@@ -68,11 +71,15 @@ export function useWarehouseActions(world: AccountDecisionWorldContextValue) {
     }
   }, [client, run, world.status, attempt])
   const cancel = useCallback(() => {
-    pending.current?.abort()
+    pending.current?.abort(warehouseAnalysisStopReason)
     pending.current = null
     if (run) setRead({ runId: run.runId, cancelled: true })
   }, [run])
-  const retry = useCallback(() => setAttempt((value) => value + 1), [])
+  const retry = useCallback(() => {
+    if (!run || client?.hasAccountDecisionRun?.(run.runId) === false) return false
+    setAttempt((value) => value + 1)
+    return true
+  }, [client, run])
   const current = read?.runId === run?.runId ? read : null
   return {
     projection: run?.warehouseActions ?? current?.projection,

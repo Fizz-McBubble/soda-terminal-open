@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react'
-import { assetQuickReadRelease } from '../assetQuickRead/distribution'
+import {
+  assetQuickReadDownloadAvailable,
+  assetQuickReadRelease,
+} from '../assetQuickRead/distribution'
 import { scannerDistributionManifest } from '../scanner/distribution'
 import './tool-block-guidance.css'
 
@@ -28,7 +31,7 @@ export function ToolBlockGuidance({
   const isScanner = tool === 'scanner'
 
   const isScannerPublished = scannerDistributionManifest.runtime.releaseState === 'published'
-  const isAssetPublished = Boolean(assetQuickReadRelease.available)
+  const isAssetPublished = assetQuickReadDownloadAvailable(assetQuickReadRelease)
 
   const scannerVersionDesc = isScannerPublished ? (
     <>

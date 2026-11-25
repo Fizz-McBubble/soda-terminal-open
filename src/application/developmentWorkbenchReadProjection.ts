@@ -37,6 +37,7 @@ import { developmentGraduationTargets } from '../pages/developmentGraduationTarg
 import { developmentPanelTargetPresentation } from '../pages/developmentPanelTargetPresentation'
 import { resolveWEngine } from '../decision/wEngineResolver'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
+import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
 import type {
   DevelopmentWorkbenchFactsInput,
   DevelopmentWorkbenchFactsPresentation,
@@ -166,12 +167,6 @@ export function projectDevelopmentWorkbenchReadProjection<T extends ReadBase>({
       (parsedCandidate.data.potential !== undefined && !supportsPotentialImage(selection.agentId)))
   )
     return unavailable('candidate_mismatch')
-  if (
-    savedContext &&
-    (savedContext.parameters.wEngine.state === 'invalid' ||
-      savedContext.parameters.potential.state === 'invalid')
-  )
-    return unavailable('references_changed')
   const candidateParameters = parsedCandidate?.success ? parsedCandidate.data : undefined
   const currentEngine = resolveWEngine({ agent, legacyWEngines: warehouse.roster.wEngines }).current
   const currentPotential = developmentComparisonParametersSchema.shape.potential.safeParse(
@@ -218,9 +213,9 @@ export function projectDevelopmentWorkbenchReadProjection<T extends ReadBase>({
             : {}),
         }
       : agent
-  const resolvedTargetEngine = comparison?.wEngine
-    ? resolveWEngine({ agent: comparisonAgent, legacyWEngines: warehouse.roster.wEngines }).current
-    : null
+  const resolvedTargetEngine = appliedEngine
+    ? resolveWEngine({ agent: { ...comparisonAgent, observedFacts: undefined } }).current
+    : currentEngine
   const comparisonTarget = comparison
     ? {
         source: comparison.source,
@@ -274,11 +269,39 @@ export function projectDevelopmentWorkbenchReadProjection<T extends ReadBase>({
       : selectedDiscs.length === 6
         ? ('当前已装备' as const)
         : ('未关联实体盘' as const)
+  let savedTargetUnavailableReason: string | undefined
+  if (savedContext) {
+    const engineState = savedContext.parameters.wEngine.state
+    const potentialState = savedContext.parameters.potential.state
+    const supportsPotential = supportsPotentialImage(selection.agentId)
+    const currentComparisonContext =
+      !savedContext.replayBlocked &&
+      savedContext.scenario.state === 'recorded' &&
+      savedContext.scenario.value.storedIdentity ===
+        resolveCurrentPlanningScenario32(savedContext.scenario.value.selection).identity
+    if (
+      engineState === 'invalid' ||
+      potentialState === 'invalid' ||
+      (potentialState === 'recorded' && !supportsPotential)
+    ) {
+      savedTargetUnavailableReason = '已保存方案的音擎或潜能记录有误，无法重算面板。'
+    } else if (
+      supportsPotential &&
+      (engineState === 'recorded') !== (potentialState === 'recorded') &&
+      !currentComparisonContext
+    ) {
+      savedTargetUnavailableReason = '已保存方案缺少音擎或潜能记录，无法重算该方案面板。'
+    } else if (selectedDiscs.some((disc) => disc.rarity !== 'S')) {
+      savedTargetUnavailableReason = '已保存方案包含非 S 级或品质未确认的盘，可查看原盘。'
+    }
+  }
   const panelProjection = createAgentDevelopmentPanelProjection({
     agent: comparisonAgent,
     discs: warehouse.discs,
     candidateDiscIds: hasComparablePlan ? candidateIds : null,
     planDiscIds: currentRecord?.selectedDiscIds ?? savedIds,
+    planWEngine: savedContext && appliedEngine ? comparisonAgent.wEngineDetails : undefined,
+    savedTargetUnavailableReason,
   })
   const panelContext = createDevelopmentPanelContext({
     coreLevel: agent.skillLevels.core,

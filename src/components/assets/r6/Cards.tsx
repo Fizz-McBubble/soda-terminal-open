@@ -22,12 +22,16 @@ export function CatalogCard({
   item,
   selected,
   facts,
+  tabIndex,
+  onFocus,
   onSelect,
 }: {
   kind: Exclude<CatalogKind, 'discs'>
   item: CatalogItem
   selected: boolean
   facts: string
+  tabIndex?: number
+  onFocus?: () => void
   onSelect: () => void | Promise<void>
 }) {
   const preloadDetailAvatar = () => {
@@ -65,9 +69,13 @@ export function CatalogCard({
       role="option"
       aria-selected={selected}
       aria-label={accessibleName}
+      tabIndex={tabIndex}
       title={facts ? `${item.playerName} · ${facts}` : item.playerName}
       onPointerEnter={preloadDetailAvatar}
-      onFocus={preloadDetailAvatar}
+      onFocus={() => {
+        preloadDetailAvatar()
+        onFocus?.()
+      }}
       onClick={() => {
         void onSelect()
       }}
@@ -130,12 +138,16 @@ export function DiscCard({
   selected,
   bulk,
   checked,
+  tabIndex,
+  onFocus,
   onSelect,
 }: {
   item: DiscItem
   selected: boolean
   bulk: boolean
   checked: boolean
+  tabIndex?: number
+  onFocus?: () => void
   onSelect: () => void
 }) {
   const protectionLabels = item.protections
@@ -150,8 +162,10 @@ export function DiscCard({
       role="option"
       aria-selected={bulk ? undefined : selected}
       aria-checked={bulk ? checked : undefined}
+      tabIndex={tabIndex}
       aria-label={`${item.set.playerName}，${item.rarity ? `${item.rarity}级` : '品质未确认'}，${item.slot}号位，强化${item.level}${protectionLabels.length ? `，${protectionLabels.join('，')}` : ''}`}
       title={`${item.set.playerName} · ${item.rarity ? `${item.rarity}级` : '品质未确认'} · ${item.slot}号位 · 强化${item.level}`}
+      onFocus={onFocus}
       onClick={onSelect}
     >
       {bulk && (

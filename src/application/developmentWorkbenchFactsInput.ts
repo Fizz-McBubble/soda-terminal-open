@@ -6,6 +6,11 @@ import {
 } from '../accounts/developmentPlanning'
 import { listAccountPlanningDrafts } from '../accounts/planningDraftReads'
 import { resolvePlanningDiscReferences } from '../accounts/planningDiscReferences'
+import {
+  comparePersonalCurrentReferences,
+  isPersonalCurrentReference,
+  isPersonalSavedAgentPlan,
+} from '../accounts/personalCurrentReference'
 import { getScopedId, type AccountPlanningDraft } from '../accounts/types'
 import type { CoreWarehouse } from '../accounts/coreWarehouse'
 
@@ -26,22 +31,13 @@ function selectedPlan(input: {
 }) {
   if (input.preferEquipped) return undefined
   const selectedId = input.requestedPlanId || input.activePlanId
-  if (selectedId) return input.drafts.find((plan) => plan.id === selectedId)
-  // Matches resolveSavedAgentPlanRoute's fallback selection, including its order.
-  return input.drafts
-    .filter(
-      (plan) =>
-        plan.kind === 'agent' &&
-        plan.state === 'saved' &&
-        plan.selection.agentIds.length === 1 &&
-        plan.selection.agentIds[0] === input.agentId &&
-        plan.savedRole === 'current_reference' &&
-        plan.solutionContext?.scope === 'agent_independent',
+  if (selectedId)
+    return input.drafts.find(
+      (plan) => plan.id === selectedId && isPersonalSavedAgentPlan(plan, input.agentId),
     )
-    .toSorted(
-      (left, right) =>
-        right.updatedAt.localeCompare(left.updatedAt) || right.revision - left.revision,
-    )[0]
+  return input.drafts
+    .filter((plan) => isPersonalCurrentReference(plan, input.agentId))
+    .toSorted(comparePersonalCurrentReferences)[0]
 }
 
 /**

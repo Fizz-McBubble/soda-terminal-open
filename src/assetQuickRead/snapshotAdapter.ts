@@ -31,6 +31,7 @@ export function convertAssetSnapshot(
 ): AssetQuickReadCandidate {
   const issues: AssetQuickReadIssue[] = []
   const warnings: string[] = []
+  const retainedObservationAreas = new Set<'agents' | 'engines'>()
   const issue = (
     code: string,
     message: string,
@@ -41,7 +42,8 @@ export function convertAssetSnapshot(
     // Roster/engine observations enrich a disc import; they never authorize
     // disc writes and must not make valid physical discs unavailable.
     if (kind === 'agents' || kind === 'engines') {
-      const warning = `${message}该项保持原记录，可在导入后手动补齐。`
+      retainedObservationAreas.add(kind)
+      const warning = `${message}该项保留原记录。`
       if (!warnings.includes(warning)) warnings.push(warning)
       return
     }
@@ -328,7 +330,10 @@ export function convertAssetSnapshot(
       fields.potentialImage = potential.level
       observedFields.push('potentialImage')
     }
-    if (potential.warning) warnings.push(`${identity.name}${potential.warning}`)
+    if (potential.warning) {
+      retainedObservationAreas.add('agents')
+      warnings.push(`${identity.name}${potential.warning}`)
+    }
     fields.skillLevels = convertSnapshotAgentSkills(
       agent.skills,
       mindscape,
@@ -449,10 +454,13 @@ export function convertAssetSnapshot(
     })
   })
   result.counts.importableAgents = result.agents.length
-  if (equippedEnginesWithUnobservedProgression)
+  if (equippedEnginesWithUnobservedProgression) {
+    retainedObservationAreas.add('engines')
     warnings.push(
       `${equippedEnginesWithUnobservedProgression}件当前音擎的等级或突破未读到，保留原值；可先导入，再手动补齐。`,
     )
+  }
+  if (retainedObservationAreas.size) result.retainedObservationAreas = [...retainedObservationAreas]
   warnings.push(
     counts.a_discs || counts.b_discs
       ? '本次仅检查已出现的代理人和驱动盘；未观测资产不删除，快照不构成全量仓库证明。'

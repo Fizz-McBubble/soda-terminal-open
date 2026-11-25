@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type RefObject } from 'react'
+import { type KeyboardEvent, type RefObject, useState } from 'react'
 
 import { useCatalogBrowseState } from './useCatalogBrowseState'
 
@@ -23,11 +23,18 @@ export function useCatalogPagination<T extends { stableId: string }>(
   const pages = Math.max(1, Math.ceil(rows.length / CATALOG_PAGE_SIZE))
   const page = Math.min(pages - 1, state.key === filterKey ? state.page : 0)
   const start = page * CATALOG_PAGE_SIZE
+  const visible = rows.slice(start, start + CATALOG_PAGE_SIZE)
+  const [focusedId, setFocusedId] = useState<string>()
+  const tabStopId =
+    visible.find((row) => row.stableId === focusedId)?.stableId ??
+    visible.find((row) => row.stableId === selectedId)?.stableId ??
+    visible[0]?.stableId
   const change = (next: number) => setState({ key: filterKey, page: next })
   const reveal = (index: number, key = filterKey) =>
     setState({ key, page: Math.max(0, Math.floor(index / CATALOG_PAGE_SIZE)) })
   const move = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(event.key)) return
+    if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key))
+      return
     const cards = [...(gridRef.current?.querySelectorAll<HTMLButtonElement>('.object-card') ?? [])]
     const current = cards.indexOf(document.activeElement as HTMLButtonElement)
     if (current < 0) return
@@ -35,8 +42,14 @@ export function useCatalogPagination<T extends { stableId: string }>(
       ? getComputedStyle(gridRef.current).gridTemplateColumns.trim()
       : ''
     const columns = tracks && tracks !== 'none' ? tracks.split(/\s+/).length : fallbackColumns
-    const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: columns, ArrowUp: -columns }[event.key]!
-    const next = Math.max(0, Math.min(rows.length - 1, start + current + step))
+    const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: columns, ArrowUp: -columns }[event.key]
+    const target =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? rows.length - 1
+          : start + current + (step ?? 0)
+    const next = Math.max(0, Math.min(rows.length - 1, target))
     const nextPage = Math.floor(next / CATALOG_PAGE_SIZE)
     const focus = () => {
       const nextCards = gridRef.current?.querySelectorAll<HTMLButtonElement>('.object-card')
@@ -50,7 +63,9 @@ export function useCatalogPagination<T extends { stableId: string }>(
     event.preventDefault()
   }
   return {
-    visible: rows.slice(start, start + CATALOG_PAGE_SIZE),
+    visible,
+    tabStopId,
+    setFocusedId,
     page,
     pages,
     start,

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useOutletContext, useParams, useSearchParams } from 'react-router-dom'
+import { Navigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom'
 import { getActiveAccount } from '../../accounts/repository'
 import {
   hasSavedTeamPanel,
@@ -8,6 +8,7 @@ import {
 } from '../../accounts/savedTeamPanelWarehouse'
 import { loadCoreWarehouseForAccount } from '../../accounts/coreWarehouse'
 import { getAccountPlanningDraft } from '../../accounts/planningDraftReads'
+import { isPersonalSavedAgentPlan } from '../../accounts/personalCurrentReference'
 import { useAccountDecisionWorld } from '../../application/accountDecisionWorldHooks'
 import { useF5AccountSummary } from '../../components/f5AccountSummaryContext'
 import { AccountRequiredState } from '../../components/ui/AccountRequiredState'
@@ -41,22 +42,28 @@ export function SavedPlanRoute() {
       getAccountPlanningDraft(accountId, planId),
     ])
     if (account?.id !== accountId) return null
+    if (!plan || plan.kind === 'agent') {
+      const firstAgentId = plan?.selection.agentIds[0]
+      const agentId =
+        plan && firstAgentId && isPersonalSavedAgentPlan(plan, firstAgentId) ? firstAgentId : null
+      return { warehouse: null, plan, planId, accountId, scoped: false, snapshotView, agentId }
+    }
     const scoped = snapshotView && hasSavedTeamPanel(plan)
     const warehouse =
       scoped && plan
         ? await loadSavedTeamPanelWarehouse(account, plan)
         : await loadCoreWarehouseForAccount(account)
-    return { warehouse, plan, planId, scoped, snapshotView }
+    return { warehouse, plan, planId, accountId, scoped, snapshotView, agentId: null }
   }, [accountId, planId, snapshotView])
   const requested = useRef('')
   const identity = JSON.stringify([accountId, planId])
   const needsReplay =
     snapshotView &&
-    result?.plan &&
+    result?.plan?.kind === 'team' &&
     !result.scoped &&
     result.snapshotView === snapshotView &&
     result.planId === planId &&
-    result.warehouse.accountId === accountId
+    result.warehouse?.accountId === accountId
   useEffect(() => {
     if (!needsReplay) {
       requested.current = ''
@@ -75,12 +82,22 @@ export function SavedPlanRoute() {
     !result ||
     (mode && result.snapshotView !== snapshotView) ||
     result.planId !== planId ||
-    result.warehouse.accountId !== accountId
+    result.accountId !== accountId
   )
     return <AppLoadingState title="正在读取已保存方案" />
   const { plan, warehouse } = result
   if (!plan || plan.accountId !== accountId)
     return <InvalidPlan back="/loadouts/team" label="方案" />
+  if (plan.kind === 'agent')
+    return result.agentId ? (
+      <Navigate
+        replace
+        to={`/development/${encodeURIComponent(result.agentId)}?plan=${encodeURIComponent(plan.id)}`}
+      />
+    ) : (
+      <InvalidPlan back="/development" label="方案" />
+    )
+  if (warehouse?.accountId !== accountId) return <AppLoadingState title="正在读取已保存方案" />
   const pending =
     plan.kind === 'team' && !plan.teamPortfolioSnapshot ? (
       <PublicSavedTeamHistory plan={plan} warehouse={warehouse} verifying />

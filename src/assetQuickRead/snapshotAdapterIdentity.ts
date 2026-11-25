@@ -34,6 +34,7 @@ export type AssetQuickReadCandidate = {
   }
   issues: AssetQuickReadIssue[]
   warnings?: readonly string[]
+  retainedObservationAreas?: readonly ('agents' | 'engines')[]
   importable: boolean
   /** These are observed candidates, never proof of inventory completeness or deletion authority. */
   fullInventoryVerified: false

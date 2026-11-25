@@ -21,6 +21,10 @@ import {
 import type { GoldenTop10Data } from '../features/agentDevelopmentGolden'
 import type { AccountDecisionQueryInput } from '../application/calculationQueryContract'
 import type { AccountPlanningDraft } from '../accounts/types'
+import {
+  isPersonalSavedAgentPlan,
+  resolvePersonalReferenceDiscs,
+} from '../accounts/personalCurrentReference'
 import type { DevelopmentComparisonSnapshot } from './developmentComparisonSnapshot'
 
 /** One presentation projector serves personal sessions and the existing account-query transport. */
@@ -54,24 +58,25 @@ export function projectDevelopmentComparisonView(input: {
     accountId,
   )
   const currentPlan = plans.get(agentId)
-  const currentPlanDiscs = (warehouse.discs ?? [])
-    .filter((disc) => currentPlan?.warehouseRefs.includes(disc.id))
-    .toSorted((left, right) => left.slot - right.slot)
+  const currentPlanDiscs = currentPlan
+    ? (resolvePersonalReferenceDiscs(currentPlan, warehouse.discs) ?? []).toSorted(
+        (left, right) => left.slot - right.slot,
+      )
+    : []
   const comparisonSource = candidateSnapshot.valueBenchmarks?.[0]?.comparisonBasis.baselineSource
   const savedBaselinePlan = comparisonSource
     ? drafts.find(
         (draft) =>
           draft.id === comparisonSource.referenceId &&
           draft.accountId === accountId &&
-          draft.kind === 'agent' &&
-          draft.state === 'saved' &&
-          draft.selection.agentIds.length === 1 &&
-          draft.selection.agentIds[0] === agentId,
+          isPersonalSavedAgentPlan(draft, agentId),
       )
     : currentPlan
-  const savedBaselineDiscs = (warehouse.discs ?? [])
-    .filter((disc) => savedBaselinePlan?.warehouseRefs.includes(disc.id))
-    .toSorted((left, right) => left.slot - right.slot)
+  const savedBaselineDiscs = savedBaselinePlan
+    ? (resolvePersonalReferenceDiscs(savedBaselinePlan, warehouse.discs) ?? []).toSorted(
+        (left, right) => left.slot - right.slot,
+      )
+    : []
   const conflicts = independentDiscConflicts(plans, agentId)
   const alternatives = candidateSnapshot.candidates
   const baseline = candidateSnapshot.baseline

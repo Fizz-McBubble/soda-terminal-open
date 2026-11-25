@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CatalogCard, DiscCard } from './Cards'
 import { useReconciledSelection } from './state'
 import type { SelectMenuOption } from './SelectMenu'
@@ -8,7 +8,11 @@ import { preloadSelectedAgentAvatar } from '../../selectedAgentAvatarPreload'
 import { DiscWorkspaceModeSwitch } from '../../DiscWorkspaceModeSwitch'
 import { DiscBulkDeleteDialog } from './DiscBulkDeleteDialog'
 import { CatalogPagination } from './CatalogPagination'
-import { useCatalogBrowseState, useCatalogBrowseScroll } from './useCatalogBrowseState'
+import {
+  useCatalogBrowseState,
+  useCatalogBrowseScroll,
+  useCatalogBrowseSizing,
+} from './useCatalogBrowseState'
 import { useCatalogPagination } from './useCatalogPagination'
 import { useStateTransitionMotion } from '../../../motion/useStateTransitionMotion'
 import type { DiscSortMode } from '../../../domain/discOrdering'
@@ -68,6 +72,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   )
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const editorRef = useRef<HTMLElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
   const currentSelectedDiscs = new Set([...selectedDiscs].filter((id) => ids.includes(id)))
 
   const revealEditorOnNarrowScreen = () => {
@@ -93,69 +98,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   }, [kind, selectedId])
   const gridRef = useRef<HTMLDivElement>(null)
   const splitRef = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    const split = splitRef.current
-    if (!split) return
-    const resize = () => {
-      // Keep the catalog grid within the visible workspace; no asset data changes here.
-      const frame = split.closest<HTMLElement>('.f5v-page-frame')
-      const page = split.closest<HTMLElement>('.f5v-page-content')
-      const zoom = frame ? frame.getBoundingClientRect().width / frame.offsetWidth : 1
-      const bottom = Math.min(
-        window.innerHeight,
-        frame?.getBoundingClientRect().bottom ?? window.innerHeight,
-      )
-      const available = Math.max(
-        280,
-        (bottom - split.getBoundingClientRect().top) / zoom -
-          (frame?.scrollTop ?? 0) -
-          (page?.scrollTop ?? 0) -
-          8,
-      )
-      split.style.setProperty(
-        kind === 'discs' ? '--disc-browse-height' : '--catalog-browse-height',
-        `${available}px`,
-      )
-      const shell = split.closest<HTMLElement>('.r6-golden')
-      const catalog = split.querySelector<HTMLElement>('.catalog')
-      if (shell && catalog) shell.style.setProperty('--asset-nav-width', `${catalog.offsetWidth}px`)
-      if (kind === 'agents' && gridRef.current) {
-        const grid = gridRef.current
-        const filters = grid.parentElement?.querySelector<HTMLElement>('.filterbar--agents')
-        if (filters) {
-          const style = window.getComputedStyle(grid)
-          const tracks = style.gridTemplateColumns.split(/\s+/).map(Number.parseFloat)
-          const gap = Number.parseFloat(style.columnGap) || 0
-          if (tracks.length >= 8 && Number.isFinite(tracks[0]) && Number.isFinite(tracks[1])) {
-            filters.style.gridTemplateColumns = `repeat(4, ${tracks[0]! + tracks[1]! + gap}px)`
-            filters.style.columnGap = `${gap}px`
-            filters.style.marginLeft = style.paddingLeft
-          } else {
-            filters.style.removeProperty('grid-template-columns')
-            filters.style.removeProperty('column-gap')
-            filters.style.removeProperty('margin-left')
-          }
-        }
-      }
-    }
-    resize()
-    let resizeFrame = 0
-    const scheduleResize = () => {
-      window.cancelAnimationFrame(resizeFrame)
-      resizeFrame = window.requestAnimationFrame(resize)
-    }
-    const observer =
-      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleResize)
-    observer?.observe(split.parentElement!)
-    if (gridRef.current) observer?.observe(gridRef.current)
-    window.addEventListener('resize', scheduleResize)
-    return () => {
-      observer?.disconnect()
-      window.cancelAnimationFrame(resizeFrame)
-      window.removeEventListener('resize', scheduleResize)
-      split.closest<HTMLElement>('.r6-golden')?.style.removeProperty('--asset-nav-width')
-    }
-  }, [kind])
+  useCatalogBrowseSizing(kind, splitRef, gridRef)
   useCatalogBrowseScroll(browseKey, gridRef)
   const deleteDialogRef = useRef<HTMLDialogElement>(null)
   const primaryOptions = [
@@ -369,6 +312,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
           <CatalogWorkspaceFilterBar
             kind={kind}
             kindLabel={kindLabel}
+            searchRef={searchRef}
             query={query}
             onQueryChange={setQuery}
             statusFilter={statusFilter}
@@ -386,15 +330,27 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
             ref={gridRef}
             className={`object-grid ${kind}${bulk ? ' bulk' : ''}`}
             role={filtered.length ? 'listbox' : undefined}
+            aria-label={filtered.length ? `${kindLabel}列表` : undefined}
             aria-multiselectable={(filtered.length > 0 && kind === 'discs' && bulk) || undefined}
             onKeyDown={pagination.move}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget))
+                pagination.setFocusedId(undefined)
+            }}
           >
             {filtered.length === 0 && (
               <div className="empty-state" role="status">
                 {rows.length ? (
                   <>
                     <p>没有符合当前搜索或筛选条件的结果。</p>
-                    <button type="button" className="quiet" onClick={clearFilters}>
+                    <button
+                      type="button"
+                      className="quiet"
+                      onClick={() => {
+                        clearFilters()
+                        searchRef.current?.focus()
+                      }}
+                    >
                       清除筛选
                     </button>
                   </>
@@ -431,6 +387,8 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                     selected={!bulk && item.stableId === selectedId}
                     bulk={bulk}
                     checked={currentSelectedDiscs.has(item.stableId)}
+                    tabIndex={item.stableId === pagination.tabStopId ? 0 : -1}
+                    onFocus={() => pagination.setFocusedId(item.stableId)}
                     onSelect={() => {
                       if (bulk)
                         setSelectedDiscs((current) => {
@@ -453,6 +411,8 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                     item={item}
                     selected={item.stableId === selectedId}
                     facts={factsLabel(props, kind, item.stableId)}
+                    tabIndex={item.stableId === pagination.tabStopId ? 0 : -1}
+                    onFocus={() => pagination.setFocusedId(item.stableId)}
                     onSelect={() => selectCatalogItem(item)}
                   />
                 ))}

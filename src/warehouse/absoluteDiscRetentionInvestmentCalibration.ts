@@ -2,9 +2,6 @@ import { stableContentHash } from '../gameDataPacks/types'
 import type { Disc, GameRules, Profile, QualityPolicy } from './absoluteDiscRetentionContract'
 import { reviewedHpRetentionEvidence } from './reviewedHpRetentionEvidence'
 
-// The 3.3 catalog added two W-Engine source IDs. The S roll table, level cap,
-// main stats, upgrade interval and locked disc rules are identical to 3.2.
-const reviewedRules = new Set(['fnv1a-4c89ca73', 'fnv1a-274f0b58'])
 const attackSlot = { '2': 'atk_flat' }
 const healthSlots = { '1': 'hp_flat', '2': 'atk_flat', '3': 'def_flat' }
 /** Named combinations only; identities bind the reviewed goal, weights, core and sources. */
@@ -39,6 +36,23 @@ const secondaryHpProfiles = new Set([
   'agent-zhao:base-2:fnv1a-bb99',
   'agent-lucia:base-0:fnv1a-782d',
 ])
+const calibratedRuleSource =
+  'genshin-optimizer:3456cd0f6f5bea10e168074502460dac2fcd6df4:libs/zzz/consts/src/disc.ts:discSubstatRollData'
+
+function hasCalibratedSRules(rules: GameRules) {
+  // The named investment was reviewed for S rarity. Additional set metadata or
+  // research for another rarity does not change any of these inputs.
+  return (
+    rules.sourceIds.includes(calibratedRuleSource) &&
+    stableContentHash({
+      standardRarity: rules.standardRarity,
+      enhancementInterval: rules.enhancementInterval,
+      maxSubStats: rules.maxSubStats,
+      mainStatsBySlot: rules.mainStatsBySlot,
+      rarity: rules.rarities.S,
+    }) === 'fnv1a-2e7f5d20'
+  )
+}
 
 export function resolveNamedInvestmentCalibration(
   disc: Disc,
@@ -69,7 +83,7 @@ export function resolveNamedInvestmentCalibration(
     disc.rarity !== 'S' ||
     policy.calibration !== 'approved' ||
     !policy.calibratedRarities?.includes('S') ||
-    !reviewedRules.has(stableContentHash(rules)) ||
+    !hasCalibratedSRules(rules) ||
     investment?.id !== 'source-goal-stage-investment-r1' ||
     investment.calibration !== 'approved' ||
     investment.meaningfulWeightFrom !== 0.5 ||

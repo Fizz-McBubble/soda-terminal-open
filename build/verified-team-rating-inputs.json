@@ -1,7 +1,7 @@
 {
   "contract": "verified-team-rating-inputs/v1",
   "files": {
-    "src/gameDataPacks/generated/graduated-team-scores.v1.json": "5d7b2487fbba3f2f7b2994fb6aa8e6abcee5dbec9b5a371c3fd55b28a96df0fb",
+    "src/gameDataPacks/generated/graduated-team-scores.v1.json": "803a3d8bbc4ca1307acf23d050151a2e92cef6757d5797e8f394181a1cea3b29",
     "src/gameDataPacks/generated/default-team-admission.3.3.json": "1d6d3637448bdf2b285de174c0a60ce786c91e027e6a05dd9de005cd9abc0196",
     "src/gameDataPacks/generated/generic-team-ranking.v1.json": "411d8bbf2bb5652893b0bed19bba5af6d730619ce680936eba77c3def40cb5fc",
     "src/gameDataPacks/data/default-team-admission-reviewed-plays.3.3.json": "caf14066d0cf704136b515438a43dc3ad42e8fa1abc0eea333b61ec5b89590a7",

@@ -85,6 +85,7 @@ export function createAgentDevelopmentPanelProjection(input: {
   planDiscIds?: string[] | null
   /** Confirmed scheme parameters are independent of the equipped account copy. */
   planWEngine?: Pick<RosterAgent['wEngineDetails'], 'id' | 'level' | 'ascension' | 'refinement'>
+  savedTargetUnavailableReason?: string
 }): AgentDevelopmentPanelProjection {
   // Choose the requested identity before resolving assets. An invalid preview
   // must never silently become a different saved/equipped loadout.
@@ -110,6 +111,8 @@ export function createAgentDevelopmentPanelProjection(input: {
       '所选配装需要六张不同部位的有效驱动盘；请检查盘片引用或重新匹配。',
       input.agent.agentId,
     )
+  if (input.savedTargetUnavailableReason)
+    return unsupported(source, input.savedTargetUnavailableReason, input.agent.agentId)
   const schemeEngine =
     input.planDiscIds != null && input.candidateDiscIds == null ? input.planWEngine : undefined
   const engine = schemeEngine ?? input.agent.wEngineDetails

@@ -13,20 +13,27 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
   const { candidate, plan } = review
   const groups = new Map<string, number>()
   for (const issue of candidate.issues) {
-    const label = ['duplicate_uid', 'unknown_disc_catalog', 'unsupported_disc_catalog'].includes(
-      issue.code,
-    )
-      ? '驱动盘身份需核对'
-      : issue.kind === 'discs'
-        ? '驱动盘词条需核对'
-        : '读取结果完整性需核对'
+    const label =
+      issue.kind === 'discs' &&
+      ['duplicate_uid', 'unknown_disc_catalog', 'unsupported_disc_catalog'].includes(issue.code)
+        ? '驱动盘身份需核对'
+        : ['unknown_main_stat', 'invalid_substat'].includes(issue.code)
+          ? '驱动盘词条需核对'
+          : issue.message
     groups.set(label, (groups.get(label) ?? 0) + 1)
   }
+  const retainedAreas = candidate.retainedObservationAreas?.map((area) =>
+    area === 'agents' ? '代理人养成' : '音擎',
+  )
+  const retainedSummary = retainedAreas?.length
+    ? [`部分${retainedAreas.join('、')}资料未读取，本次保留原记录。`]
+    : []
   return {
     snapshotId: candidate.snapshotSha256,
     counts: { agents: candidate.counts.importableAgents, discs: candidate.counts.discs },
     compactSummary: [
       `其中 S 级 ${candidate.counts.sDiscs} 张，A/B 级 ${candidate.counts.discs - candidate.counts.sDiscs} 张；配装与分析只使用 S 级。`,
+      ...retainedSummary,
       ...(plan
         ? [
             `驱动盘新增 ${plan.summary.newDiscs} 张、更新 ${plan.summary.updatedDiscs} 张、保留 ${plan.summary.retainedDiscs} 张。`,
@@ -48,6 +55,7 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
     ].filter(Boolean),
     validSummary: [
       `其中 S 级 ${candidate.counts.sDiscs} 张，A/B 级 ${candidate.counts.discs - candidate.counts.sDiscs} 张；A/B 级记录保留，不参与配装与分析。`,
+      ...retainedSummary,
       ...(plan
         ? [
             `将新增 ${plan.summary.newDiscs} 张、更新 ${plan.summary.updatedDiscs} 张驱动盘${plan.summary.retainedDiscs ? `；保留 ${plan.summary.retainedDiscs} 张原有驱动盘` : ''}。`,
@@ -69,7 +77,7 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
     ],
     issueSummary: [
       ...(candidate.issues.length > 3
-        ? [...groups].map(([label, count]) => `${label}：${count} 项`)
+        ? [...groups].map(([label, count]) => (count > 1 ? `${label}：${count} 项` : label))
         : candidate.issues.map((issue) => issue.message)),
       ...(review.issue ? [review.issue] : []),
     ],

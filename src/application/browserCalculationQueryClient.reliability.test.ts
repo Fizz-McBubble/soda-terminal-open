@@ -8,6 +8,7 @@ import {
 } from './browserCalculationQueryProtocol'
 import { query } from './localCalculationQueryClient.testFixture'
 import { personalDevelopmentInputFingerprint } from './publicPersonalDevelopment'
+import { warehouseAnalysisStopReason } from './warehouseActionContract'
 
 const current: CurrentGameDataRuntimeSelection = {
   contract: 'soda-current-game-data-runtime-selection/v1',
@@ -148,6 +149,57 @@ describe('browser calculation request recovery', () => {
     expect(worker.terminated).toBe(false)
     expect(client.hasPersonalDevelopmentSession!(session.sessionId)).toBe(true)
   })
+
+  it.each([true, false])(
+    'distinguishes an explicit warehouse stop (%s) from route cleanup',
+    async (explicit) => {
+      vi.useFakeTimers()
+      const workers: WorkerPort[] = []
+      const client = createBrowserCalculationQueryClient({
+        readRuntimeSelection: async () => current,
+        createWorker() {
+          const worker = new WorkerPort()
+          workers.push(worker)
+          return worker
+        },
+      })
+      const first = client.calculateAccountDecision(query('warehouse-before'))
+      await vi.waitFor(() => expect(workers[0]?.requests).toHaveLength(1))
+      const original = workers[0]!
+      original.respond(1, 'warehouse-before')
+      await first
+
+      const controller = new AbortController()
+      const checked = client.queryWarehouseActions!(
+        {
+          contractVersion: query('warehouse-before').contractVersion,
+          kind: 'warehouse_actions',
+          runId: 'warehouse-before',
+        },
+        { signal: controller.signal },
+      )
+      const abandoned = expect(checked).rejects.toMatchObject({
+        name: 'AbortError',
+      })
+      await vi.waitFor(() => expect(original.requests).toHaveLength(2))
+      controller.abort(explicit ? warehouseAnalysisStopReason : undefined)
+      await abandoned
+      expect(original.terminated).toBe(explicit)
+      expect(client.hasAccountDecisionRun?.('warehouse-before')).toBe(!explicit)
+
+      const retry = client.calculateAccountDecision(query('warehouse-after'))
+      if (!explicit) original.respond(2, 'warehouse-before')
+      await vi.waitFor(() => {
+        const receiver = workers[explicit ? 1 : 0]
+        const queries = receiver?.requests.filter((message) => message.kind === 'query')
+        expect(queries).toHaveLength(explicit ? 1 : 3)
+      })
+      workers[explicit ? 1 : 0]!.respond(3, 'warehouse-after')
+      await expect(retry).resolves.toMatchObject({ runId: 'warehouse-after' })
+      expect(client.hasAccountDecisionRun?.('warehouse-after')).toBe(true)
+      expect(vi.getTimerCount()).toBe(0)
+    },
+  )
 
   it('invalidates the channel at the hard deadline when a cancelled active query never replies', async () => {
     vi.useFakeTimers()

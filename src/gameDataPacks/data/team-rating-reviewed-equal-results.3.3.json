@@ -1,0 +1,32 @@
+{
+  "contract": "team-rating-reviewed-equal-results/v1",
+  "gameVersion": "3.3",
+  "entries": [
+    {
+      "members": ["agent-anton", "agent-grace", "agent-qingyi"],
+      "preferred": {
+        "playId": "sha256:8c585c707f5cf5582ee69642a79c51cbad711c9ad40ede482be52a51046037be",
+        "evidence": "d2d237dd2444cbfc6adffdecc7ac621e1a2a751433fd8c83a52fff15425a46b3"
+      },
+      "equivalent": {
+        "playId": "sha256:6567d3f7c528923c559bd022d7c117e507c028685e26948211dbe1a073f39028",
+        "evidence": "0cd2b5ec076f3b002b5b46eb9029fb46cfb4d714472c43b44cd526a77f524c97"
+      },
+      "sourceId": "hoyobuild-anton-32-shock-grace-qingyi",
+      "reason": "The adopted operations, physical reference builds and settlements tie. Use the reviewed direct stun burst as the default while retaining the Shock branch."
+    },
+    {
+      "members": ["agent-anby", "agent-anton", "agent-nicole"],
+      "preferred": {
+        "playId": "sha256:f48ae35333f055e9da577e0b78d8dec9e367999bc6e1a6cf427bd3ceb393df4f",
+        "evidence": "c0ec233665e31a7bbd611f8519a196e4086cfb249ee496fe121d605233676285"
+      },
+      "equivalent": {
+        "playId": "sha256:392df94660e9558dc1886ada7adb584cced51da5758739d7bdc8eda54d4206f3",
+        "evidence": "fb95716840a78e412d29f69a780748fca3fd0623646855cded3c94bc52d19833"
+      },
+      "sourceId": "hoyobuild-anton-32-budget-anby-nicole",
+      "reason": "The adopted baseline operations and settlements tie on identical physical builds. The reviewed direct stun burst is the default. The historical alternate rotation ranges remain separate."
+    }
+  ]
+}

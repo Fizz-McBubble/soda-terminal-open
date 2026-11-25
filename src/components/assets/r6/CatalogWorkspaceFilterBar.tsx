@@ -1,9 +1,11 @@
+import type { RefObject } from 'react'
 import { SelectMenu, type SelectMenuOption } from './SelectMenu'
 import type { CatalogKind } from './types'
 
 export function CatalogWorkspaceFilterBar({
   kind,
   kindLabel,
+  searchRef,
   query,
   onQueryChange,
   statusFilter,
@@ -18,6 +20,7 @@ export function CatalogWorkspaceFilterBar({
 }: {
   kind: CatalogKind
   kindLabel: string
+  searchRef: RefObject<HTMLInputElement | null>
   query: string
   onQueryChange: (query: string) => void
   statusFilter: string
@@ -37,6 +40,7 @@ export function CatalogWorkspaceFilterBar({
       role="group"
     >
       <input
+        ref={searchRef}
         aria-label="搜索名称"
         placeholder="搜索名称"
         value={query}

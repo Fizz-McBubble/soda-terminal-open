@@ -1,6 +1,7 @@
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 import type { CalculationQueryClient } from './calculationQueryContract'
 import { unpackPublicWarehouseActions } from './publicWarehouseActionTransport'
+import { warehouseAnalysisStopReason } from './warehouseActionContract'
 import * as factsTransport from './browserDevelopmentFactsClient'
 import { createBrowserPlanningQueries } from './browserPlanningQueries'
 import {
@@ -344,6 +345,16 @@ function createBrowserCalculationQueryChannel(
       const abort = () => {
         const request = pending.get(requestId)
         if (!request) return
+        if (
+          active?.id === requestId &&
+          request.runtime &&
+          query.kind === 'warehouse_actions' &&
+          signal?.reason === warehouseAnalysisStopReason
+        ) {
+          // A sent warehouse calculation cannot process a cancel message while it is working.
+          invalidate(queryError('AbortError', '仓库分析已取消，可重新分析。'))
+          return
+        }
         const canStopPersonalSolve =
           (query.kind === 'personal_development_open' ||
             query.kind === 'personal_development_candidates') &&

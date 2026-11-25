@@ -361,10 +361,8 @@ function WarehouseDiscsWorkbench({
   }
 
   async function runAnalysis() {
-    if (decisionWorld.status === 'current' && !warehouseRead.projection) {
-      warehouseRead.retry()
-      return
-    }
+    const retryCurrent = decisionWorld.status === 'current' && !warehouseRead.projection
+    if (retryCurrent && warehouseRead.retry()) return
     await decisionWorld.refresh()
   }
   async function retryWarehouseRead() {

@@ -138,7 +138,7 @@ export function AssetQuickReadFeedback({
               problem: '这份读取结果已使用，或账户在恢复后已有修改。',
               nextAction: '重新读取最新资产，再检查并确认导入。',
             }
-          : (assetQuickReadConnectionGuidance(safe.code) ??
+          : (assetQuickReadConnectionGuidance(safe.code, safe.evidence.connectionStage) ??
             detailedFailureHint ??
             guidance[safe.stage])) ?? {
         problem: '资产快读未完成本次操作。',
