@@ -12,6 +12,11 @@ import {
   hasConsistentDevelopmentStats,
 } from './discEnhancementScoring'
 import type { DriveDisc } from '../domain/schemas'
+import {
+  isSameReplacementClass,
+  prepareDiscReplacementInventory,
+  type DiscReplacementInventory,
+} from './discReplacementInventory'
 import { evaluationRules } from '../evaluation/rules'
 import type { SubStatHistory } from '../evaluation/subStatHistory'
 import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
@@ -67,36 +72,6 @@ export type DiscEnhancementPotential = {
   reason: 'dominated' | 'can_catch_up' | 'missing_history' | 'missing_profile' | 'no_alternative'
 }
 
-function isSameReplacementClass(target: DriveDisc, candidate: DriveDisc) {
-  if (
-    candidate.id === target.id ||
-    candidate.setId !== target.setId ||
-    candidate.slot !== target.slot ||
-    candidate.mainStat !== target.mainStat
-  )
-    return false
-  const candidateHistory = deriveSubStatHistory(candidate)
-  const maxLevel = driveDiscData?.rules.maxLevelByRarity[candidate.rarity ?? 'S']
-  const targetMain = resolveDriveDiscMainStatValue(target)
-  const candidateMain = resolveDriveDiscMainStatValue(candidate)
-  return (
-    candidateHistory.status === 'known' &&
-    maxLevel !== undefined &&
-    candidate.level <= maxLevel &&
-    new Set(candidate.subStats.map((item) => item.stat)).size === candidate.subStats.length &&
-    candidate.subStats.every(
-      (item) =>
-        Number.isFinite(item.value) &&
-        item.value >= 0 &&
-        Number.isInteger(item.upgrades) &&
-        item.upgrades >= 0,
-    ) &&
-    targetMain !== null &&
-    candidateMain !== null &&
-    candidateMain.value >= targetMain.value
-  )
-}
-
 export function isConstraintCompatible(disc: DriveDisc, constraint: CandidateWarehouseConstraint) {
   if (!(driveDiscData?.rules.mainStatsBySlot[String(disc.slot)] ?? []).includes(disc.mainStat))
     return false
@@ -133,24 +108,39 @@ function unevaluated(
   }
 }
 
-export function evaluateDiscEnhancementPotential(input: {
+type DiscEnhancementInput = {
   disc: DriveDisc
-  allDiscs: readonly DriveDisc[]
   history: SubStatHistory
   agents: readonly EnhancementPotentialAgent[]
   profileCoverageComplete: boolean
   investmentContextIds?: ReadonlySet<string>
-}): DiscEnhancementPotential {
+}
+
+export function createDiscEnhancementEvaluator(allDiscs: readonly DriveDisc[]) {
+  const inventory = prepareDiscReplacementInventory(allDiscs)
+  return (input: DiscEnhancementInput) => evaluateAgainstInventory(input, inventory)
+}
+
+export function evaluateDiscEnhancementPotential({
+  allDiscs,
+  ...input
+}: DiscEnhancementInput & { allDiscs: readonly DriveDisc[] }): DiscEnhancementPotential {
+  if (!input.profileCoverageComplete) return unevaluated(input.history, 'missing_profile')
+  if (input.history.status !== 'known') return unevaluated(input.history, 'missing_history')
+  return createDiscEnhancementEvaluator(allDiscs)(input)
+}
+
+function evaluateAgainstInventory(
+  input: DiscEnhancementInput,
+  inventory: DiscReplacementInventory,
+): DiscEnhancementPotential {
   if (!input.profileCoverageComplete) return unevaluated(input.history, 'missing_profile')
   if (input.history.status !== 'known') return unevaluated(input.history, 'missing_history')
   const maxLevel = driveDiscData?.rules.maxLevelByRarity[input.disc.rarity ?? 'S']
-  const capturedCounts = new Map<string, number>()
-  for (const disc of input.allDiscs)
-    capturedCounts.set(disc.id, (capturedCounts.get(disc.id) ?? 0) + 1)
   if (
     maxLevel === undefined ||
     input.disc.level > maxLevel ||
-    (capturedCounts.get(input.disc.id) ?? 0) > 1 ||
+    inventory.hasDuplicateId(input.disc.id) ||
     !(driveDiscData?.rules.mainStatsBySlot[String(input.disc.slot)] ?? []).includes(
       input.disc.mainStat,
     ) ||
@@ -216,12 +206,9 @@ export function evaluateDiscEnhancementPotential(input: {
   const preservesObjective = (alternative: DriveDisc, dimensionId: string, future = false) =>
     objectiveCoverage.get(dimensionId)?.(alternative, future) ?? true
 
-  const alternatives = input.allDiscs
-    .filter(
-      (candidate) =>
-        capturedCounts.get(candidate.id) === 1 && isSameReplacementClass(input.disc, candidate),
-    )
-    .sort((left, right) => left.id.localeCompare(right.id))
+  const alternatives = inventory
+    .candidatesFor(input.disc)
+    .filter((candidate) => isSameReplacementClass(input.disc, candidate))
   const candidateAlternatives = alternatives.filter((alternative) =>
     ceilings.every(
       (ceiling) =>

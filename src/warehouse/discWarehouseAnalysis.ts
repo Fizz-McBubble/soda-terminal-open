@@ -24,7 +24,7 @@ import {
 import { resolvePlanningDiscReferences } from '../accounts/planningDiscReferences'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { stableContentHash } from '../gameDataPacks/types'
-import { evaluateDiscEnhancementPotential } from './discEnhancementPotential'
+import { createDiscEnhancementEvaluator } from './discEnhancementPotential'
 import { prepareDiscReplacementObjective } from './discReplacementObjective'
 import {
   type WarehouseDiscCategory,
@@ -172,6 +172,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       ),
     }))
   const investmentContexts = eligibleInvestmentContextsByBranch(demand.contexts)
+  const evaluateEnhancement = createDiscEnhancementEvaluator(eligibleDiscs)
   const decisions = eligibleDiscs.map<WarehouseDiscDecision>((disc, discIndex) => {
     const retention = absoluteRetention[discIndex]!
     const useAssessment = uses.get(disc.id)!
@@ -194,9 +195,8 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
     // A repeated physical ID is not two independently identifiable assets.
     const protectedDemandReferencesResolved =
       capturedDiscIdCounts.get(disc.id) === 1 && (!directlyProtected || allDemandReferencesResolved)
-    const enhancementPotential = evaluateDiscEnhancementPotential({
+    const enhancementPotential = evaluateEnhancement({
       disc,
-      allDiscs: eligibleDiscs,
       history: subStatHistory,
       agents: potentialAgents,
       profileCoverageComplete: completeFitCoverage,
