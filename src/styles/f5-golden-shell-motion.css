@@ -8,7 +8,7 @@
     animation: soda-nav-groove-sweep var(--soda-tempo) ease-in-out infinite;
     animation-play-state: var(--signal-play-state, running);
   }
-  .f5v-rail::after {
+  .f5v-rail:not([inert])::after {
     animation: soda-rail-seam-glide calc(var(--soda-tempo) * 4) ease-in-out infinite;
     animation-play-state: var(--signal-play-state, running);
   }

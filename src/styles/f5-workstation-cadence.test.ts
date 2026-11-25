@@ -78,7 +78,8 @@ describe('F5 musical workstation polish and style boundary', () => {
   it('anchors the waveform to a separate strip in the shared header', () => {
     const workspace = readStyle('f5-golden-shell-workspace.css')
     expect(workspace).toMatch(/\.f5v-terminal-signal\s*\{\s*position: absolute;\s*inset:/)
-    expect(workspace).toContain('padding-block-end: 13px')
+    expect(workspace).toMatch(/\.f5v-topbar\s*\{[^}]*\bposition:\s*relative;/)
+    expect(workspace).toMatch(/\.f5v-terminal-signal\s*\{[^}]*\binset:\s*auto var\(--soda-space-5\) 2px;/)
   })
 
   it('covers tactile cadence and tabular numerals across all four workstation sections', () => {
