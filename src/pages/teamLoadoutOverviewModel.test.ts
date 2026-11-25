@@ -213,7 +213,8 @@ describe('team loadout overview result layers', () => {
 
     expect(model.groups.map((group) => group.kind)).toEqual(['recommended', 'saved'])
     expect(model.groups[0]?.label).toBe('当前推荐')
-    expect(model.groups[0]?.description).toContain('泛用体系评级')
+    expect(model.groups[0]?.description).toContain('同一毕业标准下，同档也有先后。')
+    expect(model.groups[0]?.description).toContain('仅有参考档位的队伍，同档无已发布关系时保持并列。')
     expect(model.groups[0]?.description).not.toContain('式舆')
     expect(model.groups[0]?.description).not.toContain('危局')
     expect(model.groups[1]?.label).toBe('已保存方案')
