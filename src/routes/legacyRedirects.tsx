@@ -68,7 +68,12 @@ export function LegacyRosterRedirect() {
 
 export function LegacyDataCenterRedirect() {
   const location = useLocation()
-  return <Navigate replace to={withQuery('/assets/account', location.search)} />
+  return (
+    <Navigate
+      replace
+      to={{ pathname: '/assets/account', search: location.search, hash: location.hash }}
+    />
+  )
 }
 
 export function LegacyDiscWorkbenchRedirect() {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PlayerSelect } from '../components/PlayerSelect'
 import { readLastScanDiagnostic } from '../scanner/scanFeedback'
@@ -53,6 +53,7 @@ export function HelpAndPrivacyPage() {
   const { currentVersion, dataStatus } = useAppHealth()
   const [stage, setStage] = useState<string>(stages[0][1])
   const [copyState, setCopyState] = useState<'idle' | 'copying' | 'success' | 'error'>('idle')
+  const diagnosticRevision = useRef(0)
   const [lastScanDiagnostic] = useState(readLastScanDiagnostic)
   const [lastAssetDiagnostic] = useState(readAssetDiagnostic)
   const versions: string[] = []
@@ -78,13 +79,15 @@ export function HelpAndPrivacyPage() {
   const diagnostic = diagnosticText(stage, versions)
 
   async function copyDiagnostic() {
+    const revision = diagnosticRevision.current
     setCopyState('copying')
+    let copied: 'success' | 'error' = 'success'
     try {
       await navigator.clipboard.writeText(diagnostic)
-      setCopyState('success')
     } catch {
-      setCopyState('error')
+      copied = 'error'
     }
+    setCopyState(revision === diagnosticRevision.current ? copied : 'idle')
   }
 
   return (
@@ -254,8 +257,10 @@ export function HelpAndPrivacyPage() {
                   className="help-privacy__stage"
                   value={stage}
                   onChange={(value) => {
+                    if (value === stage) return
+                    diagnosticRevision.current++
                     setStage(value)
-                    setCopyState('idle')
+                    setCopyState((current) => (current === 'copying' ? current : 'idle'))
                   }}
                 >
                   {stages.map(([code, label]) => (

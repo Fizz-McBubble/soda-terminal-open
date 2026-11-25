@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import { HelpAndPrivacyPage } from './HelpAndPrivacyPage'
@@ -218,6 +218,33 @@ it('shows actual copying progress before reporting a completed copy', async () =
 
   finish()
   expect(await screen.findByRole('status')).toHaveTextContent('已复制')
+})
+
+it('does not attribute a delayed clipboard result to a newly selected stage', async () => {
+  let finish!: () => void
+  const writeText = vi.fn().mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve
+      }),
+  )
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+  render(
+    <MemoryRouter>
+      <HelpAndPrivacyPage />
+    </MemoryRouter>,
+  )
+
+  await userEvent.click(screen.getByText('简要诊断'))
+  fireEvent.click(screen.getByRole('button', { name: '复制简要诊断' }))
+  await choosePlayerSelect(screen.getByRole('combobox', { name: '错误阶段' }), '图片加载')
+  expect(screen.getByRole('button', { name: '正在复制…' })).toBeDisabled()
+  expect(screen.getByLabelText('简要诊断内容')).toHaveTextContent('错误阶段：图片加载')
+
+  await act(async () => finish())
+  expect(screen.queryByText(/已复制，请检查后/)).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '复制简要诊断' })).toBeEnabled()
+  expect(writeText).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('错误阶段：页面启动'))
 })
 
 it('offers the sanitized last failed scan directly on the Help page without requiring external contact', async () => {
