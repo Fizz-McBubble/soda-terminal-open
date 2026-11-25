@@ -61,7 +61,10 @@ export function AssetCaptureMethodsNotice() {
           <h4>读取范围</h4>
           <p>S 级驱动盘。</p>
           <h4>导入后</h4>
-          <p>更新驱动盘仓库。代理人养成与音擎沿用你在资产中填写的信息，再自行搭配配装。</p>
+          <p>
+            只更新所选账户已确认的 S 级驱动盘。A/B
+            级、品质未确认的盘，以及代理人养成和音擎记录都会保留。
+          </p>
           <h4>使用条件与限制</h4>
           <ul>
             <li>
@@ -79,13 +82,14 @@ export function AssetCaptureMethodsNotice() {
           </h3>
           <h4>读取范围</h4>
           <p>
-            S 级驱动盘、<strong className="asset-capture-methods__advantage">代理人养成</strong>
+            驱动盘仓库、<strong className="asset-capture-methods__advantage">代理人养成</strong>
             ，以及
             <strong className="asset-capture-methods__advantage">当前装备的驱动盘和音擎</strong>。
           </p>
           <h4>导入后</h4>
           <p>
-            同步本次读到的养成与配装，进入养成页即可从当前装备出发，对比换装后的面板和近似输出。
+            养成页会使用本次读到的养成和装备，可查看换装前后的面板。配装与分析使用 S 级盘，读到的
+            A/B 级盘也会保存在仓库。
           </p>
           <h4>使用条件与限制</h4>
           <ul>

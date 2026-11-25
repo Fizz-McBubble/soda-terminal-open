@@ -124,7 +124,7 @@ export function SkillRecommendationTargets({
           label="培养建议"
           title="技能培养建议"
         >
-          <p>高亮标出较高的建议等级。</p>
+          <p>高亮表示这项技能建议练到较高等级。想知道先练哪项，请看各技能的培养建议。</p>
           {priorityGroups.length > 0 && (
             <p className="skill-comparison__priority-order">
               <span>升级顺序：</span>

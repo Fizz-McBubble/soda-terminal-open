@@ -428,7 +428,7 @@ export function WarehouseActionDrawer({
           <div className="warehouse-action-drawer__section-heading">
             <h3>其他用途与比较</h3>
             <ExplanationPopover label="用途说明">
-              <p>同类盘按同套装、号位和主词条筛选，包含所有建议类型，便于逐张比较。</p>
+              <p>同类盘的套装、号位和主词条相同。列表还包含替换盘和强化后可比较的盘。</p>
               {retentionAgentIds.length > 3 ? (
                 <p>保留用途：{retentionAgentIds.map(readableAgentName).join('、')}。</p>
               ) : null}

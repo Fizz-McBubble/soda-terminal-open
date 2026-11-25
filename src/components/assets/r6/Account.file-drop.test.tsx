@@ -14,6 +14,7 @@ it('drops a backup into the existing read-only review without restoring account 
     payload: {},
   })
   render(<AccountWorkspace props={{ ...props, onInspectBackup }} />)
+  expect(screen.getByText(/当前账户的养成资料、驱动盘、鉴定和已保存方案/)).toBeInTheDocument()
   await act(async () =>
     fireEvent.drop(screen.getByRole('region', { name: '选择或拖入本机备份' }), {
       dataTransfer: { files: [file], types: ['Files'] },

@@ -298,7 +298,9 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               <div>
                 <span className="kicker">创建备份</span>
                 <h2>保存当前资料</h2>
-                <p>将当前账户资料下载到本机，方便之后恢复。</p>
+                <p>
+                  将当前账户的养成资料、驱动盘、鉴定和已保存方案一起导出。恢复时先核对备份里的账户。
+                </p>
               </div>
               <button
                 className="primary"

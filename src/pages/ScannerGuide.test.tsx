@@ -21,8 +21,8 @@ describe('ScannerGuide component', () => {
     expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
     expect(trigger).toHaveAttribute('aria-expanded', 'false')
     expect(screen.getByText(/保持游戏画面完整可见/)).toBeInTheDocument()
-    expect(screen.getByText(/工作区内的“停止”/)).toBeInTheDocument()
-    expect(screen.getByText(/自动校验，点击“导入”/)).toBeInTheDocument()
+    expect(screen.getByText(/停止本次扫描.*本次结果不会导入/)).toBeInTheDocument()
+    expect(screen.getByText(/有待校准项时先修正再确认导入/)).toBeInTheDocument()
   })
 
   it('includes actionable tool block guidance covering all four failure modes', () => {

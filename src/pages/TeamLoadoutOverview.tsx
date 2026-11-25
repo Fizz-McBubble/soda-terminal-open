@@ -20,7 +20,11 @@ import './team-loadout-overview.css'
 import { WorkbenchEmptyState } from '../components/AppEntryState'
 import { normalizeVisibleDecisionLines } from './teamLoadoutVisibleDecisionText'
 import './team-loadout-overview.distill.css'
-import { orderVisibleFamilies, rebuildVisibleFamily } from './teamVisibleFamilyPresentation'
+import {
+  matchRecommendedVariants,
+  orderVisibleFamilies,
+  rebuildVisibleFamily,
+} from './teamVisibleFamilyPresentation'
 import { TeamGroup } from './TeamLoadoutRecommendationGroup'
 import { visibleRecommendationFamilies } from './teamRecommendationVisibility'
 import {
@@ -31,18 +35,6 @@ import {
 } from './teamOutputSystemFilter'
 
 import { TEAM_RECOMMENDATION_PAGE_SIZE } from './TeamLoadoutPagination'
-
-function matchesRecommendedTeam(family: TeamLoadoutOverviewGroup['items'][number], query: string) {
-  const normalizedQuery = query.trim().toLocaleLowerCase()
-  if (!normalizedQuery) return true
-  const agentIds = new Set([
-    ...family.coreAgentIds,
-    ...family.variants.flatMap((variant) => variant.agentIds),
-  ])
-  return [family.title, ...[...agentIds].map(getAgentName)].some((value) =>
-    value.toLocaleLowerCase().includes(normalizedQuery),
-  )
-}
 
 export type TeamLoadoutOverviewUiState = {
   selectedId: string | null
@@ -179,7 +171,7 @@ export function TeamLoadoutOverview({
   )
   const returnToSelectedTeam = useCallback(() => {
     const row = motionScope.current?.querySelector<HTMLElement>(
-      '.f5v-box-team-list button[aria-pressed="true"]',
+      '.f5v-box-team-list .f5v-box-team-row[aria-pressed="true"]',
     )
     const target = row ?? motionScope.current?.querySelector<HTMLElement>('input[type="search"]')
     target?.focus({ preventScroll: true })
@@ -268,21 +260,7 @@ export function TeamLoadoutOverview({
   )
   const recommendedMatchingItems = useMemo(
     () =>
-      favoriteFilteredItems.flatMap((family) => {
-        if (!matchesRecommendedTeam(family, recommendedQuery)) return []
-        const query = recommendedQuery.trim().toLocaleLowerCase()
-        if (!query) return [family]
-        const matchingVariants = family.variants.filter((variant) =>
-          [variant.title, ...variant.agentIds.map(getAgentName)].some((text) =>
-            text.toLocaleLowerCase().includes(query),
-          ),
-        )
-        // A family-name search keeps all alternatives; a member search opens the
-        // matching trio, rather than an unrelated remembered alternative.
-        return matchingVariants.length && matchingVariants.length !== family.variants.length
-          ? [rebuildVisibleFamily(family, matchingVariants)]
-          : [family]
-      }),
+      favoriteFilteredItems.flatMap((family) => matchRecommendedVariants(family, recommendedQuery)),
     [favoriteFilteredItems, recommendedQuery],
   )
   const outputSystemOptions = useMemo(
@@ -374,12 +352,27 @@ export function TeamLoadoutOverview({
     previousPreviewIdentity.current = previewIdentity
   }, [previewIdentity, onPreviewSelectionChange])
   const updateSelectedVariant = useCallback(
-    (variantId: string) => {
-      if (!selectedVariantTeamId) return
+    (familyId: string, variantId: string) => {
+      const next = { ...activeVariants, [familyId]: variantId }
       onPreviewSelectionChange?.()
-      setActiveVariants((current) => ({ ...current, [selectedVariantTeamId]: variantId }))
+      onSelect(familyId)
+      setActiveVariants(next)
+      if (recommendedPageCount > 1) {
+        const options = filterTeamFamiliesByOutputSystem(visibleRecommendationItems, outputSystem)
+        const rank = orderVisibleFamilies(options, next).findIndex(
+          (family) => family.id === familyId,
+        )
+        if (rank >= 0) setRecommendedPage(Math.floor(rank / TEAM_RECOMMENDATION_PAGE_SIZE) + 1)
+      }
     },
-    [selectedVariantTeamId, onPreviewSelectionChange],
+    [
+      activeVariants,
+      onPreviewSelectionChange,
+      onSelect,
+      recommendedPageCount,
+      visibleRecommendationItems,
+      outputSystem,
+    ],
   )
   const selectBangboo = useCallback(
     (variantId: string, bangbooId: string) => {
@@ -414,7 +407,6 @@ export function TeamLoadoutOverview({
         <TeamPreview
           family={selected}
           activeVariantId={activeVariants[selected.id] ?? selected.variants[0]?.id}
-          onVariantSelect={updateSelectedVariant}
           selectedBangboos={selectedBangboos}
           onSelectBangboo={selectBangboo}
           onPrimaryAction={onPrimaryAction}
@@ -438,7 +430,6 @@ export function TeamLoadoutOverview({
       selectedRecommendationOrdinal,
       selectedBangboos,
       selectBangboo,
-      updateSelectedVariant,
     ],
   )
   const analysisActions = useMemo(
@@ -542,6 +533,7 @@ export function TeamLoadoutOverview({
                     group={group}
                     selectedId={selected.id}
                     activeVariants={activeVariants}
+                    onVariantSelect={updateSelectedVariant}
                     onSelect={onSelect}
                     onDeleteSaved={onDeleteSaved}
                   />
@@ -568,6 +560,7 @@ export function TeamLoadoutOverview({
                 analysisActions={analysisActions}
                 selectedId={selected?.id ?? ''}
                 activeVariants={activeVariants}
+                onVariantSelect={updateSelectedVariant}
                 onSelect={selectTeam}
                 onDeleteSaved={onDeleteSaved}
                 recommendedQuery={recommendedQuery}

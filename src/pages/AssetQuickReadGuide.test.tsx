@@ -16,6 +16,7 @@ describe('AssetQuickReadGuide component', () => {
     expect(screen.getByText('首次使用')).toBeInTheDocument()
     expect(screen.getByText('读取顺序')).toBeInTheDocument()
     expect(screen.getByText('读到数据以后')).toBeInTheDocument()
+    expect(screen.getByText(/继续上次读取/)).toHaveTextContent('在“导入记录”查看是否仍可恢复')
     expect(screen.getByText('等待或重试')).toBeInTheDocument()
   })
 

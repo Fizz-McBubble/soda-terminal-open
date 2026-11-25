@@ -257,7 +257,7 @@ it('keeps the priority background after the target or cap is reached', () => {
   expect(achievedCell).toHaveClass('priority')
   expect(achievedCell).toHaveAttribute('title', expect.stringContaining('当前已达到推荐目标 7 级'))
   expect(achievedCell).not.toHaveAttribute('title', expect.stringContaining('先练这项'))
-  expect(screen.getByText(/高亮标出较高的建议等级/)).toBeInTheDocument()
+  expect(screen.getByText(/高亮表示这项技能建议练到较高等级。想知道先练哪项/)).toBeInTheDocument()
 
   rerender(
     <SkillRecommendationTargets

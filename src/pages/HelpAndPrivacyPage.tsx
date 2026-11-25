@@ -33,7 +33,7 @@ function diagnosticText(stage: string, versions: string[]) {
     页面启动: '重新加载页面；请保留浏览器中的账户资料，不要清除站点数据。',
     本机计算: '使用结果区域的重试或重新搭配按钮；尚未保存的编辑请先保留。',
     在线计算: '检查网络连接，使用结果区域的重试按钮；账户与已保存方案仍保留在本机。',
-    图片加载: '在首页图片卡片重试下载，或进入管理图片查看下载状态。',
+    图片加载: '在首页打开“管理图片”查看缓存状态。仍有缺图时，点击“补齐图片”。',
     本机扫描连接: '先启动画面扫描，允许本站连接本机，再点击重新连接。',
     备份导入或导出: '导出请检查浏览器下载列表；恢复失败时保留原文件并重新选择。',
   }
@@ -176,20 +176,19 @@ export function HelpAndPrivacyPage() {
             <div className="help-privacy__methods" aria-label="扫描方式">
               <article>
                 <strong>画面扫描</strong>
-                <p>只读取 S 级驱动盘并跳过 A/B 级。</p>
+                <p>支持本机和云游戏，只扫描 S 级驱动盘。</p>
               </article>
               <article>
                 <strong>资产快读</strong>
-                <p>读取代理人养成、当前音擎和驱动盘关系。</p>
+                <p>在本机游戏登录时读取代理人养成、已装备的音擎和驱动盘，以及盘库。</p>
               </article>
             </div>
             <div className="help-privacy__import-card">
               <div className="help-privacy__import-copy">
                 <strong>结果先检查，再由你确认导入</strong>
                 <p>
-                  Windows
-                  画面扫描通过本机回环服务读取可见的游戏画面，不需要账号密码。只有你在确认后点击导入，
-                  才会更新所选的本机 Soda 账户。
+                  先选择要更新的 Soda
+                  账户，核对结果后再确认导入。需要回退时，打开“导入记录”查看可撤销的上次导入。
                 </p>
               </div>
               <ScannerGuide />

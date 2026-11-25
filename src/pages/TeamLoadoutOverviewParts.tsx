@@ -1,9 +1,8 @@
 import { ratingExplanation } from './teamLoadoutRatingExplanation'
 import { TeamLoadoutPreviewMembers } from './TeamLoadoutPreviewSummary'
-import { ArrowRight, Check, ChevronRight, LoaderCircle } from 'lucide-react'
+import { ArrowRight, ChevronRight, LoaderCircle } from 'lucide-react'
 import { decisionFreshnessPresentation } from '../application/playerDecisionPresentation'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
-import { getAgentName } from '../application/publicRosterNames'
 import type { TeamLoadoutOverviewFamily, TeamLoadoutOverviewItem } from './teamLoadoutOverviewModel'
 import { TeamBangbooSuggestions } from './TeamBangbooSuggestions'
 import { orderTeamMembersForDisplay } from '../application/teamMemberDisplayOrder'
@@ -11,12 +10,7 @@ import { GraduationCompletionLabel } from './savedTeamGraduationPresentation'
 import { TeamLoadoutEntityPortraits } from './TeamLoadoutEntityPortraits'
 import { TeamLoadoutRowContent } from './TeamLoadoutRowContent'
 import { preloadTeamLoadoutFamilyVisuals } from './teamLoadoutVisualPreload'
-import {
-  familyRatingLabel,
-  ratingLabel,
-  ratingTitle,
-  referenceSummary,
-} from './teamRatingPresentation'
+import { familyRatingLabel, ratingLabel, ratingTitle } from './teamRatingPresentation'
 import { teamOutputSystemLabel } from './teamOutputSystemFilter'
 import { TeamGuidePreference } from '@soda/team-guide-preference'
 import { TeamLoadoutDecisionSummary } from './TeamLoadoutDecisionSummary'
@@ -41,21 +35,6 @@ function presentationReason(family: TeamLoadoutOverviewFamily) {
   return family.variants.length > 1 || /还需补齐装备|成员已齐，?可开始配装/.test(family.reason)
     ? null
     : (normalizeVisibleDecisionLines([family.reason], 'reason')[0] ?? null)
-}
-
-function variantAvailabilityLabel(status: TeamLoadoutOverviewItem['executionStatus']) {
-  switch (status) {
-    case 'direct':
-      return '保持当前配装'
-    case 'adjust':
-      return '需要调整'
-    case 'confirm':
-      return '待确认'
-    case 'build':
-      return '还缺装备'
-    case null:
-      return '待配装'
-  }
 }
 
 export function TeamRow({
@@ -184,7 +163,6 @@ export function TeamDecisionCard({
 export const TeamPreview = memo(function TeamPreview({
   family,
   activeVariantId,
-  onVariantSelect,
   selectedBangboos,
   onSelectBangboo,
   onPrimaryAction,
@@ -197,7 +175,6 @@ export const TeamPreview = memo(function TeamPreview({
 }: {
   family: TeamLoadoutOverviewFamily
   activeVariantId?: string
-  onVariantSelect?: (id: string) => void
   selectedBangboos?: Readonly<Record<string, string>>
   onSelectBangboo?: (variantId: string, bangbooId: string) => void
   onPrimaryAction: (
@@ -211,11 +188,8 @@ export const TeamPreview = memo(function TeamPreview({
   analysisStale?: boolean
   bangbooStarsById?: Readonly<Record<string, 1 | 2 | 3 | 4 | 5>>
 }) {
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
-  const effectiveVariantId = activeVariantId ?? selectedVariantId ?? family.variants[0]?.id ?? ''
-  const item =
-    family.variants.find((variant) => variant.id === effectiveVariantId) ?? family.variants[0]!
   const variants = family.variants
+  const item = variants.find((variant) => variant.id === activeVariantId) ?? variants[0]!
   const [localBangboos, setLocalBangboos] = useState<Record<string, string>>({})
   const options = item.bangbooSuggestions ?? emptyBangbooSuggestions
   const hasSchemeParameters = item.kind === 'saved' || item.executionStatus != null
@@ -253,11 +227,6 @@ export const TeamPreview = memo(function TeamPreview({
   const chosenStars = selectedBangbooId
     ? (selectedStars ?? (item.kind === 'saved' ? undefined : selectedSuggestion?.defaultStars))
     : undefined
-  const [expandedFamilyId, setExpandedFamilyId] = useState<string | null>(null)
-  const expandedVariants = expandedFamilyId === family.id
-  const visibleVariants = expandedVariants
-    ? variants
-    : [item, ...variants.filter((entry) => entry.id !== item.id)].slice(0, 4)
   const decisionPresentation = presentTeamDecision(item)
   const selectedBangbooOption = useMemo(() => {
     if (!selectedBangbooId) return null
@@ -417,96 +386,6 @@ export const TeamPreview = memo(function TeamPreview({
             memberIds={item.agentIds}
             presentation={item.guidePreference}
           />
-          {variants.length > 1 ? (
-            <section className="f5v-box-team-variants" aria-label="可选搭配">
-              <h3>替换成员</h3>
-              <div role="group" aria-label="切换可选搭配">
-                {visibleVariants.map((variant) => {
-                  const isCurrent = variant.id === item.id
-                  const replacementAgentIds = variant.agentIds.filter(
-                    (agentId) => !item.agentIds.includes(agentId),
-                  )
-                  const replacementNames = replacementAgentIds.map(getAgentName)
-                  const portraitAgentId =
-                    replacementAgentIds[0] ?? (isCurrent ? null : variant.agentIds[0])
-                  const replacement = {
-                    ...variant,
-                    agentIds: portraitAgentId ? [portraitAgentId] : [],
-                    bangbooId: null,
-                  }
-                  const label = isCurrent ? '当前搭配' : replacementNames.join('、') || '另一种搭配'
-                  const availabilityLabel =
-                    variantAvailabilityLabel(variant.executionStatus) ?? '待配装'
-                  const bangbooChanged =
-                    variant.bangbooId !== item.bangbooId && Boolean(variant.bangbooLabel)
-                  return (
-                    <button
-                      key={variant.id}
-                      type="button"
-                      className={`f5v-box-team-variant-button${isCurrent ? ' is-selected' : ''}`}
-                      aria-label={[
-                        availabilityLabel,
-                        label,
-                        referenceSummary(variant),
-                        bangbooChanged ? `邦布：${variant.bangbooLabel}` : null,
-                      ]
-                        .filter(Boolean)
-                        .join('，')}
-                      aria-pressed={isCurrent}
-                      onClick={() => {
-                        setSelectedVariantId(variant.id)
-                        onVariantSelect?.(variant.id)
-                      }}
-                    >
-                      <span className="f5v-box-team-variant-leading" aria-hidden="true">
-                        {isCurrent ? (
-                          <span className="f5v-box-team-variant-current-icon">
-                            <Check size={15} strokeWidth={2.6} />
-                          </span>
-                        ) : (
-                          <>
-                            <TeamLoadoutEntityPortraits item={replacement} />
-                            {replacementAgentIds.length > 1 ? (
-                              <span className="f5v-box-team-variant-avatar-count">
-                                +{replacementAgentIds.length - 1}
-                              </span>
-                            ) : null}
-                          </>
-                        )}
-                      </span>
-                      <span className="f5v-box-team-variant-name">
-                        <strong title={label}>{label}</strong>
-                        {bangbooChanged ? (
-                          <small title={variant.bangbooLabel}>邦布 · {variant.bangbooLabel}</small>
-                        ) : null}
-                      </span>
-                      <span className="f5v-box-team-variant-meta">
-                        <span className="f5v-box-team-variant-rating" title={ratingTitle(variant)}>
-                          {ratingLabel(variant)}
-                        </span>
-                        <span
-                          className={`f5v-box-team-variant-status is-${
-                            variant.executionStatus ?? 'pending'
-                          }`}
-                        >
-                          {availabilityLabel}
-                        </span>
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-              {variants.length > 4 ? (
-                <button
-                  className="f5v-box-team-variants-more"
-                  type="button"
-                  onClick={() => setExpandedFamilyId(expandedVariants ? null : family.id)}
-                >
-                  {expandedVariants ? '收起替补' : `展开其余 ${variants.length - 4} 种搭配`}
-                </button>
-              ) : null}
-            </section>
-          ) : null}
         </div>
       </div>
     </aside>

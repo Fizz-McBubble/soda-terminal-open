@@ -441,6 +441,8 @@ describe('warehouse detail density and saved loadout labels', () => {
     const trigger = screen.getByRole('button', { name: '用途说明' })
     const panel = document.getElementById(trigger.getAttribute('popovertarget')!)
     expect(panel).toHaveAttribute('role', 'dialog')
+    expect(panel).toHaveTextContent('同类盘的套装、号位和主词条相同')
+    expect(panel).toHaveTextContent('列表还包含替换盘和强化后可比较的盘')
     expect(panel).not.toHaveTextContent(/保留潜力：.*妮可.*莱卡恩/)
     expect(screen.queryByText(/^适用角色：/)).not.toBeInTheDocument()
   })

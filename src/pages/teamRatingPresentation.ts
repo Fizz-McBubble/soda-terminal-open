@@ -90,7 +90,7 @@ export function ratingTitle(item: TeamLoadoutOverviewItem) {
   )
     return genericTeamRatingScopeCopy.title
   if (item.inferredStrength)
-    return '泛用体系评级只表达目前能确认的层级；同档没有已发布关系时不排列强弱'
+    return '此搭配只有参考档位，选队时可结合敌人和关卡增益。'
   if (item.teamRatingBand) return genericTeamRatingScopeCopy.title
   return undefined
 }
@@ -104,4 +104,19 @@ export function familyRatingLabel(
   item: TeamLoadoutOverviewItem,
 ) {
   return ratingLabel(item)
+}
+
+export function variantAvailabilityLabel(status: TeamLoadoutOverviewItem['executionStatus']) {
+  switch (status) {
+    case 'direct':
+      return '保持当前配装'
+    case 'adjust':
+      return '需要调整'
+    case 'confirm':
+      return '待确认'
+    case 'build':
+      return '还缺装备'
+    case null:
+      return '待配装'
+  }
 }

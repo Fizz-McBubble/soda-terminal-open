@@ -1,3 +1,4 @@
+import { getAgentName } from '../application/publicRosterNames'
 import type { TeamLoadoutOverviewFamily, TeamLoadoutOverviewItem } from './teamLoadoutOverviewTypes'
 import { orderRankedTeamItems, orderTeamRecommendations } from './teamRecommendationOrdering'
 
@@ -51,4 +52,32 @@ export function orderVisibleFamilies(
   return orderRankedTeamItems(ranked.map((entry) => entry.strongest)).map(
     (strongest) => familyByStrongest.get(strongest)!,
   )
+}
+
+function matchesRecommendedTeam(family: TeamLoadoutOverviewFamily, query: string) {
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  if (!normalizedQuery) return true
+  const agentIds = new Set([
+    ...family.coreAgentIds,
+    ...family.variants.flatMap((variant) => variant.agentIds),
+  ])
+  return [family.title, ...[...agentIds].map(getAgentName)].some((value) =>
+    value.toLocaleLowerCase().includes(normalizedQuery),
+  )
+}
+
+export function matchRecommendedVariants(family: TeamLoadoutOverviewFamily, queryText: string) {
+  if (!matchesRecommendedTeam(family, queryText)) return []
+  const query = queryText.trim().toLocaleLowerCase()
+  if (!query) return [family]
+  const matchingVariants = family.variants.filter((variant) =>
+    [variant.title, ...variant.agentIds.map(getAgentName)].some((text) =>
+      text.toLocaleLowerCase().includes(query),
+    ),
+  )
+  // A family-name search keeps all alternatives; a member search opens the
+  // matching trio, rather than an unrelated remembered alternative.
+  return matchingVariants.length && matchingVariants.length !== family.variants.length
+    ? [rebuildVisibleFamily(family, matchingVariants)]
+    : [family]
 }
