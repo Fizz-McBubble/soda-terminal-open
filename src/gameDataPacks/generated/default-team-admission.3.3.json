@@ -1,15 +1,15 @@
 {
   "contract": "default-team-admission/v1",
-  "catalog": "fnv1a-33dba8cb",
+  "catalog": "fnv1a-303a33",
   "gameVersion": "3.3",
   "boundary": "Candidates only; exact sightings do not validate every play or prove rotation or strength. Shiyu periods are construction and temporal confirmation, not blind holdout.",
   "inputs": {
-    "generic-team-ranking.v1.json": "411d8bbf2bb5652893b0bed19bba5af6d730619ce680936eba77c3def40cb5fc",
+    "generic-team-ranking.v1.json": "127be622a914095a7f0cb661b573cefbeec4a8dcb00d8293e10b54a938b82b93",
     "current31-team-intrinsic-index.v1.json": "730d10aaaef4ed1baddb273a9b3983d2daa2cf66c4af8c84cf7cde79730b9b54",
     "admission-scope-integrated.json": "1b618fabf56b8648e8112fcc111884c6eab5903dbe49a674acfc0109f8601b06",
     "full-observed-trios.json": "1ea2b7b91b4069b1779aa1290a30fb5c3acfad6ce88ff5175007ed46f9a1381a",
     "shiyu-periods-aggregate-v1.json": "84ed63b9ee9c6935c04c60e5cc32f6af467880b74197ebddc5f58aaac55392dd",
-    "integrated-scope.json": "81e74ec164d1d62a87039d43b228fe9a411a3bcb45f50e904b975e6ec69bacdc",
+    "integrated-scope.json": "bcff3914611ab1196d067ecde6b1b9d3818df0e26913aa7bc8ec3695456b2565",
     "reviewed-team-output-modules.strict.3.1.json": "d216b0cca1fc6efc012d1422acc796eecf8f32e9c9d497e1325ae790f9e5193e",
     "default-team-admission-reviewed-plays.3.3.json": "caf14066d0cf704136b515438a43dc3ad42e8fa1abc0eea333b61ec5b89590a7",
     "community-completion-frozen-batch.json": "b1065b1e653380329d4429eac424e985cc94c52e9bbe15bc92cb1ce1a3ea8b06",

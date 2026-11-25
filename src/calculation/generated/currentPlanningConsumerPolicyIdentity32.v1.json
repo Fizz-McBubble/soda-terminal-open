@@ -14,7 +14,7 @@
     "../application/characterPanelFields.ts": "fnv1a-ad286442",
     "../application/characterPanelMenuPresentation.ts": "fnv1a-b8e8465e",
     "../application/developmentCandidateLoadoutCache.ts": "fnv1a-30004541",
-    "../application/developmentComparisonPanelProjection.ts": "fnv1a-bf2cbfd8",
+    "../application/developmentComparisonPanelProjection.ts": "fnv1a-423be180",
     "../application/developmentDirectoryQueryProjection.ts": "fnv1a-5083f18b",
     "../application/developmentWEngineComparisonProjection.ts": "fnv1a-9daefd11",
     "../application/developmentWorkbenchPresentationProjection.ts": "fnv1a-bdb8e2ad",

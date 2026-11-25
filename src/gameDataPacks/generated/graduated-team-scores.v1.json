@@ -6,10 +6,10 @@
     "id": "soda-team-rating/v1",
     "revision": "3.3-20261113.1"
   },
-  "algorithmSourceHash": "438be33c4d6cd041e362fa88a5b153cf28490a694d34fb8203e2ea6e83df5ae2",
-  "ratingSourceHash": "257346af01907ff1fed5d9105352ba8c915e11bfb00fea35258684a9c45bd160",
+  "algorithmSourceHash": "eb8d29f0b901f3e26c214947ecb0cdb51e1a5ad639479cac27825e67c5abf166",
+  "ratingSourceHash": "0a5c2460ab6987238090696d85dd10a85627244d5eba437812cea28704ed479a",
   "gameVersion": "3.3",
-  "catalogHash": "fnv1a-33dba8cb",
+  "catalogHash": "fnv1a-303a33",
   "standardIdentity": "d741c548a61f0f920ec84c5d4d6792b86cc851aed6a824f3af040d6a4486e101",
   "protocolHash": "fnv1a-ea57e204",
   "workloadIdentity": "fnv1a-39f452ca",
