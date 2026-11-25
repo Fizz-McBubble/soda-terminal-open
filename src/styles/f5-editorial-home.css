@@ -1,0 +1,363 @@
+/* Soda Terminal Home editorial-signal stage:
+ * Matte bright canvas + 45deg carbon-pinstriped diagonal slash + Wanzhou (Sunbringer) KV.
+ */
+
+.f5v-shell .soda-home--golden {
+  padding-top: 24px;
+}
+
+.f5v-shell .home-focus {
+  border: 1.5px solid rgba(20, 18, 32, 0.22);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.96), transparent 55%),
+    linear-gradient(128deg, #f7f6fb 0%, #efecf8 56%, #e6e0f7 100%);
+  box-shadow:
+    0 5px 0 rgba(20, 18, 32, 0.08),
+    0 20px 40px rgba(20, 18, 32, 0.08);
+}
+
+.f5v-shell .home-focus::before {
+  background:
+    linear-gradient(
+      118deg,
+      transparent 0 42.5%,
+      var(--soda-accent) 42.5% 43.4%,
+      transparent 43.4% 100%
+    ),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 8px),
+    linear-gradient(
+      118deg,
+      #f7f6fb 0 42.5%,
+      #161422 42.5% 83.5%,
+      #221d38 83.5% 85%,
+      #efecf8 85% 100%
+    );
+  opacity: 0.98;
+}
+
+/* Live desktop pointer spotlight illuminating both bright paper and 45deg carbon pinstripes */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .f5v-shell .home-focus[data-spotlight-active='true']::before {
+    background:
+      radial-gradient(
+        460px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+        rgba(148, 118, 255, 0.24),
+        rgba(255, 255, 255, 0.16) 36%,
+        transparent 70%
+      ),
+      linear-gradient(
+        118deg,
+        transparent 0 42.5%,
+        var(--soda-accent) 42.5% 43.4%,
+        transparent 43.4% 100%
+      ),
+      repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 8px),
+      linear-gradient(
+        118deg,
+        #f7f6fb 0 42.5%,
+        #161422 42.5% 83.5%,
+        #221d38 83.5% 85%,
+        #efecf8 85% 100%
+      );
+  }
+}
+
+.f5v-shell .home-focus::after {
+  width: 210px;
+  height: 7px;
+  border-radius: 14px 0 0 0;
+  background: linear-gradient(90deg, var(--soda-ink-shell) 0 64%, var(--soda-accent) 64% 100%);
+}
+
+/* Flush bottom-anchored right stage overriding legacy 3-class .soda-home--golden rules */
+.f5v-shell .soda-home--golden .home-scene {
+  position: absolute;
+  inset: 0 0 0 28%;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  transform: none;
+  margin: 0;
+  z-index: 2;
+  overflow: visible;
+}
+
+.f5v-shell .home-scene::after {
+  content: 'SODA TERMINAL · 01';
+  position: absolute;
+  right: 8px;
+  top: 62px;
+  z-index: 2;
+  font-family: var(--soda-font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.44);
+  writing-mode: vertical-rl;
+  pointer-events: none;
+}
+
+.f5v-shell .soda-home--golden .home-scene__orbit--one {
+  inset: auto;
+  right: clamp(220px, 21%, 380px);
+  top: 56px;
+  width: 440px;
+  height: 440px;
+  translate: none;
+  border: 1.5px solid rgba(132, 102, 255, 0.36);
+  background: radial-gradient(
+    circle at 52% 48%,
+    rgba(104, 66, 255, 0.18),
+    rgba(20, 18, 32, 0.02) 72%
+  );
+}
+
+.f5v-shell .soda-home--golden .home-scene__orbit--two {
+  inset: auto;
+  right: clamp(290px, 25.5%, 450px);
+  top: 126px;
+  width: 300px;
+  height: 300px;
+  translate: none;
+  border: 1px dashed rgba(255, 255, 255, 0.24);
+}
+
+/* The responsive cutout sits in front of the scene frame. */
+.f5v-shell .soda-home--golden .home-version-hero {
+  position: absolute;
+  z-index: 5;
+  inset: auto clamp(210px, 20%, 350px) -24px auto;
+  width: auto;
+  height: clamp(600px, 34vw, 646px);
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 24px rgba(14, 10, 30, 0.3));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-shell .soda-home--golden .home-version-hero {
+    animation:
+      soda-home-character-arrive 480ms var(--soda-ease-spring) both,
+      soda-editorial-hero-float 7.2s ease-in-out 520ms infinite;
+  }
+
+  .f5v-shell .home-primary-action::after {
+    animation: soda-editorial-sheen 4.8s var(--soda-ease-out) 1.2s infinite;
+  }
+
+  .f5v-shell .home-primary-action:is(:hover, :focus-visible)::after {
+    animation: none;
+    transition: transform 480ms var(--soda-ease-out);
+    transform: translate3d(135%, 0, 0);
+  }
+}
+
+@keyframes soda-editorial-hero-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+@keyframes soda-editorial-sheen {
+  0%,
+  72% {
+    transform: translate3d(-135%, 0, 0);
+  }
+  100% {
+    transform: translate3d(135%, 0, 0);
+  }
+}
+
+.f5v-shell .home-next-action__context {
+  height: 30px;
+  padding: 0 22px 0 14px;
+  background: var(--soda-ink-shell);
+  color: #ffffff;
+  border-left: 4px solid var(--soda-accent);
+  font-family: var(--soda-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.f5v-shell .focus-copy h1 {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--soda-ink-shell);
+}
+
+.f5v-shell .focus-copy h1 em {
+  color: var(--soda-accent);
+  text-shadow: 2px 2px 0 rgba(20, 18, 32, 0.1);
+}
+
+/* Non-overlapping bottom cards with single-line labels & crisp disabled state */
+.f5v-shell .sponsor-support--home {
+  left: 32px;
+  bottom: 16px;
+  width: min(490px, calc(100% - 344px));
+  padding: 10px 12px;
+  border: 1.5px solid rgba(20, 18, 32, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 2px 2px 0 rgba(20, 18, 32, 0.08);
+}
+
+.f5v-shell .sponsor-support--home .sponsor-qr {
+  width: 66px;
+}
+
+.f5v-shell .home-readiness {
+  right: 22px;
+  bottom: 16px;
+  width: 278px;
+  padding: 12px 15px;
+  border: 1.5px solid rgba(20, 18, 32, 0.24);
+  border-top: 4px solid var(--soda-ink-shell);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    3px 3px 0 rgba(20, 18, 32, 0.14),
+    0 14px 32px rgba(20, 18, 32, 0.12);
+}
+
+.f5v-shell .home-readiness dl {
+  gap: 6px;
+  margin: 10px 0 8px;
+}
+
+.f5v-shell .home-readiness__heading b {
+  font-family: var(--soda-font-mono);
+  background: var(--soda-ink-shell);
+  color: #ffffff;
+}
+
+.f5v-shell .home-readiness dt {
+  white-space: nowrap;
+  flex: none;
+}
+
+.f5v-shell .home-readiness dd {
+  font-family: var(--soda-font-mono);
+  flex: 1 1 auto;
+  max-width: none;
+}
+
+.f5v-shell .home-catalog-cache__action:disabled {
+  opacity: 1;
+  color: var(--soda-text-2);
+  background: #ede9f8;
+  border-color: rgba(20, 18, 32, 0.16);
+}
+
+/* Five-step journey strip with bold condensed display indices & tactile rim highlight */
+.f5v-shell .journey-list--five .journey-item {
+  border: 1.5px solid rgba(20, 18, 32, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.f5v-shell .journey-list--five .journey-item:hover:not(.is-current) {
+  border-color: var(--soda-ink-shell);
+  background: #ffffff;
+  box-shadow: 3px 3px 0 rgba(104, 66, 255, 0.32);
+  transform: translate(-1px, -2px);
+}
+
+.f5v-shell .journey-list--five .journey-item.is-current {
+  border: 1.5px solid var(--soda-ink-shell);
+  background: #ffffff;
+  box-shadow: 3px 3px 0 var(--soda-accent);
+}
+
+.f5v-shell .home-journey__number {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #e6e2f2;
+  color: var(--soda-ink-shell);
+  font-family: var(--soda-font-display);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.f5v-shell .home-journey__number > span {
+  transform: none;
+}
+
+.f5v-shell .journey-item.is-current .home-journey__number {
+  background: var(--soda-ink-shell) !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 -3px 0 var(--soda-accent);
+}
+
+@container soda-viewport (max-width: 1400px) {
+  .f5v-shell .soda-home--golden .home-scene {
+    inset: 0 0 0 28%;
+    width: auto;
+    height: auto;
+    aspect-ratio: auto;
+    transform: none;
+  }
+  .f5v-shell .soda-home--golden .home-scene__orbit--one {
+    right: clamp(140px, 16%, 220px);
+    top: 62px;
+    width: 360px;
+    height: 360px;
+  }
+  .f5v-shell .soda-home--golden .home-scene__orbit--two {
+    right: clamp(198px, 21%, 278px);
+    top: 120px;
+    width: 244px;
+    height: 244px;
+  }
+  .f5v-shell .soda-home--golden .home-version-hero {
+    inset: auto clamp(136px, 15%, 210px) -18px auto;
+    width: auto;
+    height: 525px;
+    max-width: none;
+    max-height: none;
+    object-position: center bottom;
+  }
+  .f5v-shell .sponsor-support--home {
+    left: 24px;
+    bottom: 14px;
+    width: min(460px, calc(100% - 322px));
+  }
+  .f5v-shell .home-readiness {
+    right: 18px;
+    bottom: 14px;
+    width: 268px;
+  }
+}
+
+@container soda-viewport (max-width: 960px) {
+  .f5v-shell .home-focus::before {
+    background: linear-gradient(155deg, #f7f6fb 0 54%, #161422 54% 100%);
+  }
+  .f5v-shell .soda-home--golden .home-scene {
+    position: relative;
+    inset: auto;
+    height: 300px;
+  }
+  .f5v-shell .soda-home--golden .home-version-hero {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 300px;
+    max-height: 300px;
+    object-position: center bottom;
+  }
+  .f5v-shell .sponsor-support--home {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    margin: 0 20px 16px;
+  }
+}

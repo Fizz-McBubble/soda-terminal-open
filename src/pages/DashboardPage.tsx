@@ -291,7 +291,7 @@ export function DashboardPage() {
         }
         discArtUrls={discArtUrls}
         readiness={{
-          stateLabel: home.account ? '本机账户' : '开始使用',
+          stateLabel: home.account ? '本机账户' : '',
           stateTitle: localStatus,
           accountName: home.account?.displayName ?? '尚未选择',
           agentCount: ownedAgents.length,

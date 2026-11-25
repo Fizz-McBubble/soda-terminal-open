@@ -172,12 +172,24 @@ function projectPrepared() {
   )
   const templates = []
   const useTemplate = remap(prepared.templates, templates)
+  const bangbooShortlists = []
+  const useShortlist = remap(prepared.bangbooShortlists ?? [], bangbooShortlists)
   const formations = prepared.formations
     .filter(([position]) => positions.has(position))
-    .map(([position, template, order]) => [position, useTemplate(template), order])
+    .map(([position, template, order, bangboo]) => [
+      position,
+      useTemplate(template),
+      order,
+      ...(bangboo === undefined ? [] : [useShortlist(bangboo)]),
+    ])
   if (formations.length !== admitted.size)
     throw new Error('BOX startup prepared ranking coverage mismatch.')
-  return { ...prepared, templates, formations }
+  return {
+    ...prepared,
+    templates,
+    formations,
+    ...(prepared.bangbooShortlists ? { bangbooShortlists } : {}),
+  }
 }
 
 for (const [name, content] of [

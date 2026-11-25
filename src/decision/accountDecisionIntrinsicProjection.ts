@@ -26,7 +26,7 @@ import {
   lookupCurrent31TeamIntrinsicDetails,
 } from './current31TeamIntrinsicIndex'
 import { selectSavedDefaultTeamAdmissionPlay } from './defaultTeamAdmissionPlay'
-import { preparedBoxFormationRanking } from './preparedBoxFormationRanking'
+import { readSharedPreparedBoxFormationRanking } from './preparedBoxFormationRanking'
 import {
   lookupCurrentGenericTeamRanking as lookupCurrentTeamSystemRanking,
   currentGenericTeamRankingStatus,
@@ -164,7 +164,7 @@ export function projectAccountIntrinsicCandidates(input: {
     // The selected play is checked again when the recommendation is projected.
     let systemRanking =
       input.mode === 'indexed'
-        ? preparedBoxFormationRanking(memberIds, currentGenericTeamRankingStatus.contentHash)
+        ? readSharedPreparedBoxFormationRanking(memberIds, currentGenericTeamRankingStatus.contentHash)
         : undefined
     if (systemRanking === undefined) {
       const direction = lookupCurrent31TeamIntrinsicDetails(

@@ -57,6 +57,7 @@ export const communityTests = Object.freeze([
   'src/decision/teamStrengthModel.freshness.test.ts',
   'src/decision/current31TeamStrengthCalibration.model-score.test.ts',
   'src/decision/defaultTeamRecommendationPolicy.test.ts',
+  'src/decision/preparedBoxFormationRanking.test.ts',
   'src/calculation/currentBangbooPreparedBatch.test.ts',
   'src/calculation/currentBangbooSourceFormula.test.ts',
   'src/calculation/skillInvestmentMaterials.test.ts',

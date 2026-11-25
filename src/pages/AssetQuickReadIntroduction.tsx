@@ -12,8 +12,21 @@ export function AssetQuickReadHeading({
   return (
     <>
       <div className="asset-quick-read__heading">
-        <Database aria-hidden="true" size={22} />
-        {renderParts ? <h3 id={headingId}>资产快读</h3> : <h2 id={headingId}>资产快读</h2>}
+        {renderParts ? (
+          <h3 id={headingId}>
+            <span className="scanner-workbench__guide-mark" aria-hidden="true">
+              <Database size={20} />
+            </span>
+            资产快读
+          </h3>
+        ) : (
+          <h2 id={headingId}>
+            <span className="scanner-workbench__guide-mark" aria-hidden="true">
+              <Database size={20} />
+            </span>
+            资产快读
+          </h2>
+        )}
         {renderParts ? (
           <AssetQuickReadGuide />
         ) : (

@@ -15,6 +15,17 @@ export type ReleaseNote = {
 // Use the release date and describe what players can now do. Keep older entries in order.
 export const releases: readonly ReleaseNote[] = [
   {
+    id: '20261125-box-and-workspace-review',
+    date: '2026-11-25',
+    title: '优化 BOX 邦布读取与窄窗配装',
+    scope: 'BOX、代理人养成、扫描与导入',
+    changes: [
+      '队伍邦布参考随推荐资料读取，打开已准入队伍时直接显示候选，继续按实际队友和激活条件选择。',
+      '窄窗下，三名成员的配装页签和面板标题可分行显示。收紧养成卡片的边框，给角色与装备内容留出空间。',
+      '统一画面扫描和资产快读的卡片、风险提示与结果区域。状态仍可通过标题、图标和底色辨认。',
+    ],
+  },
+  {
     id: '20261125-catalog-image-loading',
     date: '2026-11-25',
     title: '优先显示当前页面的图鉴图片',

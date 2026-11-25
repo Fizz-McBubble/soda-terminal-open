@@ -22,36 +22,60 @@ export const authorComparisonMembership32Identity = Object.freeze({
   boundary: 'owned_exact_membership_only; explicit_selection_only; no_strength_or_bangboo_claim',
 })
 
+const identityValid =
+  reviewedSourceTeamObservations32Identity.sourceVersion === '3.2' &&
+  reviewedSourceTeamObservations32Identity.id === 'reviewed-source-team-observations-3.2-v1' &&
+  reviewedSourceTeamObservations32Identity.contentHash ===
+    stableContentHash(reviewedSourceTeamObservations32)
+
+const authorComparisonByKey = new Map<
+  string,
+  {
+    observation: (typeof reviewedSourceTeamObservations32)[number]
+    fingerprint: string
+  }
+>()
+if (identityValid) {
+  for (const row of reviewedSourceTeamObservations32) {
+    if (row.sourceVersion !== '3.2' || row.observationRole !== 'author_comparison_setup') continue
+    const key = [...row.memberIds].sort().join('|')
+    if (!authorComparisonByKey.has(key)) {
+      authorComparisonByKey.set(key, {
+        observation: row,
+        fingerprint: stableContentHash({
+          identity: authorComparisonMembership32Identity,
+          observation: row,
+        }),
+      })
+    }
+  }
+}
+
 export function reviewedAuthorComparisonMembership32(
   memberIds: readonly string[],
   ownedAgentIds: readonly string[],
   reviewVersion = '3.2',
 ): AuthorComparisonMembership32 | null {
-  const identity = reviewedSourceTeamObservations32Identity
   if (
     reviewVersion !== '3.2' ||
-    identity.sourceVersion !== '3.2' ||
-    identity.id !== 'reviewed-source-team-observations-3.2-v1' ||
-    identity.contentHash !== stableContentHash(reviewedSourceTeamObservations32) ||
-    new Set(memberIds).size !== 3 ||
+    !identityValid ||
     memberIds.length !== 3 ||
-    memberIds.some((id) => !ownedAgentIds.includes(id))
+    memberIds[0] === memberIds[1] ||
+    memberIds[0] === memberIds[2] ||
+    memberIds[1] === memberIds[2]
   )
     return null
   const key = [...memberIds].sort().join('|')
-  const observation = reviewedSourceTeamObservations32.find(
-    (row) =>
-      [...row.memberIds].sort().join('|') === key &&
-      row.sourceVersion === reviewVersion &&
-      row.observationRole === 'author_comparison_setup',
-  )
-  if (!observation) return null
+  const matched = authorComparisonByKey.get(key)
+  if (!matched) return null
+  if (memberIds.some((id) => !ownedAgentIds.includes(id))) return null
+  const { observation, fingerprint } = matched
   return {
     explicitSelectionOnly: true,
     observationRole: observation.observationRole,
     sourceVersion: '3.2',
     conditions: [...observation.conditions],
     equipmentConditions: observation.equipmentConditions.map((row) => ({ ...row })),
-    fingerprint: stableContentHash({ identity: authorComparisonMembership32Identity, observation }),
+    fingerprint,
   }
 }

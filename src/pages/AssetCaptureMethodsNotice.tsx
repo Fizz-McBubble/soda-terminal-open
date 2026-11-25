@@ -13,10 +13,12 @@ export function AssetCaptureRiskNotice() {
       <p>
         <strong>账号风险</strong>两种方式均为非官方工具，存在账号处罚风险，无法保证账号安全。
       </p>
-      <AssetCaptureRiskDetails />
-      <a href={officialTermsUrl} target="_blank" rel="noopener noreferrer">
-        游戏协议
-      </a>
+      <div className="asset-capture-risk__actions">
+        <AssetCaptureRiskDetails />
+        <a href={officialTermsUrl} target="_blank" rel="noopener noreferrer">
+          游戏协议
+        </a>
+      </div>
     </aside>
   )
 }

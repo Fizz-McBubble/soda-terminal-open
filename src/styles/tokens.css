@@ -1,17 +1,26 @@
 :root {
-  --soda-canvas: #f8f7fc;
-  --soda-shell: #f3f0fa;
-  --soda-surface: #fffefe;
-  --soda-surface-raised: #f7f4fc;
-  --soda-line: rgba(95, 84, 136, 0.14);
-  --soda-line-strong: rgba(105, 91, 153, 0.34);
-  --soda-text: #171523;
-  --soda-text-2: #59566a;
-  --soda-text-3: #6d667c;
-  --soda-accent: #705a9e;
+  --soda-canvas: #f5f4f9;
+  --soda-shell: #ebe8f4;
+  --soda-surface: #ffffff;
+  --soda-surface-raised: #f4f1fb;
+  --soda-ink-shell: #13111c;
+  --soda-ink-surface: #1b1828;
+  --soda-line: rgba(20, 18, 32, 0.14);
+  --soda-line-strong: rgba(20, 18, 32, 0.34);
+  --soda-text: #141220;
+  --soda-text-2: #4e4a63;
+  --soda-text-3: #66607d;
+  --soda-accent: #6842ff;
+  --soda-accent-deep: #4c29d4;
+  --soda-accent-soft-tint: #ece6ff;
+  --button-primary-background: var(--soda-accent);
   --soda-font-ui:
     'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC',
     'Noto Sans CJK SC', sans-serif;
+  --soda-font-display:
+    'Bahnschrift', 'DIN Condensed', 'Arial Narrow', 'Impact', 'Segoe UI Variable Display',
+    'Microsoft YaHei UI', sans-serif;
+  --soda-font-mono: 'Cascadia Mono', 'JetBrains Mono', 'Consolas', ui-monospace, monospace;
   --soda-type-meta: 0.75rem;
   --soda-type-body: 0.875rem;
   --soda-type-control: 0.875rem;
@@ -33,18 +42,18 @@
   --soda-layout-development-columns: minmax(260px, 26fr) minmax(0, 74fr);
   --soda-layout-team-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   --soda-layout-warehouse-columns: minmax(0, 1.7fr) minmax(300px, 0.72fr);
-  --soda-accent-ink: #2d2445;
+  --soda-accent-ink: #161326;
   --soda-info: #dff1f7;
-  --soda-green: #326b56;
-  --soda-amber: #806022;
-  --soda-coral: #a0475c;
-  --soda-radius-surface: 12px;
-  --soda-radius-control: 8px;
-  --soda-radius-tag: 4px;
+  --soda-green: #226a52;
+  --soda-amber: #8a5e10;
+  --soda-coral: #b33853;
+  --soda-radius-surface: 14px;
+  --soda-radius-control: 9px;
+  --soda-radius-tag: 5px;
   --soda-radius-shell: 16px;
   --soda-panel: var(--soda-surface);
   --soda-control-height: 42px;
-  --soda-focus: rgba(85, 69, 128, 0.42);
+  --soda-focus: rgba(104, 66, 255, 0.48);
   --soda-motion-fast: 160ms;
   --soda-motion-route: 220ms;
   --soda-motion-overlay: 190ms;
@@ -52,21 +61,13 @@
   --soda-motion-enter: 340ms;
   --soda-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --soda-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
-  --soda-scrollbar-thumb: #7c6ba6;
-  --soda-scrollbar-thumb-hover: #5f4b91;
+  --soda-scrollbar-thumb: #2b2540;
+  --soda-scrollbar-thumb-hover: #6842ff;
   --soda-scrollbar-track: transparent;
-  --soda-shadow-card:
-    0 2px 10px rgba(74, 58, 118, 0.055),
-    0 1px 2px rgba(45, 36, 69, 0.04);
-  --soda-shadow-card-hover:
-    0 12px 28px rgba(74, 58, 118, 0.11),
-    0 2px 6px rgba(45, 36, 69, 0.05);
-  --soda-shadow-float:
-    0 18px 42px rgba(52, 41, 88, 0.14),
-    0 4px 12px rgba(45, 36, 69, 0.06);
-  --soda-shadow-accent:
-    0 8px 22px rgba(96, 73, 152, 0.28),
-    0 2px 6px rgba(62, 45, 108, 0.16);
+  --soda-shadow-card: 0 2px 0 rgba(20, 18, 32, 0.08), 0 6px 18px rgba(20, 18, 32, 0.05);
+  --soda-shadow-card-hover: 0 4px 0 rgba(20, 18, 32, 0.14), 0 14px 28px rgba(42, 28, 96, 0.11);
+  --soda-shadow-float: 0 6px 0 rgba(20, 18, 32, 0.09), 0 20px 44px rgba(20, 18, 32, 0.14);
+  --soda-shadow-accent: 3px 3px 0 #141220, 0 10px 22px rgba(104, 66, 255, 0.28);
   --f5-canvas: var(--soda-shell);
   --f5-rail: var(--soda-canvas);
   --f5-paper: var(--soda-surface);

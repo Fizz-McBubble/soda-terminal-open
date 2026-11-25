@@ -1,0 +1,442 @@
+/* Editorial-Signal Scanner & Import Tools UI (both 画面扫描 & 资产快读 + all sub-states & dialogs). */
+
+.f5v-shell .scanner-task.scanner-workbench {
+  padding: 24px 28px 32px;
+}
+
+/* Top account target + new account + JSON import studio toolbar */
+.f5v-shell .scanner-workbench__target {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 14px 18px !important;
+  margin: 0 0 18px !important;
+  border: 1.5px solid rgba(20, 18, 32, 0.12);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(20, 18, 32, 0.04);
+  gap: 10px 16px !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.f5v-shell .scanner-workbench__account {
+  flex: 1 1 220px;
+  min-width: 210px;
+  max-width: 300px;
+}
+
+.f5v-shell .scanner-workbench__new-account {
+  flex: 1.35 1 290px;
+  min-width: 270px;
+  max-width: 410px;
+}
+
+.f5v-shell .scanner-workbench__new-account .scanner-target-account__create {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.f5v-shell .scanner-workbench__new-account .scanner-target-account__create input {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+.f5v-shell .scanner-workbench .scanner-account-picker__label,
+.f5v-shell .scanner-workbench__new-account label {
+  color: #3a3450;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.f5v-shell .scanner-workbench input::placeholder {
+  color: #6b6482;
+  opacity: 1;
+}
+
+.f5v-shell .scanner-workbench .scanner-account-picker__control .filter-select__trigger:disabled,
+.f5v-shell .scanner-workbench button:disabled {
+  color: #6f6886;
+  border-color: rgba(20, 18, 32, 0.14);
+  background: #f5f3fa;
+  opacity: 0.92;
+}
+
+.f5v-shell .scanner-workbench__file-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  gap: 8px;
+  margin-left: auto;
+  width: auto !important;
+}
+
+/* Risk notice banner: refined caution strip with grouped right links */
+.f5v-shell .scanner-workbench .asset-capture-risk {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 1.5px solid rgba(184, 118, 12, 0.28);
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(-45deg, rgba(217, 130, 0, 0.035) 0 4px, transparent 4px 10px), #fffaf0;
+  color: #3d2a08;
+  box-shadow: 0 2px 8px rgba(20, 18, 32, 0.04);
+}
+
+.f5v-shell .scanner-workbench .asset-capture-risk > svg {
+  color: #c87600;
+}
+
+.f5v-shell .scanner-workbench .asset-capture-risk > p {
+  flex: 1 1 360px;
+  font-size: 13.5px;
+}
+
+.f5v-shell .scanner-workbench .asset-capture-risk__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.f5v-shell .scanner-workbench .asset-capture-risk strong {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  margin-right: 10px;
+  border-radius: 999px;
+  background: rgba(217, 130, 0, 0.14);
+  color: #7c4900;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.f5v-shell .scanner-workbench .asset-capture-risk a,
+.f5v-shell .scanner-workbench .asset-capture-risk .explanation__trigger {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 4px 10px !important;
+  border: 1px solid rgba(124, 73, 0, 0.22) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.84) !important;
+  color: #5a3806 !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.f5v-shell .scanner-workbench .asset-capture-risk a:hover,
+.f5v-shell .scanner-workbench .asset-capture-risk .explanation__trigger:hover {
+  border-color: rgba(124, 73, 0, 0.45) !important;
+  background: #ffffff !important;
+  color: #3d2400 !important;
+}
+
+/* Both import tool cards (画面扫描 & 资产快读) */
+.f5v-shell .scanner-workbench__methods,
+.f5v-shell .scanner-workbench__methods--active {
+  gap: 20px;
+}
+
+.f5v-shell .scanner-workbench__method,
+.f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
+  height: auto !important;
+  min-height: 452px;
+  grid-template-rows: 38px auto 38px minmax(0, 1fr) !important;
+  padding: 22px 24px 24px !important;
+  overflow: visible !important;
+  contain: none !important;
+  border: 1.5px solid rgba(20, 18, 32, 0.13) !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 4px 18px rgba(20, 18, 32, 0.05) !important;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.f5v-shell .scanner-workbench__method.scanner-workbench__quick {
+  border-color: color-mix(in srgb, var(--soda-accent) 24%, transparent) !important;
+}
+
+.f5v-shell .scanner-workbench__method:hover {
+  border-color: rgba(104, 66, 255, 0.28) !important;
+  box-shadow: 0 10px 26px rgba(20, 18, 32, 0.08) !important;
+}
+
+/* Unified header & icon emblem across both cards */
+.f5v-shell .scanner-workbench__method-heading,
+.f5v-shell .scanner-workbench .asset-quick-read__heading {
+  min-height: 36px;
+  align-items: center;
+  gap: 10px;
+}
+
+.f5v-shell .scanner-workbench__method-heading h3,
+.f5v-shell .scanner-workbench .asset-quick-read__heading h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--soda-ink-shell);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.f5v-shell .scanner-workbench .asset-quick-read__heading .asset-quick-read__guide-entry,
+.f5v-shell .scanner-workbench .asset-quick-read__heading > .explanation {
+  margin-left: auto;
+}
+
+.f5v-shell .scanner-workbench__guide-mark {
+  inline-size: 36px;
+  block-size: 36px;
+  border: 1px solid rgba(104, 66, 255, 0.22);
+  border-radius: 10px;
+  background: rgba(104, 66, 255, 0.08);
+  color: var(--soda-accent);
+}
+
+.f5v-shell .scanner-workbench__guide-mark::after {
+  opacity: 0.45;
+}
+
+.f5v-shell .scanner-workbench__method-heading .explanation__trigger,
+.f5v-shell .scanner-workbench .asset-quick-read__heading .explanation__trigger {
+  padding: 4px 10px !important;
+  border: 1px solid rgba(20, 18, 32, 0.14) !important;
+  border-radius: 999px !important;
+  background: #faf9fd !important;
+  color: #3e3756 !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+}
+
+.f5v-shell .scanner-workbench__method-heading .explanation__trigger:hover,
+.f5v-shell .scanner-workbench .asset-quick-read__heading .explanation__trigger:hover {
+  border-color: rgba(104, 66, 255, 0.4) !important;
+  background: rgba(104, 66, 255, 0.08) !important;
+  color: var(--soda-accent) !important;
+}
+
+/* Scope subtitle & metric badges (replace off-palette pink with Soda violet) */
+.f5v-shell .scanner-workbench__scope,
+.f5v-shell .scanner-workbench .asset-quick-read--compact > .scanner-workbench__scope {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 12px !important;
+  color: #4f4964;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.f5v-shell .scanner-workbench__metric {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px !important;
+  border: 1px solid rgba(104, 66, 255, 0.24) !important;
+  border-radius: 999px !important;
+  background: rgba(104, 66, 255, 0.09) !important;
+  color: #4f2fe0 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stepper upgrade: crisp contrast and clear 2px tracks */
+.f5v-shell .scanner-method-steps {
+  margin: 2px 0 16px;
+  color: #5b5570;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.f5v-shell .scanner-method-steps > li:not(:last-child)::after {
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(20, 18, 32, 0.12);
+}
+
+.f5v-shell .scanner-method-steps__number {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(20, 18, 32, 0.14);
+  background: #f3f0fa;
+  color: #433c59;
+  font-weight: 800;
+}
+
+.f5v-shell .scanner-method-steps .is-current {
+  color: var(--soda-ink-shell);
+}
+
+.f5v-shell .scanner-method-steps .is-current .scanner-method-steps__number {
+  border-color: var(--soda-accent);
+  background: var(--soda-accent);
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(104, 66, 255, 0.16);
+}
+
+/* Preparation content + consistent footer alignment */
+.f5v-shell .scanner-workbench .scanner-prepare__requirements,
+.f5v-shell .scanner-workbench .asset-quick-read__game-preparation {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(20, 18, 32, 0.08);
+  border-radius: 12px;
+  background: #faf9fd;
+}
+
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro,
+.f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
+  margin-top: auto !important;
+  padding-top: 12px;
+  border-top: 1px solid rgba(20, 18, 32, 0.08);
+}
+
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro h4,
+.f5v-shell .scanner-workbench .asset-quick-read__tool-status {
+  color: var(--soda-ink-shell);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Fix cramped action buttons & align primary + download + diagnostic cleanly */
+.f5v-shell
+  .scanner-workbench__method:has(.scanner-diagnostic-entry--inline)
+  :is(
+    .scanner-prepare__actions,
+    .scanner-web__scan-actions,
+    .scanner-result-ready__actions,
+    .scanner-target-review__actions,
+    .scanner-import-complete__next,
+    .scanner-dialog-import__actions,
+    .asset-quick-read__actions
+  ) {
+  padding-right: 0 !important;
+}
+
+.f5v-shell .scanner-workbench__method .scanner-diagnostic-entry--inline {
+  position: static !important;
+  margin: 0 !important;
+  align-self: center !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.f5v-shell .scanner-workbench__method .scanner-diagnostic-entry--inline > button {
+  height: 42px !important;
+  min-height: 42px !important;
+  margin: 0 !important;
+}
+
+.f5v-shell .scanner-task.scanner-workbench .scanner-prepare--compact .scanner-prepare__actions,
+.f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions,
+.f5v-shell .scanner-workbench .asset-quick-read__actions:has(> .asset-quick-read-installer) {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-top: 10px;
+}
+
+.f5v-shell
+  .scanner-task.scanner-workbench
+  :is(.scanner-prepare--compact .scanner-prepare__actions, .asset-quick-read__actions)
+  > :is(button, .button),
+.f5v-shell .scanner-task.scanner-workbench .scanner-installer__control,
+.f5v-shell .scanner-workbench .asset-quick-read-installer .scanner-installer__control {
+  width: auto !important;
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
+  height: 42px !important;
+  min-height: 42px !important;
+}
+
+.f5v-shell
+  .scanner-task.scanner-workbench
+  :is(.scanner-prepare--compact .scanner-prepare__actions, .asset-quick-read__actions)
+  > :is(button, .button),
+.f5v-shell .scanner-task.scanner-workbench .scanner-installer .scanner-prepare__download {
+  padding-inline: 18px !important;
+  white-space: nowrap !important;
+}
+
+.f5v-shell .scanner-workbench__quick .button.button--primary {
+  background: var(--soda-accent);
+  color: #ffffff;
+}
+
+/* Sub-states inside scanner & quick-read (progress, review, complete, calibration) */
+.f5v-shell .scanner-workbench .scanner-web__progress,
+.f5v-shell .scanner-workbench .asset-quick-read__panel,
+.f5v-shell .scanner-workbench .asset-quick-read__recovery {
+  border: 1.5px solid rgba(20, 18, 32, 0.13);
+  border-radius: 14px;
+  background: #faf9fd;
+}
+
+.f5v-shell .scanner-workbench .scanner-task__completion,
+.f5v-shell .scanner-workbench .asset-quick-read__complete-summary {
+  padding: 12px 14px;
+  border: 1.5px solid rgba(20, 91, 67, 0.24);
+  border-radius: 14px;
+  background: #edf9f3;
+  color: #114c38;
+}
+
+/* Lower comparison matrix card (采集方式与风险说明) */
+.f5v-shell .asset-capture-methods__grid {
+  border: 1.5px solid rgba(20, 18, 32, 0.13);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(20, 18, 32, 0.04);
+}
+
+.f5v-shell .asset-capture-methods__card h3 {
+  color: var(--soda-ink-shell);
+  font-weight: 800;
+}
+
+.f5v-shell .asset-capture-methods__card h4 {
+  color: #3d3654;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.f5v-shell .asset-capture-methods__advantage {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(104, 66, 255, 0.1);
+  color: #4f2fe0;
+}
+
+/* Manual calibration & import history sub-views */
+.f5v-shell .scanner-calibration,
+.f5v-shell .scanner-import-history {
+  border: 1.5px solid rgba(20, 18, 32, 0.14);
+  border-radius: 16px;
+  background: #ffffff;
+}

@@ -49,6 +49,9 @@ async function generate() {
     const { describeBangbooConditions } = await server.ssrLoadModule(
       '/src/decision/bangbooConditionPresentation.ts',
     )
+    const { targetTeamBangbooOptions } = await server.ssrLoadModule(
+      '/src/decision/targetTeamSourceBangbooOptions.ts',
+    )
     const { lookupCurrent31TeamIntrinsicDetails } = await server.ssrLoadModule(
       '/src/decision/current31TeamIntrinsicIndex.ts',
     )
@@ -66,7 +69,10 @@ async function generate() {
     const templates = [],
       templateIds = new Map(),
       formations = [],
+      bangbooShortlists = [],
+      shortlistIds = new Map(),
       count = catalog.agentIds.length
+    const admitted = new Set(admission.rows.map(([team]) => team))
     for (const [a, b, c] of catalog.rows) {
       const members = [a, b, c].map((i) => catalog.agentIds[i])
       const direction = lookupCurrent31TeamIntrinsicDetails(
@@ -88,11 +94,21 @@ async function generate() {
         templates.push(template)
       }
       const positions = [a, b, c].sort((l, r) => l - r)
-      formations.push([
+      const formation = [
         positions[0] * count * count + positions[1] * count + positions[2],
         templateIds.get(encoded),
         displayOrder,
-      ])
+      ]
+      if (admitted.has([...members].sort().join('|'))) {
+        const ids = targetTeamBangbooOptions({ memberIds: members }).map(({ bangbooId }) => bangbooId)
+        const key = JSON.stringify(ids)
+        if (!shortlistIds.has(key)) {
+          shortlistIds.set(key, bangbooShortlists.length)
+          bangbooShortlists.push(ids)
+        }
+        formation.push(shortlistIds.get(key))
+      }
+      formations.push(formation)
     }
     const rankBytes =
       JSON.stringify({
@@ -100,6 +116,7 @@ async function generate() {
         agentIds: catalog.agentIds,
         templates,
         formations,
+        bangbooShortlists,
       }) + '\n'
     const options = [],
       interned = new Map(),
@@ -146,6 +163,7 @@ async function generate() {
       })
     }
     const digests = {}
+    sources.delete('src/gameDataPacks/generated/box-default-formation-ranks.3.3.json')
     for (const path of [...sources].sort()) digests[path] = await sourceHash(path)
     const content = {
       sources: digests,

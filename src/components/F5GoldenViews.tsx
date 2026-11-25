@@ -138,7 +138,9 @@ export function F5HomeGoldenView({
         >
           <div className="home-readiness__heading">
             <strong id="home-local-status-title">本地资料</strong>
-            <b title={readiness.stateTitle}>{readiness.stateLabel}</b>
+            {readiness.stateLabel ? (
+              <b title={readiness.stateTitle}>{readiness.stateLabel}</b>
+            ) : null}
           </div>
           <dl className="case-rows">
             <div>

@@ -1,0 +1,494 @@
+/* Soda Terminal editorial-signal shell & shared workbench craft.
+ * Retains Soda's bright-violet paper identity and every page's established layout while applying
+ * 70/20/10 contrast: matte bright workspace, 45deg carbon-pinstriped topbar/active ribs,
+ * surgical electric-violet accents, and condensed display numerals.
+ */
+
+.f5v-shell[data-slice-theme='bright-muted'] {
+  background:
+    radial-gradient(ellipse 80% 55% at 88% -10%, rgba(104, 66, 255, 0.08), transparent 62%),
+    var(--soda-shell);
+}
+
+.f5v-shell .f5v-rail {
+  border-right: 1.5px solid rgba(20, 18, 32, 0.18);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(180deg, rgba(104, 66, 255, 0.055) 0%, transparent 28%), var(--soda-canvas);
+}
+
+.f5v-shell .f5v-brand-icon {
+  filter: saturate(1.12) contrast(1.04);
+}
+
+.f5v-shell .f5v-brand > span:last-child strong {
+  font-family: var(--soda-font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--soda-text);
+}
+
+.f5v-shell .f5v-brand > span:last-child small {
+  font-family: var(--soda-font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--soda-accent);
+}
+
+.f5v-shell .f5v-navigation a {
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 0 11px;
+  gap: 7px;
+}
+
+.f5v-shell .f5v-navigation a > small {
+  margin-left: auto;
+  padding-left: 6px;
+  font-size: 0.65rem;
+  opacity: 0.72;
+}
+
+.f5v-shell .f5v-navigation a.is-current {
+  color: #ffffff;
+  background-color: var(--soda-ink-shell);
+  background-image:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 7px),
+    linear-gradient(108deg, rgba(104, 66, 255, 0.32) 0%, transparent 56%);
+  border: 1.5px solid #100e18;
+  box-shadow: 2px 2px 0 rgba(104, 66, 255, 0.48);
+}
+
+.f5v-shell .f5v-navigation a.is-current::before {
+  width: 4px;
+  height: 20px;
+  top: calc(50% - 10px);
+  background: var(--soda-accent);
+}
+
+.f5v-shell .f5v-navigation a.is-current .f5v-navigation__icon {
+  color: #b79eff;
+}
+
+.f5v-shell .f5v-navigation__testing-row:has(> a.is-current) .explanation__trigger {
+  color: #e4ddff !important;
+}
+
+.f5v-shell .f5v-navigation__testing-row:has(> a.is-current) .explanation__trigger:hover,
+.f5v-shell .f5v-navigation__testing-row:has(> a.is-current) .explanation__trigger:focus-visible {
+  color: #ffffff !important;
+}
+
+.f5v-shell .f5v-navigation a:not(.is-current):is(:hover, :focus-visible) {
+  background-color: #ffffff;
+  border-color: rgba(20, 18, 32, 0.24);
+  color: var(--soda-text);
+}
+
+/* Carbon-obsidian structural topbar echoing official ZZZ navbar contrast */
+.f5v-shell .f5v-content > .f5v-topbar {
+  border-radius: 0 var(--soda-radius-surface) 0 0;
+  overflow: hidden;
+  background-color: var(--soda-ink-shell);
+  background-image:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 8px),
+    linear-gradient(
+      90deg,
+      rgba(104, 66, 255, 0.18) 0%,
+      transparent 32%,
+      rgba(104, 66, 255, 0.14) 100%
+    );
+  color: #f4f2fc;
+}
+
+.f5v-shell .f5v-content > .f5v-topbar::after {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(196, 174, 255, 0.92) 48%,
+    #ffffff 52%,
+    rgba(196, 174, 255, 0.92) 56%,
+    transparent 100%
+  );
+  opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-shell .f5v-content > .f5v-topbar::after {
+    animation: soda-topbar-beam 6.4s ease-in-out infinite;
+  }
+}
+
+@keyframes soda-topbar-beam {
+  0%,
+  100% {
+    transform: translate3d(-44%, 0, 0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate3d(44%, 0, 0);
+    opacity: 0.95;
+  }
+}
+
+.f5v-shell .f5v-topbar .f5v-menu {
+  color: #ffffff;
+}
+
+.f5v-shell .f5v-topbar .f5v-location {
+  flex-shrink: 0;
+}
+
+.f5v-shell .f5v-topbar .f5v-location__mark {
+  background: var(--soda-accent);
+  color: #ffffff;
+  border-radius: 7px;
+  clip-path: none;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.f5v-shell .f5v-topbar .f5v-location strong {
+  background: #ffffff;
+  color: var(--soda-ink-shell);
+  border-radius: 999px;
+  padding: 4px 16px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow: 2px 2px 0 rgba(104, 66, 255, 0.55);
+}
+
+.f5v-shell .f5v-topbar .f5v-location strong::after {
+  display: none;
+}
+
+.f5v-shell .f5v-topbar .f5v-location small {
+  color: #c8bef2;
+}
+
+.f5v-shell .f5v-topbar .f5v-terminal-signal {
+  color: #c8b8ff;
+}
+
+.f5v-shell .f5v-topbar .f5v-terminal-signal::before,
+.f5v-shell .f5v-topbar .f5v-terminal-signal::after {
+  opacity: 0.34;
+}
+
+.f5v-shell .f5v-topbar .f5v-terminal-wave i {
+  background: linear-gradient(180deg, #d7c7ff 0%, var(--soda-accent) 100%);
+  opacity: 0.92;
+}
+
+.f5v-shell .f5v-topbar .f5v-account-strip {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(62vw, 38rem);
+  color: rgba(244, 242, 252, 0.86);
+}
+
+.f5v-shell .f5v-topbar .f5v-account-strip > * {
+  padding: 0 9px;
+  flex-shrink: 0;
+}
+
+.f5v-shell .f5v-topbar .f5v-account-strip > span {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.f5v-shell .f5v-topbar .f5v-account-strip > * + *:not(b) {
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.f5v-shell .f5v-topbar .f5v-account-strip strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.f5v-shell .f5v-topbar .f5v-account-strip > b {
+  font-family: var(--soda-font-mono);
+  background: var(--soda-accent);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.f5v-shell .f5v-topbar .release-notes > .explanation__trigger {
+  color: #e4ddff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.f5v-shell .f5v-topbar .release-notes > .explanation__trigger:is(:hover, :focus-visible) {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.44);
+  background: rgba(104, 66, 255, 0.36);
+}
+
+/* Compact terminal-framed SponsorRail aligned with Home support card across the rail seam */
+.f5v-shell .f5v-rail .sponsor-rail {
+  padding: 10px;
+  border: 1.5px solid rgba(20, 18, 32, 0.18);
+  border-radius: 11px;
+  background: #ffffff;
+  box-shadow: 2px 2px 0 rgba(20, 18, 32, 0.08);
+}
+
+@media (min-width: 1021px) and (min-height: 760px) {
+  .f5v-shell .f5v-rail .sponsor-rail {
+    margin-top: clamp(91px, calc(100dvh - 688px), 135px);
+  }
+}
+
+.f5v-shell .f5v-rail .sponsor-rail__channels button {
+  min-height: 24px;
+  border: 1px solid rgba(20, 18, 32, 0.14);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--soda-text-2);
+}
+
+.f5v-shell .f5v-rail .sponsor-rail__channels button.is-selected {
+  border-color: var(--soda-ink-shell);
+  background: var(--soda-ink-shell);
+  color: #ffffff;
+}
+
+.f5v-shell .f5v-rail .sponsor-rail__qr {
+  padding: 8px 6px 6px;
+  border: 1.5px solid transparent;
+  border-radius: 9px;
+  transition:
+    background-color var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    color var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.f5v-shell .f5v-rail .sponsor-rail__qr:is(:hover, :focus-visible) {
+  border-color: rgba(104, 66, 255, 0.34);
+  background: color-mix(in srgb, var(--soda-accent) 8%, #ffffff);
+  color: var(--soda-ink-shell);
+}
+
+.f5v-shell .f5v-rail .sponsor-rail__qr .sponsor-qr {
+  width: 66px;
+  padding: 3px;
+  border: 1.5px solid rgba(20, 18, 32, 0.16);
+  border-radius: 8px;
+  transition: border-color var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.f5v-shell .f5v-rail .sponsor-rail__qr:is(:hover, :focus-visible) .sponsor-qr {
+  border-color: var(--soda-accent);
+}
+
+.f5v-shell .f5v-rail .sponsor-rail__qr small {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+/* Unified primary & secondary controls across Home, Scanner, Assets, Development, Teams, and Warehouse */
+:root
+  .f5v-shell
+  :is(
+    .button--primary,
+    .button.primary,
+    .home-primary-action,
+    .primary-action,
+    .f5v-box-team-primary-action,
+    .r6-golden .primary,
+    .planning-dialog .button-row button.primary,
+    .app-recovery-actions .button--primary,
+    .scanner-workbench__quick .button.button--primary,
+    .scanner-golden .scanner-web__primary-action.button--primary,
+    .asset-quick-read .button.button--primary,
+    .home-catalog-cache__action--download:not(:disabled)
+  ) {
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--soda-ink-shell) !important;
+  border-radius: 10px;
+  color: #ffffff !important;
+  background: var(--soda-accent) !important;
+  background-image: none !important;
+  box-shadow: 3px 3px 0 var(--soda-ink-shell) !important;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none !important;
+}
+
+:root
+  .f5v-shell
+  :is(
+    .button--primary,
+    .button.primary,
+    .home-primary-action,
+    .primary-action,
+    .f5v-box-team-primary-action,
+    .r6-golden .primary,
+    .app-recovery-actions .button--primary,
+    .scanner-workbench__quick .button.button--primary,
+    .asset-quick-read .button.button--primary
+  )::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 24%,
+    rgba(255, 255, 255, 0.34) 48%,
+    rgba(216, 200, 255, 0.14) 56%,
+    transparent 74%
+  );
+  transform: translate3d(-135%, 0, 0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root
+    .f5v-shell
+    :is(
+      .button--primary,
+      .button.primary,
+      .primary-action,
+      .f5v-box-team-primary-action,
+      .r6-golden .primary,
+      .app-recovery-actions .button--primary,
+      .scanner-workbench__quick .button.button--primary,
+      .asset-quick-read .button.button--primary
+    ):not(:disabled):hover::after {
+    transition: transform 500ms var(--soda-ease-out);
+    transform: translate3d(135%, 0, 0);
+  }
+}
+
+:root
+  .f5v-shell
+  :is(
+    .button--primary,
+    .button.primary,
+    .home-primary-action,
+    .primary-action,
+    .f5v-box-team-primary-action,
+    .r6-golden .primary,
+    .planning-dialog .button-row button.primary,
+    .app-recovery-actions .button--primary,
+    .scanner-workbench__quick .button.button--primary,
+    .scanner-golden .scanner-web__primary-action.button--primary,
+    .asset-quick-read .button.button--primary,
+    .home-catalog-cache__action--download
+  ):hover:not(:disabled) {
+  background: var(--soda-accent-deep) !important;
+  border-color: var(--soda-ink-shell) !important;
+  box-shadow: 4px 4px 0 var(--soda-ink-shell) !important;
+  transform: translate(-1px, -1px);
+  text-decoration: none !important;
+}
+
+:root
+  .f5v-shell
+  :is(
+    .button--primary,
+    .button.primary,
+    .home-primary-action,
+    .primary-action,
+    .f5v-box-team-primary-action,
+    .r6-golden .primary,
+    .planning-dialog .button-row button.primary,
+    .app-recovery-actions .button--primary,
+    .scanner-workbench__quick .button.button--primary,
+    .scanner-golden .scanner-web__primary-action.button--primary,
+    .asset-quick-read .button.button--primary,
+    .home-catalog-cache__action--download
+  ):active:not(:disabled) {
+  box-shadow: 1px 1px 0 var(--soda-ink-shell) !important;
+  transform: translate(1px, 1px);
+}
+
+:root
+  .f5v-shell
+  :is(
+    .button--primary,
+    .button.primary,
+    .home-primary-action,
+    .primary-action,
+    .r6-golden .primary,
+    .app-recovery-actions .button--primary,
+    .scanner-workbench__quick .button.button--primary,
+    .asset-quick-read .button.button--primary
+  ):disabled {
+  opacity: 0.56;
+  box-shadow: 1px 1px 0 rgba(20, 18, 32, 0.45) !important;
+  transform: none;
+}
+
+:root
+  .f5v-shell
+  :is(.button, .scanner-account-picker__trigger, .app-recovery-actions .button):not(.primary):not(
+    .button--primary
+  ):not(.home-primary-action):not(.primary-action):not(.button--quiet) {
+  border: 1.5px solid rgba(20, 18, 32, 0.24);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--soda-ink-shell);
+  font-weight: 700;
+  box-shadow: none;
+  text-decoration: none !important;
+}
+
+:root
+  .f5v-shell
+  :is(.button, .scanner-account-picker__trigger, .app-recovery-actions .button):not(.primary):not(
+    .button--primary
+  ):not(.home-primary-action):not(.primary-action):not(.button--quiet):hover:not(:disabled) {
+  border-color: var(--soda-ink-shell);
+  background: #ffffff;
+  box-shadow: 2px 2px 0 rgba(20, 18, 32, 0.18);
+  transform: translate(-0.5px, -0.5px);
+  text-decoration: none !important;
+}
+
+.f5v-shell .scanner-input {
+  border: 1.5px solid rgba(20, 18, 32, 0.2);
+  background: #ffffff;
+}
+
+.f5v-shell .scanner-input:focus-visible {
+  border-color: var(--soda-accent);
+  box-shadow: 0 0 0 3px rgba(104, 66, 255, 0.18);
+}
+
+.f5v-shell
+  :is(
+    .f5v-box-team-reference__grade,
+    .f5v-box-team-reference__score,
+    .f5v-box-team-preview__grade,
+    .f5v-box-team-preview__score,
+    .stat-grid dd,
+    .disc-metric,
+    .warehouse-summary strong
+  ) {
+  font-family: var(--soda-font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell :is(.f5v-box-team-row, .f5v-box-team-decision-card).is-selected {
+  border: 1.5px solid var(--soda-ink-shell) !important;
+  background: color-mix(in srgb, var(--soda-accent) 7%, #ffffff) !important;
+  box-shadow:
+    inset 4px 0 0 var(--soda-accent),
+    2px 2px 0 rgba(20, 18, 32, 0.1) !important;
+}
