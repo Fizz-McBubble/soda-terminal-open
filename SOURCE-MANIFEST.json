@@ -25,7 +25,7 @@
     "deploy/cloudflare/edge.mjs": "63b470c638c8d8800daaf730dda6d8196eb4942f83b9a67a0cab2aa39134d016",
     "deploy/cloudflare/edge.test.mjs": "d0fd247defdd22ce5600c29e4b9a4b1d8d0ac74e3ed6bbb40127ed86ef2d1d96",
     "deploy/cloudflare/installer-chunk-cache.mjs": "44e9a766eb0a277de9f1069c56bf6a5c233fb4d562a93fda5b302455fcff96c4",
-    "deploy/cloudflare/installer-feedback.test.mjs": "4d0d17d39bf2059773c70e1e134c86d68f1286e4395c6d2576eb5cd20e048fbd",
+    "deploy/cloudflare/installer-feedback.test.mjs": "3b0b11f300c5405d206c872565673388712d3e660a4f467179ba7e44cc26a8a3",
     "deploy/cloudflare/installer-mirrors.json": "2fab6976bb93ab1586315089dc241ec1d5a823a27eab1d3d525b941fd6afd84a",
     "deploy/cloudflare/installer-mirrors.mjs": "1f872d5a1bb3da815b2fad9ca8f364dae834b7bdeefd81dfc9a7ce912482b8b0",
     "deploy/cloudflare/installer-mirrors.test.mjs": "5262f08a1bf6ac6893536f79c6c2275f7bc74eaada6a3ff669e103e424d8bc22",
