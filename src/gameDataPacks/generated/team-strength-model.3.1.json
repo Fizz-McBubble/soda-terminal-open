@@ -203,7 +203,7 @@
     "source_support_anomaly_buildup_resistance_reduction",
     "source_support_secondary_recipient_first_provider_gain"
   ],
-  "mechanicDataFingerprint": "fnv1a-5ac612a3",
+  "mechanicDataFingerprint": "fnv1a-32a47bc1",
   "referenceConditionsIdentity": "fnv1a-8a6269b",
   "conditionAlignment": {
     "status": "declared_standard_reference",
@@ -306,7 +306,7 @@
     "src/calculation/currentPlanningAnomalyLifecycleIdentity32.ts": "8d41b30b222c59ab639512800f9b21cf13cf423bef9d609f8ccafcf9415acc0c",
     "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "c1b2e2514ce1a0c599b832b04fe9b9ce190fd22f227a9af1c392eea629eb497e",
     "src/calculation/currentPlanningConsumerPolicySourceClosure.v1.json": "8367fa4519b0c361a105c4d7fabf5fd473513c97be108971011fa2d337b4dcce",
-    "src/calculation/generated/currentPlanningConsumerPolicyIdentity32.v1.json": "9d07f8c5ac17e15911638e21db45bb970e2efe910c99e52ae182c26287078462",
+    "src/calculation/generated/currentPlanningConsumerPolicyIdentity32.v1.json": "2166af4e6e9f85ade7349a97f9fb1706f930eeb92993338596ddba27ee68ca55",
     "src/calculation/reviewedTemplateEventConditions32.ts": "0db149789f4871ca328ffe39b12f2ad13ce76180ae8aca2c0ddcf52fd763a539",
     "src/calculation/currentPlanningScenario32.ts": "7b5e6e220031fcb364230f12547ce1b6cd5d1b7213ce00d8d93e5c5bc695021f",
     "src/application/publicPlanningScenarioContract.ts": "5cf8a38ef6b3cf4b4bbbe4113deb0befd487d001dc7d91b240b4bb5b5ef6d618",
@@ -594,7 +594,7 @@
     "src/pages/teamRecommendationRank.ts": "a9fb02b9fea5e877365450f457f873dbb76ec637db0d618f330b273f8a0bc834",
     "src/pages/teamRecommendationOrdering.ts": "2b853613130245677ac63073ecc738425150d0f41d416758f2f489627f863391",
     "src/pages/teamLoadoutOverviewModel.ts": "23b5634c713f89a9a82c1cbd03c5dd8bb0532578248b938aa069cc4072c849d9",
-    "src/application/developmentComparisonPanelProjection.ts": "284cd6926da702e473a0b7c6bcdc137cdcdcfad6d6e5cab9f191e98eb45178ac",
+    "src/application/developmentComparisonPanelProjection.ts": "e394d523608daab327a8badfaeb7e9bb166688baf45a5bd541da4e416f4a2ea7",
     "src/application/characterPanelFields.ts": "ae0553f94a235868e399babe39e5159e99b50027dec45e1ae0934dc98749ba28",
     "src/application/characterPanelMenuPresentation.ts": "8c90faf752e8d4b19e80fcb303ae7e71e1739c3fa0824030e8a993193fb9ca99",
     "src/domain/characterPanelStats.ts": "ea9714fd3ffd2bbe0d147b71f61c49a8a49779824db332253bb05e2bcb5b4db0",

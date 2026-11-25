@@ -290,7 +290,7 @@
     "bangboo": "source-string-equality-stratum-only-not-a-controlled-build-claim"
   },
   "pairMembershipSha256": "5f696aac7934607a4be8a8f69ff0fbf7e9235a17761d485dfce6c5235e303c7f",
-  "mechanicDataFingerprint": "fnv1a-5ac612a3",
+  "mechanicDataFingerprint": "fnv1a-32a47bc1",
   "referenceConditionsIdentity": "fnv1a-8a6269b",
   "featureNames": [
     "direct_action_scale",
@@ -366,7 +366,7 @@
   ],
   "diagnosticBaseline": {
     "kind": "historical-label-directional-ridge",
-    "contentHash": "fnv1a-67defa99",
+    "contentHash": "fnv1a-e6dd2090",
     "trainingCount": 105
   },
   "target": "all-same-partition-limited-S-M0-aggregate-shared-two-member-replacements-observed-direction/v3",
@@ -712,5 +712,5 @@
   "runtimeStrengthAuthority": false,
   "currentIndependentAccuracy": false,
   "boundary": "Observed Limited-S-M0 aggregate preference only; Standard-S and A-rank Mindscapes are unrestricted. Player/build/potential differences remain uncontrolled; correlated pairs are not independent samples. No generic S/A/B tier, DPS, pull value or default ranking authority.",
-  "contentHash": "fnv1a-e91cbb66"
+  "contentHash": "fnv1a-f711689a"
 }
