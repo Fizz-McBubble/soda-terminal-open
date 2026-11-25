@@ -10,11 +10,12 @@ export function HomeHeroScene() {
         src={homeHeroImage.src}
         srcSet={homeHeroImage.srcSet}
         sizes={homeHeroImage.sizes}
-        width={1536}
-        height={2048}
+        width={1600}
+        height={1200}
         fetchPriority="high"
         decoding="async"
-        alt="首页角色插画"
+        referrerPolicy="no-referrer"
+        alt="挽昼版本主视觉"
         draggable="false"
       />
     </figure>

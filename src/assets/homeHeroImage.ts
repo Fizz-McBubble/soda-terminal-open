@@ -1,12 +1,13 @@
-import small from './golden-sample/ramiel-user-cutout-576.webp'
-import regular from './golden-sample/ramiel-user-cutout-1152.webp'
-import large from './golden-sample/ramiel-user-cutout-1536.webp'
+const officialArtwork =
+  'https://i0.hdslb.com/bfs/new_dyn/e765df9cd60e5179c642391004d66c401636034895.png'
+const small = `${officialArtwork}@640w.webp`
+const regular = `${officialArtwork}@1200w.webp`
 
 export const homeHeroImage = {
   src: regular,
-  srcSet: `${small} 576w, ${regular} 1152w, ${large} 1536w`,
+  srcSet: `${small} 640w, ${regular} 1200w`,
   sizes:
-    '(max-width: 960px) 90vw, (max-width: 1400px) 530px, (min-width: 1921px) min(36vw, 1035px), 690px',
+    '(max-width: 960px) 90vw, (max-width: 1400px) 540px, (min-width: 1921px) min(38vw, 820px), 600px',
 }
 
 export function preloadHomeHeroImage() {
@@ -17,6 +18,7 @@ export function preloadHomeHeroImage() {
   link.as = 'image'
   link.imageSrcset = homeHeroImage.srcSet
   link.imageSizes = homeHeroImage.sizes
+  link.referrerPolicy = 'no-referrer'
   link.setAttribute('fetchpriority', 'high')
   document.head.append(link)
 }

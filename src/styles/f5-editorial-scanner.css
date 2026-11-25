@@ -84,6 +84,7 @@
   margin: 0 0 20px;
   padding: 12px 16px;
   border: 1.5px solid rgba(184, 118, 12, 0.28);
+  border-left: 4px solid #d98200;
   border-radius: 12px;
   background:
     repeating-linear-gradient(-45deg, rgba(217, 130, 0, 0.035) 0 4px, transparent 4px 10px), #fffaf0;
@@ -162,6 +163,7 @@
   overflow: visible !important;
   contain: none !important;
   border: 1.5px solid rgba(20, 18, 32, 0.13) !important;
+  border-top: 3px solid var(--soda-ink-shell) !important;
   border-radius: 16px !important;
   background: #ffffff !important;
   box-shadow: 0 4px 18px rgba(20, 18, 32, 0.05) !important;
@@ -172,7 +174,7 @@
 }
 
 .f5v-shell .scanner-workbench__method.scanner-workbench__quick {
-  border-color: color-mix(in srgb, var(--soda-accent) 24%, transparent) !important;
+  border-top-color: var(--soda-accent) !important;
 }
 
 .f5v-shell .scanner-workbench__method:hover {
@@ -401,6 +403,7 @@
 .f5v-shell .scanner-workbench .asset-quick-read__complete-summary {
   padding: 12px 14px;
   border: 1.5px solid rgba(20, 91, 67, 0.24);
+  border-left: 4px solid #157a5a;
   border-radius: 14px;
   background: #edf9f3;
   color: #114c38;

@@ -16,6 +16,7 @@
 .f5v-shell .scanner-web__fallback-dialog,
 .f5v-shell .release-notes-dialog {
   border: 1.5px solid rgba(20, 18, 32, 0.2) !important;
+  border-top: 4px solid var(--soda-ink-shell) !important;
   border-radius: 16px !important;
   background: #ffffff !important;
   color: var(--soda-ink-shell);
@@ -29,6 +30,7 @@
 
 .f5v-shell .explanation-popover[popover] {
   border: 1.5px solid rgba(20, 18, 32, 0.18) !important;
+  border-top: 3px solid var(--soda-accent) !important;
   border-radius: 14px !important;
   background: #ffffff !important;
   box-shadow: 0 16px 38px rgba(15, 13, 26, 0.18) !important;
@@ -45,6 +47,7 @@
   margin: 24px 0 0 28px;
   padding: 26px 28px !important;
   border: 1.5px solid rgba(20, 18, 32, 0.14);
+  border-top: 3px solid var(--soda-ink-shell);
   border-radius: 16px;
   background: #ffffff;
   box-shadow: 0 6px 22px rgba(20, 18, 32, 0.055);
@@ -240,6 +243,11 @@
   box-shadow: 0 4px 16px rgba(20, 18, 32, 0.045);
 }
 
+.f5v-shell .ad-golden .overview .next-panel,
+.f5v-shell .ad-golden .workbench--single-page .current-overview {
+  border-top: 3px solid var(--soda-ink-shell);
+}
+
 .f5v-shell .ad-golden .overview .agent-tile-link {
   border: 0;
   background: #ffffff;
@@ -311,6 +319,7 @@
 
 .f5v-shell .f5v-box-team-preview {
   border: 1.5px solid rgba(20, 18, 32, 0.13) !important;
+  border-top: 3px solid var(--soda-ink-shell) !important;
   border-radius: 16px !important;
   background: #ffffff !important;
   box-shadow: 0 4px 16px rgba(20, 18, 32, 0.045);
@@ -402,6 +411,7 @@
 
 .f5v-shell .warehouse-action-drawer {
   border: 1.5px solid rgba(20, 18, 32, 0.14) !important;
+  border-top: 3px solid var(--soda-ink-shell) !important;
   border-radius: 16px !important;
   background: #ffffff !important;
   box-shadow: 0 6px 20px rgba(20, 18, 32, 0.06);

@@ -83,6 +83,22 @@
   overflow: visible;
 }
 
+.f5v-shell .home-scene::before {
+  content: 'SUNBRINGER // 3.3';
+  position: absolute;
+  right: 32px;
+  top: 16px;
+  z-index: 0;
+  font-family: var(--soda-font-display);
+  font-size: clamp(1.8rem, 2.7vw, 2.6rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.11);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .f5v-shell .home-scene::after {
   content: 'SODA TERMINAL · 01';
   position: absolute;
@@ -123,7 +139,7 @@
   border: 1px dashed rgba(255, 255, 255, 0.24);
 }
 
-/* The responsive cutout sits in front of the scene frame. */
+/* Full-body Wanzhou breaking cleanly above top border (+16px) and below bottom border (-24px) */
 .f5v-shell .soda-home--golden .home-version-hero {
   position: absolute;
   z-index: 5;
@@ -141,7 +157,7 @@
   .f5v-shell .soda-home--golden .home-version-hero {
     animation:
       soda-home-character-arrive 480ms var(--soda-ease-spring) both,
-      soda-editorial-hero-float 7.2s ease-in-out 520ms infinite;
+      soda-wanzhou-float 7.2s ease-in-out 520ms infinite;
   }
 
   .f5v-shell .home-primary-action::after {
@@ -155,23 +171,13 @@
   }
 }
 
-@keyframes soda-editorial-hero-float {
+@keyframes soda-wanzhou-float {
   0%,
   100% {
     transform: translate3d(0, 0, 0);
   }
   50% {
     transform: translate3d(0, -5px, 0);
-  }
-}
-
-@keyframes soda-editorial-sheen {
-  0%,
-  72% {
-    transform: translate3d(-135%, 0, 0);
-  }
-  100% {
-    transform: translate3d(135%, 0, 0);
   }
 }
 
