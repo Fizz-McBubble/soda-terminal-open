@@ -251,7 +251,7 @@ describe('ScannerAssistantPage', () => {
       expect(await screen.findByLabelText('选择本机文件（JSON）')).toHaveAttribute('type', 'file')
       const scope = screen.getByText('S 级驱动盘 · 无需重新登录')
       expect(scope).toBeVisible()
-      expect(scope).toHaveTextContent('约 140 张/分钟')
+      expect(screen.queryByText(/140 张\/分钟/)).not.toBeInTheDocument()
       expect(screen.queryByText('辅助信息与备用导入')).not.toBeInTheDocument()
     },
   )

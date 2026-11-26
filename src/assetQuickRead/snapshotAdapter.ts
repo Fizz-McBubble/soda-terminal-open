@@ -193,14 +193,16 @@ export function convertAssetSnapshot(
       'discs',
       index,
       'level',
-      rarity === 5 ? 0 : undefined,
+      // A zero level is omitted on the wire for S, A and B discs.
+      0,
     )
     const main = disc.main_stat
     const mainInfo = main?.key.value === null || !main ? undefined : statsById[main.key.value]
-    if (!mainInfo || !main || level === undefined) {
-      issue('unknown_main_stat', '驱动盘主词条身份或等级无效。', 'discs', index)
+    if (!mainInfo || !main) {
+      issue('unknown_main_stat', '驱动盘主词条身份无效。', 'discs', index, 'main_stat')
       return
     }
+    if (level === undefined) return
     const [mainStat, percent] = mainInfo
     const rule = discData.rules.mainStatBaseByRarity[rarityName].find(
       (row) => row.stat === mainStat,

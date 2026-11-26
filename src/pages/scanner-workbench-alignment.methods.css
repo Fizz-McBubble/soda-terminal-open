@@ -145,9 +145,6 @@
 .f5v-shell .scanner-workbench .scanner-prepare--compact > * {
   flex-shrink: 0;
 }
-.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro {
-  margin-top: auto;
-}
 .f5v-shell .scanner-workbench__body > .scanner-workbench__method-task {
   flex: 1;
   overflow: visible;

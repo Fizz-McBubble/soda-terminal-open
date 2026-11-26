@@ -368,9 +368,10 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(harness.read().hasTask).toBe(false)
     expect(harness.read().busy).toBe(false)
     expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
+    await act(async () => vi.advanceTimersByTimeAsync(0))
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '撤销上次导入' })).toBeEnabled()
-    expect(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ })).not.toBeChecked()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     expect(persistence.confirm).not.toHaveBeenCalled()
     expect(persistence.readRecovery).toHaveBeenCalledWith(targetAccountId)
     expect(persistence.restore).not.toHaveBeenCalled()
@@ -448,7 +449,8 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(harness.read().busy).toBe(false)
     expect(harness.read().hasTask).toBe(false)
     expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
+    await act(async () => vi.advanceTimersByTimeAsync(0))
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '更新资产快读' })).toBeVisible()
     expect(screen.getByRole('button', { name: '撤销上次导入' })).toBeEnabled()
     expect(client.connect).toHaveBeenCalledOnce()
@@ -458,10 +460,8 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(persistence.restore).not.toHaveBeenCalled()
     expect(refresh).toHaveBeenCalledOnce()
 
-    expect(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ })).not.toBeChecked()
     const secondStart = screen.getByRole('button', { name: '一键读取' })
-    expect(secondStart).toBeDisabled()
-    fireEvent.click(secondStart)
+    expect(secondStart).toBeEnabled()
     expect(client.start).toHaveBeenCalledOnce()
     converted.candidate = { ...converted.candidate, snapshotSha256: 'b'.repeat(64) }
     await act(async () => vi.advanceTimersByTimeAsync(0))
@@ -472,7 +472,6 @@ export function registerAssetQuickReadControllerIdentityCases() {
       sha256: 'b'.repeat(64),
       capturedAt: '2026-10-10T00:01:00Z',
     })
-    fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
     await act(async () => fireEvent.click(secondStart))
     await act(async () => vi.advanceTimersByTimeAsync(1000))
     expect(client.start).toHaveBeenCalledTimes(2)

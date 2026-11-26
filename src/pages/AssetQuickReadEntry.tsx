@@ -231,7 +231,7 @@ export function AssetQuickReadEntry({
       !available ||
       targetMissing ||
       preparationBlocked ||
-      !acknowledged ||
+      (!renderParts && !acknowledged) ||
       pendingActionRef.current ||
       stopPendingRef.current
     )
@@ -411,22 +411,24 @@ export function AssetQuickReadEntry({
                 先单独运行资产快读。这里只填写游戏目录，不读取账号密码。连接仅探测工具；开始读取时才请求管理员权限。
               </p>
             )}
-            <div className="asset-quick-read__actions">
-              {!renderParts && connectionButton}
-              {onInspectFile && !renderParts && (
-                <button
-                  className="button button--quiet"
-                  type="button"
-                  disabled={preparationBlocked || pendingBlocksReplacement}
-                  onClick={() => {
-                    if (!preparationBlocked && !pendingBlocksReplacement)
-                      void runAction('inspect', onInspectFile)
-                  }}
-                >
-                  检查资产快读 JSON 候选
-                </button>
-              )}
-            </div>
+            {!renderParts && (
+              <div className="asset-quick-read__actions">
+                {connectionButton}
+                {onInspectFile && (
+                  <button
+                    className="button button--quiet"
+                    type="button"
+                    disabled={preparationBlocked || pendingBlocksReplacement}
+                    onClick={() => {
+                      if (!preparationBlocked && !pendingBlocksReplacement)
+                        void runAction('inspect', onInspectFile)
+                    }}
+                  >
+                    检查资产快读 JSON 候选
+                  </button>
+                )}
+              </div>
+            )}
             {!renderParts && (
               <p className="asset-quick-read__target">
                 导入目标：<strong>{targetAccountName || '请先在扫描准备区选择账户'}</strong>
@@ -752,21 +754,6 @@ export function AssetQuickReadEntry({
       )}
       {renderParts && (
         <>
-          {capability === 'ready' &&
-          !targetMissing &&
-          (!stageActive || ['error', 'stopped', 'timed_out'].includes(state)) ? (
-            <label className="asset-quick-read__compact-confirmation">
-              <input
-                type="checkbox"
-                checked={acknowledged}
-                disabled={preparationBlocked || !available}
-                onChange={(event) =>
-                  setAcknowledgedAccount(event.target.checked ? riskAccountKey : null)
-                }
-              />
-              <span>我已了解上方账号风险与权限说明，自愿开始本次读取。</span>
-            </label>
-          ) : null}
           <div className="asset-quick-read__actions">
             {capability !== 'ready' ? (
               connectionButton
@@ -779,7 +766,7 @@ export function AssetQuickReadEntry({
                 ref={startTriggerRef}
                 className="button button--primary"
                 type="button"
-                disabled={!available || preparationBlocked || !acknowledged}
+                disabled={!available || preparationBlocked}
                 onClick={() => void start()}
               >
                 一键读取

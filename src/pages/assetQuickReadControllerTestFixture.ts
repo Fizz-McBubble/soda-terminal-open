@@ -138,8 +138,6 @@ export async function prepareStart() {
   if (standalonePreparation) {
     fireEvent.click(standalonePreparation)
     fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
-  } else {
-    fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
   }
 }
 export async function startAndReceive() {

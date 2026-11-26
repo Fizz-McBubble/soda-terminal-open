@@ -851,10 +851,7 @@ function HydratedScannerAssistantPage({
                         </h3>
                         <ScannerGuide />
                       </header>
-                      <p className="scanner-workbench__scope">
-                        S 级驱动盘 · 无需重新登录{' '}
-                        <span className="scanner-workbench__metric">约 140 张/分钟</span>
-                      </p>
+                      <p className="scanner-workbench__scope">S 级驱动盘 · 无需重新登录</p>
                       <ScannerMethodSteps
                         method="扫描"
                         currentStep={

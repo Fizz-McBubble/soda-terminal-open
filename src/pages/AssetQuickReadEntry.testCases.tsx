@@ -18,7 +18,7 @@ export function registerAssetQuickReadEntryPreparationCases() {
     }
     const view = render(<AssetQuickReadEntry {...props} capability="ready" blocked />)
     expect(screen.getByText('完成游戏更新及首次着色器编译，然后完全退出客户端。')).toBeVisible()
-    expect(screen.getByRole('checkbox')).toBeDisabled()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     expect(screen.queryByText(/读取需管理员权限和网络驱动/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
     view.rerender(<AssetQuickReadEntry {...props} capability="unavailable" />)
@@ -61,12 +61,11 @@ export function registerAssetQuickReadEntryPreparationCases() {
     expect(begin).toHaveClass('button--primary')
     expect(begin.parentElement?.firstElementChild).toBe(begin)
     expect(screen.queryByRole('button', { name: '重新连接资产快读' })).not.toBeInTheDocument()
-    expect(begin).toBeDisabled()
-    fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
+    expect(begin).toBeEnabled()
+    expect(onStart).not.toHaveBeenCalled()
     await act(async () => fireEvent.click(begin))
     expect(onStart).toHaveBeenCalledOnce()
-    expect(screen.getByRole('checkbox')).not.toBeChecked()
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   })
 
   it('returns failed workbench reads to preparation without restarting capture', async () => {
@@ -143,8 +142,8 @@ export function registerAssetQuickReadEntryPreparationCases() {
     expect(download.parentElement).toBe(
       screen.getByRole('button', { name: '一键读取' }).parentElement,
     )
-    expect(screen.getByRole('checkbox')).toBeEnabled()
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
     expect(onStart).not.toHaveBeenCalled()
   })
 
@@ -182,7 +181,7 @@ export function registerAssetQuickReadEntryPreparationCases() {
     expect(onStart).not.toHaveBeenCalled()
   })
 
-  it('returns completed reads to preparation only when allowed and requires fresh consent', async () => {
+  it('returns completed reads to preparation without automatically starting a new read', async () => {
     const onPrepareAgain = vi.fn()
     const onStart = vi.fn()
     const props = {
@@ -212,8 +211,8 @@ export function registerAssetQuickReadEntryPreparationCases() {
     expect(onPrepareAgain).toHaveBeenCalledOnce()
     expect(onStart).not.toHaveBeenCalled()
     view.rerender(<AssetQuickReadEntry {...props} state="idle" />)
-    expect(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ })).not.toBeChecked()
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
     expect(onStart).not.toHaveBeenCalled()
   })
 }

@@ -173,6 +173,17 @@
     transform 180ms ease;
 }
 
+.f5v-shell .scanner-workbench__methods:not(.scanner-workbench__methods--active) {
+  align-items: start;
+}
+
+.f5v-shell
+  .scanner-workbench__methods:not(.scanner-workbench__methods--active)
+  > .scanner-workbench__method {
+  min-height: 0;
+  grid-template-rows: 38px auto 38px auto !important;
+}
+
 .f5v-shell .scanner-workbench__method.scanner-workbench__quick {
   border-top-color: var(--soda-accent) !important;
 }
@@ -300,21 +311,20 @@
   box-shadow: 0 0 0 3px rgba(var(--soda-accent-rgb), 0.16);
 }
 
-/* Preparation content + consistent footer alignment */
+/* Keep each preparation step next to its own controls. */
 .f5v-shell .scanner-workbench .scanner-prepare__requirements,
 .f5v-shell .scanner-workbench .asset-quick-read__game-preparation {
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border: 1px solid rgba(20, 18, 32, 0.08);
-  border-radius: 12px;
-  background: #faf9fd;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro,
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
-  margin-top: auto !important;
-  padding-top: 12px;
-  border-top: 1px solid rgba(20, 18, 32, 0.08);
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
 }
 
 .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro h4,
@@ -397,6 +407,21 @@
   border: 1.5px solid rgba(20, 18, 32, 0.13);
   border-radius: 14px;
   background: #faf9fd;
+}
+
+.f5v-shell .scanner-workbench .asset-quick-read__tools .asset-quick-read__panel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.f5v-shell .scanner-workbench .asset-quick-read__tools .asset-quick-read__directory-row {
+  min-height: 22px;
+  margin-bottom: 6px;
+}
+
+.f5v-shell .scanner-workbench__body--prepare > .asset-quick-read__tools {
+  margin-bottom: 12px;
 }
 
 .f5v-shell .scanner-workbench .scanner-task__completion,

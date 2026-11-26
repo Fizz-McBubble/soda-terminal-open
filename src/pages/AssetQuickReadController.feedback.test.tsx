@@ -219,8 +219,6 @@ it.each([
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(document.body).not.toHaveTextContent(problem)
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
-    fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
     expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
     expect(readAssetDiagnostic()).toEqual(failureDiagnostic)
     expect(client.start).not.toHaveBeenCalled()

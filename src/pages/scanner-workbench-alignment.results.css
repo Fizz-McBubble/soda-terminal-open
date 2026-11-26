@@ -376,15 +376,6 @@
 }
 .f5v-shell
   .scanner-workbench
-  .scanner-workbench__body--prepare
-  > .asset-quick-read__connection-summary {
-  margin-top: auto;
-}
-.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro {
-  margin-top: auto;
-}
-.f5v-shell
-  .scanner-workbench
   :is(.scanner-prepare__requirements, .asset-quick-read__game-preparation)
   li {
   text-wrap: pretty;

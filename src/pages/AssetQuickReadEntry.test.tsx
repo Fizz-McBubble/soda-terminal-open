@@ -58,8 +58,6 @@ it('shows the failure reason directly while retry and return actions remain avai
   expect(screen.getByText('读取未完成 · 可重试').closest('details, [popover]')).toBeNull()
   expect(screen.getByText('合成启动失败细项')).toBeVisible()
   const retry = screen.getByRole('button', { name: '一键读取' })
-  expect(retry).toBeDisabled()
-  fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险与权限说明/ }))
   expect(retry).toBeEnabled()
   fireEvent.click(screen.getByRole('button', { name: '返回' }))
   expect(restart).toHaveBeenCalledOnce()
@@ -423,7 +421,7 @@ it('shows completion only when the adapter reports completed and exposes offline
   expect(screen.getByRole('status')).toHaveTextContent('3 位代理人和 12 张驱动盘已更新')
 })
 
-it('keeps compact risk consent inline and starts with one explicit button', async () => {
+it('starts a compact read only after the player clicks the explicit read button', async () => {
   const onStart = vi.fn()
   render(
     <AssetQuickReadEntry
@@ -442,18 +440,11 @@ it('keeps compact risk consent inline and starts with one explicit button', asyn
   expect(screen.queryByRole('button', { name: '开始读取' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '开始本次资产快读' })).not.toBeInTheDocument()
   const start = screen.getByRole('button', { name: '一键读取' })
-  const consent = screen.getByRole('checkbox', {
-    name: /我已了解上方账号风险与权限说明/,
-  })
-  expect(start).toBeDisabled()
-  fireEvent.click(start)
+  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   expect(onStart).not.toHaveBeenCalled()
-  fireEvent.click(consent)
   expect(start).toBeEnabled()
   await act(async () => fireEvent.click(start))
   expect(onStart).toHaveBeenCalledOnce()
-  expect(screen.getByRole('checkbox', { name: /我已了解上方账号风险与权限说明/ })).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
 })
 
 it('focuses received results when file inspection finishes after the candidate arrives', () => {

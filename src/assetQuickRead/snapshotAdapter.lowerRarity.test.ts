@@ -37,13 +37,26 @@ describe('quick-read A/B records', () => {
     })
   })
 
+  it('decodes an omitted A or B disc level as zero and preserves its main and secondary stats', () => {
+    const input = mixed()
+    for (const lower of input.assets.discs.slice(1))
+      lower.level = omitted() as unknown as typeof lower.level
+    const result = convertAssetSnapshot(input, context)
+    expect(result.issues).toEqual([])
+    expect(result.importable).toBe(true)
+    expect(result.discs.discs.slice(1)).toMatchObject([
+      { rarity: 'A', level: 0, mainStat: 'atk_flat', subStats: { length: 2 } },
+      { rarity: 'B', level: 0, mainStat: 'atk_flat', subStats: { length: 1 } },
+    ])
+  })
+
   it.each(['uid', 'level', 'base', 'add', 'duplicate', 'main', 'unknown'] as const)(
     'blocks an incomplete or invalid A/B record: %s',
     (failure) => {
       const input = mixed()
       const lower = input.assets.discs[1]
       if (failure === 'uid') lower.uid = input.assets.discs[0].uid
-      if (failure === 'level') lower.level = omitted() as unknown as typeof lower.level
+      if (failure === 'level') lower.level = present(13)
       if (failure === 'base')
         lower.substats[0].base_value =
           omitted() as unknown as (typeof lower.substats)[0]['base_value']
