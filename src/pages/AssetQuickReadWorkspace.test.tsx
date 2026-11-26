@@ -4,7 +4,7 @@ import { AssetQuickReadEntry } from './AssetQuickReadEntry'
 
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 
-it('confirms once inside the workspace and keeps pending inspection in the same stage', async () => {
+it('starts only on explicit action and keeps pending inspection in the same stage', async () => {
   const onStart = vi.fn()
   const props = {
     capability: 'ready' as const,
@@ -24,15 +24,15 @@ it('confirms once inside the workspace and keeps pending inspection in the same 
   }
   const view = render(<AssetQuickReadEntry {...props} />)
   const start = screen.getByRole('button', { name: '一键读取' })
-  expect(start).toBeDisabled()
-  fireEvent.click(screen.getByRole('checkbox'))
+  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  expect(onStart).not.toHaveBeenCalled()
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   expect(screen.getByRole('heading', { name: '准备游戏' })).toBeVisible()
   expect(start).toBeEnabled()
   await act(async () => fireEvent.click(start))
   expect(onStart).toHaveBeenCalledOnce()
   expect(screen.getByRole('heading', { name: '准备游戏' })).toBeVisible()
-  expect(screen.getByRole('checkbox')).not.toBeChecked()
+  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   view.rerender(<AssetQuickReadEntry {...props} pendingInspection />)
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: '准备游戏' })).not.toBeInTheDocument()

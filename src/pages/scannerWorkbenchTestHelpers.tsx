@@ -50,7 +50,6 @@ export async function prepareQuick() {
     target: { value: "soda-source-ref:ee09b7b910b89ca3d044849bf8cbb524" },
   })
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
-  fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
   await waitFor(() => expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled())
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '一键读取' })))
 }
