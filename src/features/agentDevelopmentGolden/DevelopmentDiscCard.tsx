@@ -153,7 +153,11 @@ export function DevelopmentDiscCard({
       </ul>
       {/\d/.test(disc.effective) || slotAction ? (
         <footer>
-          {/\d/.test(disc.effective) ? <span>有效副属性 {disc.effective}</span> : null}
+          {/\d/.test(disc.effective) ? (
+            <span title="有效词条数（含初始词条与强化命中，与社区有效词条口径一致）">
+              有效副属性 {disc.effective}
+            </span>
+          ) : null}
           {slotAction ? (
             <strong className="development-disc-card__slot-action">{slotAction}</strong>
           ) : null}

@@ -7,59 +7,49 @@
 }
 
 .f5v-shell .home-focus {
-  border: 1.5px solid rgba(20, 18, 32, 0.22);
+  border: 1.5px solid rgba(23, 22, 34, 0.2);
   border-radius: 16px;
   background:
-    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.96), transparent 55%),
-    linear-gradient(128deg, #f7f6fb 0%, #efecf8 56%, #e6e0f7 100%);
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.98), transparent 55%),
+    linear-gradient(128deg, #fafafc 0%, #f4f4f9 58%, #eeeef5 100%);
   box-shadow:
-    0 5px 0 rgba(20, 18, 32, 0.08),
-    0 20px 40px rgba(20, 18, 32, 0.08);
+    0 4px 0 rgba(23, 22, 34, 0.06),
+    0 18px 36px rgba(23, 22, 34, 0.07);
 }
 
 .f5v-shell .home-focus::before {
   background:
     linear-gradient(
       118deg,
-      transparent 0 42.5%,
-      var(--soda-accent) 42.5% 43.4%,
-      transparent 43.4% 100%
+      transparent 0 42.38%,
+      var(--soda-accent) 42.58% 43.3%,
+      transparent 43.5% 100%
     ),
-    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 8px),
-    linear-gradient(
-      118deg,
-      #f7f6fb 0 42.5%,
-      #161422 42.5% 83.5%,
-      #221d38 83.5% 85%,
-      #efecf8 85% 100%
-    );
-  opacity: 0.98;
+    linear-gradient(118deg, #fafafc 0 42.38%, transparent 42.58% 100%),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.032) 0 2px, transparent 2px 8px),
+    linear-gradient(118deg, #fafafc 0 42.38%, #181724 42.58% 76%, #222034 100%);
+  opacity: 0.99;
 }
 
-/* Live desktop pointer spotlight illuminating both bright paper and 45deg carbon pinstripes */
+/* Subtle desktop pointer sheen without washing a purple blotch over the left headline */
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .f5v-shell .home-focus[data-spotlight-active='true']::before {
     background:
       radial-gradient(
-        460px circle at var(--spot-x, 50%) var(--spot-y, 50%),
-        rgba(148, 118, 255, 0.24),
-        rgba(255, 255, 255, 0.16) 36%,
-        transparent 70%
+        420px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+        rgba(var(--soda-accent-rgb), 0.06),
+        rgba(255, 255, 255, 0.1) 38%,
+        transparent 72%
       ),
       linear-gradient(
         118deg,
-        transparent 0 42.5%,
-        var(--soda-accent) 42.5% 43.4%,
-        transparent 43.4% 100%
+        transparent 0 42.38%,
+        var(--soda-accent) 42.58% 43.3%,
+        transparent 43.5% 100%
       ),
-      repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 8px),
-      linear-gradient(
-        118deg,
-        #f7f6fb 0 42.5%,
-        #161422 42.5% 83.5%,
-        #221d38 83.5% 85%,
-        #efecf8 85% 100%
-      );
+      linear-gradient(118deg, #fafafc 0 42.38%, transparent 42.58% 100%),
+      repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.032) 0 2px, transparent 2px 8px),
+      linear-gradient(118deg, #fafafc 0 42.38%, #181724 42.58% 76%, #222034 100%);
   }
 }
 
@@ -70,8 +60,14 @@
   background: linear-gradient(90deg, var(--soda-ink-shell) 0 64%, var(--soda-accent) 64% 100%);
 }
 
-/* Flush bottom-anchored right stage overriding legacy 3-class .soda-home--golden rules */
+/* Flush bottom-anchored right stage overriding legacy 3-class .soda-home--golden rules.
+ * Orbit rings lock mathematically to the horizontal center of .home-version-hero (--kv-cx).
+ */
 .f5v-shell .soda-home--golden .home-scene {
+  --kv-right: clamp(210px, 20%, 350px);
+  --kv-h: clamp(600px, 34vw, 646px);
+  --kv-w: calc(var(--kv-h) * 1291 / 1248);
+  --kv-cx: calc(var(--kv-right) + var(--kv-w) * 0.5);
   position: absolute;
   inset: 0 0 0 28%;
   width: auto;
@@ -116,27 +112,36 @@
 
 .f5v-shell .soda-home--golden .home-scene__orbit--one {
   inset: auto;
-  right: clamp(220px, 21%, 380px);
-  top: 56px;
-  width: 440px;
-  height: 440px;
+  right: calc(var(--kv-cx) - 210px);
+  top: 76px;
+  width: 420px;
+  height: 420px;
+  aspect-ratio: 1;
   translate: none;
-  border: 1.5px solid rgba(132, 102, 255, 0.36);
+  border: 1.5px solid rgba(190, 182, 236, 0.28);
   background: radial-gradient(
-    circle at 52% 48%,
-    rgba(104, 66, 255, 0.18),
-    rgba(20, 18, 32, 0.02) 72%
+    circle at 50% 48%,
+    rgba(var(--soda-accent-rgb), 0.18),
+    rgba(24, 23, 36, 0.02) 72%
   );
+}
+
+.f5v-shell .soda-home--golden .home-scene__orbit--one::before {
+  background: radial-gradient(circle, rgba(212, 206, 244, 0.28) 1px, transparent 1.45px) 0 0 / 6px
+    6px;
+  mask-image: radial-gradient(circle at 50% 50%, #000 32%, transparent 74%);
+  opacity: 0.55;
 }
 
 .f5v-shell .soda-home--golden .home-scene__orbit--two {
   inset: auto;
-  right: clamp(290px, 25.5%, 450px);
-  top: 126px;
-  width: 300px;
-  height: 300px;
+  right: calc(var(--kv-cx) - 146px);
+  top: 140px;
+  width: 292px;
+  height: 292px;
+  aspect-ratio: 1;
   translate: none;
-  border: 1px dashed rgba(255, 255, 255, 0.24);
+  border: 1px dashed rgba(255, 255, 255, 0.22);
 }
 
 /* Full-body Wanzhou breaking cleanly above top border (+16px) and below bottom border (-24px) */
@@ -146,14 +151,14 @@
   aspect-ratio: 1291 / 1248;
   position: absolute;
   z-index: 5;
-  inset: auto clamp(210px, 20%, 350px) -24px auto;
+  inset: auto var(--kv-right) -24px auto;
   width: auto;
-  height: clamp(600px, 34vw, 646px);
+  height: var(--kv-h);
   max-width: none;
   max-height: none;
   object-fit: contain;
   object-position: center bottom;
-  filter: drop-shadow(0 18px 24px rgba(14, 10, 30, 0.3));
+  filter: drop-shadow(0 18px 24px rgba(14, 12, 28, 0.32));
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -243,37 +248,49 @@
   max-width: none;
 }
 
+.f5v-shell .home-catalog-cache__action {
+  color: var(--soda-ink-shell);
+  background: #ffffff;
+  border: 1.5px solid rgba(23, 22, 34, 0.24);
+}
+
+.f5v-shell .home-catalog-cache__action:hover:not(:disabled) {
+  color: var(--soda-ink-shell);
+  background: var(--soda-surface-raised);
+  border-color: var(--soda-accent);
+}
+
 .f5v-shell .home-catalog-cache__action:disabled {
   opacity: 1;
-  color: var(--soda-text-2);
-  background: #ede9f8;
-  border-color: rgba(20, 18, 32, 0.16);
+  color: #3d3952;
+  background: #efedf6;
+  border-color: rgba(23, 22, 34, 0.2);
 }
 
 /* Five-step journey strip with bold condensed display indices & tactile rim highlight */
 .f5v-shell .journey-list--five .journey-item {
-  border: 1.5px solid rgba(20, 18, 32, 0.12);
-  background: rgba(255, 255, 255, 0.82);
+  border: 1.5px solid rgba(23, 22, 34, 0.12);
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .f5v-shell .journey-list--five .journey-item:hover:not(.is-current) {
   border-color: var(--soda-ink-shell);
   background: #ffffff;
-  box-shadow: 3px 3px 0 rgba(104, 66, 255, 0.32);
+  box-shadow: 2px 2px 0 rgba(var(--soda-accent-rgb), 0.3);
   transform: translate(-1px, -2px);
 }
 
 .f5v-shell .journey-list--five .journey-item.is-current {
   border: 1.5px solid var(--soda-ink-shell);
   background: #ffffff;
-  box-shadow: 3px 3px 0 var(--soda-accent);
+  box-shadow: 2px 2px 0 var(--soda-accent);
 }
 
 .f5v-shell .home-journey__number {
   width: 28px;
   height: 28px;
   border-radius: 7px;
-  background: #e6e2f2;
+  background: #ecebf2;
   color: var(--soda-ink-shell);
   font-family: var(--soda-font-display);
   font-size: 0.92rem;
@@ -292,6 +309,10 @@
 
 @container soda-viewport (max-width: 1400px) {
   .f5v-shell .soda-home--golden .home-scene {
+    --kv-right: clamp(136px, 15%, 210px);
+    --kv-h: 525px;
+    --kv-w: calc(var(--kv-h) * 1291 / 1248);
+    --kv-cx: calc(var(--kv-right) + var(--kv-w) * 0.5);
     inset: 0 0 0 28%;
     width: auto;
     height: auto;
@@ -299,21 +320,21 @@
     transform: none;
   }
   .f5v-shell .soda-home--golden .home-scene__orbit--one {
-    right: clamp(140px, 16%, 220px);
-    top: 62px;
+    right: calc(var(--kv-cx) - 180px);
+    top: 70px;
     width: 360px;
     height: 360px;
   }
   .f5v-shell .soda-home--golden .home-scene__orbit--two {
-    right: clamp(198px, 21%, 278px);
-    top: 120px;
+    right: calc(var(--kv-cx) - 122px);
+    top: 128px;
     width: 244px;
     height: 244px;
   }
   .f5v-shell .soda-home--golden .home-version-hero {
-    inset: auto clamp(136px, 15%, 210px) -18px auto;
+    inset: auto var(--kv-right) -18px auto;
     width: auto;
-    height: 525px;
+    height: var(--kv-h);
     max-width: none;
     max-height: none;
     object-position: center bottom;
@@ -327,7 +348,7 @@
 
 @container soda-viewport (max-width: 960px) {
   .f5v-shell .home-focus::before {
-    background: linear-gradient(155deg, #f7f6fb 0 54%, #161422 54% 100%);
+    background: linear-gradient(155deg, #fafafc 0 53.85%, #181724 54.08% 100%);
   }
   .f5v-shell .soda-home--golden .home-scene {
     position: relative;

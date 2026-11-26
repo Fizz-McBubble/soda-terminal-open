@@ -123,7 +123,7 @@ export const TeamGroup = memo(function TeamGroup({
               onChange={(event) =>
                 onRecommendedQueryChange?.(event.target.value)
               }
-              placeholder="输入队名或成员名"
+              placeholder="输入队名、成员或俗称（如 鲨鱼妹 / Miyabi）"
             />
           </label>
         ) : null}

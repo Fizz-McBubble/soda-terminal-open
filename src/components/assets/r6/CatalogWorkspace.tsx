@@ -13,6 +13,7 @@ import {
   useCatalogBrowseScroll,
   useCatalogBrowseSizing,
 } from './useCatalogBrowseState'
+import { matchesAgentSearchQuery } from '../../../application/agentSearchAliases'
 import { useCatalogPagination } from './useCatalogPagination'
 import { useStateTransitionMotion } from '../../../motion/useStateTransitionMotion'
 import type { DiscSortMode } from '../../../domain/discOrdering'
@@ -188,21 +189,21 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
       secondaryFilter === 'all' ||
       secondaryFilter ===
         (kind === 'discs' ? String((item as DiscItem).slot) : (item as CatalogItem).specialty)
-    const searchText =
-      kind === 'discs'
-        ? [
-            name,
-            (item as DiscItem).mainStat,
-            String((item as DiscItem).slot),
-            ...(item as DiscItem).tags,
-          ].join(' ')
-        : name
-    return (
-      searchText.toLocaleLowerCase().includes(normalizedQuery) &&
-      statusMatches &&
-      primaryMatches &&
-      secondaryMatches
-    )
+    const queryMatches =
+      kind === 'agents'
+        ? matchesAgentSearchQuery((item as CatalogItem).stableId, name, normalizedQuery)
+        : (kind === 'discs'
+            ? [
+                name,
+                (item as DiscItem).mainStat,
+                String((item as DiscItem).slot),
+                ...(item as DiscItem).tags,
+              ].join(' ')
+            : name
+          )
+            .toLocaleLowerCase()
+            .includes(normalizedQuery)
+    return queryMatches && statusMatches && primaryMatches && secondaryMatches
   })
   const selected = rows.find((row) => row.stableId === selectedId)
   const pagination = useCatalogPagination(

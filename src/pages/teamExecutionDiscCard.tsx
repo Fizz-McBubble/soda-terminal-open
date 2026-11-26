@@ -186,7 +186,9 @@ export function TeamExecutionDiscCard({
             <div className="team-execution__disc-detail-state">
               <span>{statusLabel}</span>
               {/\d/.test(displayedDisc.effective) ? (
-                <span>有效副属性 {displayedDisc.effective}</span>
+                <span title="有效词条数（含初始词条与强化命中，与社区有效词条口径一致）">
+                  有效副属性 {displayedDisc.effective}
+                </span>
               ) : null}
             </div>
           </>

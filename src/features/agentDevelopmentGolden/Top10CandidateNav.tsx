@@ -28,10 +28,10 @@ function rankingLabel(entry: TrustedRankingEntry | undefined) {
             ? '单次异常结算'
             : basis.kind === 'functional_capacity'
               ? basis.unit === '失衡量'
-                ? '声明动作失衡量'
+                ? '固定动作失衡量'
                 : basis.unit === '护盾量'
                   ? '单次护盾'
-                  : `支援${basis.unit}分量`
+                  : `支援${basis.unit}增益`
               : null
     if (method) return `${method} · 组内 ${entry.groupRank}/${entry.groupSize}`
   }

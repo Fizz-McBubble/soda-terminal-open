@@ -109,6 +109,9 @@ export const gameBase33Current = createManifest({
     if (inherited) return inherited
     const addition = gameData33CatalogEntities.find((entity) => entity.id === entry.stableId)
     if (!addition) throw new Error(`3.3 adopted scope has no field source: ${entry.stableId}`)
+    const rarity = addition.fields.rarity
+    if (rarity !== 'S' && rarity !== 'A' && rarity !== 'B')
+      throw new Error(`3.3 adopted scope has no rarity: ${entry.stableId}`)
     return {
       stableId: entry.stableId,
       displayName: entry.displayName,
@@ -119,7 +122,7 @@ export const gameBase33Current = createManifest({
       sourceCheckedAt: addition.source.checkedAt,
       sourceContentHash: addition.source.contentHash,
       entityType: entry.domain,
-      rarity: 'S' as const,
+      rarity,
       classification: `catalogue_identity:${entry.evidence}`,
       calculationEligibility: 'quality_only' as const,
       releaseAt: entry.releaseAt

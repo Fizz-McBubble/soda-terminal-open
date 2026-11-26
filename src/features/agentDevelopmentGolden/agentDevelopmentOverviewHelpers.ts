@@ -1,9 +1,19 @@
+import { publicAssetCatalog } from '../../application/publicAssetCatalog'
 import type { AgentSummary } from './types'
+
+const directoryAttributes = new Map(
+  publicAssetCatalog.agents.map((agent) => [agent.stableId, agent.attribute]),
+)
+
+export function developmentDirectoryAttribute(agent: AgentSummary) {
+  return directoryAttributes.get(agent.agentId) ?? agent.attribute
+}
 
 export const attributeIcons: Record<string, { id: string; label: string }> = {
   electric: { id: 'attribute-electric', label: '电属性' },
   ether: { id: 'attribute-ether', label: '以太属性' },
   fire: { id: 'attribute-fire', label: '火属性' },
+  frost: { id: 'attribute-ice', label: '烈霜属性' },
   ice: { id: 'attribute-ice', label: '冰属性' },
   lumiflux: { id: 'attribute-lumiflux', label: '流明属性' },
   physical: { id: 'attribute-physical', label: '物理属性' },

@@ -1,3 +1,4 @@
+import { matchesAgentSearchQuery } from '../application/agentSearchAliases'
 import { getAgentName } from '../application/publicRosterNames'
 import type { TeamLoadoutOverviewFamily, TeamLoadoutOverviewItem } from './teamLoadoutOverviewTypes'
 import { orderRankedTeamItems, orderTeamRecommendations } from './teamRecommendationOrdering'
@@ -57,12 +58,13 @@ export function orderVisibleFamilies(
 function matchesRecommendedTeam(family: TeamLoadoutOverviewFamily, query: string) {
   const normalizedQuery = query.trim().toLocaleLowerCase()
   if (!normalizedQuery) return true
+  if (family.title.toLocaleLowerCase().includes(normalizedQuery)) return true
   const agentIds = new Set([
     ...family.coreAgentIds,
     ...family.variants.flatMap((variant) => variant.agentIds),
   ])
-  return [family.title, ...[...agentIds].map(getAgentName)].some((value) =>
-    value.toLocaleLowerCase().includes(normalizedQuery),
+  return [...agentIds].some((agentId) =>
+    matchesAgentSearchQuery(agentId, getAgentName(agentId), normalizedQuery),
   )
 }
 
@@ -70,10 +72,12 @@ export function matchRecommendedVariants(family: TeamLoadoutOverviewFamily, quer
   if (!matchesRecommendedTeam(family, queryText)) return []
   const query = queryText.trim().toLocaleLowerCase()
   if (!query) return [family]
-  const matchingVariants = family.variants.filter((variant) =>
-    [variant.title, ...variant.agentIds.map(getAgentName)].some((text) =>
-      text.toLocaleLowerCase().includes(query),
-    ),
+  const matchingVariants = family.variants.filter(
+    (variant) =>
+      variant.title.toLocaleLowerCase().includes(query) ||
+      variant.agentIds.some((agentId) =>
+        matchesAgentSearchQuery(agentId, getAgentName(agentId), query),
+      ),
   )
   // A family-name search keeps all alternatives; a member search opens the
   // matching trio, rather than an unrelated remembered alternative.

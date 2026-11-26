@@ -137,7 +137,7 @@ export function projectPrivateTeamExecution(
       discFacts.length !== 18
     )
       throw new Error(
-        '目标队伍已求解 18 张唯一驱动盘，但展示投影丢失了盘面；已停止返回不一致的结果。',
+        '目标队伍已求解 18 张唯一驱动盘，但未能读取该方案的六盘记录；已停止返回不一致的结果。',
       )
   }
   return {

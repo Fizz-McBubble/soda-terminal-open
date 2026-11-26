@@ -7,6 +7,22 @@ import {
 } from './publicWarehouseActionTransport'
 
 describe('public warehouse action transport', () => {
+  it('keeps distinct JSON object shapes and preserves ordinary string keys through v4', () => {
+    const evidence = [
+      { a: 1, b: 2 },
+      { ['a\u0000b']: 3 },
+      JSON.parse('{"__proto__":{"label":"literal evidence field"}}'),
+    ]
+    const original = {
+      actions: Array.from({ length: 25 }, (_, index) => ({
+        disc: { id: `disc-${index}` },
+        evidence,
+      })),
+    } as unknown as WarehouseActionProjection
+    const wire = JSON.stringify(packPublicWarehouseActions(original))
+    expect(unpackPublicWarehouseActions(JSON.parse(wire))).toStrictEqual(original)
+  })
+
   it('shares repeated agent lists and restores the exact page contract', () => {
     const agents = Array.from({ length: 80 }, (_, index) => `agent-${index}`)
     const action = {
@@ -179,5 +195,69 @@ describe('public warehouse action transport', () => {
     expect(codec.shapes).toEqual(copyCodec.shapes)
     expect(wire).toBe(JSON.stringify(copyCodec.encodeAll(copies)))
     expect(restoreWarehouseObjects(JSON.parse(wire), codec.shapes)).toEqual(batch)
+  })
+
+  it('v4 deduplicates repeated packed sub-objects losslessly with isolated clones and strict validation', () => {
+    const repeatedUse = {
+      profileId: 'branch-main-dps-4pc',
+      agentId: 'agent-miyabi',
+      role: 'primary_dps',
+      score: 82.5,
+      matchedConditions: ['冰套四件', '核心暴击达标', '双暴副词条有效'],
+      sourceRefs: ['source:nanoka:3.3', 'source:prydwen:miyabi'],
+    }
+    const original = {
+      actions: Array.from({ length: 40 }, (_, index) => ({
+        disc: { id: `disc-${index}`, setId: 'set-branch-blade-song', slot: (index % 6) + 1 },
+        compatibleAgentIds: ['agent-miyabi', 'agent-ellen'],
+        absoluteRetention: {
+          ownedUseAgentIds: ['agent-miyabi'],
+          unownedUseAgentIds: [],
+          leadingUses: [
+            { ...repeatedUse },
+            { ...repeatedUse, profileId: 'branch-anomaly-2pc', score: 74.2 },
+          ],
+          blockedBy: [{ reason: '已被方案引用', refs: ['plan-1', 'plan-2'] }],
+        },
+      })),
+    } as unknown as WarehouseActionProjection
+    const packed = packPublicWarehouseActions(original) as Record<string, unknown>
+    expect(packed.agentListsVersion).toBe(4)
+    expect(Array.isArray(packed.sharedValues)).toBe(true)
+    expect((packed.sharedValues as unknown[]).length).toBeGreaterThan(0)
+    const wire = JSON.stringify(packed)
+    expect(wire.length).toBeLessThan(JSON.stringify(original).length / 4)
+    const restored = unpackPublicWarehouseActions(JSON.parse(wire))
+    expect(restored).toEqual(original)
+    // Verify decoded discs receive independent mutable clones (zero aliasing)
+    const uses0 = (
+      restored.actions[0]!.absoluteRetention as unknown as { leadingUses: { score: number }[] }
+    ).leadingUses
+    const uses1 = (
+      restored.actions[1]!.absoluteRetention as unknown as { leadingUses: { score: number }[] }
+    ).leadingUses
+    uses0[0]!.score = 999
+    expect(uses1[0]!.score).toBe(82.5)
+    // Reject corrupt or forward-referencing $v markers
+    expect(() =>
+      unpackPublicWarehouseActions({
+        agentListsVersion: 4,
+        agentLists: [],
+        retentionTexts: [],
+        objectShapes: [],
+        sharedValues: [{ $v: 0 }],
+        actions: [],
+      } as never),
+    ).toThrow('共享值资料无效')
+    expect(() =>
+      unpackPublicWarehouseActions({
+        agentListsVersion: 4,
+        agentLists: [],
+        retentionTexts: [],
+        objectShapes: [],
+        sharedValues: [{ ok: true }],
+        actions: [{ $v: 5 }],
+      } as never),
+    ).toThrow('共享值资料无效')
   })
 })

@@ -1,10 +1,15 @@
 import { VisualEntityImage } from '../../components/VisualEntityImage'
 import { AgentVisualSlot } from './agentVisualSlot'
-import { attributeIcons, specialtyIcons } from './agentDevelopmentOverviewHelpers'
+import {
+  attributeIcons,
+  developmentDirectoryAttribute,
+  specialtyIcons,
+} from './agentDevelopmentOverviewHelpers'
 import type { AgentSummary } from './types'
 
 export function AgentIdentityIcons({ agent }: { agent: AgentSummary }) {
-  const attribute = agent.attribute ? attributeIcons[agent.attribute] : undefined
+  const attributeKey = developmentDirectoryAttribute(agent)
+  const attribute = attributeKey ? attributeIcons[attributeKey] : undefined
   const specialty = agent.specialty ? specialtyIcons[agent.specialty] : undefined
   if (!attribute && !specialty) return null
   return (

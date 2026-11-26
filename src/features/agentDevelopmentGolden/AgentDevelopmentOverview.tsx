@@ -10,8 +10,10 @@ import { createLatestVisualSelection } from '../../assets/visualEntityImageSourc
 import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import type { AgentSummary } from './types'
 import { AgentAvatar } from './AgentDevelopmentOverviewComponents'
+import { matchesAgentSearchQuery } from '../../application/agentSearchAliases'
 import {
   attributeIcons,
+  developmentDirectoryAttribute,
   getDirectoryProgress,
   specialtyIcons,
 } from './agentDevelopmentOverviewHelpers'
@@ -129,13 +131,15 @@ export function AgentDevelopmentOverview({
   }
   const filtered = ordered.filter(
     (agent) =>
-      agent.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()) &&
+      matchesAgentSearchQuery(agent.agentId, agent.name, query) &&
       // "全部角色" is the complete current-account directory. Agents whose
       // direction still needs confirmation must remain visible; hiding them
       // would contradict the explicit missing-target state above the grid.
       (filter === 'recommendations' || Boolean(agent.plan)) &&
       (rarity === 'all' || agent.rarity === rarity) &&
-      (attribute === 'all' || agent.attribute === attribute) &&
+      (attribute === 'all' ||
+        developmentDirectoryAttribute(agent) === attribute ||
+        (attribute === 'ice' && developmentDirectoryAttribute(agent) === 'frost')) &&
       (specialty === 'all' || agent.specialty === specialty),
   )
   const selectedAgent =
@@ -174,7 +178,7 @@ export function AgentDevelopmentOverview({
               <input
                 ref={searchInput}
                 aria-label="搜索已拥有代理人"
-                placeholder="输入名称"
+                placeholder="输入名称、英文或俗称（如 大安比）"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />

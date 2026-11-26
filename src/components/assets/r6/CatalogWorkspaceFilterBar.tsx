@@ -42,7 +42,7 @@ export function CatalogWorkspaceFilterBar({
       <input
         ref={searchRef}
         aria-label="搜索名称"
-        placeholder="搜索名称"
+        placeholder={kind === 'agents' ? '搜索名称、英文或俗称（如 狼叔 / Miyabi）' : '搜索名称'}
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
       />

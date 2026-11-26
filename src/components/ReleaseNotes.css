@@ -27,6 +27,24 @@
   border-color: var(--soda-line-strong);
 }
 
+.f5v-shell .f5v-topbar .release-notes > .explanation__trigger {
+  min-height: 30px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: #f0eef9;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.f5v-shell
+  .f5v-topbar
+  .release-notes
+  > .explanation__trigger:is(:hover, :focus-visible, [aria-expanded='true']) {
+  color: #ffffff;
+  background: rgba(var(--soda-accent-rgb), 0.58);
+  border-color: rgba(255, 255, 255, 0.52);
+}
+
 .release-notes .explanation-popover[popover] {
   width: min(28rem, calc(100vw - 24px));
   max-height: min(30rem, calc(100dvh - 96px));

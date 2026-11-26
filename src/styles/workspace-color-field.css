@@ -35,7 +35,7 @@
   background:
     radial-gradient(
       ellipse 60% 30% at var(--soda-field-x, 86%) 0%,
-      color-mix(in srgb, var(--soda-accent) 4.8%, var(--soda-surface)),
+      color-mix(in srgb, var(--soda-accent) 3%, var(--soda-surface)),
       transparent 70%
     ),
     var(--f5-paper);
@@ -59,12 +59,12 @@
   background:
     radial-gradient(
       ellipse 86% 49% at var(--soda-field-x, 86%) var(--soda-field-y, 6%),
-      color-mix(in srgb, var(--soda-accent) 37%, transparent),
+      color-mix(in srgb, var(--soda-accent) 23%, transparent),
       transparent 83%
     ),
     linear-gradient(
       96deg,
-      color-mix(in srgb, var(--soda-accent) 23%, transparent) 0%,
+      color-mix(in srgb, var(--soda-accent) 14%, transparent) 0%,
       transparent 31%
     );
   opacity: 0.44;
@@ -78,7 +78,7 @@
   pointer-events: none;
   background: radial-gradient(
     ellipse 82% 49% at 61% 95%,
-    color-mix(in srgb, var(--soda-accent) 34%, transparent),
+    color-mix(in srgb, var(--soda-accent) 21%, transparent),
     transparent 82%
   );
   opacity: 0.34;
@@ -92,9 +92,9 @@
   pointer-events: none;
   background: linear-gradient(
     168deg,
-    color-mix(in srgb, var(--soda-accent) 9%, transparent),
+    color-mix(in srgb, var(--soda-accent) 6%, transparent),
     transparent 40%,
-    color-mix(in srgb, var(--soda-accent) 24%, transparent)
+    color-mix(in srgb, var(--soda-accent) 15%, transparent)
   );
   opacity: 0.32;
 }

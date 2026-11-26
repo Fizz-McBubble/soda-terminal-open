@@ -43,13 +43,16 @@
   font-size: 14px;
 }
 .f5v-shell .scanner-workbench .scanner-workbench__metric {
-  display: inline-block;
-  padding: 1px 10px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
   margin-left: 6px;
+  border: 1px solid rgba(var(--soda-accent-rgb), 0.26);
   border-radius: 999px;
-  background: #fce7ef;
-  color: #8a3d61 !important;
-  font-weight: 600;
+  background: rgba(var(--soda-accent-rgb), 0.09);
+  color: var(--soda-accent-deep) !important;
+  font-size: 12px;
+  font-weight: 700;
   white-space: nowrap;
 }
 .f5v-shell .scanner-workbench .f5v-beta {

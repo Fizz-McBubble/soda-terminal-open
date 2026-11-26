@@ -1,18 +1,19 @@
 :root {
-  --soda-canvas: #f5f4f9;
-  --soda-shell: #ebe8f4;
+  --soda-canvas: #f7f7fa;
+  --soda-shell: #eff0f5;
   --soda-surface: #ffffff;
-  --soda-surface-raised: #f4f1fb;
-  --soda-ink-shell: #13111c;
-  --soda-ink-surface: #1b1828;
-  --soda-line: rgba(20, 18, 32, 0.14);
-  --soda-line-strong: rgba(20, 18, 32, 0.34);
-  --soda-text: #141220;
-  --soda-text-2: #4e4a63;
-  --soda-text-3: #66607d;
-  --soda-accent: #6842ff;
-  --soda-accent-deep: #4c29d4;
-  --soda-accent-soft-tint: #ece6ff;
+  --soda-surface-raised: #f4f3f8;
+  --soda-ink-shell: #171622;
+  --soda-ink-surface: #1f1d2c;
+  --soda-line: rgba(23, 22, 34, 0.14);
+  --soda-line-strong: rgba(23, 22, 34, 0.32);
+  --soda-text: #181724;
+  --soda-text-2: #4d4a60;
+  --soda-text-3: #64607a;
+  --soda-accent: #5849a8;
+  --soda-accent-deep: #43358b;
+  --soda-accent-rgb: 88, 73, 168;
+  --soda-accent-soft-tint: #efedf7;
   --button-primary-background: var(--soda-accent);
   --soda-font-ui:
     'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC',
@@ -53,7 +54,7 @@
   --soda-radius-shell: 16px;
   --soda-panel: var(--soda-surface);
   --soda-control-height: 42px;
-  --soda-focus: rgba(104, 66, 255, 0.48);
+  --soda-focus: rgba(88, 73, 168, 0.42);
   --soda-motion-fast: 160ms;
   --soda-motion-route: 220ms;
   --soda-motion-overlay: 190ms;
@@ -61,13 +62,13 @@
   --soda-motion-enter: 340ms;
   --soda-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --soda-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
-  --soda-scrollbar-thumb: #2b2540;
-  --soda-scrollbar-thumb-hover: #6842ff;
+  --soda-scrollbar-thumb: #312d45;
+  --soda-scrollbar-thumb-hover: #5849a8;
   --soda-scrollbar-track: transparent;
-  --soda-shadow-card: 0 2px 0 rgba(20, 18, 32, 0.08), 0 6px 18px rgba(20, 18, 32, 0.05);
-  --soda-shadow-card-hover: 0 4px 0 rgba(20, 18, 32, 0.14), 0 14px 28px rgba(42, 28, 96, 0.11);
-  --soda-shadow-float: 0 6px 0 rgba(20, 18, 32, 0.09), 0 20px 44px rgba(20, 18, 32, 0.14);
-  --soda-shadow-accent: 3px 3px 0 #141220, 0 10px 22px rgba(104, 66, 255, 0.28);
+  --soda-shadow-card: 0 2px 0 rgba(23, 22, 34, 0.07), 0 6px 18px rgba(23, 22, 34, 0.045);
+  --soda-shadow-card-hover: 0 4px 0 rgba(23, 22, 34, 0.12), 0 14px 28px rgba(42, 36, 78, 0.09);
+  --soda-shadow-float: 0 6px 0 rgba(23, 22, 34, 0.08), 0 20px 44px rgba(23, 22, 34, 0.12);
+  --soda-shadow-accent: 2px 2px 0 #171622, 0 8px 20px rgba(88, 73, 168, 0.2);
   --f5-canvas: var(--soda-shell);
   --f5-rail: var(--soda-canvas);
   --f5-paper: var(--soda-surface);

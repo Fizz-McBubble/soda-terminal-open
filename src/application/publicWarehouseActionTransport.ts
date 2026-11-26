@@ -4,6 +4,7 @@ import {
   restoreWarehouseEvidenceText,
   warehouseEvidenceTextCodec,
 } from './publicWarehouseEvidenceTextTransport'
+import { createWarehouseValueExpander, warehouseValueCodec } from './publicWarehouseValueTransport'
 
 const agentFields = [
   'compatibleAgentIds',
@@ -15,9 +16,10 @@ const agentFields = [
 type PackedAction = Record<string, unknown>
 type PackedProjection = Omit<WarehouseActionProjection, 'actions'> & {
   agentLists: string[][]
-  agentListsVersion: 1 | 2 | 3
+  agentListsVersion: 1 | 2 | 3 | 4
   retentionTexts?: string[]
   objectShapes?: string[][]
+  sharedValues?: unknown[]
   actions: PackedAction[]
 }
 
@@ -57,14 +59,16 @@ export function packPublicWarehouseActions(
   const textCodec = warehouseEvidenceTextCodec(interned)
   const textActions = textCodec.encodeAll(interned) as PackedAction[]
   const objectCodec = warehouseObjectCodec(textActions)
-  const actions = objectCodec.encodeAll(textActions) as PackedAction[]
+  const objectActions = objectCodec.encodeAll(textActions) as PackedAction[]
+  const valueCodec = warehouseValueCodec(objectActions)
   return {
     ...projection,
-    agentListsVersion: 3,
+    agentListsVersion: 4,
     agentLists,
     retentionTexts: textCodec.texts,
     objectShapes: objectCodec.shapes,
-    actions,
+    sharedValues: valueCodec.sharedValues,
+    actions: valueCodec.packed as PackedAction[],
   }
 }
 
@@ -73,7 +77,7 @@ export function unpackPublicWarehouseActions(
   projection: WarehouseActionProjection | PackedProjection,
 ): WarehouseActionProjection {
   if (!('agentListsVersion' in projection)) return projection
-  if (![1, 2, 3].includes(projection.agentListsVersion) || !Array.isArray(projection.agentLists))
+  if (![1, 2, 3, 4].includes(projection.agentListsVersion) || !Array.isArray(projection.agentLists))
     throw new Error('驱动盘分析结果格式无效，请重新分析。')
   if (
     projection.agentListsVersion >= 2 &&
@@ -81,8 +85,10 @@ export function unpackPublicWarehouseActions(
       !projection.retentionTexts.every((text) => typeof text === 'string'))
   )
     throw new Error('驱动盘分析证据资料无效，请重新分析。')
-  if (projection.agentListsVersion === 3 && !Array.isArray(projection.objectShapes))
+  if (projection.agentListsVersion >= 3 && !Array.isArray(projection.objectShapes))
     throw new Error('驱动盘分析对象资料无效，请重新分析。')
+  if (projection.agentListsVersion === 4 && !Array.isArray(projection.sharedValues))
+    throw new Error('驱动盘分析共享值资料无效，请重新分析。')
   const readList = (index: unknown) => {
     const list =
       typeof index === 'number' && Number.isInteger(index) ? projection.agentLists[index] : null
@@ -90,10 +96,17 @@ export function unpackPublicWarehouseActions(
       throw new Error('驱动盘分析用途资料无效，请重新分析。')
     return [...list]
   }
-  const restoreAction =
-    projection.agentListsVersion === 3
+  const expandShared =
+    projection.agentListsVersion === 4
+      ? createWarehouseValueExpander(projection.sharedValues!)
+      : null
+  const restoreObject =
+    projection.agentListsVersion >= 3
       ? createWarehouseObjectReader(projection.objectShapes!, projection.retentionTexts!)
       : (item: PackedAction) => item
+  const restoreAction = expandShared
+    ? (packed: PackedAction) => restoreObject(expandShared(packed) as PackedAction)
+    : restoreObject
   const actions = projection.actions.map((packed) => {
     const item = { ...(restoreAction(packed) as PackedAction) }
     for (const field of agentFields) {
@@ -115,13 +128,15 @@ export function unpackPublicWarehouseActions(
   })
   const restored = { ...projection, actions } as WarehouseActionProjection & {
     agentLists?: string[][]
-    agentListsVersion?: 1 | 2 | 3
+    agentListsVersion?: 1 | 2 | 3 | 4
     retentionTexts?: string[]
     objectShapes?: string[][]
+    sharedValues?: unknown[]
   }
   delete restored.agentLists
   delete restored.agentListsVersion
   delete restored.retentionTexts
   delete restored.objectShapes
+  delete restored.sharedValues
   return restored
 }

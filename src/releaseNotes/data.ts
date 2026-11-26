@@ -15,6 +15,34 @@ export type ReleaseNote = {
 // Use the release date and describe what players can now do. Keep older entries in order.
 export const releases: readonly ReleaseNote[] = [
   {
+    id: "20261127-box-rotation-and-workspace",
+    date: "2026-11-27",
+    title: "校准队伍评级与手法，更新邦布、养成搜索和仓库",
+    summary: "3.3 下半队伍继续按统一毕业投入比较。队伍详情、养成与仓库同步采用本轮复核结果。",
+    sections: [
+      {
+        title: "队伍配装与邦布",
+        changes: [
+          "校准直伤、异常、命破和追加等体系的毕业轮转。评分基于同一套十八盘和两场固定条件，换人后会显示对应打法的评分和手法。",
+          "更新 A 档及以上的开场、交接、循环和爆发说明。三只邦布推荐按当前阵容重新生成，替换成员后随实际阵容切换。",
+        ],
+      },
+      {
+        title: "资产、养成与驱动盘",
+        changes: [
+          "资产、养成与 BOX 支持用常见别名和英文名搜索。星见雅在图鉴和养成显示烈霜，冰属性筛选仍能找到她。",
+          "纠正烛光诡计的稀有度。仓库压缩计算结果的传输体积，保留逐盘建议与依据。",
+        ],
+      },
+      {
+        title: "阅读与导入",
+        changes: [
+          "调整工作区靛紫色、首页主图环形背景与日志按钮对比度，保留顶部波形位置。画面扫描继续默认使用完整扫描。",
+        ],
+      },
+    ],
+  },
+  {
     id: "20261125-box-workbench-guidance",
     date: "2026-11-25",
     title: "同核心换人移到推荐卡右侧，更新各工作台说明",

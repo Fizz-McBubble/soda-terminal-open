@@ -257,7 +257,7 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
             { isDelta: true },
           )}`
         : currentValue !== undefined && Number.isFinite(currentValue)
-          ? '已纳入六盘投影'
+          ? '已计入六盘方案'
           : '无可证副词条',
       target: target ?? '资料不足',
       targetConditions: reference.conditions.map(playerDecisionText),

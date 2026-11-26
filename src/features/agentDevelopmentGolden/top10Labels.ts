@@ -118,6 +118,6 @@ export function candidateSearchLabel(search: GoldenTop10Data['candidateSearch'])
   if (search.status === 'budget_exhausted')
     return `${method}；目前只搜索了部分搭配，可能还有其他方案。`
   if (search.status === 'objective_unresolved')
-    return `${method}；部分目标尚未解决，未解决项不会按 0 处理。`
+    return `${method}；部分效果暂未计入比较，未计入项保持未知。`
   return `${method}。`
 }

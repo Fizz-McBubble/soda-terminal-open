@@ -363,7 +363,7 @@ describe('private team presentation Query result', () => {
         })),
       },
     } as typeof fit
-    expect(() => projectPrivateTeamExecution(run, tampered)).toThrow(/展示投影丢失/)
+    expect(() => projectPrivateTeamExecution(run, tampered)).toThrow(/未能读取该方案的六盘记录/)
     localCalculationQueryClient.releaseAccountDecisionRun?.(run.runId)
   }, 60_000)
 })

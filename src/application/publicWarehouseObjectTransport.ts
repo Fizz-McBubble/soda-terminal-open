@@ -58,6 +58,7 @@ export function warehouseObjectCodec(input: readonly unknown[]) {
   // a fresh cache, and restores continue to reconstruct independent values.
   const createEncoder = () => {
     const encoded = new WeakMap<object, unknown>()
+    const keyCache = new Map<string, number | undefined>()
     const encode = (value: unknown): unknown => {
       if (!value || typeof value !== 'object') return value
       if (encoded.has(value)) return encoded.get(value)
@@ -66,14 +67,37 @@ export function warehouseObjectCodec(input: readonly unknown[]) {
         encoded.set(value, result)
         return result
       }
-      const entries = Object.entries(value)
-      const index = entries.every(([, child]) => child !== undefined)
-        ? indexes.get(JSON.stringify(entries.map(([name]) => name)))
-        : undefined
-      const result =
-        index === undefined
-          ? Object.fromEntries(entries.map(([name, child]) => [name, encode(child)]))
-          : { [marker]: [index, entries.map(([, child]) => encode(child))] }
+      const keys = Object.keys(value)
+      const record = value as Record<string, unknown>
+      let hasUndefined = false
+      for (let i = 0; i < keys.length; i += 1) {
+        if (record[keys[i]!] === undefined) {
+          hasUndefined = true
+          break
+        }
+      }
+      let index: number | undefined
+      if (!hasUndefined) {
+        const fastKey = keys.some((key) => key.includes('\u0000'))
+          ? JSON.stringify(keys)
+          : `\u0000${keys.join('\u0000')}`
+        if (keyCache.has(fastKey)) {
+          index = keyCache.get(fastKey)
+        } else {
+          index = indexes.get(JSON.stringify(keys))
+          keyCache.set(fastKey, index)
+        }
+      }
+      let result: unknown
+      if (index === undefined) {
+        result = Object.fromEntries(keys.map((name) => [name, encode(record[name])]))
+      } else {
+        const values = new Array<unknown>(keys.length)
+        for (let i = 0; i < keys.length; i += 1) {
+          values[i] = encode(record[keys[i]!])
+        }
+        result = { [marker]: [index, values] }
+      }
       encoded.set(value, result)
       return result
     }
