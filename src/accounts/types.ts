@@ -126,6 +126,7 @@ export type AccountPlanningDraft = {
     totalScore: number
     loadouts: Array<{
       agentId: string
+      reviewedDiscAlternative?: import('../gameDataPacks/reviewedPlayerDiscAlternatives').ReviewedPlayerDiscBinding
       totalScore: number
       discIds: string[]
       effectiveRolls: number

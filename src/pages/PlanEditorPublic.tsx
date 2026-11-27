@@ -238,6 +238,7 @@ export function PlanEditor(props: PlanEditorProps) {
         inputFingerprint = buildSavedTeamPlanSolutionFingerprintFromComponents({
           decisionInput: input,
           planId: nextPlanId,
+          candidateWarehouse: candidateWarehouse ?? null,
           buildIntentFingerprint: contentHash([
             targetTeamFit.buildIntent.fingerprint,
             exactVariantKey,

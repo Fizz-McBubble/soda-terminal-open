@@ -15,6 +15,26 @@ export type ReleaseNote = {
 // Use the release date and describe what players can now do. Keep older entries in order.
 export const releases: readonly ReleaseNote[] = [
   {
+    id: "20261128-reviewed-disc-assignment",
+    date: "2026-11-28",
+    title: "赛维里安配装备选贯通养成、队伍和仓库",
+    summary: "拂晓生花 4 件加呼啸沙龙 2 件已纳入赛维里安的套装推荐。",
+    sections: [
+      {
+        title: "队伍配装",
+        changes: [
+          "搭配装备时，可用仓库里的实体盘比较这套备选。保存重开后，继续显示当时选定的驱动盘。",
+        ],
+      },
+      {
+        title: "驱动盘分析",
+        changes: [
+          "分析呼啸沙龙时，会考虑这套搭配的用途和当前条件。",
+        ],
+      },
+    ],
+  },
+  {
     id: "20261127-box-warehouse-first-open",
     date: "2026-11-27",
     title: "加快队伍推荐和全仓驱动盘分析",

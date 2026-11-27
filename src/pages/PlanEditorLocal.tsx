@@ -190,6 +190,7 @@ export function PlanEditor(props: PlanEditorProps) {
           ? buildSavedTeamPlanSolutionFingerprint({
               decisionInput: decisionWorld.liveInput!,
               planId: nextPlanId,
+              candidateWarehouse: candidateWarehouse ?? null,
               buildIntentFingerprint: contentHash([
                 targetTeamFit.buildIntent.fingerprint,
                 exactVariantKey,

@@ -482,6 +482,10 @@ const candidateWarehouseSchema = z.object({
   loadouts: z.array(
     z.object({
       agentId: z.string().min(1),
+      reviewedDiscAlternative: z
+        .object({ id: z.string().min(1), sourceHash: z.string().regex(/^fnv1a-[0-9a-f]{8}$/u) })
+        .strict()
+        .optional(),
       totalScore: z.number(),
       discIds: z.array(z.string().min(1)),
       effectiveRolls: z.number(),

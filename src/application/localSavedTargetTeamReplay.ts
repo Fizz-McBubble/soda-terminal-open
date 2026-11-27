@@ -15,6 +15,11 @@ import {
   dynamicLegalInventory,
 } from '../optimizer/teamDynamicDomain'
 import { selectedSourceCondition } from '../optimizer/candidateWarehouseSourceConditions'
+import { candidateLoadoutMatchesSetPlan } from '../optimizer/candidateWarehouseAlternativeRanking'
+import {
+  compareReviewedPlayerTeamDiscs,
+  requireSavedReviewedTeamDiscAlternative,
+} from '../decision/reviewedPlayerTeamDiscFit'
 import {
   resolveSavedPlanScenarioSelection,
   savedTeamDiscAssignments,
@@ -183,7 +188,7 @@ export function calculateLocalTargetTeamFit(
 ) {
   return replay
     ? calculateSavedTargetTeamWarehouseFit(input, replay)
-    : calculateTargetTeamWarehouseFit(input)
+    : compareReviewedPlayerTeamDiscs(input, calculateTargetTeamWarehouseFit(input))
 }
 
 /** Bind verified replay results; cache only searches used by subsequent comparisons. */
@@ -212,10 +217,30 @@ export function calculateSavedTargetTeamWarehouseFit(
   const { buildIntent, warehouse } = input
   const options = optimizerOptionsFromBuildIntent(buildIntent)
   const legalDiscs = new Map(dynamicLegalInventory(warehouse.discs).map((disc) => [disc.id, disc]))
+  const reviewed = new Map(
+    (replay.plan.candidateWarehouse?.loadouts ?? []).flatMap(
+      ({ agentId, reviewedDiscAlternative }) =>
+        reviewedDiscAlternative
+          ? [
+              [
+                agentId,
+                requireSavedReviewedTeamDiscAlternative(
+                  buildIntent,
+                  agentId,
+                  reviewedDiscAlternative,
+                ),
+              ] as const,
+            ]
+          : [],
+    ),
+  )
+  const recommendations = buildIntent.recommendations.map(
+    (row) => reviewed.get(row.agentId)?.recommendation ?? row,
+  )
   const profiles = getCandidateWarehouseProfiles(
     buildIntent.agentIds,
     [...new Set(warehouse.discs.map((disc) => disc.setId))],
-    buildIntent.recommendations,
+    recommendations,
   )
   const loadouts = replay.assignments.map(({ agentId, discIds }) => {
     const profile = profiles.find((row) => row.agentId === agentId)
@@ -237,6 +262,12 @@ export function calculateSavedTargetTeamWarehouseFit(
       options.effectiveCritObjectivesByAgent?.[agentId],
     )
     if (!loadout) throw new Error(`成员“${agentId}”的保存六盘不能评分；原分配仍保留。`)
+    const alternative = reviewed.get(agentId)
+    if (alternative) {
+      if (!candidateLoadoutMatchesSetPlan(loadout, alternative.plan))
+        throw new Error('保存方案的驱动盘与已记录的备选套装不符；原方案仍保留。')
+      loadout.reviewedDiscAlternative = { ...alternative.binding }
+    }
     return loadout
   })
   for (const loadout of loadouts) {
@@ -244,8 +275,7 @@ export function calculateSavedTargetTeamWarehouseFit(
       loadout,
       loadouts,
       buildIntent.agentIds,
-      buildIntent.recommendations.find((row) => row.agentId === loadout.agentId)?.constraint ??
-        null,
+      recommendations.find((row) => row.agentId === loadout.agentId)?.constraint ?? null,
     )
     if (condition?.status === 'condition-not-met' || condition?.status === 'condition-unknown') {
       loadout.degraded = true

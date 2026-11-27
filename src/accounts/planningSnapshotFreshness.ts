@@ -1,5 +1,6 @@
 import type { PortfolioJointBuildIntent } from '../decision/buildIntent'
 import type { BuildAccountDecisionInput } from '../decision/accountDecisionService'
+import type { AccountPlanningDraft } from './types'
 import { buildSavedTeamSolutionInputComponents } from '../decision/accountDecisionFingerprint'
 import {
   buildSavedTeamPlanSolutionFingerprintFromComponents,
@@ -20,15 +21,18 @@ export function buildSavedTeamPlanSolutionFingerprint({
   decisionInput,
   planId,
   buildIntentFingerprint,
+  candidateWarehouse,
 }: {
   decisionInput: BuildAccountDecisionInput
   planId: string
   buildIntentFingerprint: string
+  candidateWarehouse?: AccountPlanningDraft['candidateWarehouse'] | null
 }) {
   return buildSavedTeamPlanSolutionFingerprintFromComponents({
     decisionInput,
     planId,
     buildIntentFingerprint,
+    candidateWarehouse,
     nonPlanningComponents: nonPlanningComponents(decisionInput),
   })
 }

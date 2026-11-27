@@ -10,6 +10,8 @@ export type AccountDiscChoice = DiscContribution & {
 }
 
 export type AccountLoadout = {
+  /** Reviewed equipment source bound to this exact physical assignment. */
+  reviewedDiscAlternative?: import('../gameDataPacks/reviewedPlayerDiscAlternatives').ReviewedPlayerDiscBinding
   /** Personal score qualification; absent for legacy/team loadouts. */
   personalDiscScore?: import('../application/publicDevelopmentDiscScore').DevelopmentDiscScore
   /** The personal source was unavailable; totalScore is not a comparable result. */

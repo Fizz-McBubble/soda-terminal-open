@@ -71,6 +71,9 @@ export function projectPlanEditorCandidateWarehouse(
     totalScore: plan.totalScore,
     loadouts: plan.loadouts.map((loadout) => ({
       agentId: loadout.agentId,
+      ...(loadout.reviewedDiscAlternative
+        ? { reviewedDiscAlternative: { ...loadout.reviewedDiscAlternative } }
+        : {}),
       totalScore: loadout.totalScore,
       discIds: loadout.discs.map((choice) => choice.disc.id),
       effectiveRolls: loadout.discs.reduce((total, choice) => total + choice.effectiveRolls, 0),

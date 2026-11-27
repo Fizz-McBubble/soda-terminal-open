@@ -62,6 +62,9 @@ export function materialCompetingPlan(plan: AccountPlanningDraft) {
             .map((loadout) => ({
               agentId: loadout.agentId,
               discIds: [...loadout.discIds].sort(),
+              ...(loadout.reviewedDiscAlternative
+                ? { reviewedDiscAlternative: loadout.reviewedDiscAlternative }
+                : {}),
               setPattern: loadout.setPattern,
               degraded: loadout.degraded,
             }))
@@ -185,6 +188,7 @@ export function buildSavedTeamPlanSolutionFingerprintFromComponents({
   planId,
   buildIntentFingerprint,
   nonPlanningComponents,
+  candidateWarehouse,
 }: {
   decisionInput: Pick<
     BuildAccountDecisionInput,
@@ -193,8 +197,18 @@ export function buildSavedTeamPlanSolutionFingerprintFromComponents({
   planId: string
   buildIntentFingerprint: string
   nonPlanningComponents: Readonly<Record<string, string>>
+  candidateWarehouse?: AccountPlanningDraft['candidateWarehouse'] | null
 }) {
   const { drafts, activePlanIds, developmentPriorityAgentIds = [], preference } = decisionInput
+  const savedAssignment =
+    candidateWarehouse === undefined
+      ? drafts.find((draft) => draft.id === planId)?.candidateWarehouse
+      : candidateWarehouse
+  const reviewedDiscAlternatives = (savedAssignment?.loadouts ?? [])
+    .flatMap(({ agentId, reviewedDiscAlternative }) =>
+      reviewedDiscAlternative ? [{ agentId, ...reviewedDiscAlternative }] : [],
+    )
+    .sort((left, right) => left.agentId.localeCompare(right.agentId))
   return `${savedTeamFingerprintPrefix}${contentHash({
     contract: savedTeamFingerprintPrefix.slice(0, -1),
     nonPlanningComponents,
@@ -213,6 +227,7 @@ export function buildSavedTeamPlanSolutionFingerprintFromComponents({
       .map(materialCompetingPlan)
       .sort((left, right) => left.id.localeCompare(right.id)),
     buildIntentFingerprint,
+    ...(reviewedDiscAlternatives.length ? { reviewedDiscAlternatives } : {}),
   })}`
 }
 

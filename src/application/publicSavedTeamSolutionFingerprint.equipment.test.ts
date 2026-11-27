@@ -4,12 +4,82 @@ import {
   savedGraduationExecution,
   savedGraduationDiscs,
 } from '../testing/savedTeamGraduationCompletion.testFixture'
-import { materialCompetingPlan } from './publicSavedTeamSolutionFingerprint'
+import {
+  buildSavedTeamPlanSolutionFingerprintFromComponents,
+  materialCompetingPlan,
+} from './publicSavedTeamSolutionFingerprint'
 import { contentHash } from './contentHash'
 import { compileAgentBuildIntent } from '../decision/buildIntent'
 import { buildIntentFingerprintMatches } from './publicBuildIntentFingerprint'
+import { createEmptyRoster } from '../assault/catalog'
+import { normalizeTeamPortfolioPreference } from '../accounts/teamPortfolioPreference'
 
 describe('stored plan equipment identity', () => {
+  it('fits the same saved source identity before and after persistence and keeps legacy plans readable', () => {
+    const memberIds = ['agent-severian', 'agent-norma', 'agent-astra'] as const
+    const discs = savedGraduationDiscs(memberIds)
+    const execution = savedGraduationExecution(memberIds)
+    const plan = savedGraduationPlan(execution, memberIds, discs)
+    plan.candidateWarehouse = {
+      scope: 'team',
+      totalScore: 0,
+      boundary: '',
+      loadouts: execution.members.map(({ agentId, suggested }) => ({
+        agentId,
+        totalScore: 0,
+        discIds: suggested.discIds,
+        effectiveRolls: 0,
+        setPattern: '4+2',
+        degraded: false,
+      })),
+    }
+    const decisionInput = {
+      warehouse: {
+        accountId: plan.accountId,
+        account: null,
+        roster: createEmptyRoster(plan.updatedAt),
+        discs,
+      },
+      drafts: [plan],
+      activePlanIds: {},
+      developmentPriorityAgentIds: [],
+      preference: normalizeTeamPortfolioPreference(undefined),
+    }
+    const input = {
+      decisionInput,
+      planId: plan.id,
+      buildIntentFingerprint: 'same-intent',
+      nonPlanningComponents: {},
+    }
+    const legacy = buildSavedTeamPlanSolutionFingerprintFromComponents(input)
+    expect(
+      buildSavedTeamPlanSolutionFingerprintFromComponents({
+        ...input,
+        candidateWarehouse: plan.candidateWarehouse,
+      }),
+    ).toBe(legacy)
+
+    const revised = structuredClone(plan)
+    revised.candidateWarehouse!.loadouts[0]!.reviewedDiscAlternative = {
+      id: 'community-dawns-bloom-salon',
+      sourceHash: 'fnv1a-12345678',
+    }
+    const before = buildSavedTeamPlanSolutionFingerprintFromComponents({
+      ...input,
+      candidateWarehouse: revised.candidateWarehouse,
+    })
+    expect(before).not.toBe(legacy)
+    expect(
+      buildSavedTeamPlanSolutionFingerprintFromComponents({
+        ...input,
+        decisionInput: { ...decisionInput, drafts: [revised] },
+      }),
+    ).toBe(before)
+    expect(contentHash(materialCompetingPlan(revised))).not.toBe(
+      contentHash(materialCompetingPlan(plan)),
+    )
+  })
+
   it('invalidates a competing plan identity when its saved engine growth changes', () => {
     const ids = ['agent-remielle', 'agent-aria', 'agent-velina'] as const
     const plan = savedGraduationPlan(savedGraduationExecution(ids), ids, savedGraduationDiscs(ids))
