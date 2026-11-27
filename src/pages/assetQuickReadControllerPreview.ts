@@ -15,7 +15,7 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
   const originalFileNeeded = isUnverifiedPendingAssetSnapshot(review.raw)
   const issues = candidate.issues.map((issue) =>
     issue.code === 'native_decode_issues' && originalFileNeeded
-      ? { ...issue, message: '上次结果缺少原始校验记录。可核对当时导出的原文件。' }
+      ? { ...issue, message: '请点「核对原文件」，选择第一次读取后导出的原始 JSON。' }
       : issue,
   )
   const groups = new Map<string, number>()
