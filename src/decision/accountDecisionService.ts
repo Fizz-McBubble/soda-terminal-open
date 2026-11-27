@@ -111,7 +111,14 @@ export function buildAccountDecisionSnapshot({
     preference,
     optimizerOptions,
   })
-  const warehouseHash = contentHash(warehouse.discs)
+  // A normal account read already orders discs by id. Keep the legacy
+  // order-sensitive hash for callers that pass in a different order.
+  const discsAreOrdered = warehouse.discs.every(
+    (disc, index) => index === 0 || warehouse.discs[index - 1]!.id.localeCompare(disc.id) <= 0,
+  )
+  const warehouseHash = discsAreOrdered
+    ? fingerprint.components.warehouseHash
+    : contentHash(warehouse.discs)
   const rosterHash = fingerprint.components.rosterHash
   const currentPlanIdsByAgent = { ...activePlanIds, ...preference.planIdsByAgent }
   // Allocation is deferred for interactive browser analysis. Its preliminary

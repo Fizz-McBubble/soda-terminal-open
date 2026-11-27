@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { runInNewContext } from 'node:vm'
+import preparedBoxStartup from '../src/gameDataPacks/generated/box-startup-prepared.v1.json'
+import { packPreparedTemplates } from './boxStartupIndexAliases'
 import encyclopedia from '../src/gameDataPacks/data/current-encyclopedia-display.3.3.json'
 import qualification from '../src/gameDataPacks/data/reviewed-planning-event-set32.v1.json'
 import { reviewedPlanningEventSetIdentity32 } from '../src/gameDataPacks/reviewedPlanningEventSetIdentity32'
@@ -10,6 +13,19 @@ import {
 } from './catalogCodeSplitting'
 
 describe('workerRuntimePayloadSlimming payload projections', () => {
+  it('round-trips every prepared BOX ranking and Bangboo row in the public Worker payload', () => {
+    const packed = packPreparedTemplates(preparedBoxStartup)!
+    const original = JSON.stringify(preparedBoxStartup)
+    expect(Buffer.byteLength(packed)).toBeLessThan(Buffer.byteLength(original) / 3)
+    const restored = runInNewContext(
+      packed.replace('export default', 'result ='),
+      {},
+    ) as typeof preparedBoxStartup
+    expect(JSON.stringify(restored.templates)).toBe(JSON.stringify(preparedBoxStartup.templates))
+    expect(restored).toEqual(preparedBoxStartup)
+    expect(packPreparedTemplates({ templates: [{ rank: 1 }, null] })).toBeNull()
+  })
+
   it('retains every pin field read by calculation guards while shrinking encyclopedia >99%', () => {
     const rawBytes = Buffer.byteLength(JSON.stringify(encyclopedia))
     const slim = slimWorkerEncyclopediaPayload(encyclopedia as unknown as Record<string, unknown>)

@@ -18,6 +18,7 @@ import { reviewedReferenceSupportContinuity32 } from '../gameDataPacks/reviewedR
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { reviewedTeamDiscDirections } from '../gameDataPacks/reviewedTeamDiscConditions'
 import { stableContentHash } from '../gameDataPacks/types'
+import { reviewedPlayerDiscAlternative } from '../gameDataPacks/reviewedPlayerDiscAlternatives'
 import { sourcedFunctionalMains } from './absoluteDiscRetentionFunctions'
 import { retentionCondition } from './absoluteDiscRetentionConditions'
 import { resolveRetentionUseFacts } from './absoluteDiscRetentionUseFacts'
@@ -162,32 +163,6 @@ function profile(
   }
 }
 
-const severianSalonPlan: CandidateSetPlan = {
-  pattern: '4+2',
-  primarySetIds: ['set-dawns-bloom'],
-  secondarySetIds: ['set-wuthering-salon'],
-  purpose: 'recommended',
-  sourceText: '赛维里安的社区备选：拂晓生花4件＋呼啸沙龙2件。',
-}
-
-const severianSalonSources = [
-  {
-    id: 'prydwen-severian-salon-20261127',
-    url: 'https://www.prydwen.gg/zenless/characters/severian',
-  },
-  {
-    id: 'icy-veins-severian-salon-20261127',
-    url: 'https://www.icy-veins.com/zenless-zone-zero/severian-guide-best-builds',
-  },
-].map((source) => ({
-  ...source,
-  sourceVersion: '3.3',
-  checkedAt: '2026-11-27',
-  contentHash: stableContentHash({ ...source, plan: severianSalonPlan }),
-  verified: true,
-  licenseBoundary: '采用结构化的主副套搭配事实，原攻略与计算表留在作者站点。',
-}))
-
 function buildProfiles() {
   const profiles: Profile[] = []
   const investmentBranchByProfileId = new Map<string, string>()
@@ -239,23 +214,23 @@ function buildProfiles() {
           warehouseInvestmentBranchKey(agentId, 'base', plan),
         )
       })
-    // This source supports an observation in the warehouse. Investment and team
-    // builds continue to require a branch provided by their executable plan inputs.
-    if (agentId === 'agent-severian' && base.gameVersion === '3.3') {
+    // Investment still requires a branch that can be selected by the solver.
+    const alternative = reviewedPlayerDiscAlternative(base)
+    if (alternative) {
       profiles.push(
         profile(
           {
             ...base,
-            setIds: [...base.setIds, ...severianSalonPlan.secondarySetIds],
-            setPlans: [severianSalonPlan],
-            sources: [...base.sources, ...severianSalonSources],
+            setIds: [...base.setIds, ...alternative.plan.secondarySetIds],
+            setPlans: [alternative.plan],
+            sources: [...base.sources, ...alternative.sources],
           },
-          'community-dawns-bloom-salon',
-          severianSalonPlan.primarySetIds,
+          alternative.id,
+          alternative.plan.primarySetIds,
           'valid',
           undefined,
           'valid',
-          severianSalonPlan,
+          alternative.plan,
         ),
       )
     }

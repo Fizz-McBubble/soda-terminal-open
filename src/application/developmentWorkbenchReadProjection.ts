@@ -27,6 +27,7 @@ import {
   candidateSetPlansForConstraint,
 } from '../gameDataPacks/candidateWarehouseConstraints'
 import { candidateDiscRecommendations } from '../pages/candidateDiscRecommendations'
+import { reviewedPlayerDiscAlternative } from '../gameDataPacks/reviewedPlayerDiscAlternatives'
 import {
   evaluateDevelopmentRecordedDiscs,
   developmentDiscFacts,
@@ -321,9 +322,13 @@ export function projectDevelopmentWorkbenchReadProjection<T extends ReadBase>({
       )
     : null
   const constraint = getCandidateWarehouseConstraint(selection.agentId)
+  const reviewedAlternative = reviewedPlayerDiscAlternative(constraint)
   const setRecommendations = constraint
     ? candidateDiscRecommendations(
-        candidateSetPlansForConstraint(constraint),
+        [
+          ...candidateSetPlansForConstraint(constraint),
+          ...(reviewedAlternative ? [reviewedAlternative.plan] : []),
+        ],
         constraint,
         panelContext,
       )
