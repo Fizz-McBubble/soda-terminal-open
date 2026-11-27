@@ -22,10 +22,9 @@ const quality = (agentId: string) => {
 }
 
 describe('warehouse quality consumes the adopted game mechanisms', () => {
-  // Independent arithmetic from the pinned character JSON, not the production
-  // panel or weight resolver. Level60, promotion5; no weapon/core assumptions.
+  // Pinned level-60 character stats and the released S-rank Attack W-Engine median (713).
   it.each([
-    ['agent-billy', 'atk_flat', 19, 3, 113 + 6.7335 * 59 + 202],
+    ['agent-billy', 'atk_flat', 19, 3, 113 + 6.7335 * 59 + 202 + 713],
     ['agent-claret', 'def_flat', 15, 4.8, 35 + 4.8155 * 59 + 122],
     ['agent-ben', 'def_flat', 15, 4.8, 58 + 7.8989 * 59 + 200],
     ['agent-yixuan', 'hp_flat', 112, 3, 673 + 84.2519 * 59 + 2310],
@@ -34,6 +33,11 @@ describe('warehouse quality consumes the adopted game mechanisms', () => {
     const expected = Math.round(((0.75 * flat) / ((base * percent) / 100)) * 1e6) / 1e6
     expect(result.weights[stat]).toBe(expected)
     expect(result.weightEvidence.sourceIds.length).toBeGreaterThan(0)
+    if (stat === 'atk_flat') {
+      expect(result.weightEvidence.sourceIds).toEqual(
+        expect.arrayContaining([expect.stringContaining('level60-s-median-by-specialty')]),
+      )
+    }
   })
 
   it('does not turn an absent promotion record into a zero-benefit flat stat', () => {

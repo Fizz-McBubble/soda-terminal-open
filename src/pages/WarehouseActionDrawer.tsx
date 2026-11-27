@@ -228,6 +228,9 @@ export function WarehouseActionDrawer({
             <p>
               +{disc.level}
               {sameKindCount > 1 ? ` · 同款共 ${sameKindCount} 张` : ''}
+              {!stale && (item.cleanupAssessment?.betterSameClassCount ?? 0) > 0
+                ? ` · 同类已有 ${item.cleanupAssessment?.betterSameClassCount} 张更优`
+                : ''}
             </p>
           </div>
         </header>

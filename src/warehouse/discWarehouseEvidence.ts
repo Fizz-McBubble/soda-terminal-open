@@ -116,6 +116,8 @@ export type WarehouseDiscDecision = {
     availableCopiesAfterDelete: number
     deleteAfterFeasible: boolean
     hasBetterAlternative: boolean
+    /** Count of distinct, strictly better same-class discs with known build roles. */
+    betterSameClassCount?: number
     hasCoverageAlternative: boolean
     rareUnique: boolean
     scarceReserve?: boolean

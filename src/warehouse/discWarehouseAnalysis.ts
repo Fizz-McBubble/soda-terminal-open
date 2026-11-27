@@ -405,6 +405,9 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
         availableCopiesAfterDelete,
         deleteAfterFeasible,
         hasBetterAlternative: enhancementPotential.candidateAlternativeIds.length > 0,
+        ...(enhancementPotential.potentialEvaluated && !enhancementPotential.usedGenericFallback
+          ? { betterSameClassCount: enhancementPotential.candidateAlternativeIds.length }
+          : {}),
         hasCoverageAlternative: enhancementPotential.coverageAlternativeIds.length > 0,
         rareUnique: isRareUnique(disc, physicalCopyCount),
         scarceReserve: false,

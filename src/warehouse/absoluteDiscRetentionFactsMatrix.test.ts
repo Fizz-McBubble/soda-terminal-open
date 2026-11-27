@@ -103,7 +103,9 @@ describe('production adopted-fact matrix', () => {
     expect(resolved.effects[effect!]!.evidenceIds.length).toBeGreaterThan(0)
     const quality = resolveRetentionQualityWeights(constraint(id!), id!, resolved)
     expect(quality.weights[stat!]).toBeGreaterThan(0)
-    expect(quality.weightEvidence.id).toBe(retentionWeightPolicyId)
+    expect(quality.weightEvidence.id).toBe(
+      id === 'agent-ben' ? 'retention-goal-roll-quality-r3-promoted-base' : retentionWeightPolicyId,
+    )
     expect(quality.weightEvidence.method).toBe('goal_bound_standard_roll_quality_proxy')
   })
   it('Jane Assault crit reads AP and core skill, rather than CR/CD quality targets', () => {

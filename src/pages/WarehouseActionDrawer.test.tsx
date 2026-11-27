@@ -496,6 +496,7 @@ describe('warehouse detail density and saved loadout labels', () => {
             availableCopiesAfterDelete: 1,
             deleteAfterFeasible: true,
             hasBetterAlternative: true,
+            betterSameClassCount: 1,
             hasCoverageAlternative: true,
             rareUnique: false,
             significantFit: false,
@@ -513,6 +514,7 @@ describe('warehouse detail density and saved loadout labels', () => {
       ),
     )
     expect(screen.getByText('当前账户记录中没有找到适用用途。')).toBeInTheDocument()
+    expect(screen.getByText(/同类已有 1 张更优/u)).toBeInTheDocument()
     expect(screen.queryByText('当前账号没有适用需求。')).not.toBeInTheDocument()
   })
 

@@ -149,18 +149,7 @@ export function warehouseValueCodec(input: readonly unknown[]) {
   }
 }
 
-function deepClone(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    const out = new Array<unknown>(value.length)
-    for (let i = 0; i < value.length; i += 1) out[i] = deepClone(value[i])
-    return out
-  }
-  if (!value || typeof value !== 'object') return value
-  const record = value as Record<string, unknown>
-  return Object.fromEntries(Object.entries(record).map(([key, child]) => [key, deepClone(child)]))
-}
-
-/** Expand v4 `$v` references into fresh independent objects before object/text restoration. */
+/** Expand v4 `$v` references for the object reader, which creates independent values for each row. */
 export function createWarehouseValueExpander(sharedValues: readonly unknown[]) {
   if (!Array.isArray(sharedValues)) throw new Error('驱动盘分析共享值资料无效，请重新分析。')
   const expandedTable: unknown[] = new Array(sharedValues.length)
@@ -183,7 +172,7 @@ export function createWarehouseValueExpander(sharedValues: readonly unknown[]) {
         idx >= maxAllowedIndex
       )
         throw new Error('驱动盘分析共享值资料无效，请重新分析。')
-      return deepClone(expandedTable[idx])
+      return expandedTable[idx]
     }
     return Object.fromEntries(
       Object.entries(record).map(([key, child]) => [key, expand(child, maxAllowedIndex)]),

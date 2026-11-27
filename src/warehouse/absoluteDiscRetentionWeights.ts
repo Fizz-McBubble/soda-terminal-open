@@ -1,15 +1,43 @@
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { driveDiscData } from '../data/gameData'
 import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
+import { currentWEngineStaticCatalog } from '../gameDataPacks/currentWEngineStaticCatalog'
 import type { Profile } from './absoluteDiscRetentionContract'
 import type { RetentionUseFacts } from './absoluteDiscRetentionUseFacts'
 import { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 
 export { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 
-export const retentionWeightPolicyId = 'retention-goal-roll-quality-r3-promoted-base'
+export const retentionWeightPolicyId = 'retention-goal-roll-quality-r4-reference-attack'
+const promotedBaseWeightPolicyId = 'retention-goal-roll-quality-r3-promoted-base'
 /** Calibrated roll-quality proxies. These are not damage ratios or exact marginal DPS. */
-export const retentionWeightParameters = Object.freeze({ scaling: 0.75, secondaryPen: 0.3 })
+export const retentionWeightParameters = Object.freeze({
+  scaling: 0.75,
+  secondaryPen: 0.3,
+  attackReference: 'level-60-s-median-by-specialty',
+})
+
+const referenceAttackBySpecialty = buildReferenceAttackBySpecialty()
+const attackReferenceSourceId = `current-wengine-static-catalog:${currentWEngineStaticCatalog.contentHash}:level60-s-median-by-specialty`
+
+function buildReferenceAttackBySpecialty() {
+  const attacksBySpecialty = new Map<string, number[]>()
+  for (const { rarity, specialty, staticStats } of currentWEngineStaticCatalog.items) {
+    if (rarity !== 'S') continue
+    const { key, value } = staticStats.level60BaseStat
+    const attacks = attacksBySpecialty.get(specialty) ?? []
+    attacks.push(key === 'atk' ? value : 0)
+    attacksBySpecialty.set(specialty, attacks)
+  }
+  return new Map(
+    [...attacksBySpecialty].map(([specialty, attacks]) => {
+      attacks.sort((left, right) => left - right)
+      const lower = attacks[Math.floor((attacks.length - 1) / 2)]!
+      const upper = attacks[Math.floor(attacks.length / 2)]!
+      return [specialty, (lower + upper) / 2] as const
+    }),
+  )
+}
 
 export function resolveRetentionQualityWeights(
   constraint: CandidateWarehouseConstraint,
@@ -23,10 +51,13 @@ export function resolveRetentionQualityWeights(
       .map(([stat]) => stat),
   )
   const mechanic = getCurrentAgentEventContract(agentId)
+  const specialty = mechanic?.identity.specialty
+  const engineSpecialty = specialty === 'attack' ? 'damage' : specialty
   const standard = driveDiscData?.rules.subStatStepsByRarity.S ?? []
   const step = (stat: string) => standard.find((entry) => entry.stat === stat)?.baseValue ?? 0
   const weights: Record<string, number> = {}
   let missingScalingBase = false
+  let usedAttackReference = false
   const qualityInputEvidence: Record<string, NonNullable<Profile['qualityInputEvidence']>[string]> =
     {}
   // Core lines are the objective's quality inputs, not the stat granted by core-skill promotion.
@@ -67,20 +98,25 @@ export function resolveRetentionQualityWeights(
     const scaleWeight = isFunction ? 1 : retentionWeightParameters.scaling
     weights[percent] = scaleWeight
     const promotion = mechanic?.promotionStats[5]?.[kind]
+    const engineBase =
+      kind === 'atk' && engineSpecialty ? referenceAttackBySpecialty.get(engineSpecialty) : 0
     const base =
-      !mechanic || promotion === undefined
+      !mechanic || promotion === undefined || engineBase === undefined
         ? null
-        : mechanic.baseStats[`${kind}_base`] + mechanic.baseStats[`${kind}_growth`] * 59 + promotion
-    // The fixed level60 character reference includes its five promotions, as in
-    // the shared panel projection. It excludes weapons, core and account state.
-    // The reference has no account equipment/ownership or inventory-relative normalization.
+        : mechanic.baseStats[`${kind}_base`] +
+          mechanic.baseStats[`${kind}_growth`] * 59 +
+          promotion +
+          engineBase
+    // Only the standard attack reference adds a W-Engine's white stat. Other
+    // scaling bases continue to use the level-60 character's promoted stats.
     const percentRoll = base === null ? null : (base * step(percent)) / 100
-    if (percentRoll !== null && Number.isFinite(percentRoll) && percentRoll > 0)
+    if (percentRoll !== null && Number.isFinite(percentRoll) && percentRoll > 0) {
+      if (kind === 'atk') usedAttackReference = true
       weights[flat] = Math.min(
         1,
         Math.round(((scaleWeight * step(flat)) / percentRoll) * 1e6) / 1e6,
       )
-    else {
+    } else {
       // Keep an optimistic input until its conversion is known; never let a
       // missing base silently turn this legal stat into a zero-benefit line.
       weights[flat] = 1
@@ -89,7 +125,10 @@ export function resolveRetentionQualityWeights(
         state: 'missing_fact',
         predicateId: `${agentId}:quality:${flat}:promoted-base`,
         evidenceIds: mechanic ? [mechanic.source.statsSha256] : facts.sourceIds,
-        detail: '缺少60级突破后的基础属性，固定词条收益尚未完成换算。',
+        detail:
+          engineBase === undefined
+            ? '缺少该职业的参考音擎白值，固定攻击词条收益待核对。'
+            : '缺少60级突破后的基础属性，固定词条收益尚未完成换算。',
       }
     }
     if (isFunction || isAnomaly) {
@@ -133,6 +172,7 @@ export function resolveRetentionQualityWeights(
     (noSubstatGoal || (Object.values(weights).some((value) => value > 0) && coreStats.size > 0))
   const sourceIds = [
     ...facts.sourceIds,
+    ...(usedAttackReference ? [attackReferenceSourceId] : []),
     ...(mechanic
       ? [`${mechanic.source.repository}:${mechanic.source.commit}:${mechanic.source.statsSha256}`]
       : []),
@@ -145,7 +185,7 @@ export function resolveRetentionQualityWeights(
     coreStats: [...coreStats].filter((stat) => (weights[stat] ?? 0) >= 0.5),
     qualityInputEvidence,
     weightEvidence: {
-      id: retentionWeightPolicyId,
+      id: usedAttackReference ? retentionWeightPolicyId : promotedBaseWeightPolicyId,
       method: noSubstatGoal
         ? noFunctionalSubstatGoalMethod
         : known
