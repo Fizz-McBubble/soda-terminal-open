@@ -12,6 +12,7 @@ export async function savePendingAssetResult(
   raw: unknown,
   snapshotSha256: string,
   db: SodaDatabase = database,
+  replaceOnlyIfCurrent = false,
 ) {
   const prepared = prepareAssetSnapshotExport(raw)
   if (!prepared || !/^[a-f0-9]{64}$/i.test(snapshotSha256)) return false
@@ -26,17 +27,27 @@ export async function savePendingAssetResult(
     savedAt: new Date().toISOString(),
     hash: contentHash(snapshot),
   }
-  await db.transaction('rw', [db.settings, db.accountPreferences], async () => {
+  return db.transaction('rw', [db.settings, db.accountPreferences], async () => {
     await assertActiveAccountScope(accountId, db)
+    const scopedId = getScopedId(accountId, key)
+    if (replaceOnlyIfCurrent) {
+      const existing = await db.accountPreferences.get(scopedId)
+      if (
+        existing?.accountId !== accountId ||
+        (existing.value as Partial<PendingAssetResult> | undefined)?.snapshotSha256 !==
+          snapshotSha256
+      )
+        return false
+    }
     await db.accountPreferences.put({
-      scopedId: getScopedId(accountId, key),
+      scopedId,
       accountId,
       key,
       value,
       updatedAt: value.savedAt,
     })
+    return true
   })
-  return true
 }
 
 export async function readPendingAssetResult(

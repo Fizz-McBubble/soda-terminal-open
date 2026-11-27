@@ -20,6 +20,7 @@ export function ReleaseNotes() {
       label="更新日志"
       closeLabel="关闭更新日志"
       className="release-notes"
+      showIndicator={false}
       onOpenChange={setOpen}
       focusCloseOnOpen
     >

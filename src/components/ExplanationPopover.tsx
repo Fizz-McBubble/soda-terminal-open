@@ -122,7 +122,7 @@ export function ExplanationPopover({
         aria-label={triggerAriaLabel}
         disabled={disabled}
       >
-        {showIndicator ? (
+        {variant === 'text' && showIndicator ? (
           <ChevronRight className="explanation__indicator" aria-hidden="true" size={14} />
         ) : null}
         <span className="explanation__label">{label}</span>

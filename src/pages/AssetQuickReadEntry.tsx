@@ -89,6 +89,7 @@ export function AssetQuickReadEntry({
   onPrepareAgain,
   onExport,
   onInspectFile,
+  onVerifyOriginalFile,
   canImport = false,
   preview,
   elapsedSeconds,
@@ -577,6 +578,16 @@ export function AssetQuickReadEntry({
                 >
                   {pendingAction === 'import' ? '导入中…' : '导入'}
                 </button>
+                {onVerifyOriginalFile && !importAvailable && (
+                  <button
+                    className="button button--quiet"
+                    type="button"
+                    disabled={actionBlocked}
+                    onClick={onVerifyOriginalFile}
+                  >
+                    核对原文件
+                  </button>
+                )}
                 {exportButton}
                 {discardButton}
                 {diagnostic}

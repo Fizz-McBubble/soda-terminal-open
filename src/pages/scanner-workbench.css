@@ -40,19 +40,10 @@
 }
 .f5v-shell .scanner-workbench .asset-capture-risk a {
   color: #624719;
-  text-underline-offset: 3px;
   white-space: nowrap;
-}
-.f5v-shell .scanner-workbench .asset-capture-risk a {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
 }
 .f5v-shell .scanner-workbench .asset-capture-risk a:hover {
   color: #8b5a10;
-}
-.f5v-shell .scanner-workbench .asset-capture-risk a:hover {
-  text-decoration-thickness: 2px;
 }
 .f5v-shell .scanner-workbench__heading,
 .f5v-shell .scanner-workbench__method-heading,

@@ -12,6 +12,7 @@ export function AssetQuickReadGuide() {
       closeLabel="关闭资产快读指南"
       className="scanner-guide asset-quick-read__guide-entry"
       align="end"
+      variant="button"
     >
       <dl>
         <div>

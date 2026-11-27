@@ -1,4 +1,26 @@
 import { assetSnapshotSchema, pendingAssetSnapshotSchema } from './snapshotProtocolSchema'
+import { canonicalJson } from '../application/contentHash'
+
+export function isUnverifiedPendingAssetSnapshot(raw: unknown): boolean {
+  if (!raw || typeof raw !== 'object' || !('issues' in raw) || !Array.isArray(raw.issues))
+    return false
+  if (raw.issues.length !== 1) return false
+  const issue = raw.issues[0]
+  return (
+    issue?.asset === 'snapshot' &&
+    issue.field === '' &&
+    ['legacy_observation_unverified', 'incomplete_observation'].includes(issue.code)
+  )
+}
+
+/** A separate clean file must match the saved capture before it can be reviewed in its place. */
+export function matchesUnverifiedPendingAssetSnapshot(saved: unknown, file: unknown): boolean {
+  if (!isUnverifiedPendingAssetSnapshot(saved)) return false
+  const pending = assetSnapshotSchema.safeParse(saved)
+  const candidate = assetSnapshotSchema.safeParse(file)
+  if (!pending.success || !candidate.success || candidate.data.issues.length > 0) return false
+  return canonicalJson({ ...pending.data, issues: [] }) === canonicalJson(candidate.data)
+}
 
 /** Local download only. This broader recovery schema never authorizes account import. */
 export function prepareAssetSnapshotExport(raw: unknown) {

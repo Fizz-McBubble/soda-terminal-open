@@ -15,6 +15,28 @@ export type ReleaseNote = {
 // Use the release date and describe what players can now do. Keep older entries in order.
 export const releases: readonly ReleaseNote[] = [
   {
+    id: "20261127-quick-read-result-recovery",
+    date: "2026-11-27",
+    title: "恢复上次资产快读结果，统一两种导入工具的布局",
+    summary: "此前已读取的资产可以继续核对和导入，结果和操作按钮都留在原工具卡内。",
+    sections: [
+      {
+        title: "资产快读",
+        changes: [
+          "上次结果因旧版校验标记无法导入时，可点「核对原文件」，选择同次读取导出的 JSON，通过校验后即可继续导入。",
+          "仍须确认目标账户后再导入。导入后可撤销，也可在「我的资产」保存账户备份。",
+        ],
+      },
+      {
+        title: "画面扫描与导入界面",
+        changes: [
+          "统一两张工具卡的准备、结果和操作区排列，移除快读结果的嵌套底板。",
+          "指南、风险说明和更新日志按钮精简了箭头与下划线。",
+        ],
+      },
+    ],
+  },
+  {
     id: "20261127-box-rotation-and-workspace",
     date: "2026-11-27",
     title: "校准队伍评级与手法，更新邦布、养成搜索和仓库",

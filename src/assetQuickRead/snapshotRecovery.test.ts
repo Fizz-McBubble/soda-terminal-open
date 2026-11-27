@@ -1,11 +1,46 @@
 import { expect, it } from 'vitest'
-import { prepareAssetSnapshotExport, assetCompatibilityMessage } from './snapshotRecovery'
+import {
+  prepareAssetSnapshotExport,
+  assetCompatibilityMessage,
+  matchesUnverifiedPendingAssetSnapshot,
+} from './snapshotRecovery'
 import {
   syntheticAssetSnapshot,
   syntheticAssetSnapshot33,
 } from './syntheticAssetSnapshotTestFixture'
 import { assetSnapshotSchema } from './snapshotProtocolSchema'
 import { convertAssetSnapshot } from './snapshotAdapter'
+
+it.each(['legacy_observation_unverified', 'incomplete_observation'])(
+  'verifies %s against the original clean 3.3 capture only',
+  (code) => {
+    const original = syntheticAssetSnapshot33()
+    const saved = {
+      ...original,
+      issues: [{ asset: 'snapshot', field: '', code }],
+    }
+    expect(matchesUnverifiedPendingAssetSnapshot(saved, original)).toBe(true)
+    expect(matchesUnverifiedPendingAssetSnapshot(saved, saved)).toBe(false)
+    expect(
+      matchesUnverifiedPendingAssetSnapshot(saved, {
+        ...original,
+        source: {
+          ...original.source,
+          capture_started_unix_seconds: original.source.capture_started_unix_seconds + 1,
+        },
+      }),
+    ).toBe(false)
+    expect(
+      matchesUnverifiedPendingAssetSnapshot(
+        {
+          ...saved,
+          issues: [{ asset: 'disc', field: 'uid', code: 'wrong_wire_type' }],
+        },
+        original,
+      ),
+    ).toBe(false)
+  },
+)
 
 it('exports a supported 3.3 candidate without mislabelling it pending adaptation', () => {
   const result = prepareAssetSnapshotExport(syntheticAssetSnapshot33())!

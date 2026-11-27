@@ -10,13 +10,14 @@ import { readAssetDiagnostic, saveAssetDiagnostic } from '../assetQuickRead/feed
 import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
 import { assetFailureGuidance } from '../assetQuickRead/diagnosticGuidance'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { assetSnapshotMaxBytes } from '../application/localDataFile'
+import { inspectAssetQuickReadFile } from '../assetQuickRead/fileInspection'
 import { AssetQuickReadEntry, type AssetQuickReadState } from './AssetQuickReadEntry'
 import { AssetQuickReadBridgeClient, type AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 import { convertAssetSnapshot } from '../assetQuickRead/snapshotAdapter'
 import {
   prepareAssetSnapshotExport,
   assetCompatibilityMessage,
+  isUnverifiedPendingAssetSnapshot,
 } from '../assetQuickRead/snapshotRecovery'
 import {
   confirmAssetQuickReadImport,
@@ -30,11 +31,7 @@ import { AssetQuickReadImportError } from '../assetQuickRead/importErrors'
 import { AssetQuickReadRecovery } from './AssetQuickReadRecovery'
 import { AssetQuickReadPendingResult } from './AssetQuickReadPendingResult'
 import { usePendingAssetResult } from './usePendingAssetResult'
-import {
-  savePendingAssetResult,
-  clearPendingAssetResult,
-  readPendingAssetResult,
-} from '../assetQuickRead/pendingResult'
+import { savePendingAssetResult, clearPendingAssetResult } from '../assetQuickRead/pendingResult'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadDownloadAvailable } from '../assetQuickRead/distribution'
 import { setPublicScannerActiveAccount } from '../accounts/publicScannerAccountCreation'
@@ -79,6 +76,7 @@ function AccountBoundQuickRead({
   const [state, setState] = useState<AssetQuickReadState>('idle')
   const [job, setJob] = useState<AssetBridgeJob | null>(null)
   const [review, setReview] = useState<Reviewed | null>(null)
+  const canVerifyOriginal = state === 'received' && isUnverifiedPendingAssetSnapshot(review?.raw)
   const safeExport = useMemo(
     () => (review ? prepareAssetSnapshotExport(review.raw) : null),
     [review],
@@ -190,6 +188,7 @@ function AccountBoundQuickRead({
     sha256: string,
     scope: number,
     action: AssetDiagnosticAction = 'start',
+    persistPending = true,
   ) {
     if (generation.current !== scope) return
     const candidate = convertAssetSnapshot(raw, { snapshotSha256: sha256 })
@@ -232,7 +231,7 @@ function AccountBoundQuickRead({
       )
     setReview({ raw, candidate, plan, issue })
     setState('received')
-    if (targetAccountId) {
+    if (targetAccountId && persistPending) {
       try {
         const saved = await savePendingAssetResult(targetAccountId, raw, sha256)
         if (generation.current === scope)
@@ -352,48 +351,46 @@ function AccountBoundQuickRead({
     const scope = ++generation.current
     onTaskStart?.()
     setError('')
-    setReview(null)
-    setRecoveryKey('')
-    setRecoveryAvailable(false)
-    setRecoveryNotice('')
-    setRestoreArmed(false)
-    setCompletion('')
+    const verifyingOriginal = canVerifyOriginal
+    setPendingSaveNotice('')
     try {
-      // The shared file picker may hand off while the live query is loading.
-      // Check storage in this operation rather than dropping a file through an
-      // earlier render's pending state; never replace a saved result implicitly.
       if (!targetAccountId || !accountReady) throw new Error('请先选择当前接收账户。')
-      let saved
-      try {
-        saved = await readPendingAssetResult(targetAccountId)
-      } catch {
-        if (generation.current !== scope) return
-        pending.retry()
-        setError('暂时无法恢复上次结果，原记录保留。请重试核对后再打开文件。')
-        setState('idle')
+      const result = await inspectAssetQuickReadFile(
+        file,
+        targetAccountId,
+        () => generation.current === scope,
+        verifyingOriginal ? review?.candidate.snapshotSha256 : undefined,
+      )
+      if (!result || generation.current !== scope) return
+      if (result.kind === 'blocked') {
+        if (result.refreshPending) pending.retry()
+        if (verifyingOriginal) setPendingSaveNotice(result.message)
+        else {
+          setReview(null)
+          setError(result.message)
+          setState('idle')
+        }
         return
       }
-      if (generation.current !== scope) return
-      if (saved) {
-        pending.retry()
-        setError('上次读取结果仍保留，请先继续检查并导入、导出或放弃，再打开其他文件。')
-        setState('idle')
-        return
+      if (!result.fromPending) {
+        setReview(null)
+        setRecoveryKey('')
+        setRecoveryAvailable(false)
+        setRecoveryNotice('')
+        setRestoreArmed(false)
+        setCompletion('')
       }
-      if (file.size > assetSnapshotMaxBytes) throw new Error('候选文件超过 16 MiB，未读取。')
-      const bytes = await file.arrayBuffer()
-      if (generation.current !== scope) return
-      const sha = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), (byte) =>
-        byte.toString(16).padStart(2, '0'),
-      ).join('')
-      await inspect(JSON.parse(new TextDecoder().decode(bytes)), sha, scope, 'inspect_file')
+      await inspect(result.raw, result.sha256, scope, 'inspect_file', !result.fromPending)
     } catch (failure) {
       if (scope === generation.current) {
         recordFailure('result', failure, null, 'inspect_file')
-        setError(
-          failure instanceof SyntaxError ? '文件不是有效的 JSON，未读取。' : message(failure),
-        )
-        setState('error')
+        const fileError =
+          failure instanceof SyntaxError ? '文件不是有效的 JSON，未读取。' : message(failure)
+        if (verifyingOriginal) setPendingSaveNotice(fileError)
+        else {
+          setError(fileError)
+          setState('error')
+        }
       }
     }
   }
@@ -688,6 +685,7 @@ function AccountBoundQuickRead({
       }
       onStop={stop}
       onInspectFile={() => fileInput.current?.click()}
+      onVerifyOriginalFile={canVerifyOriginal ? () => fileInput.current?.click() : undefined}
       preview={review ? previewOf(review) : undefined}
       canImport={accountReady && Boolean(review?.plan?.importable)}
       onImport={importResult}
@@ -723,7 +721,7 @@ function AccountBoundQuickRead({
               const scope = generation.current
               void runOperation('continue', async () => {
                 onTaskStart?.()
-                await inspect(saved.snapshot, saved.snapshotSha256, scope)
+                await inspect(saved.snapshot, saved.snapshotSha256, scope, 'start', false)
               }).catch(() => {
                 if (scope === generation.current)
                   setError('上次结果暂时无法检查，原记录保留，请重试。')
@@ -766,7 +764,7 @@ function AccountBoundQuickRead({
   )
   return (
     <>
-      {!workbench && filePicker}
+      {(!workbench || canVerifyOriginal) && filePicker}
       {entry}
       {!workbench && (
         <>

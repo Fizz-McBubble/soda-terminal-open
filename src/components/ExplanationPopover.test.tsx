@@ -134,7 +134,7 @@ it('uses the existing quiet button for a toolbar disclosure while keeping body e
   )
   render(
     <>
-      <ExplanationPopover label="推荐说明" variant="button" showIndicator={false}>
+      <ExplanationPopover label="推荐说明" variant="button">
         工具栏说明
       </ExplanationPopover>
       {['更多', '适用条件', '参考'].map((label) => (

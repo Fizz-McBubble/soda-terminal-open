@@ -30,6 +30,7 @@ export function AssetCaptureRiskDetails({ label = '风险说明' }: { label?: st
       title="权限与数据说明"
       className="asset-capture-risk-details"
       align="end"
+      variant="button"
     >
       <ul>
         <li>两种方式均未取得官方书面授权，没有依据比较封号概率。</li>

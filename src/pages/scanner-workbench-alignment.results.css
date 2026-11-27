@@ -26,7 +26,10 @@
 }
 .f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__issues {
   margin: 0;
-  padding: 10px 12px;
+  padding: 8px 0 0;
+  border-radius: 0;
+  border-top: 1px solid var(--soda-line);
+  background: transparent;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__issues summary {
   font-size: 14px;

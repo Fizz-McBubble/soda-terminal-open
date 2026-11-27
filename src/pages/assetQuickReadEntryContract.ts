@@ -47,6 +47,7 @@ export interface AssetQuickReadEntryProps {
   onPrepareAgain?: () => void | Promise<void>
   onExport?: () => void | Promise<void>
   onInspectFile?: () => void | Promise<void>
+  onVerifyOriginalFile?: () => void
   canImport?: boolean
   preview?: AssetQuickReadPreview
   elapsedSeconds?: number

@@ -1,6 +1,7 @@
 import type { AssetQuickReadPreview } from './AssetQuickReadEntry'
 import type { AssetQuickReadCandidate } from '../assetQuickRead/snapshotAdapter'
 import type { AssetQuickReadImportPlan } from '../assetQuickRead/accountImport'
+import { isUnverifiedPendingAssetSnapshot } from '../assetQuickRead/snapshotRecovery'
 
 export type Reviewed = {
   raw: unknown
@@ -11,8 +12,14 @@ export type Reviewed = {
 
 export function previewOf(review: Reviewed): AssetQuickReadPreview {
   const { candidate, plan } = review
+  const originalFileNeeded = isUnverifiedPendingAssetSnapshot(review.raw)
+  const issues = candidate.issues.map((issue) =>
+    issue.code === 'native_decode_issues' && originalFileNeeded
+      ? { ...issue, message: '上次结果缺少原始校验记录。可核对当时导出的原文件。' }
+      : issue,
+  )
   const groups = new Map<string, number>()
-  for (const issue of candidate.issues) {
+  for (const issue of issues) {
     const label =
       issue.kind === 'discs' &&
       ['duplicate_uid', 'unknown_disc_catalog', 'unsupported_disc_catalog'].includes(issue.code)
@@ -71,14 +78,11 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
           ]
         : []),
     ],
-    issues: [
-      ...candidate.issues.map((issue) => issue.message),
-      ...(review.issue ? [review.issue] : []),
-    ],
+    issues: [...issues.map((issue) => issue.message), ...(review.issue ? [review.issue] : [])],
     issueSummary: [
-      ...(candidate.issues.length > 3
+      ...(issues.length > 3
         ? [...groups].map(([label, count]) => (count > 1 ? `${label}：${count} 项` : label))
-        : candidate.issues.map((issue) => issue.message)),
+        : issues.map((issue) => issue.message)),
       ...(review.issue ? [review.issue] : []),
     ],
     agents: candidate.agents.map((agent) => {

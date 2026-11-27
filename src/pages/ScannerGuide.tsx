@@ -11,6 +11,7 @@ export function ScannerGuide() {
       closeLabel="关闭画面扫描指南"
       className="scanner-guide"
       align="end"
+      variant="button"
     >
       <dl>
         <div>
