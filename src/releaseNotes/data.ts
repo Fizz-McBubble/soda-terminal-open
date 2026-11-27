@@ -15,6 +15,22 @@ export type ReleaseNote = {
 // Use the release date and describe what players can now do. Keep older entries in order.
 export const releases: readonly ReleaseNote[] = [
   {
+    id: "20261127-quick-read-verified-resume",
+    date: "2026-11-27",
+    title: "继续上次快读时自动核对结果",
+    summary: "能在本机确认原始结果完整时，继续读取会直接打开导入预检。",
+    sections: [
+      {
+        title: "资产快读",
+        changes: [
+          "使用本机保存的原文件指纹核对旧结果。核对通过后可直接确认导入，并可撤销。",
+          "需要手动核对时，选择第一次读取后导出的原始 JSON。待核对副本使用不同文件名。",
+          "重复盘和无法识别的资产仍会显示需核对原因。",
+        ],
+      },
+    ],
+  },
+  {
     id: "20261127-quick-read-result-recovery",
     date: "2026-11-27",
     title: "恢复上次资产快读结果，统一两种导入工具的布局",

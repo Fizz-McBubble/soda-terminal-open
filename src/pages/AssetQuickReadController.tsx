@@ -18,6 +18,7 @@ import {
   prepareAssetSnapshotExport,
   assetCompatibilityMessage,
   isUnverifiedPendingAssetSnapshot,
+  restorePendingSnapshotByOriginalDigest,
 } from '../assetQuickRead/snapshotRecovery'
 import {
   confirmAssetQuickReadImport,
@@ -721,7 +722,11 @@ function AccountBoundQuickRead({
               const scope = generation.current
               void runOperation('continue', async () => {
                 onTaskStart?.()
-                await inspect(saved.snapshot, saved.snapshotSha256, scope, 'start', false)
+                const snapshot = restorePendingSnapshotByOriginalDigest(
+                  saved.snapshot,
+                  saved.snapshotSha256,
+                )
+                await inspect(snapshot, saved.snapshotSha256, scope, 'start', false)
               }).catch(() => {
                 if (scope === generation.current)
                   setError('上次结果暂时无法检查，原记录保留，请重试。')

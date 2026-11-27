@@ -3,7 +3,9 @@ import {
   prepareAssetSnapshotExport,
   assetCompatibilityMessage,
   matchesUnverifiedPendingAssetSnapshot,
+  restorePendingSnapshotByOriginalDigest,
 } from './snapshotRecovery'
+import { sha256 } from '../application/contentHash'
 import {
   syntheticAssetSnapshot,
   syntheticAssetSnapshot33,
@@ -49,6 +51,24 @@ it('exports a supported 3.3 candidate without mislabelling it pending adaptation
   expect(convertAssetSnapshot(result.snapshot, { snapshotSha256: 'a'.repeat(64) }).importable).toBe(
     true,
   )
+})
+
+it('can prove a clean saved result without picking its file again', () => {
+  const original = assetSnapshotSchema.parse(syntheticAssetSnapshot33())
+  const saved = {
+    ...original,
+    issues: [{ code: 'incomplete_observation', asset: 'snapshot', field: '' }],
+  }
+  for (const indent of [0, 2]) {
+    const digest = sha256(JSON.stringify(original, null, indent))
+    expect(restorePendingSnapshotByOriginalDigest(saved, digest)).toEqual(original)
+  }
+  const incompleteDigest = sha256(JSON.stringify(saved, null, 2))
+  expect(restorePendingSnapshotByOriginalDigest(saved, incompleteDigest)).toBe(saved)
+  const wrongVersion = { ...saved, source: { ...saved.source, protocol_version: '0.0' } }
+  expect(
+    restorePendingSnapshotByOriginalDigest(wrongVersion, sha256(JSON.stringify(original))),
+  ).toBe(wrongVersion)
 })
 
 it('exports current and pending snapshots through the whitelist without relaxing import', () => {

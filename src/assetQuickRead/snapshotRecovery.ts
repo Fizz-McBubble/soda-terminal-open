@@ -1,5 +1,5 @@
 import { assetSnapshotSchema, pendingAssetSnapshotSchema } from './snapshotProtocolSchema'
-import { canonicalJson } from '../application/contentHash'
+import { canonicalJson, sha256 } from '../application/contentHash'
 
 export function isUnverifiedPendingAssetSnapshot(raw: unknown): boolean {
   if (!raw || typeof raw !== 'object' || !('issues' in raw) || !Array.isArray(raw.issues))
@@ -20,6 +20,19 @@ export function matchesUnverifiedPendingAssetSnapshot(saved: unknown, file: unkn
   const candidate = assetSnapshotSchema.safeParse(file)
   if (!pending.success || !candidate.success || candidate.data.issues.length > 0) return false
   return canonicalJson({ ...pending.data, issues: [] }) === canonicalJson(candidate.data)
+}
+
+/** Recover only when the original file digest proves the serialized snapshot was clean. */
+export function restorePendingSnapshotByOriginalDigest(raw: unknown, originalSha256: string) {
+  if (!isUnverifiedPendingAssetSnapshot(raw)) return raw
+  const parsed = assetSnapshotSchema.safeParse(raw)
+  if (!parsed.success) return raw
+
+  const candidate = { ...parsed.data, issues: [] }
+  const digest = originalSha256.toLowerCase()
+  const compact = sha256(JSON.stringify(candidate))
+  if (compact === digest || sha256(JSON.stringify(candidate, null, 2)) === digest) return candidate
+  return raw
 }
 
 /** Local download only. This broader recovery schema never authorizes account import. */

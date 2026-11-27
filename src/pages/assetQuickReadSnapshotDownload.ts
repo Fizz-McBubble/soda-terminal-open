@@ -1,4 +1,7 @@
-import type { prepareAssetSnapshotExport } from '../assetQuickRead/snapshotRecovery'
+import {
+  isUnverifiedPendingAssetSnapshot,
+  type prepareAssetSnapshotExport,
+} from '../assetQuickRead/snapshotRecovery'
 
 /** Download only the already-whitelisted candidate, including pending-version exports. */
 export function downloadAssetQuickReadSnapshot(
@@ -13,7 +16,9 @@ export function downloadAssetQuickReadSnapshot(
   anchor.href = url
   anchor.download = safeExport.pendingUpdate
     ? 'soda-asset-quick-read-pending-update.json'
-    : 'soda-asset-quick-read.json'
+    : isUnverifiedPendingAssetSnapshot(safe)
+      ? 'soda-asset-quick-read-needs-verification.json'
+      : 'soda-asset-quick-read.json'
   anchor.click()
   setTimeout(() => URL.revokeObjectURL(url), 0)
 }
