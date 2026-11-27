@@ -39,7 +39,11 @@ import type {
 } from './absoluteDiscRetentionKernel'
 
 const policyVersion = 'absolute-disc-retention-3.2-stage-r6-quality-dependency-lifecycle'
-const calibratedCutoffs = { cleanupBelow: 48, keepFrom: 60, premiumFrom: 67 } as const
+const calibratedCutoffs = {
+  cleanupBelow: 48,
+  keepFrom: 60,
+  premiumFrom: 67,
+} as const
 const calibratedRarities = ['S'] as const
 
 const released = currentAgentDirectory.filter(
@@ -158,6 +162,32 @@ function profile(
   }
 }
 
+const severianSalonPlan: CandidateSetPlan = {
+  pattern: '4+2',
+  primarySetIds: ['set-dawns-bloom'],
+  secondarySetIds: ['set-wuthering-salon'],
+  purpose: 'recommended',
+  sourceText: '赛维里安的社区备选：拂晓生花4件＋呼啸沙龙2件。',
+}
+
+const severianSalonSources = [
+  {
+    id: 'prydwen-severian-salon-20261127',
+    url: 'https://www.prydwen.gg/zenless/characters/severian',
+  },
+  {
+    id: 'icy-veins-severian-salon-20261127',
+    url: 'https://www.icy-veins.com/zenless-zone-zero/severian-guide-best-builds',
+  },
+].map((source) => ({
+  ...source,
+  sourceVersion: '3.3',
+  checkedAt: '2026-11-27',
+  contentHash: stableContentHash({ ...source, plan: severianSalonPlan }),
+  verified: true,
+  licenseBoundary: '采用结构化的主副套搭配事实，原攻略与计算表留在作者站点。',
+}))
+
 function buildProfiles() {
   const profiles: Profile[] = []
   const investmentBranchByProfileId = new Map<string, string>()
@@ -209,10 +239,34 @@ function buildProfiles() {
           warehouseInvestmentBranchKey(agentId, 'base', plan),
         )
       })
+    // This source supports an observation in the warehouse. Investment and team
+    // builds continue to require a branch provided by their executable plan inputs.
+    if (agentId === 'agent-severian' && base.gameVersion === '3.3') {
+      profiles.push(
+        profile(
+          {
+            ...base,
+            setIds: [...base.setIds, ...severianSalonPlan.secondarySetIds],
+            setPlans: [severianSalonPlan],
+            sources: [...base.sources, ...severianSalonSources],
+          },
+          'community-dawns-bloom-salon',
+          severianSalonPlan.primarySetIds,
+          'valid',
+          undefined,
+          'valid',
+          severianSalonPlan,
+        ),
+      )
+    }
+
     for (const [index, alternative] of (base.mainStatAlternatives ?? []).entries()) {
       const branch = {
         ...base,
-        mainStats: { ...base.mainStats, [alternative.slot]: [...alternative.stats] },
+        mainStats: {
+          ...base.mainStats,
+          [alternative.slot]: [...alternative.stats],
+        },
         sources: [...base.sources, alternative.source],
       } satisfies CandidateWarehouseConstraint
       const explicitlySourcedPlans = compileCandidateSetPlans([alternative.condition])
@@ -433,7 +487,10 @@ export function hashAbsoluteDiscRetentionCatalog(input: Catalog) {
     coverageGaps: input.coverageGaps,
     reviewedUseScope: input.reviewedUseScope,
     versionIdentity: input.versionIdentity,
-    weightPolicy: { id: retentionWeightPolicyId, parameters: retentionWeightParameters },
+    weightPolicy: {
+      id: retentionWeightPolicyId,
+      parameters: retentionWeightParameters,
+    },
     factsVersion: input.factsGameVersion,
     assessmentVersion: input.assessmentGameVersion,
     sourceVersions: [
@@ -462,7 +519,14 @@ export const absoluteDiscRetentionPolicy: QualityPolicy = {
     rightSlotMinimumLines: 1,
     minimumCoreLines: 1,
     growthTarget: 'keepFrom',
-    progressFloorBySpentNode: { '0': 0, '1': 0.25, '2': 0.45, '3': 0.65, '4': 0.85, '5': 1 },
+    progressFloorBySpentNode: {
+      '0': 0,
+      '1': 0.25,
+      '2': 0.45,
+      '3': 0.65,
+      '4': 0.85,
+      '5': 1,
+    },
   },
   byProfile: Object.fromEntries(
     catalog.profiles.map((item) => [
