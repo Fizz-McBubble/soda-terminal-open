@@ -8,6 +8,13 @@ const current31MigrationKey = 'game-data-pack-current-3.1-migrated'
 const current32MigrationKey = 'game-data-pack-current-3.2-migrated'
 const current33MigrationKey = 'game-data-pack-current-3.3-migrated'
 
+// These releases share a package ID, including the catalog correction within current.3.
+const current33ManifestRevisions = [
+  ['3.3.0-current.2', 'fnv1a-bcc4d315'],
+  ['3.3.0-current.3', 'fnv1a-b5d90f7b'],
+  ['3.3.0-current.3', 'fnv1a-88528391'],
+] as const
+
 // These are exact generated manifest bytes from the same bundled source, not new data authority.
 const bundledGameDataPacks = bundledProjection.packs.map((pack) => {
   const checked = validateManifest(pack)
@@ -41,6 +48,11 @@ if (
 )
   throw new Error('应用自带游戏资料身份不匹配，无法初始化。')
 
+const current33Revision = current33ManifestRevisions.findIndex(
+  ([version, hash]) => current.packageVersion === version && current.contentHash === hash,
+)
+const current33Predecessors = current33ManifestRevisions.slice(0, Math.max(0, current33Revision))
+
 export function initialState(now = new Date().toISOString()): GameDataPackState {
   return {
     id: stateId,
@@ -61,17 +73,15 @@ export async function ensureBundledGameDataPacks(db: SodaDatabase = database) {
     for (const pack of bundledGameDataPacks) {
       const existing = await db.gameDataPacks.get(pack.id)
       if (!existing) await db.gameDataPacks.add(pack)
-      // Phase II keeps the current package ID. Replace only the exact shipped
-      // Phase I manifest when it is still selected, leaving rollbacks intact.
+      // Upgrade only a validated, selected release in this package's known lineage.
       if (
         pack.id === current.id &&
-        pack.packageVersion === '3.3.0-current.3' &&
-        pack.contentHash === 'fnv1a-b5d90f7b' &&
         state?.activeFormalByKind['game-base'] === pack.id &&
         !state.expiredCalculationPackageIds.includes(pack.id) &&
         existing?.id === pack.id &&
-        existing.packageVersion === '3.3.0-current.2' &&
-        existing.contentHash === 'fnv1a-bcc4d315' &&
+        current33Predecessors.some(
+          ([version, hash]) => existing.packageVersion === version && existing.contentHash === hash,
+        ) &&
         validateManifest(existing).success
       )
         await db.gameDataPacks.put(pack)

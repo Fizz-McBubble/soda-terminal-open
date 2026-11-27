@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SodaDatabase } from '../db/database'
 import { gameBase30Formal, gameBase32Current, gameBase33Current } from './baseline'
 import { createManifest, gameDataPackageManifestSchema } from './types'
+import { ensureBundledGameDataPacks, stateId } from './repositoryInitialization'
 import { isCompatibleManifestContent } from './manifestContentCompatibility'
 import releasedManifest from './releasedGameBase32Manifest.test.json'
 import {
@@ -171,6 +172,37 @@ describe('current game-data runtime selection', () => {
         db.accountDriveDiscs.count(),
       ]),
     ).resolves.toEqual(before)
+  })
+
+  it('updates the released 3.3 catalog correction on startup and preserves expired selections', async () => {
+    const db = createDatabase()
+    await ensureBundledGameDataPacks(db)
+    const previous = createManifest({
+      ...gameBase33Current,
+      coverage: gameBase33Current.coverage.map((entry) =>
+        entry.stableId === 'wengine-13022' ? { ...entry, rarity: 'S' } : entry,
+      ),
+    })
+    expect(previous.contentHash).toBe('fnv1a-b5d90f7b')
+    expect(gameBase33Current.contentHash).toBe('fnv1a-88528391')
+    await db.gameDataPacks.put(previous)
+    await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+      status: 'unbound',
+      reason: 'active_package_not_compiled_artifact',
+    })
+    const state = await db.gameDataPackState.get(stateId)
+    await ensureBundledGameDataPacks(db)
+    await expect(db.gameDataPacks.get(previous.id)).resolves.toEqual(gameBase33Current)
+    await expect(db.gameDataPackState.get(stateId)).resolves.toEqual(state)
+    await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+      status: 'compiled_current',
+      source: 'active_formal_package',
+    })
+
+    await db.gameDataPacks.put(previous)
+    await db.gameDataPackState.update(stateId, { expiredCalculationPackageIds: [previous.id] })
+    await ensureBundledGameDataPacks(db)
+    await expect(db.gameDataPacks.get(previous.id)).resolves.toEqual(previous)
   })
 
   it('accepts only the selected, valid compiled formal package and fails closed for all other states', async () => {
