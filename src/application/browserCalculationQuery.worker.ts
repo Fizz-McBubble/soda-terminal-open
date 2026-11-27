@@ -216,11 +216,9 @@ export async function calculateBrowserQueryResponse(
         : import('./publicCalculationTransport'),
     ])
     const query = request.query
-    if (
-      query.kind === 'saved_team_solution_components' ||
-      query.kind === 'decision_portfolio'
-    )
-      await loadCompleteRankings()
+    // Saved solution components only fingerprint captured account and build inputs.
+    // The replay itself still requests the full indexes when its team is outside admission.
+    if (query.kind === 'decision_portfolio') await loadCompleteRankings()
     const assertCurrent = () => {
       if (released()) throw new Error('本次分析已释放。')
     }
