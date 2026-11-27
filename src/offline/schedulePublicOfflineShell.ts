@@ -1,8 +1,25 @@
 import { registerPublicOfflineShell } from './registerPublicOfflineShell'
 
 const recoverableRetryDelayMs = 2000
+const foregroundWaitMs = 30_000
+const foregroundResultEvent = 'soda-public-foreground-result'
+const foregroundResults = new Set<'team_overview_presentation' | 'warehouse_actions'>()
 
-/** Keep a complete offline install, but start its network work after page load and a paint/idle turn. */
+export function notePublicOfflineForegroundResult(
+  kind: 'team_overview_presentation' | 'warehouse_actions',
+) {
+  foregroundResults.add(kind)
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(foregroundResultEvent))
+}
+
+function pendingInitialResult() {
+  const path = window.location.pathname.replace(/\/+$/, '')
+  if (path === '/loadouts/team') return !foregroundResults.has('team_overview_presentation')
+  if (path === '/warehouse/discs') return !foregroundResults.has('warehouse_actions')
+  return false
+}
+
+/** Keep a complete offline install while giving the first visible calculation the network first. */
 export function schedulePublicOfflineShell(
   register: (options?: {
     onRecoverableFailure?: () => void
@@ -13,6 +30,7 @@ export function schedulePublicOfflineShell(
   let idle: number | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
   let retryTimer: ReturnType<typeof setTimeout> | undefined
+  let foregroundTimer: ReturnType<typeof setTimeout> | undefined
   let running = false
   let recoverable = false
   let retried = false
@@ -55,12 +73,31 @@ export function schedulePublicOfflineShell(
           }, recoverableRetryDelayMs)
       })
   }
+  const clearForegroundWait = () => {
+    window.removeEventListener(foregroundResultEvent, afterForeground)
+    if (foregroundTimer !== undefined) clearTimeout(foregroundTimer)
+    foregroundTimer = undefined
+  }
+  const afterForeground = () => {
+    if (stopped) return
+    if (!pendingInitialResult()) {
+      clearForegroundWait()
+      start()
+    } else if (foregroundTimer === undefined) {
+      window.addEventListener(foregroundResultEvent, afterForeground)
+      // Empty accounts and interrupted calculations still get a background install.
+      foregroundTimer = setTimeout(() => {
+        clearForegroundWait()
+        start()
+      }, foregroundWaitMs)
+    }
+  }
   const afterPaint = () => {
     if (stopped) return
     if (typeof window.requestIdleCallback === 'function') {
-      idle = window.requestIdleCallback(start, { timeout: 5000 })
+      idle = window.requestIdleCallback(afterForeground, { timeout: 5000 })
     } else {
-      timer = setTimeout(start, 1000)
+      timer = setTimeout(afterForeground, 1000)
     }
   }
   const afterLoad = () => {
@@ -75,6 +112,7 @@ export function schedulePublicOfflineShell(
   else window.addEventListener('load', afterLoad, { once: true })
   return () => {
     stopped = true
+    clearForegroundWait()
     window.removeEventListener('load', afterLoad)
     window.removeEventListener('online', onOnline)
     if (frame !== undefined) window.cancelAnimationFrame(frame)

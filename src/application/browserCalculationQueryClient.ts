@@ -9,6 +9,7 @@ import {
   createBrowserPersonalDevelopmentClient,
 } from './browserPersonalDevelopmentClient'
 import { browserCalculationInputFingerprint } from './browserCalculationInputFingerprint'
+import { notePublicOfflineForegroundResult } from '../offline/schedulePublicOfflineShell'
 import {
   browserCalculationQueryProtocolVersion,
   type BrowserCalculationQuery,
@@ -246,8 +247,17 @@ function createBrowserCalculationQueryChannel(
           )
             throw new Error('游戏资料已变化，请重新分析。')
           if (!pending.has(current.id)) return
-          if (response.status === 'succeeded') request.resolve(response.result as never)
-          else request.reject(new Error(response.error ?? '计算失败。'))
+          if (response.status === 'succeeded') {
+            request.resolve(response.result as never)
+            const kind = request.query.kind
+            if (
+              options.resultProjection === 'public-development' &&
+              (kind === 'team_overview_presentation' || kind === 'warehouse_actions')
+            )
+              notePublicOfflineForegroundResult(kind)
+          } else {
+            request.reject(new Error(response.error ?? '计算失败。'))
+          }
         } catch {
           if (workerGeneration !== generation || active !== current) return
           if (Date.now() >= request.deadlineAt) {

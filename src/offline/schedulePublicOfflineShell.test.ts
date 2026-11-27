@@ -17,6 +17,56 @@ function frames() {
 }
 
 describe('public offline installation scheduling', () => {
+  it('gives the warehouse its foreground result before starting the background install', async () => {
+    vi.resetModules()
+    const { notePublicOfflineForegroundResult, schedulePublicOfflineShell } =
+      await import('./schedulePublicOfflineShell')
+    window.history.replaceState(null, '', '/warehouse/discs')
+    vi.useFakeTimers()
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete')
+    vi.stubGlobal('requestIdleCallback', undefined)
+    const nextFrame = frames()
+    const register = vi.fn().mockResolvedValue(true)
+    const cancel = schedulePublicOfflineShell(register)
+    try {
+      nextFrame()
+      nextFrame()
+      await vi.advanceTimersByTimeAsync(1000)
+      notePublicOfflineForegroundResult('team_overview_presentation')
+      expect(register).not.toHaveBeenCalled()
+      notePublicOfflineForegroundResult('warehouse_actions')
+      expect(register).toHaveBeenCalledOnce()
+      await vi.advanceTimersByTimeAsync(31_000)
+      expect(register).toHaveBeenCalledOnce()
+    } finally {
+      cancel()
+      window.history.replaceState(null, '', '/')
+    }
+  })
+
+  it('still prepares offline assets for an empty or interrupted BOX view', async () => {
+    vi.resetModules()
+    const { schedulePublicOfflineShell } = await import('./schedulePublicOfflineShell')
+    window.history.replaceState(null, '', '/loadouts/team')
+    vi.useFakeTimers()
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete')
+    vi.stubGlobal('requestIdleCallback', undefined)
+    const nextFrame = frames()
+    const register = vi.fn().mockResolvedValue(true)
+    const cancel = schedulePublicOfflineShell(register)
+    try {
+      nextFrame()
+      nextFrame()
+      await vi.advanceTimersByTimeAsync(30_999)
+      expect(register).not.toHaveBeenCalled()
+      await vi.advanceTimersByTimeAsync(1)
+      expect(register).toHaveBeenCalledOnce()
+    } finally {
+      cancel()
+      window.history.replaceState(null, '', '/')
+    }
+  })
+
   it('remembers an online recovery arriving before the failed manifest request settles', async () => {
     vi.useFakeTimers()
     vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete')

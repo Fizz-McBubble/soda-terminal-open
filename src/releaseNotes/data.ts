@@ -15,6 +15,16 @@ export type ReleaseNote = {
 // Use the release date and describe what players can now do. Keep older entries in order.
 export const releases: readonly ReleaseNote[] = [
   {
+    id: "20261128-offline-preparation-priority",
+    date: "2026-11-28",
+    title: "弱网下优先打开队伍和仓库",
+    scope: "队伍配装、驱动盘分析和离线资料",
+    changes: [
+      "首次继续队伍配装或仓库分析时，前台计算优先，离线资料随后自动准备。",
+      "已下载的脚本会在校验后复用，减少弱网下重复下载。",
+    ],
+  },
+  {
     id: "20261128-web-cold-start",
     date: "2026-11-28",
     title: "改善首页恢复和驱动盘分析首次打开",

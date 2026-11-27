@@ -12,6 +12,22 @@ import {
 afterEach(() => vi.useRealTimers())
 
 describe('public service worker release cache lifecycle', () => {
+  it('verifies immutable downloads reused by a new background install', async () => {
+    const worker = createWorker()
+    await worker.dispatch('install')
+    expect(worker.fetcher).toHaveBeenCalledWith(
+      workerAsset,
+      expect.objectContaining({ cache: 'default', priority: 'low' }),
+    )
+    expect(worker.fetcher).toHaveBeenCalledWith(
+      '/index.html',
+      expect.objectContaining({ cache: 'no-store', priority: 'low' }),
+    )
+    expect(await worker.entries.get(name(current))!.get(workerAsset)!.clone().text()).toBe(
+      `${current}:${workerAsset}`,
+    )
+  })
+
   it.each([408, 429, 500, 502, 503, 'network'] as const)(
     'retries one transient critical download (%s) with the same URL and verified hash',
     async (transient) => {

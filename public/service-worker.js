@@ -23,6 +23,10 @@ function allowedAsset(pathname) {
   )
 }
 
+function immutableAsset(pathname) {
+  return /^\/assets\/.+-[A-Za-z0-9_-]{8,}\.(?:js|css|wasm)$/.test(pathname)
+}
+
 async function checkedManifest() {
   if (!validRelease(releaseId)) throw new Error('invalid_release')
   const controller = new AbortController()
@@ -88,7 +92,7 @@ async function verifyAsset(response, expected) {
   return response
 }
 
-async function fetchCriticalAsset(asset, expected) {
+async function fetchCriticalAsset(asset, expected, reuseHttpCache) {
   // Retry only transient transport/status failures, using the same release URL and hash.
   // Verification belongs inside the deadline so a stalled response body is also bounded.
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -97,7 +101,11 @@ async function fetchCriticalAsset(asset, expected) {
     try {
       return await Promise.race([
         (async () => {
-          const response = await fetch(asset, { cache: 'no-store', signal: controller.signal })
+          const response = await fetch(asset, {
+            cache: reuseHttpCache && attempt === 0 ? 'default' : 'no-store',
+            priority: 'low',
+            signal: controller.signal,
+          })
           if (response.status === 408 || response.status === 429 || response.status >= 500)
             throw new Error('critical_asset_temporary_failure')
           return verifyAsset(response, expected)
@@ -256,7 +264,13 @@ self.addEventListener('install', (event) => {
                   // Collect verified replacements, but do not mutate until the entire set passes.
                 }
               }
-              const fetched = await fetchCriticalAsset(asset, expected)
+              // Reuse immutable downloads from the foreground after checking their exact bytes.
+              // Reinstall repairs and unhashed resources still bypass the HTTP cache.
+              const fetched = await fetchCriticalAsset(
+                asset,
+                expected,
+                !existed && immutableAsset(asset),
+              )
               if (existed) repairs.push([asset, fetched])
               return fetched
             }),
@@ -339,8 +353,8 @@ self.addEventListener('fetch', (event) => {
         // Vite's hashed JS/CSS URLs identify immutable bytes across releases.
         // An untagged page requests its entry chunks before it can send a tag;
         // do not enumerate all old caches and tabs for every such current hit.
-        const immutable = /^\/assets\/.+-[A-Za-z0-9_-]{8,}\.(?:js|css|wasm)$/.test(url.pathname)
-        const preferCurrent = tagged === releaseId || (!validRelease(tagged) && immutable)
+        const preferCurrent =
+          tagged === releaseId || (!validRelease(tagged) && immutableAsset(url.pathname))
         if (!preferCurrent) {
           const old = await matchingOldAsset(request, event.clientId)
           if (old) return old
