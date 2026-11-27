@@ -1990,7 +1990,7 @@
     "src/pages/ScannerAssistantPage.testCases.tsx": "ff1cd91f60e3f53a3b4aa54c40eeb723ba2efa8a7b89c1768b077b7a0391b56e",
     "src/pages/ScannerAssistantPage.tsx": "fc0178c17dc7192b804b0e87f72e3dfd199e468b409b501c9fcac41bdd33189f",
     "src/pages/ScannerAssistantPage.workbench.syntheticfixture.ts": "1fbac789c4cc3757b473e0434cece898e2d0241dd30ce3837991aed162018dc6",
-    "src/pages/ScannerAssistantPage.workbench.test.tsx": "a4126102a4bb2c7aac0cfe4928b6a9aa48e5b176c8cef9d0a32a2f1ea1574a7c",
+    "src/pages/ScannerAssistantPage.workbench.test.tsx": "50f3b7113842e25cbb03705b5d36dd4fa8c6787acdca4372d7d983ccbd52778b",
     "src/pages/scannerAssistantPageTestSupport.ts": "cbae5aa4cac82be03d6705e93e0df654a8f221168358bddad68144fcb2c15ebf",
     "src/pages/scannerAssistantPresentation.ts": "8d9073adc93f63f549253f20b17d5fcda5f7c8f7d53331d8a4342d79f6eb383a",
     "src/pages/scannerAssistantRecoveryTests.tsx": "e555b557b99f6fb6083cd7fbeffebc13058370c4f248de721b441fb7d0a46e00",
