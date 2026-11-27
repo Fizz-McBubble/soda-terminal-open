@@ -214,16 +214,40 @@ describe('investment policy respects legal substat capacity', () => {
     const investment = productionPolicy.investment!
     let affected = 0
     let calibrated = 0
+    const attackMainBySlot = {
+      1: 'hp_flat',
+      2: 'atk_flat',
+      3: 'def_flat',
+      4: 'atk_percent',
+      5: 'atk_percent',
+      6: 'atk_percent',
+    }
+    // Only the reviewed slot 2 attack branches get the one-line calibration.
+    // Below the meaningful-weight floor, flat attack cannot fill any other slot's core capacity.
+    const blockedAttackSlots = {
+      'agent-astra:base-0:fnv1a-210f': [1, 3, 4, 5, 6],
+      'agent-astra:base-1:fnv1a-77cc': [1, 3, 4, 5, 6],
+      'agent-pan-yinhu:base-0:fnv1a-12c5': [1, 2, 3, 4, 5, 6],
+      'agent-pan-yinhu:base-1:fnv1a-2fd4': [1, 2, 3, 4, 5, 6],
+      'agent-pan-yinhu:base-2:fnv1a-631b': [1, 2, 3, 4, 5, 6],
+      'agent-pan-yinhu:main-alt-0:secondary': [1, 2, 3, 4, 5],
+      'agent-seth:base-0:fnv1a-bfbf': [1, 2, 3, 4, 5],
+      'agent-seth:base-1:fnv1a-5f8a': [1, 2, 3, 4, 5],
+      'agent-seth:base-2:fnv1a-3f61': [1, 2, 3, 4, 5],
+      'agent-seth:base-3:fnv1a-ed3e': [1, 2, 3, 4, 5],
+      'agent-seth:main-alt-0:short_fight': [1, 2, 3, 4, 5],
+      'agent-soukaku:base-0:fnv1a-788b': [1, 3, 4, 5],
+      'agent-soukaku:base-1:fnv1a-f9a2': [1, 3, 4, 5],
+      'agent-soukaku:main-alt-1:anomaly_support': [1, 3, 5],
+      'agent-soukaku:main-alt-2:secondary': [1, 3, 4],
+      'agent-sunna:base-0:fnv1a-e37e': [1, 3, 4, 5],
+      'agent-yuzuha:base-0:fnv1a-c737': [1, 3, 4, 5, 6],
+      'agent-yuzuha:base-1:fnv1a-6e0c': [1, 3, 4, 5, 6],
+    } as const
     const unresolved = new Set([
-      'agent-seth:base-0:fnv1a-bfbf/2/atk_flat',
-      'agent-seth:base-1:fnv1a-5f8a/2/atk_flat',
-      'agent-seth:base-2:fnv1a-3f61/2/atk_flat',
-      'agent-seth:base-3:fnv1a-ed3e/2/atk_flat',
-      'agent-seth:main-alt-0:short_fight/2/atk_flat',
-      'agent-pan-yinhu:base-0:fnv1a-12c5/2/atk_flat',
-      'agent-pan-yinhu:base-1:fnv1a-2fd4/2/atk_flat',
-      'agent-pan-yinhu:base-2:fnv1a-631b/2/atk_flat',
-      'agent-pan-yinhu:main-alt-0:secondary/2/atk_flat',
+      ...Object.entries(blockedAttackSlots).flatMap(([profileId, slots]) =>
+        slots.map((slot) => `${profileId}/${slot}/${attackMainBySlot[slot]}`),
+      ),
       'agent-claret:main-alt-0:secondary/3/def_flat',
     ])
     const blocked: string[] = []
@@ -279,6 +303,10 @@ describe('investment policy respects legal substat capacity', () => {
           if (unresolved.has(combination)) {
             expect(evidence.investment.calibrationId, combination).toBeNull()
             expect(evidence.investment.qualified, combination).toBeNull()
+            expect(evidence.investment.minimumLines, combination).toBe(minimum)
+            expect(evidence.investment.minimumCoreLines, combination).toBe(
+              investment.minimumCoreLines,
+            )
             expect(evidence.investment.policyBlockers).toMatchObject([
               { kind: 'policy', field: `investment.capacity.${slot}.${main}` },
             ])
@@ -310,7 +338,7 @@ describe('investment policy respects legal substat capacity', () => {
       '5/hp_percent',
       '6/hp_percent',
     ])
-    expect(affected).toBe(43)
+    expect(affected).toBe(120)
     expect(calibrated).toBe(33)
   })
 })

@@ -6,29 +6,30 @@ const attackSlot = { '2': 'atk_flat' }
 const healthSlots = { '1': 'hp_flat', '2': 'atk_flat', '3': 'def_flat' }
 /** Named combinations only; identities bind the reviewed goal, weights, core and sources. */
 export const namedPolicies: Readonly<
-  Record<string, readonly [string, string, Record<string, string>]>
+  Record<string, readonly [readonly string[], string, Record<string, string>]>
 > = {
-  'agent-soukaku:base-0:fnv1a-788b': ['e4603840', 'atk_percent', attackSlot],
-  'agent-soukaku:base-1:fnv1a-f9a2': ['e4603840', 'atk_percent', attackSlot],
-  'agent-soukaku:main-alt-1:anomaly_support': ['55bd5625', 'atk_percent', attackSlot],
-  'agent-soukaku:main-alt-2:secondary': ['294c5feb', 'atk_percent', attackSlot],
-  'agent-seth:base-0:fnv1a-bd3c': ['7fea4163', 'atk_percent', attackSlot],
-  'agent-seth:base-1:fnv1a-5f8a': ['7fea4163', 'atk_percent', attackSlot],
-  'agent-seth:base-2:fnv1a-3f61': ['7fea4163', 'atk_percent', attackSlot],
-  'agent-seth:base-3:fnv1a-cd1e': ['7fea4163', 'atk_percent', attackSlot],
-  'agent-seth:main-alt-0:short_fight': ['b087233c', 'atk_percent', attackSlot],
-  'agent-astra:base-0:fnv1a-210f': ['29936f38', 'atk_percent', attackSlot],
-  'agent-astra:base-1:fnv1a-77cc': ['29936f38', 'atk_percent', attackSlot],
-  'agent-zhao:base-0:fnv1a-6f7e': ['242f10da', 'hp_percent', healthSlots],
-  'agent-zhao:base-1:fnv1a-f0e4': ['242f10da', 'hp_percent', healthSlots],
-  'agent-zhao:base-2:fnv1a-bb99': ['242f10da', 'hp_percent', healthSlots],
-  'agent-yuzuha:base-0:fnv1a-c737': ['9e5be292', 'atk_percent', attackSlot],
-  'agent-yuzuha:base-1:fnv1a-6e0c': ['9e5be292', 'atk_percent', attackSlot],
-  'agent-pan-yinhu:base-0:fnv1a-c922': ['b3f0f001', 'atk_percent', attackSlot],
-  'agent-pan-yinhu:base-1:fnv1a-6968': ['b3f0f001', 'atk_percent', attackSlot],
-  'agent-pan-yinhu:base-2:fnv1a-ecea': ['b3f0f001', 'atk_percent', attackSlot],
-  'agent-lucia:base-0:fnv1a-782d': ['340ac385', 'hp_percent', healthSlots],
-  'agent-sunna:base-0:fnv1a-e37e': ['735d8a2c', 'atk_percent', attackSlot],
+  // The reviewed attack branches have distinct internal and public catalog identities.
+  'agent-soukaku:base-0:fnv1a-788b': [['e4603840', '7d17142d'], 'atk_percent', attackSlot],
+  'agent-soukaku:base-1:fnv1a-f9a2': [['e4603840', '7d17142d'], 'atk_percent', attackSlot],
+  'agent-soukaku:main-alt-1:anomaly_support': [['55bd5625', '9d414c98'], 'atk_percent', attackSlot],
+  'agent-soukaku:main-alt-2:secondary': [['294c5feb', 'e70b83da'], 'atk_percent', attackSlot],
+  'agent-seth:base-0:fnv1a-bd3c': [['7fea4163'], 'atk_percent', attackSlot],
+  'agent-seth:base-1:fnv1a-5f8a': [['7fea4163'], 'atk_percent', attackSlot],
+  'agent-seth:base-2:fnv1a-3f61': [['7fea4163'], 'atk_percent', attackSlot],
+  'agent-seth:base-3:fnv1a-cd1e': [['7fea4163'], 'atk_percent', attackSlot],
+  'agent-seth:main-alt-0:short_fight': [['b087233c'], 'atk_percent', attackSlot],
+  'agent-astra:base-0:fnv1a-210f': [['29936f38', '80cc6333'], 'atk_percent', attackSlot],
+  'agent-astra:base-1:fnv1a-77cc': [['29936f38', '80cc6333'], 'atk_percent', attackSlot],
+  'agent-zhao:base-0:fnv1a-6f7e': [['242f10da'], 'hp_percent', healthSlots],
+  'agent-zhao:base-1:fnv1a-f0e4': [['242f10da'], 'hp_percent', healthSlots],
+  'agent-zhao:base-2:fnv1a-bb99': [['242f10da'], 'hp_percent', healthSlots],
+  'agent-yuzuha:base-0:fnv1a-c737': [['9e5be292', 'a1e7c403'], 'atk_percent', attackSlot],
+  'agent-yuzuha:base-1:fnv1a-6e0c': [['9e5be292', 'a1e7c403'], 'atk_percent', attackSlot],
+  'agent-pan-yinhu:base-0:fnv1a-c922': [['b3f0f001'], 'atk_percent', attackSlot],
+  'agent-pan-yinhu:base-1:fnv1a-6968': [['b3f0f001'], 'atk_percent', attackSlot],
+  'agent-pan-yinhu:base-2:fnv1a-ecea': [['b3f0f001'], 'atk_percent', attackSlot],
+  'agent-lucia:base-0:fnv1a-782d': [['340ac385'], 'hp_percent', healthSlots],
+  'agent-sunna:base-0:fnv1a-e37e': [['735d8a2c', '5868c485'], 'atk_percent', attackSlot],
 }
 const secondaryHpProfiles = new Set([
   'agent-zhao:base-0:fnv1a-6f7e',
@@ -111,7 +112,7 @@ export function resolveNamedInvestmentCalibration(
       sourceIds: [...profile.weightEvidence.sourceIds].sort(),
     },
   })
-  if (identity !== `fnv1a-${named[0]}`) return null
+  if (!named[0].some((fingerprint) => identity === `fnv1a-${fingerprint}`)) return null
   if (secondaryHp) {
     const hp = reviewedHpRetentionEvidence(profile.agentId)
     if (
