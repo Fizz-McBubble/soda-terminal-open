@@ -92,6 +92,17 @@ function getClient() {
 export async function calculateBrowserQueryResponse(
   request: BrowserCalculationQueryRequest,
 ): Promise<BrowserCalculationQueryResponse | null> {
+  if (request.kind === 'prepare_account_decision') {
+    if (request.protocolVersion !== browserCalculationQueryProtocolVersion) return null
+    // Share the same module loads as the next query. Preparation carries no account input.
+    await Promise.all([
+      getClient(),
+      import('./publicVersionIdentity'),
+      import('./calculationQueryDispatch'),
+      import('./publicCalculationTransport'),
+    ]).catch(() => undefined)
+    return null
+  }
   if (request.kind === 'release_personal') {
     if (pendingPersonalCounts.has(request.sessionId))
       personalGenerations.set(

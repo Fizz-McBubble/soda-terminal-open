@@ -65,6 +65,10 @@ export type BrowserCalculationQueryRequest =
       kind: 'release_personal'
       sessionId: string
     }
+  | {
+      protocolVersion: typeof browserCalculationQueryProtocolVersion
+      kind: 'prepare_account_decision'
+    }
 
 export type BrowserCalculationQueryResponse = {
   protocolVersion: typeof browserCalculationQueryProtocolVersion

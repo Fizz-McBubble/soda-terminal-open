@@ -8,6 +8,7 @@ import {
   useNavigation,
 } from 'react-router-dom'
 import type { initializeDatabase } from './db/database'
+import { getActiveAccount } from './accounts/repository'
 import { ensureOfficialCatalogInstalled } from './assets/visualAssetInstallCoordinator'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { AppInitializationGate, AppRouteError, AppRouteLoading } from './components/AppEntryState'
@@ -42,6 +43,7 @@ import {
 export type DecisionEnvironment = {
   mode: 'local' | 'remote'
   queryClient: CalculationQueryClient
+  prepareTeamDecision?: () => void
   runtimeSelectionReader: RuntimeSelectionReader
   repairRuntimeSelection: (() => Promise<unknown>) | null
 }
@@ -216,9 +218,15 @@ export default function AppCore({
           },
           {
             path: 'loadouts/team',
-            lazy: async () => ({
-              Component: (await import('./pages/optimizer/TeamPicker')).TeamPicker,
-            }),
+            lazy: async () => {
+              const prepare = decisionEnvironment.prepareTeamDecision
+              if (prepare)
+                void getActiveAccount().then(
+                  (account) => account && prepare(),
+                  () => {},
+                )
+              return { Component: (await import('./pages/optimizer/TeamPicker')).TeamPicker }
+            },
           },
           {
             path: 'loadouts/team/portfolio',

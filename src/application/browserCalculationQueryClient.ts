@@ -53,10 +53,12 @@ type BrowserQueryClientOptions = {
   resultProjection?: 'local' | 'public-development'
 }
 
+type BrowserQueryClient = CalculationQueryClient & { prepareAccountDecision(): void }
+
 /** Independent channels share the same queue implementation, without sharing run state. */
 export function createBrowserCalculationQueryClient(
   options: BrowserQueryClientOptions,
-): CalculationQueryClient {
+): BrowserQueryClient {
   return createBrowserCalculationQueryChannel(options, false)
 }
 
@@ -64,7 +66,7 @@ function createBrowserCalculationQueryChannel(
   options: BrowserQueryClientOptions,
   factsLane: boolean,
   personalLane = false,
-): CalculationQueryClient {
+): BrowserQueryClient {
   const pending = new Map<number, PendingRequest>()
   const queue: number[] = []
   const liveRuns = new Set<string>()
@@ -73,6 +75,8 @@ function createBrowserCalculationQueryChannel(
   const fingerprints = new Map<string, { browser: string; core: string }>()
   let worker: WorkerPort | null = null
   let workerReady = false
+  let prepareOnReady = false
+  let preparationSent = false
   let workerReadyTimer: ReturnType<typeof setTimeout> | null = null
   let generation = 0
   let active: { id: number; request: PendingRequest } | null = null
@@ -97,6 +101,8 @@ function createBrowserCalculationQueryChannel(
       worker = null
     }
     workerReady = false
+    prepareOnReady = false
+    preparationSent = false
     if (active) clearTimeout(active.request.timeout)
     for (const request of pending.values()) {
       clearTimeout(request.timeout)
@@ -210,6 +216,7 @@ function createBrowserCalculationQueryChannel(
         if (workerReadyTimer) clearTimeout(workerReadyTimer)
         workerReadyTimer = null
         workerReady = true
+        if (prepareOnReady) prepareAccountDecision()
         dispatchNext()
         return
       }
@@ -277,6 +284,25 @@ function createBrowserCalculationQueryChannel(
         )
     }, 30_000)
     return created
+  }
+
+  function prepareAccountDecision() {
+    if (preparationSent) return
+    try {
+      const currentWorker = ensureWorker()
+      if (!workerReady) {
+        prepareOnReady = true
+        return
+      }
+      prepareOnReady = false
+      currentWorker.postMessage({
+        protocolVersion: browserCalculationQueryProtocolVersion,
+        kind: 'prepare_account_decision',
+      } satisfies BrowserCalculationQueryRequest)
+      preparationSent = true
+    } catch {
+      // The actual calculation still uses the normal startup and error handling path.
+    }
   }
 
   function dispatchNext() {
@@ -452,6 +478,7 @@ function createBrowserCalculationQueryChannel(
   }
 
   return {
+    prepareAccountDecision,
     releaseAccountDecisionRun: release,
     hasAccountDecisionRun: (runId) => liveRuns.has(runId),
     subscribeAccountDecisionRuns(listener) {
