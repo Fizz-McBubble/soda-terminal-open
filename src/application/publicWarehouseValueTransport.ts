@@ -1,9 +1,9 @@
 const marker = '$v'
 
 type PackedNode =
-  | { kind: 'primitive'; value: unknown; key: string; bytes: number }
-  | { kind: 'array'; items: PackedNode[]; key: string; bytes: number }
-  | { kind: 'object'; keys: string[]; values: PackedNode[]; key: string; bytes: number }
+  | { kind: 'primitive'; value: unknown; bytes: number }
+  | { kind: 'array'; children: number[]; bytes: number }
+  | { kind: 'object'; keys: string[]; children: number[]; bytes: number }
 
 const textEncoder = new TextEncoder()
 const byteLen = (text: string) => textEncoder.encode(text).byteLength
@@ -18,12 +18,14 @@ export function warehouseValueCodec(input: readonly unknown[]) {
   const nodesById: PackedNode[] = []
   const counts: number[] = []
   const seenObjects = new WeakMap<object, number>()
+  const primitiveIds = new Map<unknown, number>()
+  const propertyKeys = new Map<string, { index: number; bytes: number }>()
 
-  const register = (node: PackedNode): number => {
-    const existing = keyToId.get(node.key)
+  const register = (key: string, node: PackedNode): number => {
+    const existing = keyToId.get(key)
     if (existing !== undefined) return existing
     const id = nodesById.length
-    keyToId.set(node.key, id)
+    keyToId.set(key, id)
     nodesById.push(node)
     counts.push(0)
     return id
@@ -31,32 +33,28 @@ export function warehouseValueCodec(input: readonly unknown[]) {
 
   const build = (value: unknown): number => {
     if (value === null || typeof value !== 'object') {
+      const cached = primitiveIds.get(value)
+      if (cached !== undefined) return cached
       const json = JSON.stringify(value)
-      return register({
+      const id = register(`p:${typeof value}:${json}`, {
         kind: 'primitive',
         value,
-        key: `p:${typeof value}:${json}`,
         bytes: json ? byteLen(json) : 4,
       })
+      primitiveIds.set(value, id)
+      return id
     }
     const cached = seenObjects.get(value)
     if (cached !== undefined) return cached
     if (Array.isArray(value)) {
-      const childIds: number[] = new Array(value.length)
-      const items: PackedNode[] = new Array(value.length)
+      const children: number[] = new Array(value.length)
       let bytes = 2
       for (let i = 0; i < value.length; i += 1) {
-        const cid = build(value[i])
-        childIds[i] = cid
-        items[i] = nodesById[cid]!
-        bytes += items[i]!.bytes + (i > 0 ? 1 : 0)
+        const childId = build(value[i])
+        children[i] = childId
+        bytes += nodesById[childId]!.bytes + (i > 0 ? 1 : 0)
       }
-      const id = register({
-        kind: 'array',
-        items,
-        key: `a:[${childIds.join(',')}]`,
-        bytes,
-      })
+      const id = register(`a:[${children.join(',')}]`, { kind: 'array', children, bytes })
       seenObjects.set(value, id)
       return id
     }
@@ -64,26 +62,25 @@ export function warehouseValueCodec(input: readonly unknown[]) {
     const record = value as Record<string, unknown>
     const rawKeys = Object.keys(record)
     const keys: string[] = []
-    const values: PackedNode[] = []
+    const children: number[] = []
     const parts: string[] = []
     let bytes = 2
     for (let i = 0; i < rawKeys.length; i += 1) {
       const k = rawKeys[i]!
       const child = record[k]
       if (child === undefined) continue
-      const cid = build(child)
+      const childId = build(child)
+      let property = propertyKeys.get(k)
+      if (!property) {
+        property = { index: propertyKeys.size, bytes: byteLen(JSON.stringify(k)) }
+        propertyKeys.set(k, property)
+      }
       keys.push(k)
-      values.push(nodesById[cid]!)
-      parts.push(`${JSON.stringify(k)}:${cid}`)
-      bytes += byteLen(JSON.stringify(k)) + 1 + nodesById[cid]!.bytes + (keys.length > 1 ? 1 : 0)
+      children.push(childId)
+      parts.push(`${property.index}:${childId}`)
+      bytes += property.bytes + 1 + nodesById[childId]!.bytes + (keys.length > 1 ? 1 : 0)
     }
-    const id = register({
-      kind: 'object',
-      keys,
-      values,
-      key: `o:{${parts.join(',')}}`,
-      bytes,
-    })
+    const id = register(`o:{${parts.join(',')}}`, { kind: 'object', keys, children, bytes })
     seenObjects.set(value, id)
     return id
   }
@@ -97,17 +94,8 @@ export function warehouseValueCodec(input: readonly unknown[]) {
     const c = counts[id]!
     if (c === 0) continue
     const node = nodesById[id]!
-    if (node.kind === 'array') {
-      for (const child of node.items) {
-        const cid = keyToId.get(child.key)!
-        counts[cid] = (counts[cid] ?? 0) + c
-      }
-    } else if (node.kind === 'object') {
-      for (const child of node.values) {
-        const cid = keyToId.get(child.key)!
-        counts[cid] = (counts[cid] ?? 0) + c
-      }
-    }
+    if (node.kind !== 'primitive')
+      for (const childId of node.children) counts[childId] = (counts[childId] ?? 0) + c
   }
 
   // Decide which composite nodes shrink wire bytes when promoted to sharedValues.
@@ -124,17 +112,14 @@ export function warehouseValueCodec(input: readonly unknown[]) {
     const node = nodesById[id]!
     if (node.kind === 'primitive') return node.value
     if (node.kind === 'array') {
-      const out = new Array<unknown>(node.items.length)
-      for (let i = 0; i < node.items.length; i += 1) {
-        out[i] = materialize(keyToId.get(node.items[i]!.key)!, true)
+      const out = new Array<unknown>(node.children.length)
+      for (let i = 0; i < node.children.length; i += 1) {
+        out[i] = materialize(node.children[i]!, true)
       }
       return out
     }
     return Object.fromEntries(
-      node.keys.map((key, index) => [
-        key,
-        materialize(keyToId.get(node.values[index]!.key)!, true),
-      ]),
+      node.keys.map((key, index) => [key, materialize(node.children[index]!, true)]),
     )
   }
 

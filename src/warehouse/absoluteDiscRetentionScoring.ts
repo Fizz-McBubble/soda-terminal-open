@@ -224,12 +224,23 @@ function scorePreparedProfile(
     upper = -Infinity
   const increment = (stat: string) =>
     (h.native.steps[stat]! / standard.steps[stat]!) * (profile.weights[stat] ?? 0)
+  // Only unlocked lines change between branches. Keep the observed lines' bounds once.
+  const observedIncrements = disc.subStats.map((line) => increment(line.stat))
+  const observedMinimum = Math.min(...observedIncrements)
+  const observedMaximum = Math.max(...observedIncrements)
   for (const unlocks of possibleUnlocks) {
-    const afterUnlock = raw + unlocks.reduce((sum, stat) => sum + increment(stat), 0)
-    const finalStats = [...disc.subStats.map((line) => line.stat), ...unlocks]
-    const values = finalStats.map(increment)
-    lower = Math.min(lower, afterUnlock + h.upgradesRemaining * Math.min(...values))
-    upper = Math.max(upper, afterUnlock + h.upgradesRemaining * Math.max(...values))
+    let unlockedRaw = 0
+    let minimum = observedMinimum
+    let maximum = observedMaximum
+    for (const stat of unlocks) {
+      const value = increment(stat)
+      unlockedRaw += value
+      minimum = Math.min(minimum, value)
+      maximum = Math.max(maximum, value)
+    }
+    const afterUnlock = raw + unlockedRaw
+    lower = Math.min(lower, afterUnlock + h.upgradesRemaining * minimum)
+    upper = Math.max(upper, afterUnlock + h.upgradesRemaining * maximum)
   }
   const mainFit = allFit([
     disc.slot <= 3

@@ -1,4 +1,10 @@
-import { getAgentEncyclopedia } from '../gameDataPacks/currentEncyclopedia'
+import encyclopedia from '../gameDataPacks/currentEncyclopediaData'
+
+const fullNames = new Map(
+  (encyclopedia as { agents: { stableId: string; fullName: string }[] }).agents.map(
+    ({ stableId, fullName }) => [stableId, fullName],
+  ),
+)
 
 /**
  * Player-facing search aliases (English names, mainstream CN nicknames, and
@@ -86,8 +92,8 @@ function normalizeSearchToken(value: string) {
 
 export function getAgentSearchTerms(agentId: string, displayName: string): string[] {
   const terms = [displayName]
-  const encyclopedia = getAgentEncyclopedia(agentId)
-  if (encyclopedia?.fullName) terms.push(encyclopedia.fullName)
+  const fullName = fullNames.get(agentId)
+  if (fullName) terms.push(fullName)
   const aliases = AGENT_SEARCH_ALIASES[agentId]
   if (aliases) terms.push(...aliases)
   return terms

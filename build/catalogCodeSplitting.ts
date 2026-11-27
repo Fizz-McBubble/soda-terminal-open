@@ -164,9 +164,34 @@ export function workerRuntimePayloadSlimming(): Plugin {
     },
     resolveId(source, importer) {
       if (source.startsWith(workerSlimPrefix)) return source
-      if (!importer || source.includes('?') || !source.endsWith('.json')) return null
+      if (!importer) return null
       const cleanImporter = importer.split('?', 1)[0]
       const importerBase = basename(cleanImporter)
+      if (
+        importerBase === 'agentSearchAliases.ts' &&
+        source === '../gameDataPacks/currentEncyclopediaData'
+      ) {
+        const binding = resolve(dirname(cleanImporter), source + '.ts')
+        const data = readFileSync(binding, 'utf8').match(
+          /^import source from '([^']+\.json)\?raw'\r?$/m,
+        )
+        if (!data?.[1]) throw new Error('Agent search encyclopedia binding changed')
+        const file = resolve(dirname(binding), data[1])
+        const id = `${workerSlimPrefix}agent-search-names.js`
+        if (!virtualModules.has(id)) {
+          const { agents } = JSON.parse(readFileSync(file, 'utf8')) as {
+            agents: { stableId: string; fullName: string }[]
+          }
+          virtualModules.set(
+            id,
+            `export default ${serialize({ agents: agents.map(({ stableId, fullName }) => ({ stableId, fullName })) })};`,
+          )
+        }
+        this.addWatchFile(binding)
+        this.addWatchFile(file)
+        return id
+      }
+      if (source.includes('?') || !source.endsWith('.json')) return null
       const resolvedFile = resolve(dirname(cleanImporter), source)
       if (
         resolvedFile === resolve(root, encyclopediaFile) &&
