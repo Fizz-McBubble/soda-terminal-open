@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { WarehouseActionProjection } from './warehouseActionContract'
+import {
+  isBrowserWarehouseGraph,
+  packBrowserWarehouseGraph,
+  unpackBrowserWarehouseGraph,
+} from './browserWarehouseGraphTransport'
 import { restoreWarehouseObjects, warehouseObjectCodec } from './publicWarehouseObjectTransport'
 import {
   packPublicWarehouseActions,
@@ -259,5 +264,44 @@ describe('public warehouse action transport', () => {
         actions: [{ $v: 5 }],
       } as never),
     ).toThrow('共享值资料无效')
+  })
+})
+
+describe('browser warehouse action transport', () => {
+  const evidence = {
+    sharedCondition: ['named source'],
+    optional: undefined,
+    signedZero: -0,
+    sparse: Object.assign(new Array<number>(3), { 0: 1, 2: 3 }),
+    literalFields: JSON.parse('{"__proto__":"field","a\\u0000b":2}'),
+  }
+  const originalActions = [{ evidence }, { evidence }]
+  const original = {
+    runId: 'run-1',
+    fingerprint: 'hash',
+    accountId: 'account-1',
+    sideEffect: 'read_only',
+    actions: originalActions,
+  } as unknown as WarehouseActionProjection
+
+  it('transfers both buffers and restores evidence including shared and sparse values', () => {
+    const packed = packBrowserWarehouseGraph(original)
+    const moved = structuredClone(packed, {
+      transfer: [packed.cells.buffer, packed.numbers.buffer],
+    })
+
+    expect(packed.cells.byteLength).toBe(0)
+    expect(packed.numbers.byteLength).toBe(0)
+    expect(isBrowserWarehouseGraph(moved)).toBe(true)
+    const restored = unpackBrowserWarehouseGraph(moved)
+    expect(restored).toStrictEqual(original)
+    const restoredActions = restored.actions as unknown as typeof originalActions
+    expect(restoredActions[0]!.evidence).toBe(restoredActions[1]!.evidence)
+  })
+
+  it('rejects references to nodes that have not been decoded', () => {
+    const packed = packBrowserWarehouseGraph(original)
+    packed.cells[1] = packed.root
+    expect(() => unpackBrowserWarehouseGraph(packed)).toThrow('驱动盘分析回传格式无效')
   })
 })

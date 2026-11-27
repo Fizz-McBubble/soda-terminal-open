@@ -1,5 +1,10 @@
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 import type { CalculationQueryClient } from './calculationQueryContract'
+import {
+  browserWarehouseGraphContract,
+  isBrowserWarehouseGraph,
+  unpackBrowserWarehouseGraph,
+} from './browserWarehouseGraphTransport'
 import { unpackPublicWarehouseActions } from './publicWarehouseActionTransport'
 import { warehouseAnalysisStopReason } from './warehouseActionContract'
 import * as factsTransport from './browserDevelopmentFactsClient'
@@ -360,6 +365,10 @@ function createBrowserCalculationQueryChannel(
           runtime,
           query: request.query,
           ...(options.resultProjection ? { resultProjection: options.resultProjection } : {}),
+          ...(options.resultProjection === 'public-development' &&
+          request.query.kind === 'warehouse_actions'
+            ? { warehouseEncoding: browserWarehouseGraphContract }
+            : {}),
         } satisfies BrowserCalculationQueryRequest)
       } catch (error) {
         if (dispatchGeneration !== generation || active !== current) return
@@ -539,8 +548,15 @@ function createBrowserCalculationQueryChannel(
     queryDevelopmentCandidateAlternatives: (query, requestOptions) =>
       submit(query, requestOptions?.signal),
     queryDevelopmentWorkbenchRoute: (query) => submit(query),
-    queryWarehouseActions: async (query, requestOptions) =>
-      unpackPublicWarehouseActions(await submit(query, requestOptions?.signal)),
+    queryWarehouseActions: async (query, requestOptions) => {
+      const result = await submit<
+        | Parameters<typeof unpackPublicWarehouseActions>[0]
+        | Parameters<typeof unpackBrowserWarehouseGraph>[0]
+      >(query, requestOptions?.signal)
+      return isBrowserWarehouseGraph(result)
+        ? unpackBrowserWarehouseGraph(result)
+        : unpackPublicWarehouseActions(result)
+    },
     queryWarehouseDiscTransitionUses: (query, requestOptions) =>
       submit(query, requestOptions?.signal),
   }

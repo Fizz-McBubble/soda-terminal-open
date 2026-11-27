@@ -37,6 +37,21 @@ export function fixedQualityNormalization(profile: Profile, rules: GameRules, ma
   return { maximumRaw: maximum(legal), inputStats }
 }
 
+export function retentionFunctionalMain(
+  disc: Disc,
+  profile: Profile,
+  mainFit: Applicability,
+  recommendationSetFit: Applicability,
+  twoPieceFit: Applicability,
+) {
+  return mainFit !== 'incompatible' &&
+    (recommendationSetFit !== 'incompatible' || twoPieceFit === 'valid')
+    ? profile.functionalMains?.find(
+        (entry) => entry.slot === disc.slot && entry.stat === disc.mainStat,
+      )
+    : undefined
+}
+
 /** Named dependencies are returned in full, rather than hidden behind the top three scores. */
 export function enrichRetentionEvidence(input: {
   disc: Disc
@@ -228,13 +243,13 @@ export function enrichRetentionEvidence(input: {
         '来源只声明属性方向；该目标的数值品质标尺尚未校准。',
       )
   }
-  const functional =
-    mainFit !== 'incompatible' &&
-    (recommendationSetFit !== 'incompatible' || twoPieceFit === 'valid')
-      ? profile.functionalMains?.find(
-          (entry) => entry.slot === disc.slot && entry.stat === disc.mainStat,
-        )
-      : undefined
+  const functional = retentionFunctionalMain(
+    disc,
+    profile,
+    mainFit,
+    recommendationSetFit,
+    twoPieceFit,
+  )
   const functionalState = !functional
     ? ('none' as const)
     : functional.completion !== 'main_only'

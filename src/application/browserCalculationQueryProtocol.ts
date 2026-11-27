@@ -23,6 +23,8 @@ import type {
   PersonalDevelopmentRouteQuery,
 } from './publicPersonalDevelopment'
 
+import type { browserWarehouseGraphContract } from './browserWarehouseGraphTransport'
+
 export const browserCalculationQueryProtocolVersion = 'soda-browser-calculation-query/v8' as const
 
 export type BrowserCalculationQuery =
@@ -54,6 +56,7 @@ export type BrowserCalculationQueryRequest =
       runtime: Extract<CurrentGameDataRuntimeSelection, { status: 'compiled_current' }>
       query: BrowserCalculationQuery
       resultProjection?: 'local' | 'public-development'
+      warehouseEncoding?: typeof browserWarehouseGraphContract
     }
   | {
       protocolVersion: typeof browserCalculationQueryProtocolVersion

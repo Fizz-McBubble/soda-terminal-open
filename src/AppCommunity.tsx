@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import AppCore, { type DecisionEnvironment } from './AppCore'
 import { AppHealthProvider } from './appHealth'
-import { createBrowserCalculationQueryClient } from './application/browserCalculationQueryClient'
+import { publicBrowserCalculationClient } from './application/publicBrowserCalculationClient'
 import { readCurrentGameDataRuntimeSelection } from './gameDataPacks/runtimeSelection'
 
 const repairBundledCurrentGameData = async () =>
@@ -10,14 +10,10 @@ const repairBundledCurrentGameData = async () =>
 /** The published browser product uses the accepted local algorithm through a Query Worker. */
 export default function AppCommunity() {
   const decisionEnvironment = useMemo<DecisionEnvironment>(() => {
-    const queryClient = createBrowserCalculationQueryClient({
-      readRuntimeSelection: readCurrentGameDataRuntimeSelection,
-      resultProjection: 'public-development',
-    })
     return {
       mode: 'local',
-      queryClient,
-      prepareTeamDecision: queryClient.prepareAccountDecision,
+      queryClient: publicBrowserCalculationClient,
+      prepareTeamDecision: publicBrowserCalculationClient.prepareAccountDecision,
       runtimeSelectionReader: readCurrentGameDataRuntimeSelection,
       repairRuntimeSelection: repairBundledCurrentGameData,
     }

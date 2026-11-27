@@ -5,7 +5,10 @@ import { assessWarehouseUses } from './warehouseUseAssessment'
 import { warehouseUsePolicyVersion } from './warehouseDiscQuality'
 import { warehouseAnalysisRuleVersion } from './warehousePolicyVersion'
 import { assessWarehouse } from './absoluteDiscRetentionKernel'
-import { retentionUseGuidance, retentionUseMatchesRecommendedSet } from './warehouseRetentionGuidance'
+import {
+  retentionUseGuidance,
+  retentionUseMatchesRecommendedSet,
+} from './warehouseRetentionGuidance'
 import {
   absoluteDiscRetentionCatalog,
   absoluteDiscRetentionCatalogHash,
@@ -73,6 +76,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
     absoluteDiscRetentionCatalog,
     absoluteDiscRetentionPolicy,
     {
+      applicableEvidenceOnly: true,
       protectedIds: [
         ...new Set([
           ...equipped,
@@ -341,7 +345,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
         policyCalibration: absoluteDiscRetentionPolicy.calibration,
         sourceCoverage:
           retention.sourceCoverage === 'complete' && adoptedSetIdentity ? 'complete' : 'partial',
-        branchCount: retention.evidence.length,
+        branchCount: retention.assessedBranchCount ?? retention.evidence.length,
         bestUseProfileId: retention.bestUseProfileId,
         bestUseScore: retention.bestUseScore,
         ownedUseAgentIds: [...retention.ownedUseAgentIds],

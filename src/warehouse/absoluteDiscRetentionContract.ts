@@ -269,6 +269,8 @@ export interface Decision {
   readonly recommendation: Disposition | 'protected'
   readonly reasons: readonly string[]
   readonly evidence: readonly QualityEvidence[]
+  /** Total successfully assessed branches when the warehouse omits incompatible evidence. */
+  readonly assessedBranchCount?: number
   readonly bestUseProfileId: string | null
   readonly bestUseScore: number | null
   readonly ownedUseAgentIds: readonly string[]

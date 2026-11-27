@@ -8,7 +8,11 @@ import type {
   QualityPolicy,
   QualityEvidence,
 } from './absoluteDiscRetentionContract'
-import { enrichRetentionEvidence, fixedQualityNormalization } from './absoluteDiscRetentionStages'
+import {
+  enrichRetentionEvidence,
+  fixedQualityNormalization,
+  retentionFunctionalMain,
+} from './absoluteDiscRetentionStages'
 const finiteNonnegative = (x: number) => Number.isFinite(x) && x >= 0
 const round = (x: number) => Math.round(x * 1e6) / 1e6
 export const anyFit = (values: readonly Applicability[]): Applicability =>
@@ -193,7 +197,8 @@ function scorePreparedProfile(
   h: ReturnType<typeof history>,
   possibleUnlocks: readonly string[][],
   normalization: ReturnType<typeof fixedQualityNormalization>,
-): QualityEvidence {
+  applicableEvidenceOnly: boolean,
+): QualityEvidence | null {
   const standard = rules.rarities[rules.standardRarity]!
   // Fixed per role/slot rules, never adjusted to this disc's initial 3/4 lines or the inventory.
   const { maximumRaw } = normalization
@@ -202,6 +207,30 @@ function scorePreparedProfile(
     profile.weightEvidence?.method === 'source_proven_no_functional_substat_goal' &&
     Object.keys(profile.weights).length === 0
   if (maximumRaw <= 0 && !noSubstatGoal) throw new Error('no_scoreable_legal_substats')
+  if (!possibleUnlocks.length) throw new Error('incomplete_legal_substat_pool')
+  const mainFit = allFit([
+    disc.slot <= 3
+      ? 'valid'
+      : (profile.mainStatsBySlot[String(disc.slot)]?.[disc.mainStat] ?? 'conditional'),
+    profile.mainAvailability ?? 'valid',
+  ])
+  const twoPieceFit = set ? twoPieceApplicability(set, profile) : 'conditional'
+  const fourPieceFit = profile.fourPieceUses?.[disc.setId] ?? 'incompatible'
+  const recommendationFit = recommendationSetFit(profile, disc.setId, twoPieceFit, fourPieceFit)
+  if (
+    applicableEvidenceOnly &&
+    (mainFit === 'incompatible' || recommendationFit === 'incompatible')
+  ) {
+    const functional = retentionFunctionalMain(
+      disc,
+      profile,
+      mainFit,
+      recommendationFit,
+      twoPieceFit,
+    )
+    // An unmatched functional main can still protect a useful two-piece.
+    if (!functional || functional.completion === 'main_only') return null
+  }
   const asScore = (raw: number) =>
     noSubstatGoal ? 0 : Math.min(100, Math.max(0, (raw / maximumRaw) * 100))
   const contributors = disc.subStats.map((line) => {
@@ -219,7 +248,6 @@ function scorePreparedProfile(
       sum + (line.value / standard.steps[line.stat]!) * (profile.weights[line.stat] ?? 0),
     0,
   )
-  if (!possibleUnlocks.length) throw new Error('incomplete_legal_substat_pool')
   let lower = Infinity,
     upper = -Infinity
   const increment = (stat: string) =>
@@ -242,18 +270,9 @@ function scorePreparedProfile(
     lower = Math.min(lower, afterUnlock + h.upgradesRemaining * minimum)
     upper = Math.max(upper, afterUnlock + h.upgradesRemaining * maximum)
   }
-  const mainFit = allFit([
-    disc.slot <= 3
-      ? 'valid'
-      : (profile.mainStatsBySlot[String(disc.slot)]?.[disc.mainStat] ?? 'conditional'),
-    profile.mainAvailability ?? 'valid',
-  ])
-  const twoPieceFit = set ? twoPieceApplicability(set, profile) : 'conditional'
-  const fourPieceFit = profile.fourPieceUses?.[disc.setId] ?? 'incompatible'
   // Effect utility only: setFit does not prove a complete six-disc composition,
   // a second copy of this set, or that any set effect is currently active.
   const setFit = anyFit([twoPieceFit, allFit([profile.availability ?? 'valid', fourPieceFit])])
-  const recommendationFit = recommendationSetFit(profile, disc.setId, twoPieceFit, fourPieceFit)
   const cutoffs = policy.byProfile[profile.id]?.[String(disc.slot)]
   return {
     profileId: profile.id,
@@ -309,7 +328,12 @@ export function createRetentionProfileScorer(rules: GameRules) {
       (stat) => stat !== disc.mainStat && !disc.subStats.some((line) => line.stat === stat),
     )
     const possibleUnlocks = combinations(unseenStats, enhancementHistory.unlocks)
-    return (profile: Profile, set: SetFacts | undefined, policy: QualityPolicy) => {
+    return (
+      profile: Profile,
+      set: SetFacts | undefined,
+      policy: QualityPolicy,
+      applicableEvidenceOnly = false,
+    ) => {
       let byMain = normalizations.get(profile)
       if (!byMain) {
         byMain = new Map()
@@ -329,6 +353,7 @@ export function createRetentionProfileScorer(rules: GameRules) {
         enhancementHistory,
         possibleUnlocks,
         normalization,
+        applicableEvidenceOnly,
       )
     }
   }
@@ -341,5 +366,5 @@ export function scoreProfile(
   rules: GameRules,
   policy: QualityPolicy,
 ): QualityEvidence {
-  return createRetentionProfileScorer(rules)(disc)(profile, set, policy)
+  return createRetentionProfileScorer(rules)(disc)(profile, set, policy)!
 }

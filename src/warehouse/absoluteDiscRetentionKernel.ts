@@ -89,7 +89,9 @@ function prepareCatalogContext(catalog: Catalog): PreparedCatalog {
     }
   }
   if (duplicateProfileId) add('profileIds', '构筑分支身份重复。')
-  const gapAgentIds = new Set((catalog.coverageGaps ?? []).map((gap) => gap.agentId).filter(Boolean))
+  const gapAgentIds = new Set(
+    (catalog.coverageGaps ?? []).map((gap) => gap.agentId).filter(Boolean),
+  )
   for (const agentId of released) {
     if (coveredAgents.has(agentId)) continue
     if (!gapAgentIds.has(agentId)) add(`profiles.${agentId}`, '该已发布角色缺少构筑分支。')
@@ -172,7 +174,11 @@ function assessPreparedDisc(
   policy: QualityPolicy,
   prepareScoring: ReturnType<typeof createRetentionProfileScorer>,
   prepared: PreparedCatalog,
-  annotation: { readonly protected?: boolean; readonly ownedSet: ReadonlySet<string> },
+  annotation: {
+    readonly protected?: boolean
+    readonly ownedSet: ReadonlySet<string>
+    readonly applicableEvidenceOnly?: boolean
+  },
 ): Decision {
   if (disc.rarity !== 'S') {
     return {
@@ -199,6 +205,7 @@ function assessPreparedDisc(
     }
   }
   const evidence: QualityEvidence[] = []
+  let omittedIncompatible = 0
   let disposition: Disposition = 'review'
   let reasonKind: RetentionReasonKind = 'missing_fact'
   let reasons: string[]
@@ -230,7 +237,9 @@ function assessPreparedDisc(
         continue
       }
       try {
-        evidence.push(score(profile, set, policy))
+        const row = score(profile, set, policy, annotation.applicableEvidenceOnly)
+        if (row) evidence.push(row)
+        else omittedIncompatible += 1
       } catch {
         if (relevant(disc, profile, set))
           gaps.push({
@@ -546,6 +555,9 @@ function assessPreparedDisc(
       ...reasons,
     ],
     evidence,
+    ...(annotation.applicableEvidenceOnly
+      ? { assessedBranchCount: evidence.length + omittedIncompatible }
+      : {}),
     bestUseProfileId: best?.profileId ?? null,
     bestUseScore: best ? Math.round(best.currentScore * 1e6) / 1e6 : null,
     ownedUseAgentIds: agentIds.filter((id) => owned.has(id)),
@@ -568,6 +580,7 @@ export function assessWarehouse(
   annotations: {
     readonly protectedIds?: readonly string[]
     readonly ownedAgentIds?: readonly string[]
+    readonly applicableEvidenceOnly?: boolean
   } = {},
 ): readonly Decision[] {
   const counts = new Map<string, number>()
@@ -580,6 +593,7 @@ export function assessWarehouse(
     const decision = assessPreparedDisc(disc, catalog, policy, prepareScoring, preparedCatalog, {
       protected: protectedIds.has(disc.id),
       ownedSet,
+      applicableEvidenceOnly: annotations.applicableEvidenceOnly,
     })
     return counts.get(disc.id) === 1
       ? decision

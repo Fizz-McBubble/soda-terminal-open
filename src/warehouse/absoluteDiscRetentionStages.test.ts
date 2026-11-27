@@ -328,6 +328,53 @@ describe('independent staged retention contract', () => {
       ]),
     )
   })
+  it('omits incompatible warehouse evidence while preserving protections and branch counts', () => {
+    const unrelated: Profile = {
+      ...baseProfile,
+      id: 'unrelated',
+      branchSetPlan: {
+        pattern: '2+2+2',
+        primarySetIds: ['another-set'],
+        secondarySetIds: [],
+      },
+    }
+    const unmatchedFunction: Profile = {
+      ...unrelated,
+      id: 'unmatched-function',
+      functionalMains: [
+        {
+          slot: 4,
+          stat: 'atk_percent',
+          sourceId: 'test-function',
+          completion: 'build_threshold',
+          detail: 'Check a complete build condition',
+        },
+      ],
+    }
+    const profiles = [unrelated, unmatchedFunction]
+    const item = {
+      ...disc(['def_flat', 'hp_percent', 'pen'], 15, 3, 'def_flat'),
+      slot: 4,
+      mainStat: 'atk_percent',
+    }
+    const annotation = { protectedIds: [item.id] }
+    const full = assessWarehouse([item], catalog(profiles), policy(profiles), annotation)[0]!
+    const projected = assessWarehouse([item], catalog(profiles), policy(profiles), {
+      ...annotation,
+      applicableEvidenceOnly: true,
+    })[0]!
+
+    expect(full.evidence.map((row) => row.useState)).toEqual(['incompatible', 'conditional'])
+    expect(projected).toEqual({
+      ...full,
+      evidence: [full.evidence[1]],
+      assessedBranchCount: 2,
+    })
+    expect(projected.recommendation).toBe('protected')
+    expect(projected.blockedBy).toContainEqual(
+      expect.objectContaining({ field: 'functionalTarget', profileId: unmatchedFunction.id }),
+    )
+  })
   it('independent two-piece use is not gated by four-piece prerequisites', () => {
     const gated = {
       ...baseProfile,

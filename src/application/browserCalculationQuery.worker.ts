@@ -8,9 +8,16 @@ import type { CalculationQueryClient } from './calculationQueryContract'
 import { assertBrowserCalculationRuntimeBinding } from './browserCalculationRuntimeBinding'
 import { projectBrowserDevelopmentFacts } from './browserDevelopmentFactsProjection'
 
+import {
+  browserWarehouseGraphContract,
+  isBrowserWarehouseGraph,
+  packBrowserWarehouseGraph,
+} from './browserWarehouseGraphTransport'
+import type { WarehouseActionProjection } from './warehouseActionContract'
+
 type WorkerScope = {
   onmessage: ((event: MessageEvent<BrowserCalculationQueryRequest>) => void) | null
-  postMessage(message: BrowserCalculationQueryResponse): void
+  postMessage(message: BrowserCalculationQueryResponse, transfer?: Transferable[]): void
 }
 
 let runtime: CurrentGameDataRuntimeSelection | null = null
@@ -208,10 +215,14 @@ export async function calculateBrowserQueryResponse(
         result: await projectBrowserDevelopmentFacts(request.query, request.resultProjection),
       }
     }
+    const useWarehouseGraph =
+      request.resultProjection === 'public-development' &&
+      request.query.kind === 'warehouse_actions' &&
+      request.warehouseEncoding === browserWarehouseGraphContract
     const [client, { dispatchCalculationQuery }, publicTransport] = await Promise.all([
       getClient(),
       import('./calculationQueryDispatch'),
-      request.resultProjection === 'local'
+      request.resultProjection === 'local' || useWarehouseGraph
         ? Promise.resolve(null)
         : import('./publicCalculationTransport'),
     ])
@@ -226,14 +237,17 @@ export async function calculateBrowserQueryResponse(
     const result = await withTeamIndexFallback(
       () =>
         dispatchCalculationQuery(client, query, {
-          transform: (kind, value) =>
-            request.resultProjection !== 'local' &&
-            (kind === 'account_decision' ||
-              kind === 'warehouse_actions' ||
-              kind === 'common_anomaly_settlement32' ||
-              kind === 'planning_benchmark32')
-              ? publicTransport!.projectPublicCalculationResult(kind, value)
-              : value,
+          transform: (kind, value) => {
+            if (kind === 'warehouse_actions' && useWarehouseGraph)
+              return packBrowserWarehouseGraph(value as WarehouseActionProjection)
+            return publicTransport &&
+              (kind === 'account_decision' ||
+                kind === 'warehouse_actions' ||
+                kind === 'common_anomaly_settlement32' ||
+                kind === 'planning_benchmark32')
+              ? publicTransport.projectPublicCalculationResult(kind, value)
+              : value
+          },
         }),
       assertCurrent,
     )
@@ -268,7 +282,13 @@ export async function calculateBrowserQueryResponse(
 const workerScope = self as unknown as WorkerScope
 workerScope.onmessage = (event) => {
   void calculateBrowserQueryResponse(event.data).then((response) => {
-    if (response) workerScope.postMessage(response)
+    if (!response) return
+    const result = response.result
+    if (isBrowserWarehouseGraph(result)) {
+      workerScope.postMessage(response, [result.cells.buffer, result.numbers.buffer])
+    } else {
+      workerScope.postMessage(response)
+    }
   })
 }
 // Module imports may take seconds to evaluate. A query sent before this handler exists can be
