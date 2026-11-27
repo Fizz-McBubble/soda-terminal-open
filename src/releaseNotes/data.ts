@@ -15,6 +15,18 @@ export type ReleaseNote = {
 // Use the release date and describe what players can now do. Keep older entries in order.
 export const releases: readonly ReleaseNote[] = [
   {
+    id: "20261128-web-cold-start",
+    date: "2026-11-28",
+    title: "改善首页恢复和驱动盘分析首次打开",
+    summary: "首页资源等待超时后可重新加载，现有账户与方案继续保留。",
+    sections: [
+      {
+        title: "驱动盘分析",
+        changes: ["进入仓库时会同时准备本机计算，先显示已有盘面，再完成全仓分析。"],
+      },
+    ],
+  },
+  {
     id: "20261128-reviewed-disc-assignment",
     date: "2026-11-28",
     title: "赛维里安配装备选贯通养成、队伍和仓库",

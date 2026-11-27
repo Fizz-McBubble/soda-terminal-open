@@ -40,6 +40,19 @@ import {
   LegacyTemplateRedirect,
 } from './routes/legacyRedirects'
 
+async function loadHomeRoute() {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('首页资源加载超时。')), 20_000)
+    })
+    const { DashboardPage } = await Promise.race([import('./pages/DashboardPage'), timeout])
+    return { Component: DashboardPage }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export type DecisionEnvironment = {
   mode: 'local' | 'remote'
   queryClient: CalculationQueryClient
@@ -148,6 +161,15 @@ export default function AppCore({
     return () => window.removeEventListener('online', loadImages)
   }, [])
 
+  const prepareAccountDecision = () => {
+    const prepare = decisionEnvironment.prepareTeamDecision
+    if (prepare)
+      void getActiveAccount().then(
+        (account) => account && prepare(),
+        () => {},
+      )
+  }
+
   const [router] = useState(() =>
     createBrowserRouter([
       {
@@ -178,9 +200,7 @@ export default function AppCore({
           },
           {
             index: true,
-            lazy: async () => ({
-              Component: (await import('./pages/DashboardPage')).DashboardPage,
-            }),
+            lazy: loadHomeRoute,
           },
           {
             path: 'assets',
@@ -196,9 +216,10 @@ export default function AppCore({
           },
           {
             path: 'warehouse/discs',
-            lazy: async () => ({
-              Component: (await import('./pages/WarehouseDiscsPage')).WarehouseDiscsPage,
-            }),
+            lazy: async () => {
+              prepareAccountDecision()
+              return { Component: (await import('./pages/WarehouseDiscsPage')).WarehouseDiscsPage }
+            },
           },
           {
             path: 'agents/:agentId',
@@ -219,12 +240,7 @@ export default function AppCore({
           {
             path: 'loadouts/team',
             lazy: async () => {
-              const prepare = decisionEnvironment.prepareTeamDecision
-              if (prepare)
-                void getActiveAccount().then(
-                  (account) => account && prepare(),
-                  () => {},
-                )
+              prepareAccountDecision()
               return { Component: (await import('./pages/optimizer/TeamPicker')).TeamPicker }
             },
           },

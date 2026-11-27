@@ -196,7 +196,7 @@
     "src/appCapabilityHealth.ts": "5b2a5f1bdf67350945d2257ce627fb0e0d69ec7d2a90d451b137526ccb1181c2",
     "src/AppCommunity.tsx": "34e8263ddd70aecab0c66a2a95dedd6bebb9ebb6afec2fcc46021505ca8ed049",
     "src/AppCore.startup.test.tsx": "aae42006ba37232a5b9d2fb63b63749f9f618c596f6bafebdc85aa264c1b45a9",
-    "src/AppCore.tsx": "d2a39238dd6ffe4f679d3e6fed53e3a947ca05734d17281c329df9dd4925d983",
+    "src/AppCore.tsx": "9a6d3d312f3a13377b08f7a8a003844a2d42f03973804d74448833407f183da3",
     "src/appHealth.test.tsx": "a9af13674fcabc58ed08a17a42f0f3ab6854028646b34d714091c4acb3dd522b",
     "src/appHealth.tsx": "963034fb836886d0beb0e4652a741e7d84e72ddfb871ca84611145651e23ec19",
     "src/appHealthContext.ts": "93b49263195f018051d48c3ce277f688ee9cf77efe5ae1b444a91c461e3e8461",
@@ -2227,7 +2227,7 @@
     "src/pages/workbenchCandidateFreshness.ts": "5b6d3e3c143604b39f41744fea1fd34cabbca356c8f7eadac9e4045017e4474f",
     "src/pages/workbenchWarehouseAnalysis.ts": "2758a0edc385db5a627e5a0f68725339a52f0ca550bc69b030f6380f0dbcd89f",
     "src/releaseInfo.ts": "a3acb34180f7f65356a81217ce7080019edc727660f0ac78bd6da44dd150ed79",
-    "src/releaseNotes/data.ts": "d35f7bff7341dd41c95e2cc6d580d24b35558ce210547ebddc618ddf9b2e23aa",
+    "src/releaseNotes/data.ts": "5b03fe26e506f63723d0c835d4b73cd94362de071bea300abd09dcb29d811997",
     "src/routes/legacyRedirects.tsx": "4f4dd248ccdedd8c7ee178e29f64835c6b193eb9def32cedcdfb041982c44b4a",
     "src/routes/preloadPlayerRoute.ts": "d5a0d55bcb65da10bd8d46114c36dc82a110d2b69d9f1382bf2038c327ea32d9",
     "src/scanner/assistant.ts": "958cb30d59e3f300cc3cb9f4ef374e9b0b53fdef70b57c3d2439ef3b78f2b4d2",
@@ -2490,6 +2490,6 @@
     "tests/algorithm-quality/source-goal.test.mjs": "15bea49e049d2e3b1a96b898eb8a305a01875075fb2d2ea7468c044a2040ba41",
     "tests/algorithm-quality/team-search-audit.test.mjs": "1d30953fc7012c675818896a30bc8838bb682dca27105138efdb5866df528da3",
     "tsconfig.json": "4aec70435628e4bd86556908535d8ba6eb8e2653fbf6ecd941b8cc57cef6f8c5",
-    "vite.config.ts": "349a6d5a76264e164d3e4e799933c5cd29f7c2516c9a84565eb1ec4d4ab2edbe"
+    "vite.config.ts": "ac3c1a5d132bdf0e5b089bbe595b2c55ae11dd9479b7860c3c5b07e22cc4bdde"
   }
 }

@@ -220,6 +220,7 @@ export default defineConfig({
       output: {
         strictExecutionOrder: true,
         codeSplitting: {
+          ...(process.env.VITE_SODA_COMMUNITY_BUILD === 'true' ? { minSize: 24_000 } : {}),
           maxSize: 400_000,
           groups: [
             ...(process.env.VITE_SODA_COMMUNITY_BUILD === 'true'
@@ -319,6 +320,22 @@ export default defineConfig({
                     name: 'worker-query-contract',
                     test: /[/\\]src[/\\]application[/\\](?:calculationQueryContract|publicVersionIdentity)\.ts$/u,
                     priority: 35,
+                  },
+                  // These data leaves have no runtime dependency on the account graph.
+                  {
+                    name: 'worker-reviewed-team-sources',
+                    test: /[/\\]gameDataPacks[/\\]generated[/\\]current31-reviewed-team-source-atoms(?:\.v1\.json|\.ts)$/u,
+                    priority: 30,
+                  },
+                  {
+                    name: 'worker-box-startup-templates',
+                    test: /soda-box-startup-prepared|[/\\]box-startup-prepared\.v1\.json$/u,
+                    priority: 30,
+                  },
+                  {
+                    name: 'worker-box-rating-projection',
+                    test: /[/\\]decision[/\\]teamGenericRankingProjection\.ts$/u,
+                    priority: 29,
                   },
                   // Keep the first account query's shared dependency closure together.
                   // Full ranking indexes and personal facts retain their own entry points.
