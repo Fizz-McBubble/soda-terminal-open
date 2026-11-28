@@ -99,6 +99,15 @@ export function targetPanelLowerBound(panel: TargetPanel, label: CharacterPanelL
   return typeof target.value === 'number' ? target.value : (target.value.min ?? null)
 }
 
+function sourceDisplayVariant(panel: TargetPanel, label: CharacterPanelLabel) {
+  const variants = (panel?.value as { displayVariants?: unknown } | undefined)?.displayVariants
+  if (!Array.isArray(variants)) return null
+  const matches = variants.filter(
+    (entry): entry is string => typeof entry === 'string' && entry.startsWith(`${label} `),
+  )
+  return matches.map((entry) => entry.slice(label.length).trim()).join(' / ') || null
+}
+
 export function targetPanelDisplayValue(panel: TargetPanel, label: CharacterPanelLabel) {
   const target = readTargetValue(panel, label)
   if (target === null) {
@@ -108,14 +117,7 @@ export function targetPanelDisplayValue(panel: TargetPanel, label: CharacterPane
       return null
     const values = panel.value as Record<string, unknown>
     if (targetKeys[label]?.some((key) => Object.hasOwn(values, key))) return null
-    const variants = values.displayVariants
-    if (!Array.isArray(variants)) return null
-    const matching = variants.filter(
-      (entry): entry is string => typeof entry === 'string' && entry.startsWith(`${label} `),
-    )
-    return matching.length
-      ? matching.map((entry) => entry.slice(label.length).trim()).join(' / ')
-      : null
+    return sourceDisplayVariant(panel, label)
   }
   const { value, semantic } = target
   if (
@@ -182,7 +184,9 @@ export function targetPanelPresentation(
     // Retain qualified source variants verbatim; never extract an unconditional number from them.
     return { value: targetPanelDisplayValue(panel, label), conditions: [...new Set(conditions)] }
   }
-  const guide = formatNumericTarget(target, label)
+  const sourceVariant =
+    target.semantic.observation === 'reference' ? sourceDisplayVariant(panel, label) : null
+  const guide = sourceVariant ?? formatNumericTarget(target, label)
   if (target.semantic.requirement === 'optional')
     conditions.push('此属性为来源可选参考，不作为通用毕业要求。')
   if (target.semantic.observation === 'in_combat')

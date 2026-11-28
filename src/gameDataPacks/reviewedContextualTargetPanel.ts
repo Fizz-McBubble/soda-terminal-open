@@ -258,9 +258,16 @@ export function resolveReviewedContextualTargetPanel<T extends Target | null>(
         : []),
     ]
     const reference = panel.value as {
-      conditionalReferences?: { signatureCritRate?: number }
+      critRate?: unknown
       targetSemantics?: TargetPanelSemantics
+      conditionalReferences?: { signatureCritRate?: number }
     }
+    // A panel may be resolved again after an engine change. Rebuild the
+    // signature-only metric from its source on every pass.
+    const base = { ...reference }
+    delete base.critRate
+    const targetSemantics = { ...reference.targetSemantics }
+    delete targetSemantics.critRate
     const signatureCritRate =
       context.engineId === 'wengine-14161' &&
       context.engineRefinement === 1 &&
@@ -270,20 +277,20 @@ export function resolveReviewedContextualTargetPanel<T extends Target | null>(
     return {
       ...panel,
       value: {
-        ...(panel.value as object),
-        ...(typeof signatureCritRate === 'number'
-          ? {
-              critRate: { min: signatureCritRate },
-              targetSemantics: {
-                ...reference.targetSemantics,
+        ...base,
+        ...(typeof signatureCritRate === 'number' ? { critRate: { min: signatureCritRate } } : {}),
+        targetSemantics: {
+          ...targetSemantics,
+          ...(typeof signatureCritRate === 'number'
+            ? {
                 critRate: {
-                  requirement: 'required',
+                  requirement: 'optional',
                   boundary: 'minimum',
                   observation: 'reference',
                 },
-              } satisfies TargetPanelSemantics,
-            }
-          : {}),
+              }
+            : {}),
+        },
         cultivationReference: {
           keys: typeof signatureCritRate === 'number' ? ['def', 'critRate'] : ['def'],
           conditions,

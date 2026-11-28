@@ -69,6 +69,13 @@ export function reviewedAuthorComparisonMembership32(
   const matched = authorComparisonByKey.get(key)
   if (!matched) return null
   if (memberIds.some((id) => !ownedAgentIds.includes(id))) return null
+  // Only the two indexed historical trios reach this check. The exported facts
+  // can change after startup; never attach an old fingerprint to a changed row.
+  if (
+    stableContentHash(reviewedSourceTeamObservations32) !==
+    reviewedSourceTeamObservations32Identity.contentHash
+  )
+    return null
   const { observation, fingerprint } = matched
   return {
     explicitSelectionOnly: true,

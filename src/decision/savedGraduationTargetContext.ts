@@ -2,6 +2,7 @@ import type { RosterAgent } from '../assault/types'
 import type { DriveDisc } from '../domain/schemas'
 import { reviewedTargetPanelGuidance } from '../gameDataPacks/reviewedTargetPanelGuidance'
 import {
+  getCurrentBuildAuthorityProfile,
   getCurrentBuildTargetPanel,
   type CurrentBuildTargetPanelContext,
 } from '../gameDataPacks/currentBuildAuthority'
@@ -123,6 +124,16 @@ export function resolveSavedGraduationTarget(input: {
       JSON.stringify(input.target.value) === JSON.stringify(field.value) &&
       JSON.stringify(targetConditions) === JSON.stringify(field.conditions ?? []),
   )
+  const continuity = getCurrentBuildAuthorityProfile(input.agent.agentId)?.guidance.fields.find(
+    (field) => field.fieldId === 'build.target_panel',
+  )?.referenceContinuity
+  const provenance =
+    reviewed &&
+    continuity &&
+    'boundary' in continuity &&
+    targetConditions.includes(continuity.boundary)
+      ? [continuity.boundary]
+      : []
   const source = input.target.value as {
     sourceMetadata?: { sourceId?: string; sourceConditions?: string[] }
     sourceVariants?: string[]
@@ -145,7 +156,7 @@ export function resolveSavedGraduationTarget(input: {
   ) {
     return {
       value: contextual!.value as Record<string, unknown>,
-      limitations: [...mechanic.conditions],
+      limitations: [...mechanic.conditions, ...provenance],
       applied: ['按当前有效技能与音擎配置核对初始属性机制准备线；不证明战斗增益常驻'],
     }
   }
@@ -167,7 +178,7 @@ export function resolveSavedGraduationTarget(input: {
   const value: Record<string, unknown> = { ...(input.target.value as Record<string, unknown>) }
   const semantics: TargetPanelSemantics = { ...source.targetSemantics }
   value.targetSemantics = semantics
-  const limitations: string[] = []
+  const limitations: string[] = [...provenance]
   const applied: string[] = []
   const hpTarget = resolveReviewedZhaoHpTarget({
     agentId: input.agent.agentId,

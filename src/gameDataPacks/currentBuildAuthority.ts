@@ -100,7 +100,7 @@ function adoptedCurrentField(
         const fields = getAgentProfile(agentId).fields
         const selected = selectedGuidanceField(path, fields, agentId)
         if (!selected) return []
-        const adopted = authorityField(path, fields, agentId)
+        const adopted = authorityField(path, fields, agentId, selected)
         // The 3.2 continuity ledger binds the historical selected value. Current
         // replacements are separately reviewed and must not rewrite that history.
         return [
@@ -361,8 +361,8 @@ function authorityField(
   fieldId: CurrentBuildFieldId,
   fields: readonly AgentProfileField[],
   agentId: string,
+  field = selectedGuidanceField(fieldId, fields, agentId),
 ): CurrentBuildAuthorityField {
-  const field = selectedGuidanceField(fieldId, fields, agentId)
   const teamReference =
     currentVersionProjection.gameVersion === '3.3' && fieldId === 'build.team_bangboo_scenario'
       ? getReviewedPhoenixTeam33(agentId)
@@ -425,8 +425,7 @@ function authorityField(
       ? 'not_applicable'
       : state !== 'ready'
         ? 'incomplete'
-        : currentVersionProjection.gameVersion === '3.3' &&
-            (agentId === 'agent-phoenix' || agentId === 'agent-severian')
+        : targetVersion === '3.3' && field?.gameVersion === '3.3'
           ? 'direct_current_3_3'
           : continuity
             ? 'continuity_reviewed'

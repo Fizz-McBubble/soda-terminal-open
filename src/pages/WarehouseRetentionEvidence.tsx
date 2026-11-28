@@ -24,6 +24,13 @@ const useStateOrder: Record<NonNullable<Use['useState']>, number> = {
   incompatible: 3,
 }
 
+function retentionUseCount(uses: Use[]) {
+  const pending = uses.filter((use) => use.useState === 'missing_fact').length
+  if (pending === uses.length) return `${pending} 个待核对用途`
+  if (pending > 0) return `${uses.length} 个用途，其中 ${pending} 个待核对`
+  return `${uses.length} 个推荐用途`
+}
+
 function retentionUseLabel(use: Use) {
   return readableDetail(
     use.profileLabel ??
@@ -183,7 +190,7 @@ function RetentionAgentDialog({
         <header className="warehouse-retention__agent-popover-header">
           <div>
             <strong>{agentName}</strong>
-            {agentUses.length > 1 ? <span>{agentUses.length} 个推荐用途</span> : null}
+            {agentUses.length > 1 ? <span>{retentionUseCount(agentUses)}</span> : null}
           </div>
           <button ref={closeRef} className="button button--quiet" type="button" onClick={onClose}>
             关闭
@@ -312,6 +319,9 @@ export function WarehouseRetentionEvidence({
               {agentIds.map((agentId) => {
                 const agentUses = rankedUses.filter((use) => use.agentId === agentId)
                 const open = openAgentId === agentId
+                const owned = ownedAgentIds.has(agentId)
+                const pending = agentUses.every((use) => use.useState === 'missing_fact')
+                const ownership = owned ? '已拥有' : '未拥有'
                 return (
                   <li key={agentId}>
                     <button
@@ -320,7 +330,7 @@ export function WarehouseRetentionEvidence({
                       aria-haspopup="dialog"
                       aria-expanded={open}
                       aria-controls={dialogId}
-                      aria-label={`查看${readableAgentName(agentId)}的词条匹配，${agentUses.length} 个推荐用途`}
+                      aria-label={`查看${readableAgentName(agentId)}的词条匹配，${retentionUseCount(agentUses)}`}
                       onClick={(event) => {
                         setOpenAgentTrigger(event.currentTarget)
                         setOpenAgentId((current) => (current === agentId ? null : agentId))
@@ -339,9 +349,9 @@ export function WarehouseRetentionEvidence({
                       </span>
                       <span
                         className="warehouse-retention__role-state"
-                        data-state={ownedAgentIds.has(agentId) ? 'owned' : 'reserve'}
+                        data-state={pending ? 'pending' : owned ? 'owned' : 'reserve'}
                       >
-                        {ownedAgentIds.has(agentId) ? '已拥有' : '未拥有'}
+                        {pending ? `${ownership} · 用途待核对` : ownership}
                       </span>
                     </button>
                   </li>

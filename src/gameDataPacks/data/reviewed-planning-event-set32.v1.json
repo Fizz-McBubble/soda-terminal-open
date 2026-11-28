@@ -4,7 +4,7 @@
   "gameVersion": "3.2",
   "upstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
   "ready": true,
-  "semanticIdentityHash": "fnv1a-f64776cf",
+  "semanticIdentityHash": "fnv1a-e88f0f16",
   "scope": {
     "memberIds": ["agent-claret", "agent-roxy", "agent-rina"],
     "eventTuples": [
@@ -5300,7 +5300,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -5308,12 +5308,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "02f582288c68df7524c5e37c46de0d0e9fb6a7d98eadcbba9c6cd4771c7e8d1f"
+              "context_sha256": "e8bf685db28e908a6a2dc6dab6d8ad58f733ebd78b685d93d5dcc981f49c9372"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -5323,7 +5323,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -10058,7 +10058,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -10066,12 +10066,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "02f582288c68df7524c5e37c46de0d0e9fb6a7d98eadcbba9c6cd4771c7e8d1f"
+              "context_sha256": "e8bf685db28e908a6a2dc6dab6d8ad58f733ebd78b685d93d5dcc981f49c9372"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -10081,7 +10081,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -14816,7 +14816,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -14824,12 +14824,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "02f582288c68df7524c5e37c46de0d0e9fb6a7d98eadcbba9c6cd4771c7e8d1f"
+              "context_sha256": "e8bf685db28e908a6a2dc6dab6d8ad58f733ebd78b685d93d5dcc981f49c9372"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -14839,7 +14839,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -19574,7 +19574,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -19582,12 +19582,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "50b4d5073412a4b54e5b2398433cb1ef85517e6615fa65b97436d0361aa9d1b8"
+              "context_sha256": "9a1d6b1693675f8376fafa8f724a26b88c48d103b0ffac04281359e6ceff50a2"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -19597,7 +19597,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -24332,7 +24332,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -24340,12 +24340,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "50b4d5073412a4b54e5b2398433cb1ef85517e6615fa65b97436d0361aa9d1b8"
+              "context_sha256": "9a1d6b1693675f8376fafa8f724a26b88c48d103b0ffac04281359e6ceff50a2"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -24355,7 +24355,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -29090,7 +29090,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -29098,12 +29098,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "50b4d5073412a4b54e5b2398433cb1ef85517e6615fa65b97436d0361aa9d1b8"
+              "context_sha256": "9a1d6b1693675f8376fafa8f724a26b88c48d103b0ffac04281359e6ceff50a2"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -29113,7 +29113,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -33848,7 +33848,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-roxy",
@@ -33856,12 +33856,12 @@
                   "formulaFamily": "typed_direct"
                 }
               },
-              "context_sha256": "a608683e6c5867b893209bc627d94930140388aa321f879ddf7a038aa2b0057e"
+              "context_sha256": "cdeb4f9814132f7f0cf29ea37f8cefe5e89916805f18e70d5b8208938e7b2b70"
             },
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -33871,7 +33871,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -38606,7 +38606,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-roxy",
@@ -38614,12 +38614,12 @@
                   "formulaFamily": "typed_direct"
                 }
               },
-              "context_sha256": "a608683e6c5867b893209bc627d94930140388aa321f879ddf7a038aa2b0057e"
+              "context_sha256": "cdeb4f9814132f7f0cf29ea37f8cefe5e89916805f18e70d5b8208938e7b2b70"
             },
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -38629,7 +38629,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -43364,7 +43364,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+                "independentFixtureInputDigest": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-roxy",
@@ -43372,12 +43372,12 @@
                   "formulaFamily": "typed_direct"
                 }
               },
-              "context_sha256": "a608683e6c5867b893209bc627d94930140388aa321f879ddf7a038aa2b0057e"
+              "context_sha256": "cdeb4f9814132f7f0cf29ea37f8cefe5e89916805f18e70d5b8208938e7b2b70"
             },
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
+              "implementation_sha256": "cf279bae59d2e288bd9c8582bf583e29cc27ae52c285199a4c4ee847921fadc8",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -43387,7 +43387,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+              "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -43437,7 +43437,7 @@
   ],
   "regression": {
     "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-    "input_sha256": "597650869fcbca9deba03754976975957269a7c15c07702c0f3c2487d0959d9d",
+    "input_sha256": "705fe76f39c994893496e7072373ef728cf74816f7ae6e048a4ef860be096e36",
     "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
     "output_sha256_runs": [
       "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -43473,7 +43473,7 @@
     "src/application/privatePlanningBenchmarkBinding32.ts": "20aae4fb58402468facda78160ea8e0fc1a7ea9d68430b8154b6ea284796d981",
     "src/application/privatePreparedPlanningBenchmark32.ts": "c751950cdf8e6baaa1f5c1c14621e4d7fbac91b49948cca8216567ad9f41f949",
     "src/application/publicAnomalySnapshotStats32.ts": "5cc0915e51025a30e2cf3c2a3f1b8f13e5373f62ea80e8c43048acd9d86280d1",
-    "src/application/publicAssetCatalog.data.json": "d3b0ad3a15474140afc79ed8b4c00bc22b05ab6b86fd1664ebe0e8fc283a19d4",
+    "src/application/publicAssetCatalog.data.json": "f8c109e957c3d13647090a10b79bd0e4ebe1ce0fbf128e237c287fc50fc758e0",
     "src/application/publicAssetCatalog.ts": "b3b53923db9719325435abb6874e9e596aed06f78e8eff1ae58b3ec3d6965174",
     "src/application/publicCandidateLabels.data.json": "3bfe468bc896d1cbcb08c0824af631dcaec98a81f9f8a893942a5c0f73757e1f",
     "src/application/publicCommonAnomalySettlement32.ts": "3e2cd24ac8576e6ef241154ea9ba8ae692312e8d2c8e2e3caa867a245edaee6c",
@@ -43490,7 +43490,7 @@
     "src/assault/currentBuildProfiles.ts": "02060f6fd88da355fa7a0a415ba82c30af6c3ecead9cffe1e78bb94d4d6cc677",
     "src/assault/data/wEngineCatalog.3.0.json": "d11566382240b2addd0e3bc5cd1c2c11f2f478a2c3a6f5f544fcf840765adea4",
     "src/assault/teamTemplates.ts": "b7e7e83927b2355671bcb318e4d0d9a8687bc13db5b2566675cf1551f937779f",
-    "src/assets/reviewed32-media-urls.json": "b92554c9f8d28ca89482638a142c8c4d4d414d3e7046c4f1578a9588179f92da",
+    "src/assets/reviewed32-media-urls.json": "394e45687a7cbd26d7c56f358b39dd49f6316f13822dca5269fa902bdfba3066",
     "src/assets/reviewed32CommunityMedia.ts": "c0c6cbc40f973e1183efbc05e99c6780e9a2069def8af4409831bed708b8f559",
     "src/assets/visualAssetBrowserRuntime.ts": "4f129063b99e65cde1b65305f962572c3afdc176f10667b6cfbbfd4aee0104d9",
     "src/assets/visualAssetCacheLookup.ts": "e70ecaab9973069d7b703a1e60599c3230da7eed0570f106544d95b152c10616",
@@ -43510,16 +43510,16 @@
     "src/calculation/anomalyDamageCore.ts": "81dcb032eee0207e5cc3377a53f13bf660fda3a6974cb280f545f7b7c1e77e4b",
     "src/calculation/calculationContext.ts": "9f9d698abc5e8d38f05a47dd20a2b647b4e87298e28cdfc223110cf282a96f09",
     "src/calculation/compileDeclaredRemielleRadiance32.ts": "9da48840969221b0012ab922f85476f10aef70ee6ff9c380c50a1d41167022b9",
-    "src/calculation/currentAgentDecisionMechanicContracts.ts": "d6e2c2e4e36b79ad0da318f2129304dd8838e5fee13db370f110b7bc6abda664",
-    "src/calculation/currentAgentMechanicContracts.ts": "7183d9cb31b4753b5146067e8cb6b154e26fa67d36bed1148e6ee4c2606caafb",
-    "src/calculation/currentAgentNumericContracts.ts": "f896ad32b9482f38001977bf85ea140b525f3c9ae2c6fc0653dbca636992c157",
-    "src/calculation/currentAgentPlanningEffectBlueprint.ts": "5e323e4e936e3c3ee91fdd7850a223544ede156ac5c2a812ede0ce8624c13e46",
+    "src/calculation/currentAgentDecisionMechanicContracts.ts": "65f025d262f50a2dff8e73d681ecb393c824287455b958a103da40dbdf5680bc",
+    "src/calculation/currentAgentMechanicContracts.ts": "de7db37c94198039af612ff418e115b4b390cde3870bbbe5ec2cf66377a429f4",
+    "src/calculation/currentAgentNumericContracts.ts": "4c1b2c5955bfe415825315b31c3485c73e57ed21cf6b86309271975ce3d688b9",
+    "src/calculation/currentAgentPlanningEffectBlueprint.ts": "28f53abf670a95f46d66cbc0359f51b0dd6c4d0c3292228afc74708305b8177e",
     "src/calculation/currentAgentResourceEvents32.ts": "a388687bebd9bfbfc9adda6ae1c67e75595cdf22056d7b179c647a436f95670f",
     "src/calculation/currentAgentResourceFlow32.ts": "8d99dec02f12f432c9efeaf51a07c441dc727bb4cffaee773496e2c119608039",
     "src/calculation/currentBangbooAdditionalUtilityCapacity.ts": "822a4ad03b1f78f7cd94aaec99d38a80b0b1d8ed2c69c56ad90e535dbdc7aa8f",
     "src/calculation/currentBangbooBaseUtilityCapacity.ts": "23adf2ec5fb82f00806ed5b9fb2dd07a98fea79259fe6215e7fb7a635c26b961",
     "src/calculation/currentBangbooBaseUtilityContracts.ts": "709349b9ad86938b30ae972d202efc2e3f68589be4e9fc4e4eb8a117c1d9fbdf",
-    "src/calculation/currentBangbooCompositionIdentity.ts": "1a7b1e1a98e1128a99ef3d630b41c0d203eafc343288b3f9830d3477ec4a0211",
+    "src/calculation/currentBangbooCompositionIdentity.ts": "a35e67d0403404f1a0a83a4610070a71c4ca9831719a5e9ce467bf6306c1b4ff",
     "src/calculation/currentBangbooMechanicContracts.ts": "4bf3e7970b7e3cd3d0d926e115266c30931340cafc910ff680126ab9fe589f80",
     "src/calculation/currentBangbooMechanicDefinitions.ts": "c6368555f4df7d4e9b10e27575b371db979aaaa908e122220370b50d01805de2",
     "src/calculation/currentBangbooPlanningAdapter.ts": "1bfc5863bdf8a78335e73df6e1f165cf80d6c232d585011d840ccaf90289343c",
@@ -43552,7 +43552,7 @@
     "src/calculation/currentPlanningInteractionMechanicIR.ts": "8285d77048944d8f4c6535270f66aadde8bd0abe85f7440c915e6c2e4e65b491",
     "src/calculation/currentPlanningPotentialModifierBucket32.ts": "e2cb6d70efdac8abb4c68f73cfd9f76f37cd6e16630b633cd8ad5373b8116334",
     "src/calculation/currentPlanningSelfEffects32.ts": "247eaf18b8c02c3e7bbe5dc0a972207b8da53b6c15a5d3778e567fa5cae34767",
-    "src/calculation/currentPlanningStatIndependentSelf32.ts": "8992118197ec78dec777b20f602f8f72455dd9a6580a8f7a4a60ca6e43f8ac85",
+    "src/calculation/currentPlanningStatIndependentSelf32.ts": "3b6e19541d611c6bdb63796c9e7f1fde2aa2e41736d8c4a0493085d84fbaed90",
     "src/calculation/currentPlanningTeamDpsRuntime.ts": "7490d83fc02dc1d865bc6b50a3c26eb83cef58174d9bd2f14bd2abc33ae42f9a",
     "src/calculation/currentPlanningTeamDpsSchedule32.ts": "5fea2edcd66240262f9d108e25bf254fe552c2145f46a4e7ad0cf70b70b20583",
     "src/calculation/currentPlanningWEngineDependencies32.ts": "d6e4b07d13f55e28cd66309d4ff2d0e2c48b8bea95060347dad813e45a01c91a",
@@ -43563,8 +43563,8 @@
     "src/calculation/currentUpstreamExpressionIR.ts": "57b4eea597058535d933e96fae93e5af98e128ff88adf1714261510d40e51d82",
     "src/calculation/currentWEngineMechanicContracts.ts": "24fc58daf8cc51c06adaa072f2c38d54a2873c580e2b5b016e268ff9c1b6acf1",
     "src/calculation/currentWEngineMechanicDefinitions.ts": "5424d9ccabd4e721189c01ee4a8b8eb9c98cfc4e563558448d940997f11e1ab0",
-    "src/calculation/currentWEnginePassiveAdapters.ts": "0abc97ee336869ebda838f107ff7a894e507b3b8e6760663f4ac7ce77e324a67",
-    "src/calculation/currentWEnginePersonalPlanningEffects.ts": "519803b60dc2bd471b9f78fbd33bc0d067b91eaaa8fe2e34a78fcc21bbf2e0ad",
+    "src/calculation/currentWEnginePassiveAdapters.ts": "68120f1fa2a347c9fe9b8731132eb742ec3abba2955144f22e76ad052187be51",
+    "src/calculation/currentWEnginePersonalPlanningEffects.ts": "894ac9179eb949de617c426061d1c95a73e19f9abf08190a6fa26ef822a6245a",
     "src/calculation/damageFormulaDispatch.ts": "faeb890a0ba6dc4c756235ff5e230fc62d01ac5cbcb0b4fba1cd0337b9744ac8",
     "src/calculation/damageGate.ts": "73756d5bbdcad2843135c9d12461732f6ce98d411911a93b583223cf19cea3af",
     "src/calculation/declaredRemielleResourceLedger32.ts": "ad4083618883dd8dd98442216dfaec38ad284c32d2d602c76e0a2212e6dd1355",
@@ -43575,7 +43575,7 @@
     "src/calculation/dynamic/sourceExpressionReconciliation.ts": "fa70d692823d4ff003f38c8a5f2b6651cb44cf1da7005feac286b8329ec56929",
     "src/calculation/dynamic/sourceExpressionReconciliationLighter.ts": "a32e1b0a703d8f91a9a91bbbf6a8707dcac1203928ddc9c9db380e51c7ede8cb",
     "src/calculation/formalDamageUnsupportedContext.ts": "81874427369655215c6103a9e6b9079e18c64bb308d3743770c90d9ccc4c08a9",
-    "src/calculation/generated/currentPlanningConsumerPolicyIdentity32.v1.json": "affec6d6b21ca9bf9e9fa7affec919e611613ffb3c629c50b35f7e5c4a2c5fe7",
+    "src/calculation/generated/currentPlanningConsumerPolicyIdentity32.v1.json": "cd04f55f33517552dbc62dacaa231ec3f0aab2774d064382226a52cf2f22b316",
     "src/calculation/luminizeSettlementContract32.ts": "1835d519d4970d1f2040734df78601975aefcc5bbe59a0058af16b175f3b6a8d",
     "src/calculation/mechanicIr.ts": "3ef570f01f651cd00852c4ba1e72b46fe8780989403ffbed120dd708cdee7912",
     "src/calculation/outOfCombatDiscStats.ts": "37ad3894ac0273d5d7890a776e6e9ad01ea76048676fafaabb03ef89c9fd4751",
@@ -43586,7 +43586,7 @@
     "src/calculation/outOfCombatPanelValues.ts": "7717e54c8693c2e35dc512ca7c641118a5a6de189563a3cbc4a77b60653e420f",
     "src/calculation/personalSourceSelfShare32.ts": "c0bc3b7947bc1a0aee1ecf6e2e0101ee269996d39febbdc16692609551cef9d0",
     "src/calculation/phoenixAscensionMaterials33.data.json": "7767f113dd3a22bbc858bbb16ae8e6bbe419328af4aae189803cb53a08ea1721",
-    "src/calculation/phoenixAscensionMaterials33.ts": "bdb562b3a74390e802e39910607b5edd2f00d43c6cd65926d554f23a6b08218f",
+    "src/calculation/phoenixAscensionMaterials33.ts": "36378b9b4eff2414f8a8b05d15219df07b2343bdc806b86d6529cb0cda25b207",
     "src/calculation/phoenixDecisionMechanic33.data.json": "9ab702645b4815faf4382b7f3d0b63db7f96101c66018a492151f2e05fab8da8",
     "src/calculation/phoenixDecisionMechanic33.ts": "c6da6d0572f01e98130fca2c2280329bf81be27f6665faeb2ac2e4003fa188db",
     "src/calculation/planningCalculationContextCompiler.ts": "5b433e77eae8fb8fb897c01b5f08c9c2d426cfddae9ff4c08bf751b227778cbb",
@@ -43602,9 +43602,11 @@
     "src/calculation/remielleResourceLedgerContract32.ts": "b1d2be3337f2c03944a3f833d8a45ac6ef269193753102c968e7fe7799836da8",
     "src/calculation/resourceTimelineDeclarationContract32.ts": "fc45bdf5e95c241a1f0964ba3bf619cba8386f1e3738d55f903b1d8e340f6552",
     "src/calculation/reviewedAnomalyPartyState32.ts": "6383feebe88082465a42a1333bf99aaccea3898f62fca7314c94d2c258829b29",
+    "src/calculation/reviewedAscensionMaterialSource33.ts": "3f19fc0a03b36457c64103d27db65ec747563e6d899268f854f16833054b7d81",
     "src/calculation/reviewedAstraCoreAttack32.ts": "e235bb7402b84671afa69ec1ccf09481600e22b8733da6877654f880222f6ec0",
     "src/calculation/reviewedAstraCoreAttackIdentity32.ts": "199106b117e1fdd5ab2dae226d244569c125e0f8dc99637c66e92db0d3b93b55",
     "src/calculation/reviewedBenInitialAttackConversion32.ts": "4540253abdc7820c45ec0946f56580205c4152f4bedab1bda8702c300bc8e43b",
+    "src/calculation/reviewedCageOfConfinedSin.ts": "3784034f05be7248b782eee431281ca97086279bda7e4611c86032a73f05faf7",
     "src/calculation/reviewedCissiaEventEffects32.ts": "80ec11016182c06a4142d388ea20a0aa013a2439425e52ee244023a0b2684e63",
     "src/calculation/reviewedClaretFixedBenchmark32.ts": "7a3270e8c4f00cfd87e8a11b244b39efae7cca627eaa4b913aaddc45b9ce2d22",
     "src/calculation/reviewedClaretHeldAction32.ts": "6683a2d18788bb2603ad6dfb2da9d3c50a439c8501928cd4c60be90cbfa28fc9",
@@ -43635,23 +43637,28 @@
     "src/calculation/reviewedRoxyAttributeWindows32.ts": "f6476e5648c6e897604070d0bd67f58dd54c844702fda8a34d7376dbe324482b",
     "src/calculation/reviewedRoxyAttributeWindowsIdentity32.ts": "8876b9b5007061da82901f243bec1ee0871e014994c608c3402913cbdd9eb2d6",
     "src/calculation/reviewedRoxyEnergyConversion32.ts": "ccb6f84c6450e2fca30cde14596344e93b5c7107bcdf61714fbe51995d8c1f22",
-    "src/calculation/reviewedRoxyHeldAction32.ts": "d25460836e2829d702ab243d87a6193703de12ebebdc66186aaa7f4428b2c88b",
+    "src/calculation/reviewedRoxyHeldAction32.ts": "6cba198c570502d6e606c180699bebf589b4ae155007039faaaa04d133fb9d6f",
     "src/calculation/reviewedRoxyPreparedTriggers32.ts": "932bad4340b5edb949d23dc8711331a6e4ce2dd3ab3a405e26f4c927f132d2b5",
     "src/calculation/reviewedRoxyPreparedTriggersIdentity32.ts": "5a365e5d6d836625db1c38ee41e9abab2a5dd06b264dde3fe3d4983970229e32",
-    "src/calculation/reviewedRoxyResourceSettlement32.ts": "a95fd889bc4f2ccce0c5beb4e25dd0cb984f44553dc26ca8639c1b30f85ece57",
-    "src/calculation/reviewedRoxyTapAction32.ts": "f82581b644c33cc789b525bb1d4995230db4e51d98db99af285df5f8f873e11c",
+    "src/calculation/reviewedRoxyResourceSettlement32.ts": "6ce28487db25e5f9693a6f9a527c481576dca8e3112239bf6a616dbbab82c992",
+    "src/calculation/reviewedRoxyTapAction32.ts": "90677dd3f58ca42374654c9343c67596a6c8a43826ebdb1ebab3a48ec16bfde6",
     "src/calculation/reviewedSpringEmbraceReceivers32.ts": "ebfd4050d9e6f496c52700b0b128d04c22b1690b836352103c9966ab4612b485",
+    "src/calculation/reviewedSteelCushionPlanning.ts": "7287f7c6f58d7e804cc66879ef85498dc3b8a16d415f44c2c4bc48880b186526",
     "src/calculation/reviewedSupportEventDamage32.ts": "16deb21eed694ffbf5729987b12bdd120463283e9bafc2cb021228ae758283c6",
     "src/calculation/reviewedSupportTargetCapacity32.ts": "38741f39ba9a021fa01550adb4baeb578b56ae3dae42eaba118a15da7871cab2",
     "src/calculation/reviewedTemplateEventConditions32.ts": "0db149789f4871ca328ffe39b12f2ad13ce76180ae8aca2c0ddcf52fd763a539",
     "src/calculation/reviewedTemplateMechanicEffects32.ts": "13b96b702ccbd0c3a6afd32ae3f75061ba8c31d4b15d98a9aea730f028f14ea7",
     "src/calculation/reviewedTemplatePreparedEvents32.ts": "365e9dfeb3d5904f623c625b22f4270e9bab43a9ce21d08d63cdb8c9e9e3c721",
-    "src/calculation/reviewedWEngine33.ts": "3817aeb8608efc8919f0e0ce4db9723145522e248f1bfc6395ba0f9813451da7",
+    "src/calculation/reviewedWEngine33.ts": "16a5745c32b9ce89c6f805c2c9f354b7fe414390dbe980b7381edc9174ae0e31",
     "src/calculation/reviewedWEngineReceiverSemantics32.ts": "caec2af2c33fbc8f92b472f7243a383651e4a49b5ef5cfe2dd9b635e8c4d6624",
     "src/calculation/reviewedWEngineReceiverSemanticsIdentity32.ts": "16fa2e28809222a4cbd1cce8f4181f0c45b3a1bb2f56cda5d4269295fc12a4b3",
     "src/calculation/reviewedYeShunguangEventConditions32.ts": "aa8c4b2645ae927f65ed442ef5b7b6484b59001c23f559832d0da66a17a34fa3",
     "src/calculation/reviewedYeShunguangEventEffects32.ts": "4c2ef4bfeb2e36bed3f2564207b96ef56c14e567ca4c7db10e985b54e9e2ae76",
     "src/calculation/reviewedYeShunguangEventIdentity32.ts": "1807ccb9ab161cb12f0091143a3e278b2e33fec93fdc21fe309cfd30b3b318f8",
+    "src/calculation/severianAscensionMaterials33.data.json": "e7ab02bdb27fc2334488417c47dc50bea2dd3fe06a127c1ceeff77a0cf79ec35",
+    "src/calculation/severianAscensionMaterials33.ts": "8637b165d47ae0dc387a883cf5ec732cde16cf8722ad78253d6f6ed610baf33a",
+    "src/calculation/severianDecisionMechanic33.data.json": "030eba10e4f29cb7c83e942cc0f2df653ee46b6c5b62ceb8f1178b49c837f3cb",
+    "src/calculation/severianDecisionMechanic33.ts": "a295e1f77799c54fcda4dbdbb306c2a5ec2ecf94e2c174bdccbd609e8e21fb0f",
     "src/calculation/sharpDamageCore.ts": "f518eba4c3c846fc84f5b556a69f24c1751545fc883259c1f70fb24f321213b6",
     "src/calculation/sheerDamageCore.ts": "af459f8dec6b17b95122fd3a10aa3fd264a266195b6c6e9d2465641210bb451d",
     "src/calculation/sourceBoundStunApplication32.ts": "1bc99a85a47528c86e670dea501b4073f0222df6cca59a05631cab637bd4e7df",
@@ -43661,37 +43668,36 @@
     "src/calculation/sourceNamedResourceActionProduction32.ts": "282073aa6deac846c08ee54de93170b66dd7f06a517e8ac5279a0645036696b2",
     "src/calculation/sourceStarlightBillyResourceProduction32.ts": "8f9d823e746594ad29bb4b311195cc5b053edc79a08daf4cc84b98929b6f7ae6",
     "src/calculation/standardSubstatProbe.ts": "8548347551a92b3a0e477519e5cfc1e4d3d1c49f670f947483f9f0a961c1f0a4",
-    "src/calculation/targetTeamEquipmentModifierProjection.ts": "16505b9df846da2d3e8450ce5034af3704410e37b113930ea07d2116ec1a6954",
+    "src/calculation/targetTeamDirectEquipmentBuckets.ts": "3b8f4441ced666e8a71ea38c60aef4b87873ab2681d7381757f51239b2e97da4",
+    "src/calculation/targetTeamEquipmentModifierProjection.ts": "220972b549ee0757c7f6c8edbd59a299b334b091e412e6e5d2f17be7b6015087",
     "src/calculation/triggerAftershockWindow32.ts": "ead5cbc9dc0acfc5f30f650c42f2230d2597eabc36520563d2765061a6400504",
     "src/calculation/verifiedPlanningFormationTimeline.ts": "a39fd2d6b32956ad6519a776b6f9c0558e3750bacbb75209e843e6ea95291678",
     "src/data/drive-disc-data.v1.json": "92dd1729a6aea3b77bdaa36eeeda76302736551effda3bf73e34b1f936b0e310",
     "src/data/game-data.json": "7e35b0c6123ebdd8d8de3b570494d034a0c454cec289ea050948baebb31353ee",
     "src/data/gameData.ts": "3ba9eccad263f9cd2c85061cf277ddb03de12944d7e53d397660f86879113e0b",
-    "src/data/visual-assets.v1.json": "2a1f4cc57ca0e419da5623013add206d09b07aa7b73d9a2c8091dcbe9f5e15ad",
+    "src/data/visual-assets.v1.json": "d8c6bc51483ca6b787877f033bfe2aa59a228831b5d18c8061d79d57bc55c170",
     "src/decision/bangbooCompositionIdentity.ts": "c1465248bc647f1df91f708f1125aece15c6821169d32e0af15efa0f7ac674d0",
     "src/decision/developmentSourceAction32.ts": "1597c94b28c65034d6d232375bcabc70a3f2621111ae8421fd122b04e5edbcb1",
     "src/decision/incremental32PlanningSourceSelection.ts": "7e0b9d1e28e68318e0bfbbc6bfe491c2e9d8a29178eda31475f513fba3814a73",
     "src/decision/normalizedAccountDiscModifiers.ts": "be7f123e66f4659e6b2bedb9c3f5a0a46cbd28e84bd53a2eafd59c1f3075d445",
     "src/decision/normalizedAccountFinalStats.ts": "b9e7a9425afea21a6045c4fce88826b3b272fba1a963f2b4435e14e09a6679a4",
     "src/decision/normalizedPlanningCandidateEvaluator.ts": "44c9d9f74897e7955b194f592f69d22c0002d23e5c3f5ec56d8dbca12b82a2f0",
-    "src/decision/targetTeamWarehouseFit.testFixture.ts": "429c39bb237151b84d51d96c7f437804bfff868f274e11368cac1789a7036833",
     "src/domain/anomalySnapshotStatsSchema.ts": "bf648d95bd91e2aa8a2e58014ef6fb1ee1608bdf1d0896a2ca2583b0d5dc3746",
     "src/domain/characterPanelStats.ts": "ea9714fd3ffd2bbe0d147b71f61c49a8a49779824db332253bb05e2bcb5b4db0",
-    "src/domain/releasedIdentitySource33.ts": "9b91ff69577f916633713821799c34de5d6e9fc58f1e682558413be02092547c",
+    "src/domain/releasedIdentitySource33.ts": "81f987ac4c47d7294d65c174b29c9dad8e7f4686aa05bff91509c1c0094953f7",
     "src/domain/reviewedTargetEffectState32.ts": "c1fdbfcc57201bb24af2e7abf8a1f0002b5dbacd37adc20597b6478c804a4d97",
     "src/domain/schemas.ts": "13621901907be847481ebe11f6b6dded560f33d5de12be4216f7f6aa13430d87",
     "src/domain/stableContentHash.ts": "af8e5b6422684c60710b5a56d84f46c1107a8e047011a9bdf1c3e8a4aea4a85a",
     "src/evaluation/contentHash.ts": "561ece5a767d6c1028772fab79663bf8ad443a47b963547ae417f2093b9381aa",
-    "src/evaluation/fixtures.ts": "7c606b702d44a682d05d1a7166b72325434600726a0fdd8084f514f42ee74c4f",
     "src/gameDataPacks/archivedGuideSetSections.ts": "2c3300dc69d53426d0f3f39e092442d1247c7c6d1c04fedabc5ffcff358a9516",
-    "src/gameDataPacks/assetSourceLedger.v1.json": "03d6da2f12082c360710f28a085b3e27034fd723f532e2812e77d7c61b820d56",
+    "src/gameDataPacks/assetSourceLedger.v1.json": "cd445875ee0ae112210f0f7a1d6da5079baea14382013afab3bee842245ccebe",
     "src/gameDataPacks/buildApplicabilityDependencyAnalysis.ts": "d4c385698293945122ff002aa09dff2429fc166d860aa5bf2ae373fa84a4537a",
     "src/gameDataPacks/buildKnowledge.ts": "589cff94289a3c6ec2d9d563b2dcdfbd462c3cbc1d30bb9356ae2a8e5e77695d",
     "src/gameDataPacks/candidateSetPlanEligibility.ts": "be5c8cc58ca141e504457b585c77ac04f5dc746ca62b343f87a47d5c2ea669ee",
     "src/gameDataPacks/candidateSetPlans.ts": "8d579d4037354a92861976af7eb534107036e8e2226314a53bb48b9dcdccca49",
     "src/gameDataPacks/candidateStatParsing.ts": "23c12f7e260f8ed9dd222fae1ab742a677a9101e794901344fc061ef85e7b486",
     "src/gameDataPacks/candidateWarehouseConstraintTypes.ts": "02ac04fa41df5cd034851cd30e22ccc4049adb3efbb9b342e369a3035980a3e1",
-    "src/gameDataPacks/candidateWarehouseConstraints.ts": "09c39b63f7e3ad8e908289ad118ef3057a75c364c3972cfd0a5a40e557d6ad49",
+    "src/gameDataPacks/candidateWarehouseConstraints.ts": "422322ff980d4566bd99068f0eb9402b894efe944307e66945b0f85164afeaf3",
     "src/gameDataPacks/candidateWarehouseConstraints32.ts": "e8ba0aec15bd141b1863c0f26da07c29a786a99fc2f7cc624805cb5dbfdde0d1",
     "src/gameDataPacks/candidateWarehouseDiscProfile.ts": "009485b74a1f30f92a68a12805929eba185b4d666d12af40ec7a4a8acc5813ca",
     "src/gameDataPacks/candidateWarehouseGuidanceApplicability.ts": "8492ff5edfdc2ef142ee9218fcb1c6c6074bdf9eddb611199d99203896031e4e",
@@ -43707,14 +43713,14 @@
     "src/gameDataPacks/currentDriveDiscFormulaCatalog.ts": "410da9ab2da6aa0416188e4e96bcb420c28dd94b7f2387bc81b925edf3800972",
     "src/gameDataPacks/currentDriveDiscRecommendationCatalog.ts": "885b567ae732feb14e61c06f5038de5f3003cd0f5c311f5150edd18a9a0d0272",
     "src/gameDataPacks/currentFormulaBaseStats.ts": "a9f39c34cc62bf7c097440a5b3f42cc71252bf0bb7bcac571d9440fa8f637ca4",
-    "src/gameDataPacks/currentGameDataSelection.ts": "82d3f36cd8ec813fa8ee895a9a0128123e6dfce9e89ea09473b61bbbbb36bdbd",
-    "src/gameDataPacks/currentReleasedIdentityMap.ts": "ccdb4682bcbd5cb4e028e694bd1817208a5dfb36d78e3839025ddc6a165df664",
-    "src/gameDataPacks/currentScopeManifest.ts": "7ff15a8a5235969ef4e9b2a903d2d3c7aa128122f4621be5b575945fefc1b4f8",
+    "src/gameDataPacks/currentGameDataSelection.ts": "e95093bca476f851b4b68ce39882a1f469fa45000ff3fe171c9344f1e62a9688",
+    "src/gameDataPacks/currentReleasedIdentityMap.ts": "e9a4a5d1bab42609f24b6ea0c96827f433fda7930d52aa7e4713aa24435f25a6",
+    "src/gameDataPacks/currentScopeManifest.ts": "3cc78763a4ca911921b1e4f41665027abdaa34ed74020adde197dd323a002596",
     "src/gameDataPacks/currentVersionAdoption32.ts": "74e7c16e98646a365e317cd62acd9ef963cb390376596bf5413bec117a722e32",
-    "src/gameDataPacks/currentVersionAdoption33.ts": "1b1208e1c5a2a16c7ca0479166b0bcf6cecf178c17bc302ea4910cc2daae7962",
+    "src/gameDataPacks/currentVersionAdoption33.ts": "4892bed8b9aa1bacabd1278461e37ccbdec84e1f843e4a4302d798a73363dcd3",
     "src/gameDataPacks/currentVersionProjection.ts": "b1cc92aa3abfd2aa17a98cf7c6778992add256b8b5826ae77ab0bf3802ae2bc1",
-    "src/gameDataPacks/currentWEngineStaticCatalog.ts": "033a4d49798c26965c5f64c2f7cc57fc5bc99326ec20fdd840b16fa970d44b8d",
-    "src/gameDataPacks/data/current-encyclopedia-display.3.3.json": "df8f580903d38d5a96fd025f10b732f4bd727bcbc3c5115dc4245080895aaaa9",
+    "src/gameDataPacks/currentWEngineStaticCatalog.ts": "221a97338ee6e37bb9179966255b01d7496d6c26bea511a0ab2ba5367e3cb803",
+    "src/gameDataPacks/data/current-encyclopedia-display.3.3.json": "be0fab7da775e1c47f9c61e8b759da8968a39a3f115077574a7440eae2b3ad74",
     "src/gameDataPacks/data/current-wengine-display.3.1.json": "05616aa8b4a0ce50100da0dbc5c928c0d2be1b07177e3e20d3df4899b3e3ea94",
     "src/gameDataPacks/data/phoenix-event-contract.3.3.json": "01cb308658c552827183f88cb6e0d49929f44243c0bda13f689751705f9ef804",
     "src/gameDataPacks/data/planning-condition-sources32.v1.json": "06ddd890b97a6290564c9a92e9b322873faea90ceb0d95676750ad82eba5f5f6",
@@ -43725,9 +43731,12 @@
     "src/gameDataPacks/data/reviewed-phoenix-build-guidance.3.3.json": "7c8e8edde5d612b3fdba9598655a89ac64819f173a9f57054c28b4ab54f48cc0",
     "src/gameDataPacks/data/reviewed-phoenix-numeric.3.3.json": "06e0a9b54764c31fae26f1f5cccdc5b3c2b0936f90bec3ca5b31b644f01b963d",
     "src/gameDataPacks/data/reviewed-rupture-resource-panel.3.3.json": "fc7e66bdee7771bd61a3a3ddb75d6c0f5035cf2e14101b63ac344b2edaba8ad6",
+    "src/gameDataPacks/data/reviewed-severian-build-guidance.3.3.json": "5ae5466a4a8267aa2c3041d0c1cbed226f42dbe21a21560b18075f7f8f8ecce0",
+    "src/gameDataPacks/data/reviewed-severian-numeric.3.3.json": "1e30f3065f725505378f8f1acf441b02cfa2f93219a3b7ec9ffdc3729cad21f5",
     "src/gameDataPacks/data/reviewed-wengine-display.3.2.json": "ed08bef262f8590e58ace00b9acf8c130cf4c8b2415c1ca4379561b84737745f",
-    "src/gameDataPacks/data/reviewed-wengine-display.3.3.json": "1348d651d8f2d2228a9ecf875b433ee482d38bcbe260e6fd43dfc5499160980a",
-    "src/gameDataPacks/data/reviewed-wengine.3.3.json": "f049573a308ada36a98b62b23baa6a8adfa8b640983ea4dd95b9d89f5e0666e6",
+    "src/gameDataPacks/data/reviewed-wengine-display.3.3.json": "aa32389c077149f7c5334f1f83acbeef8a777cc3cbbc073efe93f6a6c2b94fb9",
+    "src/gameDataPacks/data/reviewed-wengine.3.3.json": "e0bd3b2141f25a44d03372fe7cb6332785ec2f8656330d5d957f9fb58aafec7e",
+    "src/gameDataPacks/data/severian-event-contract.3.3.json": "3ddaba5db135673d811501f1aa6df95b31306123b2f9ba07d8b472b94121cdb1",
     "src/gameDataPacks/fieldContinuity.ts": "1d34408ec75856963bb9e4fa99942bb95f6e28446f872df41041519615118541",
     "src/gameDataPacks/gameData31CatalogEntities.ts": "e247e52fe9d6c28a4dcc746feec2b377085fa8bdbe238c376c379aec626a9252",
     "src/gameDataPacks/gameData31CatalogIntake.ts": "de0b28510362d87ec050f358584dd44cfd0e9f70de1229019c31e847d1a2c593",
@@ -43740,22 +43749,24 @@
     "src/gameDataPacks/gameData32BuildSources.ts": "e85edf4cc8ce8507100bbdb78bf1a73f835994abc0e811829c4d9b097969ca91",
     "src/gameDataPacks/gameData32CatalogEntities.ts": "edcea478bc49511e90896c6d8bc7d9fd1e7ceb74a4c804f6517c46a51016f7fd",
     "src/gameDataPacks/gameData32EndgamePanels.ts": "cf873f86d0079a10a93ef231717ae59cb7e23a0bdb4105d5b9edd7d4e93b3738",
-    "src/gameDataPacks/gameData33BuildGuidance.ts": "e7d89c8242b85fe183d8f5b5348b7d8dc2a3132acd0916410d9738e33ef2c3c6",
-    "src/gameDataPacks/gameData33BuildStatMapping.ts": "02893e307380171a72d9cadbfaf61bbb359064d369c549580c56086635e3f488",
-    "src/gameDataPacks/gameData33CatalogEntities.ts": "47218f98f4d4d0827f5368058b34e76672f592024e65b1e1cb4715ee1c1bd899",
-    "src/gameDataPacks/generated/current-agent-decision-mechanic-catalog.v1.json": "8cc6f253eb0e4532f7eafc6d70a16d42cf3a80f0435273218852640f0a6d72c3",
-    "src/gameDataPacks/generated/current-agent-mechanic-catalog.v1.json": "848a798c78f1f64754ad40295b08c6a7bff7843cd4710baf1d719a546fc28b3b",
+    "src/gameDataPacks/gameData33BuildGuidance.ts": "efb6704179f7f9e0f66595e06440bb23e981abb29626ebc9e49e28f24f370d51",
+    "src/gameDataPacks/gameData33BuildGuidanceFields.ts": "f5897b92365f68983bb433d4a57f1289545eb5879f1e0402b15d6a0ad3820509",
+    "src/gameDataPacks/gameData33BuildGuidanceSources.ts": "0f1447e8bcdf78dc9ed3634a874a52ddae84b800a00abf1dc4e83a3938cf2575",
+    "src/gameDataPacks/gameData33BuildStatMapping.ts": "426c22edee833730166f3fea7f4b8183487e498fa20cf3d182789e5c80beb426",
+    "src/gameDataPacks/gameData33CatalogEntities.ts": "51755db925ee481d5b1c211189d96f22f8aba2ce706896955de44e03471d664b",
+    "src/gameDataPacks/generated/current-agent-decision-mechanic-catalog.v1.json": "8ad43dfcd4fbf28574756df40f9d600fa07f64635fd575f339c095ada39fd341",
+    "src/gameDataPacks/generated/current-agent-mechanic-catalog.v1.json": "6701b761ac5577bd5415a76a801772872a3fdba08010b78794f13cef6cc79eae",
     "src/gameDataPacks/generated/current-agent-resource-events32.v1.json": "4081591564cb2a5d577d6e9dec3d6bb5a9d7b93315227685982b0e4f08da1de8",
     "src/gameDataPacks/generated/current-bangboo-numeric-catalog.v1.json": "d5967fceb0e42364b4c6db8d2d751d0c3f9e97a510cb788d080ca43a8162a35f",
     "src/gameDataPacks/generated/current-drive-disc-formula-catalog.v1.json": "c2bac251e6915c6adde575c9201c56d2dc402aa06122d795a082ae03dcb61e79",
     "src/gameDataPacks/generated/current-formula-mechanic-contract-catalog.v1.json": "48dcd64e3b9d0a751363f413636b0d77516031ff40dba41a61e3a27e5f64dd6c",
     "src/gameDataPacks/generated/current-wengine-static-catalog.v1.json": "a32b4fe4dc17d46ca0eba7569031f1d3808771588882031ae9c8255e0ebdce91",
-    "src/gameDataPacks/generated/l3-457fce3ccb1869e6f9f9/agentDevelopmentEvidence.ts": "f3fda6a772fce3d67050e7c0cd2c4668cfc890a10daece55fa7e2a6205945e2d",
+    "src/gameDataPacks/generated/l3-457fce3ccb1869e6f9f9/agentDevelopmentEvidence.ts": "5cbe675eb17f0cd63b9e1d4a34737bd85229972fd11958e79139a9ffc9b0bd9e",
     "src/gameDataPacks/generated/l3-457fce3ccb1869e6f9f9/noncharacterMiyousheSidecar.ts": "734ea258b5edd53c1d99bd2ef1ea197fdaa1d66aacea714709074a97095f5cd5",
     "src/gameDataPacks/generated/l3-7e0a160468929dccc72b/verifiedAssetFacts.ts": "9b21afbac4f0f80e39e45273b8eeab7874ea0691c9f0f89cdffd1040621a7b01",
     "src/gameDataPacks/incremental32AffectedCapabilities.ts": "a5529991289cedad4b76190d8b371b0e3eaa107173dc944300e86102033a038a",
     "src/gameDataPacks/incremental32RecoveryPolicy.ts": "c143d7a1b49636e567d04e5c7609b076a31f23664ddc949dfc00e199d004654c",
-    "src/gameDataPacks/incremental33RecoveryPolicy.ts": "5a888fb4fee9fb0c4f6ab4a54289942a8f6abc7093f12b54879cb789e8686e6c",
+    "src/gameDataPacks/incremental33RecoveryPolicy.ts": "353500203268909bfb4cadfb6a767155b24455d45cd88678ed372545ff50186d",
     "src/gameDataPacks/l3ProductionProjection.ts": "8b083e874be878f31ea67d6f184e3e037e1b2ed16e5047f75786ab86e7cf8e15",
     "src/gameDataPacks/pageCandidateDirections.ts": "6fd936fdaf7607072e7ba0c2d0b3b73a026e240af843792e084326fde7dfc202",
     "src/gameDataPacks/pageCandidateDirectionsPart01.ts": "a41b85f85693e65ef4e4aa0661f26fa7fb4d3c75a8e4bf58b12105f739f7523d",
@@ -43772,7 +43783,7 @@
     "src/gameDataPacks/pageCandidateDirectionsPart12.ts": "9ca8f5dfb31ae9d0b5e109128c7e69b3be95b4a630125135d3f6712fe03a1cd6",
     "src/gameDataPacks/pageCandidateDirectionsPart13.ts": "243ed5862f5db421b4b61226d6e2810842a6cd9c11c9b33bcbedb6608e0dca7b",
     "src/gameDataPacks/panel/currentCoreGrowthIdentity32.ts": "3d4a7da809b41d68ba67de28b60c7f9dc67ff5514389ab8ea1503e76600ff3a7",
-    "src/gameDataPacks/panel/currentPanelData.ts": "8b6a10780804ae6d0c82706114a011e14c0a3ed4ea93d791307f607734435f1e",
+    "src/gameDataPacks/panel/currentPanelData.ts": "17213e938a0573bfe2733003772f7324efdc7fc9468dd2c26cde640222b6e2c7",
     "src/gameDataPacks/panel/reviewedMenuBaseStats.ts": "0c68ba29dd07e68834e1c28fb115be18ab84f5f2499d4dc585e212576814b9a4",
     "src/gameDataPacks/panel/wEngineGrowth.ts": "9a0a304a15ae3ba84c66419f67ec973f0d8202241d13ca5edc4207d8fdc1a214",
     "src/gameDataPacks/playerBuildProfiles.ts": "63a68ed107ec98395e73d6ba172b5f6e43d49f44c9135e75349a50bcc0d4794d",
@@ -43781,10 +43792,10 @@
     "src/gameDataPacks/r5WarehouseCandidateOverrides.ts": "e4a8bfc8a204711a756380b218fe1b479dd15fdda731efa91360c0c49b8e47fc",
     "src/gameDataPacks/remielleEquipmentIntakeSchema.ts": "52b8e8488ed5f3c17460395a262789fbf697164929206f8fa748c0d3ba084daf",
     "src/gameDataPacks/reviewedAdditionalDiscDirections.ts": "872ef0f47752ae3cc710be7bdb4e400b8f9a6449a14e2401f83111594f68d504",
-    "src/gameDataPacks/reviewedAgentAttackTypes32.ts": "dc9ba55e9fbbea91c8a6106ff824bc78e346e4b9af06079fdeb5ebc37a0ec4b6",
+    "src/gameDataPacks/reviewedAgentAttackTypes32.ts": "48bf5bfe726068da0cf8717bbd63649264b3833fc2571bc38cb5f236b2e1105c",
     "src/gameDataPacks/reviewedAgentPanelBaseline32.ts": "3973020e26792262001d6fcd2d04d6c9384b067c8c521453cccbb8caa238c736",
     "src/gameDataPacks/reviewedBangbooContinuity32.json": "439b103fc04ebe446c27fe807a2dbb3b564fe9a4c011d6b44a8622ddc34a2c67",
-    "src/gameDataPacks/reviewedBangbooRecoverySemantics.ts": "247b38015c5460bcfdb87cf6db7d5157cd39ae2435c893cea452731ca1586b6a",
+    "src/gameDataPacks/reviewedBangbooRecoverySemantics.ts": "4e6eba0304e186f7161062f20f43dd4f6d3b087fc230b0a81ced5803a9593379",
     "src/gameDataPacks/reviewedCurrentGuidance33.ts": "ffe41abb15122229cda4a25f91498ab35cb0d4dbbec36a282de567279e8aa062",
     "src/gameDataPacks/reviewedDecision32Contexts.json": "47384a98b9191835a99fc046d45295eb34aebd15140b5659da366183cdd6fe86",
     "src/gameDataPacks/reviewedDiscFieldCorrections.ts": "c280a194de2cc49b9f21d51d2139d7e3d2b2ba8024312b4708ab9b98f3b7ba72",
@@ -43801,11 +43812,11 @@
     "src/gameDataPacks/reviewedImageDiscDirections.ts": "aaa32f7188d70bbfac98ef50703e764a31eab69d17b66234f0d64f5c06910bd4",
     "src/gameDataPacks/reviewedMainStatAdditions.ts": "2dd73b79c3bd11dc1a910ed3031413bb90ecb5398002102b50b98f09502f08e5",
     "src/gameDataPacks/reviewedMainStatAlternatives.ts": "99b65bbf57554d1a07e188a66f455325cca69d9eefae61f3bba74ae165eeaa7d",
-    "src/gameDataPacks/reviewedPotentialDefinitionContract.ts": "95bb1564d9ea85e189d85c5f3e066c69d4931144fe2b8942cfce9d4d695cc6dd",
+    "src/gameDataPacks/reviewedPotentialDefinitionContract.ts": "7533d31b6bf25e10ec046b3a2471ca4e14fcd896a7f3d494f9b4e1853d8ff094",
     "src/gameDataPacks/reviewedPotentialDefinitions.ts": "3097e46ed0098056d8c0f93f310ba2fa0e9acdc15a84fecdc6253eeab343c75b",
     "src/gameDataPacks/reviewedPotentialGuideReferences.ts": "d3a2a101ebb2a8b7837b82820a8ffffe28dcb6a078db82e02f287e3dd4b801d8",
-    "src/gameDataPacks/reviewedPotentialOffenseDefinitions.ts": "affe12a95c38df15bbcb0a1e48d01678774c22ad5a716e3ffbc0bc6cd6b83b30",
-    "src/gameDataPacks/reviewedPotentialSupportDefinitions.ts": "d85cc71b6d6842be732df6f8bf6fe6efdcb5fe4662b83f1991cecf7d511e454f",
+    "src/gameDataPacks/reviewedPotentialOffenseDefinitions.ts": "a4ae6b5037ac3a9a36d82d990226ffeccae14a95d2e9b239aee4a06ca7288fc5",
+    "src/gameDataPacks/reviewedPotentialSupportDefinitions.ts": "3afe7dc575eb49d05c64223d8065c06bfecb34a792e1a563f2566a2f2edfbcb1",
     "src/gameDataPacks/reviewedPotentialTeamActivation.ts": "1ade1109f47679478c973d6c06ef92782c8da0b72beaed78ac836f5f0b4b6aea",
     "src/gameDataPacks/reviewedRemielleBuildReference33.ts": "e5c6d47b39e6d31a689a3149455b8cbd42306b004a76fcb8fd3b0f64a223a476",
     "src/gameDataPacks/reviewedSourceBoundAdditionalAbility.ts": "f46aa64cb723a70fbdbb03fb3ca0ae65ee99249c8e1c1f32c9fadc2087170a07",
@@ -43816,10 +43827,10 @@
     "src/gameDataPacks/sourceIntake.ts": "14e83f584ff8a18457f78cef83aaf218add96f5dd8842542920ed1a1cde3cdc4",
     "src/gameDataPacks/types.ts": "332ec5e317a5fed3f53549c42d9434e0a8a7524119a07b85c1ddefc3f8a8148b",
     "src/gameDataPacks/yeShunguangSkillGuidance32.ts": "02125ec54a43d1cae9db07ff76363dd9d428a598e7360e0b29e50bda3602f244",
-    "src/teamEngine/current31LegalCandidateUniverse.ts": "a4b6710f5c8afd0684bcd1d8e82a9c8b07c6f5ab0da4e603142b669e2b69a428",
+    "src/teamEngine/current31LegalCandidateUniverse.ts": "4412ca0efc865e90e67b91da0c0b3f3d39b0cbb7a2ba13cde739016ca7b02a38",
     "src/testing/planningBenchmark32FormalProof.ts": "b681a70bb97f92dab1be3c4d8c1be32254f95e995152d82d0199a6f20cca04cd",
     "src/testing/planningBenchmark32FormalProofFixtures.ts": "05f0ea29c92b865b475496b420faa81b79de05d677d9eb0bc7ca76d730c525b6",
-    "src/testing/planningBenchmark32IndependentOracle.ts": "2453a11c8f97c9b64cfd1d46c20706c0cf1a77c028f971c3f991e5e744450a14"
+    "src/testing/planningBenchmark32IndependentOracle.ts": "9ac2315eb79c4ea2e9a892fa4e77ba1633eda4fafb2d3f3ee9238dbb588404e4"
   },
   "verification": {
     "sourceByteCount": 66,
@@ -44056,7 +44067,7 @@
         "gaps": ["Independent required occurrence state rejected"]
       }
     ],
-    "regressionEvidenceDigest": "3abdea668a5e4cf81a9b5a013820269ee55a5f58597d603b80399a7ee041b6d9",
+    "regressionEvidenceDigest": "1b8ec9e7f9959341f1fa36f46b30c1e153a0e9670e671d7ade63410f271bab6e",
     "arithmeticBasis": "independent retained raw tables and literal arithmetic; shared verified static panel",
     "domainBasis": "source-reviewed operators/tables plus full one-axis table sweep and equipment/refinement/state branches",
     "runtimeInputExclusions": [
@@ -44074,5 +44085,5 @@
       "synthetic_DEF_threshold_operands_do_not_assert_in_game_roll_legality"
     ]
   },
-  "contentSha256": "d9ae1651ac762530b234c8dca1e9b76d9d2bd9f858549a8b7b829d3a8485f3b9"
+  "contentSha256": "7053e68812f94c127ac8670c8ba2be93e068946b925dc145a8e55ed345c6d870"
 }

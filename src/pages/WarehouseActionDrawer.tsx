@@ -594,6 +594,9 @@ export function WarehouseActionDrawer({
                   : '暂无其他同类盘可比较。'}
             </p>
           )}
+          {missingAlternativeDiscIds.length > 0 && (
+            <p>{missingAlternativeDiscIds.length} 张替代盘的仓库记录缺失，请更新仓库后重新分析。</p>
+          )}
           {!item.absoluteRetention &&
           !retainedUsesCoverCompatibility &&
           compatibleOnlyAgentIds.length ? (

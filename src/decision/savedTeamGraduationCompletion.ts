@@ -7,6 +7,7 @@ import {
 } from '../calculation/outOfCombatPanel'
 import type { DriveDisc } from '../domain/schemas'
 import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
+import { targetPanelMetricSemanticEntries } from '../gameDataPacks/targetPanelSemantics'
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
 import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
 import { resolveSuggestedWEngineParameters } from '../pages/teamExecutionAttributePanel'
@@ -22,8 +23,14 @@ import type { CurrentPlanningScenarioSelection32 } from '../application/publicPl
 import type { ReviewedEventConditionDeclarations32 } from '../calculation/reviewedEventConditionDeclarations32'
 import { targetTeamBuildDirectionConditions } from '../application/targetTeamEffectivePotentialConditions'
 
-import { scoreGraduationPanelTargets, type GraduationMetricCompletion } from './graduationPanelTargets'
-export { scoreGraduationPanelTargets, type GraduationMetricCompletion } from './graduationPanelTargets'
+import {
+  scoreGraduationPanelTargets,
+  type GraduationMetricCompletion,
+} from './graduationPanelTargets'
+export {
+  scoreGraduationPanelTargets,
+  type GraduationMetricCompletion,
+} from './graduationPanelTargets'
 
 type GraduationPanelKey = GraduationMetricCompletion['key']
 type TargetRange = { min?: number; max?: number; upperOpen?: boolean }
@@ -269,8 +276,28 @@ export function evaluateSavedGraduationMember(input: {
       targetSourceIds: target.sourceRefs.map((source) => source.id),
     }
   }
-  const scored = scoreGraduationPanelTargets(scoreValues, resolved?.value ?? target.value)
-  if (!scored) return unknown(input.agentId, '毕业目标不含可比的数值字段。')
+  const activeTarget = resolved?.value ?? target.value
+  const scored = scoreGraduationPanelTargets(scoreValues, activeTarget)
+  if (!scored) {
+    const metrics = targetPanelMetricSemanticEntries(activeTarget)
+    const values = activeTarget as Record<string, unknown>
+    if (
+      metrics.length > 0 &&
+      metrics.every(
+        ([key, semantic]) => semantic.observation === 'reference' && Number.isFinite(values[key]),
+      )
+    )
+      return {
+        status: 'reference',
+        agentId: input.agentId,
+        score: null,
+        reason: target.conditions.join('；') || '攻略数值仅供配装参考。',
+        referenceMetrics: [],
+        conditions: target.conditions,
+        targetSourceIds: target.sourceRefs.map((source) => source.id),
+      }
+    return unknown(input.agentId, '毕业目标不含可比的数值字段。')
+  }
   if (
     !resolved &&
     !targetConditionsAreAutomaticallyApplicable(target.conditions, scored.metrics, target.value)
