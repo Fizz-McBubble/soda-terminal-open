@@ -32,6 +32,8 @@ export function decisionFreshnessPresentation(state: 'current' | 'stale' | 'hist
 
 // Translate adopted explanation clauses, never discard a condition containing unfamiliar text.
 const conditionExplanations: readonly (readonly [string, string, string?])[] = [
+  ['其他暴击率来源', '其他暴击率加成'],
+  ['来源暴击率参考为60%–70%', '暴击率参考为60%–70%'],
   // HoyoBuild disc summaries keep the original page text in the data model; only their
   // player-facing form is localized here. Effect text already shown beside the popup
   // covers purely mechanical restatements, so those summaries resolve to empty strings.
@@ -200,7 +202,6 @@ const conditionExplanations: readonly (readonly [string, string, string?])[] = [
   ['攻略软参考 · ', '配装参考 · '],
   ['仅为攻略参考值', '仅为配装参考值'],
   ['接近攻略参考值', '接近配装参考值'],
-  ['来源暴击率参考为', '暴击率参考为'],
   ['当前来源另明确河豚2件方向', '也可尝试河豚2件搭配'],
   ['当前来源在琉音队列为终结技方向', '在琉音队中可尝试终结技搭配'],
   ['来源强化普攻连段前施放EX', '强化普攻连段前需施放强化特殊技'],

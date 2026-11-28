@@ -24,9 +24,7 @@ export function isOwned(props: AssetGoldenProps, kind: CatalogKind, id: string) 
 }
 
 export function specialtyLabel(value: string) {
-  const label = getAgentSpecialtyLabel(value)
-  if (label !== '资料待补齐' && label !== '未知特性') return label
-  return /[\u4e00-\u9fff]/u.test(value) ? value : '未知特性'
+  return /^\p{Script=Han}+$/u.test(value) ? value : getAgentSpecialtyLabel(value)
 }
 
 export function factsLabel(props: AssetGoldenProps, kind: CatalogKind, id: string) {

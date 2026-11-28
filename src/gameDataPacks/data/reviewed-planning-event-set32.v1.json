@@ -4,7 +4,7 @@
   "gameVersion": "3.2",
   "upstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
   "ready": true,
-  "semanticIdentityHash": "fnv1a-892d3449",
+  "semanticIdentityHash": "fnv1a-f64776cf",
   "scope": {
     "memberIds": ["agent-claret", "agent-roxy", "agent-rina"],
     "eventTuples": [
@@ -5313,7 +5313,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -10071,7 +10071,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -14829,7 +14829,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -19587,7 +19587,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -24345,7 +24345,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -29103,7 +29103,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -33861,7 +33861,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -38619,7 +38619,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -43377,7 +43377,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "118edff7102611472a016a7995a483a559efbff7b93501606bc002d5aa31e023",
+              "implementation_sha256": "1ebe2c7610c50c4c7a30d21ff7c3b2ca0fcd342435bc1c28110bf0ba6908908e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -43575,7 +43575,7 @@
     "src/calculation/dynamic/sourceExpressionReconciliation.ts": "fa70d692823d4ff003f38c8a5f2b6651cb44cf1da7005feac286b8329ec56929",
     "src/calculation/dynamic/sourceExpressionReconciliationLighter.ts": "a32e1b0a703d8f91a9a91bbbf6a8707dcac1203928ddc9c9db380e51c7ede8cb",
     "src/calculation/formalDamageUnsupportedContext.ts": "81874427369655215c6103a9e6b9079e18c64bb308d3743770c90d9ccc4c08a9",
-    "src/calculation/generated/currentPlanningConsumerPolicyIdentity32.v1.json": "315d9014d1536832d46ba13e132d2ca2edab0517298b8546b8b06a923edf45f3",
+    "src/calculation/generated/currentPlanningConsumerPolicyIdentity32.v1.json": "affec6d6b21ca9bf9e9fa7affec919e611613ffb3c629c50b35f7e5c4a2c5fe7",
     "src/calculation/luminizeSettlementContract32.ts": "1835d519d4970d1f2040734df78601975aefcc5bbe59a0058af16b175f3b6a8d",
     "src/calculation/mechanicIr.ts": "3ef570f01f651cd00852c4ba1e72b46fe8780989403ffbed120dd708cdee7912",
     "src/calculation/outOfCombatDiscStats.ts": "37ad3894ac0273d5d7890a776e6e9ad01ea76048676fafaabb03ef89c9fd4751",
@@ -44074,5 +44074,5 @@
       "synthetic_DEF_threshold_operands_do_not_assert_in_game_roll_legality"
     ]
   },
-  "contentSha256": "5f0b6ea53d2e85fd729aed72f09a95fc3e08dd4a6b89f251b18f2a162519100b"
+  "contentSha256": "d9ae1651ac762530b234c8dca1e9b76d9d2bd9f858549a8b7b829d3a8485f3b9"
 }

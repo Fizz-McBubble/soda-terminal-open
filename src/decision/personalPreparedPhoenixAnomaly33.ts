@@ -41,15 +41,15 @@ export function evaluatePersonalPreparedPhoenixAbloomBenchmarkSide33(
 ): ValueBenchmarkSide {
   const parsed = personalPhoenixAbloomDeclarationSchema33.safeParse(input.declaration)
   const actor = input.member
-  const firstPlumageAnomalyCritWindowActive =
-    input.wEngine.runtime?.flags?.[FIRST_PLUMAGE_WINDOW_FLAG] ?? null
+  const firstPlumage = input.wEngine.engineId === FIRST_PLUMAGE_STABLE_ID
+  const firstPlumageWindowActive = input.wEngine.runtime?.flags?.[FIRST_PLUMAGE_WINDOW_FLAG]
   const dimensions = {
     game_version: input.baseline.gameVersion,
     subject: input.subjectKey,
     scenario: `personal-phoenix-abloom:${stableContentHash({
       declaration: input.declaration,
       enemy: input.baseline.enemy,
-      firstPlumageAnomalyCritWindowActive,
+      ...(firstPlumage ? { firstPlumageWindowActive: firstPlumageWindowActive ?? null } : {}),
     })}`,
     event_set: 'phoenix-self-fire-basic-abloom',
     duration: 'not_applicable',
@@ -107,7 +107,6 @@ export function evaluatePersonalPreparedPhoenixAbloomBenchmarkSide33(
       if (typeof blocker === 'string' && blocker.length > 0) blockers.push(blocker)
     return fail(...(blockers.length ? blockers : ['phoenix_personal_activation_unresolved']))
   }
-  const firstPlumage = input.wEngine.engineId === FIRST_PLUMAGE_STABLE_ID
   const equipment = compileReviewedPreparedAnomalyEquipment32({
     member: actor,
     ...(firstPlumage ? {} : { wEngine: input.wEngine }),
@@ -125,7 +124,7 @@ export function evaluatePersonalPreparedPhoenixAbloomBenchmarkSide33(
     const passive = resolveFirstPlumagePassive({
       refinement: input.wEngine.refinement,
       specialtyMatches: true,
-      teamAnomalyCritWindowActive: firstPlumageAnomalyCritWindowActive ?? undefined,
+      teamAnomalyCritWindowActive: firstPlumageWindowActive,
     })
     if (passive.status !== 'supported') return fail(...passive.blockers)
     // The permanent AP grant is already in the projected initial panel. The
