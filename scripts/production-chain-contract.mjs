@@ -278,7 +278,7 @@ export function lazyComponentBinding(source, specifier, exportName) {
   return matched
 }
 
-function sourceOwnerBindsRouterRoute(source, owner, layout, path, specifier, exportName) {
+export function sourceOwnerBindsRouterRoute(source, owner, layout, path, specifier, exportName) {
   const file = parsedSource(source)
   return ownerContains(file, owner, (node) => {
     if (!ts.isCallExpression(node) || node.expression.getText(file) !== 'createBrowserRouter')
@@ -306,7 +306,19 @@ function sourceOwnerBindsRouterRoute(source, owner, layout, path, specifier, exp
           !ts.isArrowFunction(lazy)
         )
           return false
-        const component = objectProperty(unwrapParentheses(lazy.body), 'Component')
+        let result = lazy.body
+        if (ts.isBlock(lazy.body)) {
+          const end = lazy.body.statements.at(-1)
+          if (
+            !end ||
+            !ts.isReturnStatement(end) ||
+            !end.expression ||
+            !lazy.body.statements.slice(0, -1).every(ts.isExpressionStatement)
+          )
+            return false
+          result = end.expression
+        }
+        const component = objectProperty(unwrapParentheses(result), 'Component')
         if (
           !component ||
           !ts.isPropertyAccessExpression(component) ||

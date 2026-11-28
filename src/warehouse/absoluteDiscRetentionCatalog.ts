@@ -19,24 +19,15 @@ import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleased
 import { reviewedTeamDiscDirections } from '../gameDataPacks/reviewedTeamDiscConditions'
 import { stableContentHash } from '../gameDataPacks/types'
 import { reviewedPlayerDiscAlternative } from '../gameDataPacks/reviewedPlayerDiscAlternatives'
-import { sourcedFunctionalMains } from './absoluteDiscRetentionFunctions'
-import { retentionCondition } from './absoluteDiscRetentionConditions'
-import { resolveRetentionUseFacts } from './absoluteDiscRetentionUseFacts'
+import { buildRetentionProfile, retentionConstraintSources } from './absoluteDiscRetentionProfile'
 import { warehouseInvestmentBranchKey } from './warehouseInvestmentBranch'
-import {
-  resolveRetentionQualityWeights,
-  retentionWeightParameters,
-  retentionWeightPolicyId,
-} from './absoluteDiscRetentionWeights'
+import { retentionWeightParameters, retentionWeightPolicyId } from './absoluteDiscRetentionWeights'
 import type {
-  Applicability,
   Catalog,
   Disc,
   Profile,
   QualityPolicy,
-  RetentionBranchSetPlan,
   CoverageGap,
-  UtilityEvidence,
 } from './absoluteDiscRetentionKernel'
 
 const policyVersion = 'absolute-disc-retention-3.2-stage-r6-quality-dependency-lifecycle'
@@ -53,115 +44,6 @@ const released = currentAgentDirectory.filter(
 const releasedAgentIds = [
   ...new Set(released.map((entry) => resolveCurrentReleasedIdentity(entry.id))),
 ]
-
-function sourceIds(constraint: CandidateWarehouseConstraint) {
-  return constraint.sources
-    .filter((source) => source.verified)
-    .map((source) => `${source.id}:${source.contentHash}`)
-}
-
-function applicability(evidence: UtilityEvidence): Applicability {
-  return evidence.state === 'incidental' || evidence.state === 'incompatible'
-    ? 'incompatible'
-    : evidence.state === 'valid'
-      ? 'valid'
-      : 'conditional'
-}
-
-function retentionBranchSetPlan(
-  plan: CandidateSetPlan | undefined,
-): RetentionBranchSetPlan | undefined {
-  if (!plan) return undefined
-  return {
-    pattern: plan.pattern,
-    primarySetIds: [...plan.primarySetIds],
-    secondarySetIds: [...plan.secondarySetIds],
-    ...(plan.purpose ? { purpose: plan.purpose } : {}),
-    ...(plan.sourceText ? { sourceText: plan.sourceText } : {}),
-  }
-}
-
-function profile(
-  constraint: CandidateWarehouseConstraint,
-  branchId: string,
-  fourPieceIds: readonly string[],
-  availability: Applicability,
-  condition?: string | CandidateSetPlan['condition'],
-  mainAvailability: Applicability = 'valid',
-  selectedSetPlan?: CandidateSetPlan,
-  evidenceSetPlan?: CandidateSetPlan,
-): Profile {
-  const agentId = resolveCurrentReleasedIdentity(constraint.agentId)
-  const sources = sourceIds(constraint)
-  const facts = resolveRetentionUseFacts(constraint, agentId, undefined, selectedSetPlan)
-  const branchSetPlan = retentionBranchSetPlan(evidenceSetPlan ?? selectedSetPlan)
-  const quality = resolveRetentionQualityWeights(constraint, agentId, facts)
-  const mainStatsBySlot = Object.fromEntries(
-    (['4', '5', '6'] as const).map((slot) => [
-      slot,
-      Object.fromEntries(
-        (driveDiscData?.rules.mainStatsBySlot[slot] ?? []).map((stat): [string, Applicability] => [
-          stat,
-          (constraint.mainStats[slot] ?? []).includes(stat)
-            ? 'valid'
-            : constraint.status === 'candidate' &&
-                sources.length > 0 &&
-                constraint.mainStats[slot]?.length
-              ? 'incompatible'
-              : 'conditional',
-        ]),
-      ),
-    ]),
-  )
-  // Recommendations define the main-stat gate for this build only. Other guide and
-  // conditional alternatives are separate profiles; no other build's weights leak in.
-  const functionalMains = sourcedFunctionalMains(
-    constraint,
-    agentId,
-    fourPieceIds,
-    sources[0] ?? '',
-    facts.goal,
-  )
-  return {
-    id: `${agentId}:${branchId}`,
-    agentId,
-    sourceIds: [
-      ...new Set([
-        ...sources,
-        ...facts.sourceIds,
-        ...functionalMains.map((entry) => entry.sourceId),
-      ]),
-    ],
-    verified:
-      constraint.status === 'candidate' &&
-      sources.length > 0 &&
-      Object.values(constraint.mainStats).every((stats) => stats.length > 0) &&
-      (Object.values(quality.weights).some((weight) => weight > 0) ||
-        (facts.goal === 'functional' &&
-          quality.weightEvidence.method === 'source_proven_no_functional_substat_goal')),
-    ...quality,
-    ...(branchSetPlan ? { branchSetPlan } : {}),
-    goal: facts.goal,
-    mainStatsBySlot,
-    effectUtility: Object.fromEntries(
-      Object.entries(facts.effects).map(([stat, evidence]) => [stat, applicability(evidence)]),
-    ),
-    actionUtility: Object.fromEntries(
-      Object.entries(facts.actions).map(([stat, evidence]) => [stat, applicability(evidence)]),
-    ),
-    utilityEvidence: {
-      ...facts.effects,
-      ...Object.fromEntries(
-        Object.entries(facts.actions).map(([key, value]) => [`action:${key}`, value]),
-      ),
-    },
-    conditionEvidence: retentionCondition(condition, `${agentId}:${branchId}:condition`, sources),
-    fourPieceUses: Object.fromEntries(fourPieceIds.map((id) => [id, availability])),
-    functionalMains,
-    availability,
-    mainAvailability,
-  }
-}
 
 function buildProfiles() {
   const profiles: Profile[] = []
@@ -187,14 +69,14 @@ function buildProfiles() {
         agentId,
         field: `profiles.${agentId}`,
         detail: '角色攻略分支未闭合。',
-        sourceIds: sourceIds(base),
+        sourceIds: retentionConstraintSources(base),
       })
     }
     const plans = candidateSetPlansForConstraint(base)
-    if (!plans.length) profiles.push(profile(base, 'two-piece-only', [], 'valid'))
+    if (!plans.length) profiles.push(buildRetentionProfile(base, 'two-piece-only', [], 'valid'))
     else
       plans.forEach((plan, index) => {
-        const entry = profile(
+        const entry = buildRetentionProfile(
           base,
           `base-${index}:${stableContentHash(plan).slice(0, 10)}`,
           plan.pattern === '4+2' ? plan.primarySetIds : [],
@@ -218,7 +100,7 @@ function buildProfiles() {
     const alternative = reviewedPlayerDiscAlternative(base)
     if (alternative) {
       profiles.push(
-        profile(
+        buildRetentionProfile(
           {
             ...base,
             setIds: [...base.setIds, ...alternative.plan.secondarySetIds],
@@ -248,7 +130,7 @@ function buildProfiles() {
       const alternativePlans = explicitlySourcedPlans.length ? explicitlySourcedPlans : [undefined]
       for (const [planIndex, plan] of alternativePlans.entries())
         profiles.push({
-          ...profile(
+          ...buildRetentionProfile(
             branch,
             `main-alt-${index}:${alternative.purpose}${plan ? `:${planIndex}` : ''}`,
             plan?.pattern === '4+2' ? plan.primarySetIds : [],
@@ -276,7 +158,7 @@ function buildProfiles() {
           field: `branches.${agentId}.${index}`,
           detail: direction,
           ...(setIds.length ? { setIds } : {}),
-          sourceIds: sourceIds(base),
+          sourceIds: retentionConstraintSources(base),
         })
         continue
       }
@@ -301,7 +183,7 @@ function buildProfiles() {
               purpose: 'conditional',
             }
           : undefined
-      const conditionalProfile = profile(
+      const conditionalProfile = buildRetentionProfile(
         base,
         `condition-${index}:${stableContentHash(direction).slice(0, 10)}`,
         conditionalPlan?.primarySetIds ?? fourPieceIds,
@@ -346,7 +228,7 @@ function buildProfiles() {
           },
         ],
       } satisfies CandidateWarehouseConstraint
-      const entry = profile(
+      const entry = buildRetentionProfile(
         branch,
         `reviewed-${direction.id}`,
         direction.setPlan.pattern === '4+2' ? direction.setPlan.primarySetIds : [],
