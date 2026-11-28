@@ -2005,7 +2005,7 @@
     "src/pages/scannerCalibrationSave.ts": "6cb3a0f064edf05c629826e2ac48a5c0d31b02c3c11ec99010e0ffd602147afd",
     "src/pages/scannerCalibrationTestFixture.ts": "ee61564204cb066d710e7ae9860a08d2ad6be3760b690adcb3e62580faa47c2a",
     "src/pages/ScannerCompletedSummary.tsx": "435131badeb58bec00a672ead26e12f1fd0160bcc7af567ee48b716bd6e63b00",
-    "src/pages/scannerDataFileCompatibilityTests.tsx": "32fd6dcae262229d646d957c6a85aad3383d5967abda2633abfb78eb6bfab226",
+    "src/pages/scannerDataFileCompatibilityTests.tsx": "217fc928eab56d5363f4c31ee61fb23a3c4e652db6b594439743dcec2976e7d3",
     "src/pages/ScannerDiagnosticFeedback.guidance.testCases.ts": "da13f1278970abad5604bf0bd8b2b19778f50361296e4dd5f8c9db6b460e7708",
     "src/pages/ScannerDiagnosticFeedback.test.tsx": "4983382ca6776db4cdac888af90023e00080d46f003b34f60bb14db5479ab01b",
     "src/pages/ScannerDiagnosticFeedback.testCases.tsx": "4c1240fb94e1670759b09822c289a9bc2aade8f058cb947d3cb054e14598781d",

@@ -106,7 +106,9 @@ export function registerScannerDataFileCompatibilityTests({
         expect(screen.queryByRole('region', { name: '单账户备份检查' })).not.toBeInTheDocument(),
       )
       const reads = vi.mocked(file.text).mock.calls.length
-      expect(screen.getByRole('button', { name: '选择或拖入 JSON' })).toHaveFocus()
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: '选择或拖入 JSON' })).toHaveFocus(),
+      )
       await act(async () => {
         const returned = new Promise((resolve) =>
           window.addEventListener('popstate', resolve, { once: true }),
