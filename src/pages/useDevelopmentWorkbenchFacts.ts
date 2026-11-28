@@ -5,6 +5,7 @@ import { loadDevelopmentWorkbenchFactsInput } from '../application/developmentWo
 import { CalculationQueryClientContext } from '../application/accountDecisionWorldHooks'
 import { calculationQueryContractVersion } from '../application/calculationQueryContract'
 import {
+  DevelopmentWorkbenchFactsIdentityMismatch,
   isCurrentDevelopmentWorkbenchFacts,
   type DevelopmentWorkbenchFactsPresentation,
   type DevelopmentWorkbenchFactsRequest,
@@ -47,22 +48,23 @@ export function useDevelopmentWorkbenchFacts(
   const [revision, setRevision] = useState(0)
   const key = JSON.stringify([agentId, requestedPlanId, preferEquipped, revision])
   const read = useLiveQuery(async () => {
-    if (!query) return { key, query, status: 'disabled' as const }
+    if (!query) return { key, client, query, status: 'disabled' as const }
     try {
       const account = await getActiveAccount()
-      if (!account) return { key, query, status: 'no_account' as const }
+      if (!account) return { key, client, query, status: 'no_account' as const }
       const input = await loadDevelopmentWorkbenchFactsInput({
         accountId: account.id,
         agentId,
         requestedPlanId,
         preferEquipped,
       })
-      return { key, query, status: 'ready' as const, input }
+      return { key, client, query, status: 'ready' as const, input }
     } catch (error) {
-      return { key, query, status: 'error' as const, error }
+      return { key, client, query, status: 'error' as const, error }
     }
-  }, [key, query])
-  const scopedRead = read?.key === key && read.query === query ? read : undefined
+  }, [key, client, query])
+  const scopedRead =
+    read?.key === key && read.client === client && read.query === query ? read : undefined
   const request = useMemo<DevelopmentWorkbenchFactsRequest | null>(
     () =>
       scopedRead?.status === 'ready'
@@ -80,9 +82,11 @@ export function useDevelopmentWorkbenchFacts(
     [scopedRead, agentId, requestedPlanId, preferEquipped],
   )
   const [projected, setProjected] = useState<{
+    client: typeof client
     request: DevelopmentWorkbenchFactsRequest
     value?: DevelopmentWorkbenchFactsPresentation
     failed?: true
+    lastReady?: DevelopmentWorkbenchFactsPresentation
   } | null>(null)
   const execute = useCallback(
     async (next: DevelopmentWorkbenchFactsRequest, signal?: AbortSignal) => {
@@ -100,7 +104,7 @@ export function useDevelopmentWorkbenchFacts(
         value.status === 'ready' &&
         !isCurrentDevelopmentWorkbenchFacts(value, next, selectedFactsDiscs(next))
       )
-        throw new Error('当前养成资料已变化，请重新读取。')
+        throw new DevelopmentWorkbenchFactsIdentityMismatch('当前养成资料已变化，请重新读取。')
       return value
     },
     [query],
@@ -110,13 +114,41 @@ export function useDevelopmentWorkbenchFacts(
     const controller = new AbortController()
     void execute(request, controller.signal)
       .then((value) => {
-        if (!controller.signal.aborted) setProjected({ request, value })
+        if (controller.signal.aborted) return
+        setProjected({
+          client,
+          request,
+          value,
+          lastReady: value.status === 'ready' ? value : undefined,
+        })
       })
-      .catch(() => {
-        if (!controller.signal.aborted) setProjected({ request, failed: true })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return
+        setProjected((previous) => ({
+          client,
+          request,
+          failed: true,
+          lastReady:
+            previous?.client === client &&
+            !(error instanceof DevelopmentWorkbenchFactsIdentityMismatch)
+              ? previous?.lastReady
+              : undefined,
+        }))
       })
     return () => controller.abort()
-  }, [request, execute])
+  }, [request, execute, client])
+  const currentProjection =
+    projected?.client === client && projected?.request === request ? projected : null
+  const value = useMemo(() => {
+    if (!request || projected?.client !== client) return null
+    if (currentProjection?.value) return currentProjection.value
+    // A background retry may fail without changing any current account facts.
+    const lastReady = projected?.lastReady
+    return lastReady &&
+      isCurrentDevelopmentWorkbenchFacts(lastReady, request, selectedFactsDiscs(request))
+      ? lastReady
+      : null
+  }, [client, currentProjection, projected, request])
   const readCurrentRecord = useCallback(
     async (record: DevelopmentCurrentRecord) => {
       const input = await loadDevelopmentWorkbenchFactsInput({
@@ -144,18 +176,15 @@ export function useDevelopmentWorkbenchFacts(
     enabled: Boolean(query),
     input: scopedRead?.status === 'ready' ? scopedRead.input : null,
     request,
-    value: request && projected?.request === request ? (projected.value ?? null) : null,
+    value,
     error:
       scopedRead?.status === 'error' ||
       Boolean(
-        request &&
-        projected?.request === request &&
-        (projected.failed || (projected.value && projected.value.status !== 'ready')),
+        currentProjection?.failed ||
+        (currentProjection?.value && currentProjection.value.status !== 'ready'),
       ),
     loading:
-      Boolean(query) &&
-      (!scopedRead ||
-        (scopedRead.status === 'ready' && (!projected || projected.request !== request))),
+      Boolean(query) && (!scopedRead || (scopedRead.status === 'ready' && !currentProjection)),
     noAccount: scopedRead?.status === 'no_account',
     retry: () => setRevision((value) => value + 1),
     readCurrentRecord,

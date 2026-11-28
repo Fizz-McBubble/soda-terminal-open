@@ -6,7 +6,10 @@ import type {
 import { calculationQueryContractVersion } from './calculationQueryContract'
 import type { BrowserCalculationQuery } from './browserCalculationQueryProtocol'
 import { isCurrentDevelopmentDirectoryFacts } from './publicDevelopmentDirectoryFacts'
-import { developmentWorkbenchFactsFingerprint } from './publicDevelopmentWorkbenchFacts'
+import {
+  DevelopmentWorkbenchFactsIdentityMismatch,
+  developmentWorkbenchFactsFingerprint,
+} from './publicDevelopmentWorkbenchFacts'
 import { contentHash } from './contentHash'
 
 export function createWorker() {
@@ -58,7 +61,9 @@ export function createBrowserDevelopmentFactsClient(options: {
         result.inputFingerprint !== developmentWorkbenchFactsFingerprint(query) ||
         contentHash(result.selection) !== contentHash(query.selection)
       )
-        throw new Error('个人事实结果与当前请求不一致，请重试。')
+        throw new DevelopmentWorkbenchFactsIdentityMismatch(
+          '个人事实结果与当前请求不一致，请重试。',
+        )
       return result
     },
   }

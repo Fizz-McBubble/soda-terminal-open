@@ -29,6 +29,8 @@ export type DevelopmentWorkbenchFactsPresentation = Omit<
   authority: 'not_evaluated'
 }
 
+export class DevelopmentWorkbenchFactsIdentityMismatch extends Error {}
+
 export function developmentWorkbenchFactsFingerprint(request: DevelopmentWorkbenchFactsRequest) {
   const { warehouse, drafts, activePlanIds, developmentPriorityAgentIds } = request.input
   return contentHash([
