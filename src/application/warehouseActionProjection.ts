@@ -56,28 +56,42 @@ function uniqueInOrder(values: string[]) {
 }
 
 function evidenceNeedsReview(decision: WarehouseDiscDecision) {
-  const independentTrial =
-    decision.absoluteRetention?.disposition === 'observe' &&
-    decision.absoluteRetention.reasonKind === 'try_next_upgrade' &&
-    decision.absoluteRetention.nextAction?.kind === 'try_upgrade' &&
-    decision.absoluteRetention.leadingUses.some(
+  if (decision.reviewDirection) return true
+  const retention = decision.absoluteRetention
+  if (!retention) return decision.category === 'replaceable' || !decision.cleanupSafety.complete
+  const next = retention.nextAction?.kind
+  if (
+    retention.disposition === 'review' ||
+    retention.policyCalibration !== 'approved' ||
+    (retention.disposition === 'cleanup_candidate' && !decision.cleanupSafety.complete) ||
+    next === 'complete_data' ||
+    next === 'check_condition' ||
+    next === 'review_quality'
+  )
+    return true
+  if (retention.sourceCoverage === 'complete') return false
+
+  const trial =
+    retention.disposition === 'observe' &&
+    retention.reasonKind === 'try_next_upgrade' &&
+    next === 'try_upgrade'
+  // One verified use is enough to keep a finished functional main stat. It says
+  // nothing about unsupported uses or whether any other disc may be cleaned up.
+  const functionalKeep =
+    retention.disposition === 'keep' &&
+    retention.reasonKind === 'functional_ready' &&
+    next === 'keep' &&
+    decision.cleanupSafety.adoptedSetIdentity &&
+    retention.blockedBy?.length === 0
+  return (
+    !(trial || functionalKeep) ||
+    !retention.leadingUses.some(
       (use) =>
-        decision.absoluteRetention?.witnessProfileIds?.includes(use.profileId) &&
+        retention.witnessProfileIds?.includes(use.profileId) &&
         use.useState === 'valid' &&
+        (trial || use.functionalState === 'ready') &&
         retentionUseMatchesRecommendedSet(use.guidance?.currentSet?.id, use),
     )
-  return Boolean(
-    decision.reviewDirection ||
-    (decision.absoluteRetention
-      ? decision.absoluteRetention.disposition === 'review' ||
-        decision.absoluteRetention.policyCalibration !== 'approved' ||
-        (decision.absoluteRetention.sourceCoverage !== 'complete' && !independentTrial) ||
-        (decision.absoluteRetention.disposition === 'cleanup_candidate' &&
-          !decision.cleanupSafety.complete) ||
-        decision.absoluteRetention.nextAction?.kind === 'complete_data' ||
-        decision.absoluteRetention.nextAction?.kind === 'check_condition' ||
-        decision.absoluteRetention.nextAction?.kind === 'review_quality'
-      : decision.category === 'replaceable' || !decision.cleanupSafety.complete),
   )
 }
 
