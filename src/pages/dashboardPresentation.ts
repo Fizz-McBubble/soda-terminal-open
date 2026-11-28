@@ -147,11 +147,8 @@ export function deriveDashboardNextAction({
       path: '/assets/agents',
       icon: Users,
     }
-  if (
-    (decisionWorld.status === 'current' || decisionWorld.status === 'unavailable') &&
-    ownedAgents.length < 3 &&
-    !savedTeamPlans.length
-  )
+  // The recorded roster is enough to choose this step while analysis is still loading.
+  if (ownedAgents.length < 3 && !savedTeamPlans.length)
     return {
       eyebrow: '记录拥有的代理人',
       title: '记录代理人资料',
