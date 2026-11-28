@@ -95,6 +95,10 @@ export function TeamAnalysisOverviewView({
     ? startRemainingBoxAnalysis
     : () => startAnalysis({ forceRefresh: true })
   const runLost = decisionWorld.analysisIssue?.kind === 'run_lost'
+  const savedPlanDeletionNotice =
+    analysis.kind === 'stale' && analysis.reason === 'saved_plan_deleted'
+      ? result.overviewModel.contextNote
+      : null
   const runLostRef = useRef(runLost)
   const accountRef = useRef(accountSummary)
   const liveAccountIdRef = useRef(decisionWorld.liveInput?.warehouse.accountId)
@@ -214,9 +218,7 @@ export function TeamAnalysisOverviewView({
           preparationError?.runId === result.analysisRunId ? preparationError : null
         }
         contextNote={
-          (analysis.kind === 'stale' && !analysis.reason
-            ? result.overviewModel.contextNote
-            : null) ??
+          savedPlanDeletionNotice ??
           decisionWorld.analysisIssue?.message ??
           overviewFeedback ??
           result.overviewModel.contextNote
@@ -456,7 +458,22 @@ export function TeamAnalysisOverviewView({
               setAnalysis(next)
               setLastCompleteAnalysis(next)
             } catch {
-              setOverviewFeedback(`已删除“${title}”；队伍建议暂未更新。`)
+              const active = currentTeamAnalysisSession
+              if (
+                refreshRequest !== analysisRequestRef.current ||
+                active?.kind !== 'stale' ||
+                active.result.appSessionId !== retained.result.appSessionId ||
+                active.result.decisionSnapshot !== retained.result.decisionSnapshot
+              )
+                return
+              const unavailable = retainTeamAnalysisAfterSavedPlanDeletion(
+                active,
+                pendingDelete.id,
+                `已删除“${title}”；队伍建议暂未更新。`,
+              )
+              setCurrentTeamAnalysisSession(unavailable)
+              setAnalysis(unavailable)
+              setLastCompleteAnalysis(unavailable)
             }
           }}
         />

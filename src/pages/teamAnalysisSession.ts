@@ -35,7 +35,11 @@ export type TeamAnalysisState =
   | { kind: 'ready' }
   | { kind: 'running'; stage: number }
   | { kind: 'complete'; result: TeamAnalysisResult }
-  | { kind: 'stale'; result: TeamAnalysisResult; reason?: 'world_transition' }
+  | {
+      kind: 'stale'
+      result: TeamAnalysisResult
+      reason?: 'world_transition' | 'saved_plan_deleted'
+    }
   | { kind: 'unable'; reason: 'no_account' | 'empty_warehouse' }
   | { kind: 'error'; stage: number; message?: string }
 

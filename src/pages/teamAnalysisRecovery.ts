@@ -240,6 +240,7 @@ export function retainTeamAnalysisAfterSavedPlanDeletion(
   const planId = savedPlanId.replace(/^saved:/, '')
   return {
     kind: 'stale',
+    reason: contextNote ? 'saved_plan_deleted' : undefined,
     result: {
       ...previous.result,
       reservations: previous.result.reservations?.filter((item) => item.planId !== planId),
