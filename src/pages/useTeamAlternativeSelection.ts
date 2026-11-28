@@ -3,6 +3,7 @@ import type { NavigateFunction } from 'react-router-dom'
 import type {
   AccountDecisionSnapshot,
   CalculationQueryClient,
+  TargetTeamWarehouseFitQueryResult,
 } from '../application/calculationQueryContract'
 import { calculationQueryContractVersion } from '../application/calculationQueryContract'
 import type { useTargetTeamWarehouseFitCalculation } from '../application/accountDecisionWorldHooks'
@@ -103,6 +104,11 @@ export function useTeamAlternativeSelection({
         setAlternativeError('这支替换队伍暂不能生成配装。')
         return
       }
+      const { team, targetCandidateId } = entry
+      const matchesTarget = (fit: TargetTeamWarehouseFitQueryResult | undefined) =>
+        fit?.candidateId === targetCandidateId &&
+        fit.memberIds.length === team.agentIds.length &&
+        team.agentIds.every((agentId) => fit.memberIds.includes(agentId))
       const destination = `/loadouts/team/${encodeURIComponent(candidateId)}`
       const openDestination = () => {
         navigate(destination)
@@ -118,7 +124,7 @@ export function useTeamAlternativeSelection({
         currentSession.result.warehouse.accountId === accountId &&
         currentSession.result.inputFingerprint === decision.fingerprint.inputHash
       const cached = sameInput ? currentSession.result.targetTeamFits[entry.team.id] : undefined
-      if (cached?.candidateId === entry.targetCandidateId) {
+      if (matchesTarget(cached)) {
         openDestination()
         return
       }
@@ -134,6 +140,7 @@ export function useTeamAlternativeSelection({
         controller.signal,
       )
       if (!isCurrentRequest()) return
+      if (!matchesTarget(fit)) throw new Error('替换队伍配装对象不匹配。')
       const session = currentTeamAnalysisSession
       if (
         session?.result.analysisRunId !== analysisRunId ||
